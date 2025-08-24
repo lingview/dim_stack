@@ -1,68 +1,83 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import 'tailwindcss';
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* 暗色模式全局覆盖 */
+.dark {
+  --tw-bg-opacity: 1;
+  background-color: rgba(17, 24, 39, var(--tw-bg-opacity));
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+/* 背景色覆盖 */
+.dark .bg-white {
+  background-color: #1f2937 !important;
 }
-a:hover {
-  color: #535bf2;
+.dark .bg-gray-50 {
+  background-color: #111827 !important;
 }
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+.dark .bg-gray-100 {
+  background-color: #1f2937 !important;
+}
+.dark .bg-gray-200 {
+  background-color: #374151 !important;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* 边框覆盖 */
+.dark .border-gray-200 {
+  border-color: #374151 !important;
+}
+.dark .border-gray-300 {
+  border-color: #4b5563 !important;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
+/* 文字颜色覆盖 */
+.dark .text-gray-900 {
+  color: #f9fafb !important;
 }
-button:hover {
-  border-color: #646cff;
+.dark .text-gray-800 {
+  color: #f3f4f6 !important;
 }
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.dark .text-gray-700 {
+  color: #e5e7eb !important;
+}
+.dark .text-gray-600 {
+  color: #d1d5db !important;
+}
+.dark .text-gray-500 {
+  color: #9ca3af !important;
+}
+.dark .text-gray-400 {
+  color: #9ca3af !important;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* hover 覆盖 */
+.dark .hover\:bg-gray-50:hover {
+  background-color: #374151 !important;
 }
+.dark .hover\:bg-gray-100:hover {
+  background-color: #4b5563 !important;
+}
+.dark .hover\:bg-gray-200:hover {
+  background-color: #6b7280 !important;
+}
+
+/* 阴影在暗色下变淡一点 */
+.dark .shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important;
+}
+.dark .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* 卡片 / 容器背景 */
+.dark .card,
+.dark .bg-card {
+  background-color: #1f2937 !important;
+}
+
+/* 首页文章卡片分类 */
+.dark .bg-blue-100 {
+  background-color: #1e3a8a;
+}
+.dark .text-blue-800 {
+   color: #93c5fd;
+}
+
