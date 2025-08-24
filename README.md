@@ -3,7 +3,7 @@
 > 一个为虚拟歌手（Vsinger）、Minecraft 玩家与计算机爱好者打造的多元兴趣内容社区  
 > 基于 Spring Boot + React 的现代化论坛 CMS 系统
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+[//]: # (![License]&#40;https://img.shields.io/badge/license-MIT-blue.svg&#41;)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-green.svg)
 ![React](https://img.shields.io/badge/React-19.1.1-%2361DAFB.svg)
 ![Node.js](https://img.shields.io/badge/Node.js-22.16.0-43853D.svg)
