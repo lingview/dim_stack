@@ -1,4 +1,4 @@
-import { fakeData } from '../api';
+import { fakeData } from '../Api.jsx';
 import ThemeToggle from './ThemeToggle';
 
 export default function Header() {
@@ -7,7 +7,7 @@ export default function Header() {
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-blue-400">次元栈</h1>
+              <h1 className="text-2xl font-bold text-blue-400">{fakeData.siteInfo.title}</h1>
             </div>
 
             <nav className="hidden md:block">

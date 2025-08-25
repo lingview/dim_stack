@@ -1,4 +1,4 @@
-import { fakeData } from '../api';
+import { fakeData } from '../Api.jsx';
 
 export default function CategorySidebar() {
     return (

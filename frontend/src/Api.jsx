@@ -5,6 +5,12 @@ import articles2 from "./images/7e2eca515d52f7f67e978beba1f98af8.jpg"
 import articles3 from "./images/800ccaba0d3ad4e8f2416239ed0761e4.jpg"
 
 export const fakeData = {
+    // 网站基本信息
+    siteInfo: {
+        title: '次元栈',
+        copyright: '© 2025 次元栈. All rights reserved.'
+    },
+
     // 顶部导航数据
     navItems: [
         { id: 1, name: '首页', href: '/' },
@@ -27,7 +33,7 @@ export const fakeData = {
         {
             id: 1,
             title: '洛天依十年：虚拟歌手的成长之路',
-            excerpt: '回顾洛天依自出道以来的发展历程，以及她如何成为最受欢迎的虚拟歌手之一。',
+            excerpt: '回顾洛天依自出道以来的发展历程，以及她如何成为最受欢迎的虚拟歌手之一发手机号发不色。',
             date: '2023-06-15',
             author: 'lingview',
             category: 'Vsinger',
