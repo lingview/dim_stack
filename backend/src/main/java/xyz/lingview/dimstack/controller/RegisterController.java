@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.lingview.dimstack.domain.Register;
-import xyz.lingview.dimstack.mapper.ControlsMapper;
+import xyz.lingview.dimstack.mapper.RegisterMapper;
 import xyz.lingview.dimstack.util.PasswordUtil;
 import xyz.lingview.dimstack.util.RandomUtil;
 import xyz.lingview.dimstack.util.CaptchaUtil;
@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class RegisterController {
 
     @Autowired
-    private ControlsMapper controlsMapper;
+    private RegisterMapper registerMapper;
 
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -87,7 +87,7 @@ public class RegisterController {
             }
 
             // 检查用户是否已存在
-            int userExists = controlsMapper.selectUser(username);
+            int userExists = registerMapper.selectUser(username);
             if (userExists > 0) {
                 String registeredFlag = redisTemplate.opsForValue().get("registered_" + username);
                 if ("true".equals(registeredFlag)) {
@@ -107,7 +107,7 @@ public class RegisterController {
             register.setUuid(RandomUtil.generateUUID());
             register.setPassword(PasswordUtil.hashPassword(password));
 
-            int insertResult = controlsMapper.insertUser(register);
+            int insertResult = registerMapper.insertUser(register);
             log.info("插入结果：{}", insertResult);
 
             if (insertResult > 0) {

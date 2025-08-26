@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.lingview.dimstack.domain.Login;
-import xyz.lingview.dimstack.mapper.ControlsMapper;
+import xyz.lingview.dimstack.mapper.LoginMapper;
 import xyz.lingview.dimstack.util.PasswordUtil;
 import xyz.lingview.dimstack.util.CaptchaUtil;
 
@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class LoginController {
 
     @Autowired
-    private ControlsMapper controlsMapper;
+    private LoginMapper loginMapper;
 
     @Autowired
     private StringRedisTemplate redisTemplate;
@@ -111,7 +111,7 @@ public class LoginController {
             login.setUsername(username);
             login.setPassword(password);
 
-            Login result = controlsMapper.loginUser(login);
+            Login result = loginMapper.loginUser(login);
             if (result == null) {
                 data.put("success", false);
                 data.put("message", "用户名或密码错误");

@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="xyz.lingview.dimstack.mapper.ControlsMapper">
+<mapper namespace="xyz.lingview.dimstack.mapper.RegisterMapper">
     <resultMap type="xyz.lingview.dimstack.domain.Register" id="Register">
         <id property="uuid" column="uuid" />
         <result property="username" column="username" />
