@@ -48,7 +48,7 @@
   color: #9ca3af !important;
 }
 
-/* hover 覆盖 */
+/* hover覆盖 */
 .dark .hover\:bg-gray-50:hover {
   background-color: #374151 !important;
 }
@@ -67,7 +67,7 @@
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3) !important;
 }
 
-/* 卡片 / 容器背景 */
+/* 卡片/容器背景 */
 .dark .card,
 .dark .bg-card {
   background-color: #1f2937 !important;
@@ -81,3 +81,70 @@
    color: #93c5fd;
 }
 
+
+/* 暗色模式下输入控件文字颜色 */
+.dark input,
+.dark textarea,
+.dark select {
+  color: #f9fafb;
+}
+
+/* 暗色模式下输入控件背景色 */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #374151;
+}
+/* 表单控件在暗色模式下的优化 */
+.dark input::-webkit-input-placeholder,
+.dark textarea::-webkit-input-placeholder {
+  color: #9ca3af;
+}
+
+.dark input::-moz-placeholder,
+.dark textarea::-moz-placeholder {
+  color: #9ca3af;
+}
+
+.dark input:-ms-input-placeholder,
+.dark textarea:-ms-input-placeholder {
+  color: #9ca3af;
+}
+
+.dark input::-ms-input-placeholder,
+.dark textarea::-ms-input-placeholder {
+  color: #9ca3af;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* 暗色模式下的输入框焦点状态 */
+.dark input:focus,
+.dark textarea:focus {
+  --tw-ring-color: #3b82f6;
+}
+
+.dark .captcha-placeholder-text {
+  color: #d1d5db;
+}
+
+/* 在 index.css 中添加以下样式 */
+.dark .captcha-refresh-btn {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #d1d5db;
+  transition: all 0.2s ease;
+}
+
+.dark .captcha-refresh-btn:hover {
+  background-color: #4b5563;
+  color: #f9fafb;
+  transform: translateY(-1px);
+}
+
+.dark .captcha-refresh-btn:active {
+  transform: translateY(0);
+}

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.lingview.dimstack.mapper.ControlsMapper">
+    <resultMap type="xyz.lingview.dimstack.domain.Register" id="Register">
+        <id property="uuid" column="uuid" />
+        <result property="username" column="username" />
+        <result property="phone" column="phone" />
+        <result property="email" column="email" />
+        <result property="password" column="password" />
+        <result property="status" column="status" />
+    </resultMap>
+
+    <select id="selectUser" resultType="int">
+        SELECT
+            CASE WHEN EXISTS (
+                SELECT 1 FROM user_information
+                WHERE username = #{username}
+            ) THEN 1 ELSE 0 END AS exists_flag
+    </select>
+
+    <insert id="insertUser" parameterType="xyz.lingview.dimstack.domain.Register">
+        INSERT INTO user_information(uuid, username, phone, email, password, status)
+        VALUES (#{uuid} ,#{username}, #{phone}, #{email}, #{password}, 1)
+    </insert>
+
+</mapper>
