@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.lingview.dimstack.domain.Register;
+import xyz.lingview.dimstack.domain.SiteConfig;
 import xyz.lingview.dimstack.mapper.RegisterMapper;
+import xyz.lingview.dimstack.mapper.SiteConfigMapper;
 import xyz.lingview.dimstack.util.PasswordUtil;
 import xyz.lingview.dimstack.util.RandomUtil;
 import xyz.lingview.dimstack.util.CaptchaUtil;
@@ -31,6 +33,8 @@ public class RegisterController {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
+    @Autowired
+    SiteConfigMapper siteConfigMapper;
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@RequestBody Map<String, Object> requestData, HttpSession session) {
         try {
@@ -106,6 +110,8 @@ public class RegisterController {
             register.setPhone(phone);
             register.setUuid(RandomUtil.generateUUID());
             register.setPassword(PasswordUtil.hashPassword(password));
+            int userDefaultPermission = siteConfigMapper.getRegisterUserPermission();
+            register.setRole_id(userDefaultPermission);
 
             int insertResult = registerMapper.insertUser(register);
             log.info("插入结果：{}", insertResult);

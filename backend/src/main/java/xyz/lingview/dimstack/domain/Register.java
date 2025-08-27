@@ -10,5 +10,6 @@ public class Register {
     private String phone;
     private String email;
     private String password;
+    private int role_id;
     private String status;
 }

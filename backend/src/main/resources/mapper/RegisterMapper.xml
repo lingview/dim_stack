@@ -9,6 +9,7 @@
         <result property="phone" column="phone" />
         <result property="email" column="email" />
         <result property="password" column="password" />
+        <result property="role_id" column="role_id" />
         <result property="status" column="status" />
     </resultMap>
 
@@ -21,8 +22,8 @@
     </select>
 
     <insert id="insertUser" parameterType="xyz.lingview.dimstack.domain.Register">
-        INSERT INTO user_information(uuid, username, phone, email, password, status)
-        VALUES (#{uuid} ,#{username}, #{phone}, #{email}, #{password}, 1)
+        INSERT INTO user_information(uuid, username, phone, email, password, role_id, status)
+        VALUES (#{uuid} ,#{username}, #{phone}, #{email}, #{password}, #{role_id}, 1)
     </insert>
 
 </mapper>
