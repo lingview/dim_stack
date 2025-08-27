@@ -11,11 +11,118 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 27/08/2025 00:14:35
+ Date: 27/08/2025 10:25:01
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for permission
+-- ----------------------------
+DROP TABLE IF EXISTS `permission`;
+CREATE TABLE `permission`  (
+                               `id` int NOT NULL AUTO_INCREMENT COMMENT '权限ID',
+                               `code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '权限码，如 post:view',
+                               `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '权限名称，如 查看文章',
+                               `module` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '所属模块，如 post, user, system',
+                               `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                               PRIMARY KEY (`id`) USING BTREE,
+                               UNIQUE INDEX `idx_code`(`code` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '权限表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of permission
+-- ----------------------------
+INSERT INTO `permission` VALUES (1, 'post:view', '查看文章', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (2, 'post:create', '创建文章', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (3, 'post:edit:own', '编辑自己的文章', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (4, 'post:delete:own', '删除自己的文章', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (5, 'post:submit', '提交文章发布', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (6, 'post:edit:any', '编辑所有文章', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (7, 'post:delete:any', '删除任何文章', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (8, 'post:publish', '发布文章', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (9, 'post:review', '审核文章', 'post', '2025-08-27 09:22:27');
+
+-- ----------------------------
+-- Table structure for role
+-- ----------------------------
+DROP TABLE IF EXISTS `role`;
+CREATE TABLE `role`  (
+                         `id` int NOT NULL AUTO_INCREMENT,
+                         `code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '角色编码，如 AUTHOR',
+                         `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '角色名称，如 作者',
+                         `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '描述',
+                         `status` tinyint NULL DEFAULT 1 COMMENT '状态：1启用，0禁用',
+                         PRIMARY KEY (`id`) USING BTREE,
+                         UNIQUE INDEX `idx_code`(`code` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of role
+-- ----------------------------
+INSERT INTO `role` VALUES (1, 'READER', '阅读者', '未注册用户，可以浏览和阅读已发布的文章内容，参与评论互动，但无法创建或编辑文章。', 1);
+INSERT INTO `role` VALUES (2, 'AUTHOR', '作者', '内容创作者角色，可以创建、编辑、删除自己的文章，并提交文章进入审核流程，等待管理员发布。', 1);
+INSERT INTO `role` VALUES (3, 'POST_MANAGER', '文章管理员', '负责内容运营管理的角色，可以审核、发布、修改和删除任何文章，管理评论，维护内容质量和平台秩序。', 1);
+INSERT INTO `role` VALUES (4, 'ADMIN', '管理员', '系统超级管理员，拥有最高权限，可管理用户、角色、权限、站点配置等所有功能，负责平台整体运行与安全。', 1);
+
+-- ----------------------------
+-- Table structure for role_permission
+-- ----------------------------
+DROP TABLE IF EXISTS `role_permission`;
+CREATE TABLE `role_permission`  (
+                                    `role_id` int NOT NULL COMMENT '角色ID',
+                                    `permission_id` int NOT NULL COMMENT '权限ID',
+                                    PRIMARY KEY (`role_id`, `permission_id`) USING BTREE,
+                                    INDEX `idx_permission_id`(`permission_id` ASC) USING BTREE,
+                                    CONSTRAINT `fk_rp_permission` FOREIGN KEY (`permission_id`) REFERENCES `permission` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+                                    CONSTRAINT `fk_rp_role` FOREIGN KEY (`role_id`) REFERENCES `role` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '角色权限关联表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of role_permission
+-- ----------------------------
+INSERT INTO `role_permission` VALUES (1, 1);
+INSERT INTO `role_permission` VALUES (2, 1);
+INSERT INTO `role_permission` VALUES (3, 1);
+INSERT INTO `role_permission` VALUES (4, 1);
+INSERT INTO `role_permission` VALUES (2, 2);
+INSERT INTO `role_permission` VALUES (3, 2);
+INSERT INTO `role_permission` VALUES (4, 2);
+INSERT INTO `role_permission` VALUES (2, 3);
+INSERT INTO `role_permission` VALUES (3, 3);
+INSERT INTO `role_permission` VALUES (4, 3);
+INSERT INTO `role_permission` VALUES (2, 4);
+INSERT INTO `role_permission` VALUES (3, 4);
+INSERT INTO `role_permission` VALUES (4, 4);
+INSERT INTO `role_permission` VALUES (2, 5);
+INSERT INTO `role_permission` VALUES (3, 5);
+INSERT INTO `role_permission` VALUES (4, 5);
+INSERT INTO `role_permission` VALUES (3, 6);
+INSERT INTO `role_permission` VALUES (4, 6);
+INSERT INTO `role_permission` VALUES (3, 7);
+INSERT INTO `role_permission` VALUES (4, 7);
+INSERT INTO `role_permission` VALUES (3, 8);
+INSERT INTO `role_permission` VALUES (4, 8);
+INSERT INTO `role_permission` VALUES (3, 9);
+INSERT INTO `role_permission` VALUES (4, 9);
+
+-- ----------------------------
+-- Table structure for site_config
+-- ----------------------------
+DROP TABLE IF EXISTS `site_config`;
+CREATE TABLE `site_config`  (
+                                `id` int NOT NULL AUTO_INCREMENT COMMENT '主键',
+                                `site_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '站点名称',
+                                `register_user_permission` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '注册用户默认角色CODE',
+                                `copyright` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '版权信息',
+                                PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '站点基础设置表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of site_config
+-- ----------------------------
+INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 'AUTHOR', '© 2025 次元栈 - Dim Stack. All rights reserved.');
 
 -- ----------------------------
 -- Table structure for upload_article
@@ -28,12 +135,12 @@ CREATE TABLE `upload_article`  (
                                    `article_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章名字',
                                    `article_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户上传文章的路径',
                                    `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '文章上传时间',
-                                   `status` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章状态，删除：0，正常：1，取消发布：2，违规：3',
+                                   `status` tinyint NOT NULL COMMENT '文章状态：0=删除, 1=正常, 2=取消发布, 3=违规',
                                    PRIMARY KEY (`id`) USING BTREE,
-                                   UNIQUE INDEX `article_id`(`article_id` ASC) USING BTREE COMMENT '文章唯一id',
+                                   UNIQUE INDEX `article_id`(`article_id` ASC) USING BTREE,
                                    INDEX `user_article_uuid`(`uuid` ASC) USING BTREE,
-                                   CONSTRAINT `user_article_uuid` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+                                   CONSTRAINT `fk_article_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '文章上传记录表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of upload_article
@@ -49,13 +156,13 @@ CREATE TABLE `upload_attachment`  (
                                       `attachment_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '附件唯一id',
                                       `attachment_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '附件路径',
                                       `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '上传时间',
-                                      `status` int NOT NULL COMMENT '附件状态，正常附件：1，删除附件：0',
+                                      `status` tinyint NOT NULL COMMENT '附件状态：0=删除, 1=正常',
                                       PRIMARY KEY (`id`) USING BTREE,
-                                      UNIQUE INDEX `attachment_id`(`attachment_id` ASC) USING BTREE COMMENT '附件唯一id',
-                                      UNIQUE INDEX `attachment_path`(`attachment_path` ASC) USING BTREE COMMENT '附件路径',
-                                      INDEX `uuid`(`uuid` ASC) USING BTREE,
-                                      CONSTRAINT `uuid` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+                                      UNIQUE INDEX `attachment_id`(`attachment_id` ASC) USING BTREE,
+                                      UNIQUE INDEX `attachment_path`(`attachment_path` ASC) USING BTREE,
+                                      INDEX `idx_uuid`(`uuid` ASC) USING BTREE,
+                                      CONSTRAINT `fk_attachment_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '附件上传记录表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of upload_attachment
@@ -75,11 +182,17 @@ CREATE TABLE `user_information`  (
                                      `gender` enum('male','female','other') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '性别',
                                      `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '密码',
                                      `birthday` date NULL DEFAULT NULL COMMENT '生日',
-                                     `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '用户创建时间',
-                                     `status` int NOT NULL COMMENT '用户状态 0为删除 1为正常 2为封禁',
+                                     `role_id` int NOT NULL COMMENT '角色ID，外键引用 role.id',
+                                     `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '用户创建时间',
+                                     `status` tinyint NOT NULL COMMENT '用户状态：0=删除, 1=正常, 2=封禁',
                                      PRIMARY KEY (`id`) USING BTREE,
-                                     UNIQUE INDEX `uuid`(`uuid` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+                                     UNIQUE INDEX `uuid`(`uuid` ASC) USING BTREE,
+                                     INDEX `idx_role_id`(`role_id` ASC) USING BTREE,
+                                     CONSTRAINT `fk_user_role` FOREIGN KEY (`role_id`) REFERENCES `role` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户信息表' ROW_FORMAT = DYNAMIC;
 
+-- ----------------------------
+-- Records of user_information
+-- ----------------------------
 
 SET FOREIGN_KEY_CHECKS = 1;
