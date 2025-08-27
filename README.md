@@ -7,7 +7,9 @@
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5-green.svg)
 ![React](https://img.shields.io/badge/React-19.1.1-%2361DAFB.svg)
 ![Node.js](https://img.shields.io/badge/Node.js-22.16.0-43853D.svg)
-![Database](https://img.shields.io/badge/Database-MySQL-4479A1.svg)
+![MySQL](https://img.shields.io/badge/Database-MySQL-4479A1.svg)
+![Redis](https://img.shields.io/badge/Database-Redis-DC382D.svg)
+
 
 ---
 
@@ -34,3 +36,10 @@
 | **构建**   | Maven (后端), npm/pnpm (前端)                                    |
 | **部署**   | Docker, Nginx, Linux, Windows                                |
 ---
+
+## 主要界面展示
+>白天模式
+![img.png](./images/index_light.png)
+
+>夜晚模式
+![img.png](./images/index_dark.png)
