@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 27/08/2025 10:25:01
+ Date: 27/08/2025 13:59:32
 */
 
 SET NAMES utf8mb4;
@@ -114,15 +114,17 @@ DROP TABLE IF EXISTS `site_config`;
 CREATE TABLE `site_config`  (
                                 `id` int NOT NULL AUTO_INCREMENT COMMENT '主键',
                                 `site_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '站点名称',
-                                `register_user_permission` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '注册用户默认角色CODE',
+                                `register_user_permission` int NULL DEFAULT NULL COMMENT '注册用户默认角色id',
                                 `copyright` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '版权信息',
-                                PRIMARY KEY (`id`) USING BTREE
+                                PRIMARY KEY (`id`) USING BTREE,
+                                INDEX `register_user_permission`(`register_user_permission` ASC) USING BTREE,
+                                CONSTRAINT `register_user_permission` FOREIGN KEY (`register_user_permission`) REFERENCES `role` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '站点基础设置表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of site_config
 -- ----------------------------
-INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 'AUTHOR', '© 2025 次元栈 - Dim Stack. All rights reserved.');
+INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 2, '© 2025 次元栈 - Dim Stack. All rights reserved.');
 
 -- ----------------------------
 -- Table structure for upload_article
@@ -182,7 +184,7 @@ CREATE TABLE `user_information`  (
                                      `gender` enum('male','female','other') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '性别',
                                      `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '密码',
                                      `birthday` date NULL DEFAULT NULL COMMENT '生日',
-                                     `role_id` int NOT NULL COMMENT '角色ID，外键引用 role.id',
+                                     `role_id` int NOT NULL DEFAULT 2 COMMENT '角色ID，外键引用 role.id',
                                      `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '用户创建时间',
                                      `status` tinyint NOT NULL COMMENT '用户状态：0=删除, 1=正常, 2=封禁',
                                      PRIMARY KEY (`id`) USING BTREE,
