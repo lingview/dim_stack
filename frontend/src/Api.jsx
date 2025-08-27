@@ -7,8 +7,8 @@ import articles3 from "./images/800ccaba0d3ad4e8f2416239ed0761e4.jpg"
 export const fakeData = {
     // 网站基本信息
     siteInfo: {
-        title: '次元栈',
-        copyright: '© 2025 次元栈. All rights reserved.'
+        title: '次元栈 - Dim Stack',
+        copyright: '© 2025 次元栈 - Dim Stack. All rights reserved.'
     },
 
     // 顶部导航数据
