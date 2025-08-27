@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.Environment;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.stereotype.Component;
 
 import java.awt.*;
@@ -13,6 +14,7 @@ import java.net.Inet4Address;
 import java.net.UnknownHostException;
 
 @SpringBootApplication
+@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 604800, redisNamespace = "dimstack:session")
 public class StartServer {
     public static void main(String[] args) {
         SpringApplication.run(StartServer.class, args);
