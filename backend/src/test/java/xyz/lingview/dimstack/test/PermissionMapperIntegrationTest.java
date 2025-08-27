@@ -1,9 +1,11 @@
-package xyz.lingview.dimstack.mapper;
+package xyz.lingview.dimstack.test;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import xyz.lingview.dimstack.mapper.UserPermissionMapper;
+
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -16,7 +18,7 @@ public class PermissionMapperIntegrationTest {
 
     @Test
     public void testFindPermissionCodesByUserName() {
-        List<String> permissionCodes = permissionMapper.findPermissionCodesByUserName("test");
+        List<String> permissionCodes = permissionMapper.findPermissionCodesByUserName("admin");
 
         assertNotNull(permissionCodes);
         System.out.println("Permissions: " + permissionCodes);
