@@ -1,4 +1,3 @@
-// src/main/java/xyz/lingview/dimstack/security/SessionAuthFilter.java
 package xyz.lingview.dimstack.security;
 
 import lombok.extern.slf4j.Slf4j;
@@ -104,11 +103,6 @@ public class SessionAuthFilter implements Filter {
                     httpResponse.setContentType("application/json;charset=UTF-8");
                     httpResponse.getWriter().write("{\"success\":false,\"message\":\"该用户已被拉黑\"}");
                     return;
-                } else {
-                    System.out.println("用户未登录或会话已过期");
-                    httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    httpResponse.setContentType("application/json;charset=UTF-8");
-                    httpResponse.getWriter().write("{\"success\":false,\"message\":\"未登录或会话已过期\"}");
                 }
 
                 if (!checkPermission(httpRequest, httpResponse, (String) username)) {
@@ -129,6 +123,7 @@ public class SessionAuthFilter implements Filter {
             httpResponse.setContentType("application/json;charset=UTF-8");
             httpResponse.getWriter().write("{\"success\":false,\"message\":\"未登录或会话已过期\"}");
         }
+
     }
 
 
@@ -157,11 +152,15 @@ public class SessionAuthFilter implements Filter {
                     response.getWriter().write("{\"success\":false,\"message\":\"权限不足\"}");
                     return false;
                 }
+
+                return true;
             }
         }
 
+        // 如果没有@RequiresPermission注解，则放行
         return true;
     }
+
 
     private boolean isWhitelisted(String requestURI) {
         return WHITE_LIST.stream().anyMatch(pattern -> {

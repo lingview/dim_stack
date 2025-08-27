@@ -4,8 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 //import xyz.lingview.dimstack.security.JwtRequestFilter;
+import xyz.lingview.dimstack.interceptor.UserPermissionInterceptor;
 import xyz.lingview.dimstack.security.SecurityFilter;
 import xyz.lingview.dimstack.security.SessionAuthFilter;
 
@@ -59,4 +61,15 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     // public void addInterceptors(InterceptorRegistry registry) {
     //     registry.addInterceptor(securityFilter).addPathPatterns("/**");
     // }
+
+
+    // 注册权限拦截器
+    @Autowired
+    private UserPermissionInterceptor userPermissionInterceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(userPermissionInterceptor)
+                .addPathPatterns("/api/**");
+    }
 }
