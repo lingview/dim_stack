@@ -71,7 +71,7 @@ public class StartServer {
             ProcessBuilder processBuilder = null;
 
             if (osName.contains("win")) {
-                processBuilder = new ProcessBuilder("cmd", "/c", "start", url);
+//                processBuilder = new ProcessBuilder("cmd", "/c", "start", url);
             } else if (osName.contains("mac")) {
                 processBuilder = new ProcessBuilder("open", url);
             } else {
