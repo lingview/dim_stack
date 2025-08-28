@@ -57,18 +57,30 @@ export default function Header() {
             </button>
 
             {isLoggedIn ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-gray-700 dark:text-gray-300 hidden md:inline">
+                <div className="relative group flex items-center space-x-4">
+                <span className="text-gray-700 dark:text-gray-300 hidden md:inline cursor-pointer">
                   欢迎, {username}
                 </span>
-                <button
-                  onClick={handleLogout}
-                  className="hidden md:block bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-all duration-200"
-                >
-                  登出
-                </button>
-              </div>
+                  {/* 下拉菜单 */}
+                  <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200 z-50">
+                    <button
+                        onClick={() => {
+                          navigate('/dashboard');
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      进入控制台
+                    </button>
+                    <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      登出
+                    </button>
+                  </div>
+                </div>
             ) : (
+
               <button
                 onClick={() => navigate('/login')}
                 className="hidden md:block bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-all duration-200"
