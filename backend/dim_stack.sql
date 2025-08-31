@@ -11,11 +11,59 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 27/08/2025 13:59:32
+ Date: 31/08/2025 15:09:52
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for article
+-- ----------------------------
+DROP TABLE IF EXISTS `article`;
+CREATE TABLE `article`  (
+                            `id` int NOT NULL AUTO_INCREMENT COMMENT '创建顺序',
+                            `uuid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户uuid',
+                            `article_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章id（唯一）',
+                            `article_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章名字',
+                            `article_cover` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '文章封面',
+                            `article_content` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章正文',
+                            `tags` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章标签',
+                            `category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章分类',
+                            `alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章访问链接',
+                            `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '文章上传时间',
+                            `status` tinyint NOT NULL COMMENT '文章状态：0=删除, 1=正常, 2=取消发布, 3=违规',
+                            PRIMARY KEY (`id`) USING BTREE,
+                            UNIQUE INDEX `article_id`(`article_id` ASC) USING BTREE,
+                            INDEX `user_article_uuid`(`uuid` ASC) USING BTREE,
+                            CONSTRAINT `fk_article_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '文章上传记录表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of article
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for attachment
+-- ----------------------------
+DROP TABLE IF EXISTS `attachment`;
+CREATE TABLE `attachment`  (
+                               `id` int NOT NULL AUTO_INCREMENT COMMENT '上传顺序',
+                               `uuid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户唯一id',
+                               `attachment_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '附件唯一id',
+                               `attachment_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '附件路径',
+                               `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '上传时间',
+                               `status` tinyint NOT NULL COMMENT '附件状态：0=删除, 1=正常',
+                               PRIMARY KEY (`id`) USING BTREE,
+                               UNIQUE INDEX `attachment_id`(`attachment_id` ASC) USING BTREE,
+                               UNIQUE INDEX `attachment_path`(`attachment_path` ASC) USING BTREE,
+                               INDEX `idx_uuid`(`uuid` ASC) USING BTREE,
+                               CONSTRAINT `fk_attachment_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '附件上传记录表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of attachment
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for permission
@@ -125,50 +173,6 @@ CREATE TABLE `site_config`  (
 -- Records of site_config
 -- ----------------------------
 INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 2, '© 2025 次元栈 - Dim Stack. All rights reserved.');
-
--- ----------------------------
--- Table structure for upload_article
--- ----------------------------
-DROP TABLE IF EXISTS `upload_article`;
-CREATE TABLE `upload_article`  (
-                                   `id` int NOT NULL AUTO_INCREMENT COMMENT '创建顺序',
-                                   `uuid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户uuid',
-                                   `article_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章id（唯一）',
-                                   `article_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章名字',
-                                   `article_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户上传文章的路径',
-                                   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '文章上传时间',
-                                   `status` tinyint NOT NULL COMMENT '文章状态：0=删除, 1=正常, 2=取消发布, 3=违规',
-                                   PRIMARY KEY (`id`) USING BTREE,
-                                   UNIQUE INDEX `article_id`(`article_id` ASC) USING BTREE,
-                                   INDEX `user_article_uuid`(`uuid` ASC) USING BTREE,
-                                   CONSTRAINT `fk_article_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '文章上传记录表' ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of upload_article
--- ----------------------------
-
--- ----------------------------
--- Table structure for upload_attachment
--- ----------------------------
-DROP TABLE IF EXISTS `upload_attachment`;
-CREATE TABLE `upload_attachment`  (
-                                      `id` int NOT NULL AUTO_INCREMENT COMMENT '上传顺序',
-                                      `uuid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户唯一id',
-                                      `attachment_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '附件唯一id',
-                                      `attachment_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '附件路径',
-                                      `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '上传时间',
-                                      `status` tinyint NOT NULL COMMENT '附件状态：0=删除, 1=正常',
-                                      PRIMARY KEY (`id`) USING BTREE,
-                                      UNIQUE INDEX `attachment_id`(`attachment_id` ASC) USING BTREE,
-                                      UNIQUE INDEX `attachment_path`(`attachment_path` ASC) USING BTREE,
-                                      INDEX `idx_uuid`(`uuid` ASC) USING BTREE,
-                                      CONSTRAINT `fk_attachment_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '附件上传记录表' ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of upload_attachment
--- ----------------------------
 
 -- ----------------------------
 -- Table structure for user_information

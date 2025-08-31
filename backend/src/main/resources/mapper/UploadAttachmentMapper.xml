@@ -11,7 +11,7 @@
     </resultMap>
 
     <insert id="insertUploadAttachment" parameterType="xyz.lingview.dimstack.domain.UploadAttachment">
-        INSERT INTO upload_attachment(uuid, attachment_id, attachment_path, status)
+        INSERT INTO attachment(uuid, attachment_id, attachment_path, status)
         VALUES (#{uuid}, #{attachment_id}, #{attachment_path},1)
     </insert>
 
