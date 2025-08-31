@@ -1,57 +1,71 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
     FileText, Save, X, Bold, Italic, Heading,
-    Link as LinkIcon, Image, List, Code
+    Link as LinkIcon, Image, List, Code, Video, Music
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
-import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
+import rehypeSanitize from 'rehype-sanitize';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import apiClient from '../utils/axios';
+import { getConfig } from '../utils/config';
 
-function detectXSS(html) {
-    const lower = html.toLowerCase();
-    const patterns = [
-        /<script.*?>/i,
-        /on\w+\s*=/i,
-        /javascript:/i,
-        /data:text\/html/i
-    ];
-    return patterns.some(p => p.test(lower));
-}
+const SUPPORTED_FILE_TYPES = {
+    image: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp'],
+    video: ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov', 'video/mkv'],
+    audio: ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/aac', 'audio/flac']
+};
 
+const isFileTypeSupported = (fileType) => {
+    return Object.values(SUPPORTED_FILE_TYPES).some(types => types.includes(fileType));
+};
 
-const schema = {
-    ...defaultSchema,
-    tagNames: [...defaultSchema.tagNames, 'iframe', 'video', 'source'],
-    attributes: {
-        ...defaultSchema.attributes,
-        iframe: [
-            ...(defaultSchema.attributes.iframe || []),
-            'src', 'width', 'height', 'frameborder', 'allow', 'allowfullscreen'
-        ],
-        video: [
-            ...(defaultSchema.attributes.video || []),
-            'src', 'controls', 'autoplay', 'loop', 'muted', 'poster'
-        ],
-        source: ['src', 'type']
-    },
+const getMediaType = (fileType) => {
+    for (const [type, mimes] of Object.entries(SUPPORTED_FILE_TYPES)) {
+        if (mimes.includes(fileType)) {
+            return type;
+        }
+    }
+    return null;
 };
 
 export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const [title, setTitle] = useState(initialData?.title || '');
     const [content, setContent] = useState(initialData?.content || '');
     const [isSaving, setIsSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const textareaRef = useRef(null);
+    const fileInputRef = useRef(null);
+
+    useEffect(() => {
+        const handlePaste = async (e) => {
+            if (!e.clipboardData) return;
+
+            const items = e.clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].kind === 'file') {
+                    e.preventDefault();
+                    const file = items[i].getAsFile();
+                    if (file) {
+                        await handleFileUpload(file);
+                    }
+                    break;
+                }
+            }
+        };
+
+        const textarea = textareaRef.current;
+        if (textarea) {
+            textarea.addEventListener('paste', handlePaste);
+            return () => textarea.removeEventListener('paste', handlePaste);
+        }
+    }, []);
 
     const handleSave = async () => {
         if (!title.trim() || !content.trim()) {
             alert('标题和内容不能为空');
-            return;
-        }
-
-        if (detectXSS(content)) {
-            alert('检测到潜在XSS攻击，已阻止保存！');
             return;
         }
 
@@ -82,8 +96,132 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         setContent(prev => prev + (prev.endsWith('\n') ? '' : '\n') + snippet);
     };
 
+    const handleFileSelect = (fileType) => {
+        if (!fileInputRef.current) return;
 
-    // 检查URL是否为安全来源（允许HTTP和HTTPS）
+        let acceptTypes = '';
+        switch (fileType) {
+            case 'image':
+                acceptTypes = SUPPORTED_FILE_TYPES.image.join(',');
+                break;
+            case 'video':
+                acceptTypes = SUPPORTED_FILE_TYPES.video.join(',');
+                break;
+            case 'audio':
+                acceptTypes = SUPPORTED_FILE_TYPES.audio.join(',');
+                break;
+            default:
+                acceptTypes = Object.values(SUPPORTED_FILE_TYPES).flat().join(',');
+        }
+
+        fileInputRef.current.accept = acceptTypes;
+        fileInputRef.current.click();
+    };
+
+    const handleFileInputChange = (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            handleFileUpload(file);
+        }
+        e.target.value = '';
+    };
+
+    const handleFileUpload = async (file) => {
+        if (!file) return;
+
+        if (!isFileTypeSupported(file.type)) {
+            const supportedTypes = Object.values(SUPPORTED_FILE_TYPES).flat().join(', ');
+            alert(`不支持的文件类型: ${file.type}\n\n仅支持以下类型:\n${supportedTypes}`);
+            return;
+        }
+
+        setUploading(true);
+        try {
+            let fileUrl;
+
+            if (file.size > 10 * 1024 * 1024) {
+                fileUrl = await multipartUpload(file);
+            } else {
+                fileUrl = await normalUpload(file);
+            }
+
+            if (fileUrl) {
+                const config = getConfig();
+                const fullUrl = config.getFullUrl(fileUrl);
+
+                const mediaType = getMediaType(file.type);
+                let markdownSnippet = '';
+
+                if (mediaType === 'image') {
+                    markdownSnippet = `\n![${file.name}](${fullUrl})\n`;
+                } else if (mediaType === 'video') {
+                    markdownSnippet = `\n<video src="${fullUrl}" controls style="max-width: 100%; height: auto;"></video>\n`;
+                } else if (mediaType === 'audio') {
+                    markdownSnippet = `\n<audio src="${fullUrl}" controls preload="metadata"></audio>\n`;
+                }
+
+                setContent(prev => prev + markdownSnippet);
+            }
+        } catch (error) {
+            console.error('上传失败:', error);
+            alert('文件上传失败: ' + error.message);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const normalUpload = async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await apiClient.post('/uploadattachment', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            return response.fileUrl;
+        } catch (error) {
+            throw new Error('普通上传失败: ' + (error.response?.data?.error || error.message));
+        }
+    };
+
+    const multipartUpload = async (file) => {
+        const CHUNK_SIZE = 5 * 1024 * 1024;
+        const chunks = Math.ceil(file.size / CHUNK_SIZE);
+
+        try {
+            const initResponse = await apiClient.post('/uploadattachment/init', {
+                filename: file.name
+            });
+
+            const { uploadId } = initResponse;
+
+            for (let i = 0; i < chunks; i++) {
+                const start = i * CHUNK_SIZE;
+                const end = Math.min(start + CHUNK_SIZE, file.size);
+                const chunk = file.slice(start, end);
+
+                await apiClient.post('/uploadattachment/part', chunk, {
+                    headers: {
+                        'Upload-Id': uploadId,
+                        'Chunk-Index': i,
+                        'Content-Type': 'application/octet-stream'
+                    }
+                });
+            }
+
+            const completeResponse = await apiClient.post('/uploadattachment/complete', {
+                uploadId,
+                filename: file.name
+            });
+
+            return completeResponse.fileUrl;
+        } catch (error) {
+            throw new Error('分片上传失败: ' + (error.response?.data?.error || error.message));
+        }
+    };
+
     const isSafeUrl = (url) => {
         if (!url) return false;
         return url.startsWith('http://') || url.startsWith('https://');
@@ -104,6 +242,9 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                     />
                 </div>
                 <div className="flex items-center space-x-2">
+                    {uploading && (
+                        <div className="text-sm text-blue-600">文件上传中...</div>
+                    )}
                     <button
                         onClick={onCancel}
                         className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors duration-200"
@@ -113,7 +254,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                     </button>
                     <button
                         onClick={handleSave}
-                        disabled={isSaving}
+                        disabled={isSaving || uploading}
                         className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors duration-200"
                     >
                         <Save className="h-4 w-4 mr-1" />
@@ -122,36 +263,120 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 </div>
             </div>
 
-            {/* 主体内容 */}
             <div className="flex-1 flex overflow-hidden">
                 <div className="w-1/2 border-r border-gray-200 flex flex-col">
-                    <div className="p-2 bg-gray-50 border-b border-gray-200 flex space-x-2 text-gray-600 text-sm">
-                        <button onClick={() => insertMarkdown('bold')} className="hover:text-blue-600"><Bold className="h-4 w-4" /></button>
-                        <button onClick={() => insertMarkdown('italic')} className="hover:text-blue-600"><Italic className="h-4 w-4" /></button>
-                        <button onClick={() => insertMarkdown('heading')} className="hover:text-blue-600"><Heading className="h-4 w-4" /></button>
-                        <button onClick={() => insertMarkdown('link')} className="hover:text-blue-600"><LinkIcon className="h-4 w-4" /></button>
-                        <button onClick={() => insertMarkdown('image')} className="hover:text-blue-600"><Image className="h-4 w-4" /></button>
-                        <button onClick={() => insertMarkdown('list')} className="hover:text-blue-600"><List className="h-4 w-4" /></button>
-                        <button onClick={() => insertMarkdown('code')} className="hover:text-blue-600"><Code className="h-4 w-4" /></button>
+                    <div className="p-3 bg-gray-50 border-b border-gray-200 flex space-x-3 text-gray-600">
+                        <button
+                            onClick={() => insertMarkdown('bold')}
+                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="粗体"
+                        >
+                            <Bold className="h-5 w-5" />
+                        </button>
+                        <button
+                            onClick={() => insertMarkdown('italic')}
+                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="斜体"
+                        >
+                            <Italic className="h-5 w-5" />
+                        </button>
+                        <button
+                            onClick={() => insertMarkdown('heading')}
+                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="标题"
+                        >
+                            <Heading className="h-5 w-5" />
+                        </button>
+                        <button
+                            onClick={() => insertMarkdown('link')}
+                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="链接"
+                        >
+                            <LinkIcon className="h-5 w-5" />
+                        </button>
+                        <button
+                            onClick={() => handleFileSelect('image')}
+                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="插入图片"
+                        >
+                            <Image className="h-5 w-5" />
+                        </button>
+                        <button
+                            onClick={() => handleFileSelect('video')}
+                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="插入视频"
+                        >
+                            <Video className="h-5 w-5" />
+                        </button>
+                        <button
+                            onClick={() => handleFileSelect('audio')}
+                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="插入音频"
+                        >
+                            <Music className="h-5 w-5" />
+                        </button>
+                        <button
+                            onClick={() => insertMarkdown('list')}
+                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="列表"
+                        >
+                            <List className="h-5 w-5" />
+                        </button>
+                        <button
+                            onClick={() => insertMarkdown('code')}
+                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="代码"
+                        >
+                            <Code className="h-5 w-5" />
+                        </button>
                     </div>
                     <textarea
+                        ref={textareaRef}
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                         className="flex-1 p-4 font-mono text-sm resize-none focus:outline-none"
-                        placeholder="在此输入Markdown内容..."
+                        placeholder="在此输入Markdown内容...&#10;&#10;提示：可以直接粘贴图片/视频/音频文件进行上传&#10;支持格式：图片(jpg,png,gif,webp等)、视频(mp4,webm,mov等)、音频(mp3,wav,m4a等)&#10;&#10;HTML标签示例：&#10;&lt;script&gt;alert('Hello')&lt;/script&gt; 会显示为普通文本&#10;&lt;video src='url' controls&gt;&lt;/video&gt; 会正常渲染视频&#10;&lt;audio src='url' controls&gt;&lt;/audio&gt; 会正常渲染音频&#10;只有安全的媒体标签会被渲染，脚本标签显示为文本"
+                    />
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        onChange={handleFileInputChange}
+                        style={{ display: 'none' }}
                     />
                 </div>
 
-                {/* 预览区域 */}
                 <div className="w-1/2 flex flex-col">
                     <div className="p-2 bg-gray-50 border-b border-gray-200 text-sm text-gray-500">
-                        预览
+                        预览 (支持安全媒体标签渲染，脚本标签显示为文本)
                     </div>
                     <div className="flex-1 p-4 overflow-y-auto prose max-w-none">
                         <h1 className="text-2xl font-bold mb-4">{title}</h1>
                         <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
-                            rehypePlugins={[[rehypeRaw], [rehypeSanitize, schema]]}
+                            rehypePlugins={[
+                                rehypeRaw,
+                                [rehypeSanitize, {
+                                    tagNames: [
+                                        'div', 'span', 'p', 'br', 'strong', 'em', 'u', 's', 'del', 'ins',
+                                        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                                        'ul', 'ol', 'li', 'dl', 'dt', 'dd',
+                                        'blockquote', 'pre', 'code',
+                                        'table', 'thead', 'tbody', 'tr', 'th', 'td',
+                                        'a', 'img',
+                                        'video', 'audio', 'source', 'track', // 允许媒体标签
+                                        'hr', 'sup', 'sub'
+                                    ],
+                                    attributes: {
+                                        '*': ['className', 'style'],
+                                        'a': ['href', 'title', 'target', 'rel'],
+                                        'img': ['src', 'alt', 'title', 'width', 'height'],
+                                        'video': ['src', 'controls', 'autoplay', 'loop', 'muted', 'poster', 'width', 'height', 'preload'],
+                                        'audio': ['src', 'controls', 'autoplay', 'loop', 'muted', 'preload'],
+                                        'source': ['src', 'type', 'media'],
+                                        'track': ['src', 'kind', 'srclang', 'label', 'default']
+                                    }
+                                }]
+                            ]}
                             components={{
                                 h1: (props) => <h1 className="text-3xl font-bold mt-6 mb-4" {...props} />,
                                 h2: (props) => <h2 className="text-2xl font-bold mt-5 mb-3" {...props} />,
@@ -201,29 +426,74 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                                         </a>
                                     );
                                 },
-                                iframe: ({ src, ...props }) => {
+                                img: ({ src, alt, ...props }) => {
                                     if (!src || !isSafeUrl(src)) return null;
-                                    return <iframe src={src} className="w-full h-64" {...props} />;
+                                    return (
+                                        <img
+                                            src={src}
+                                            alt={alt}
+                                            className="max-w-full h-auto rounded-lg shadow-sm my-4"
+                                            style={{ maxHeight: '400px', objectFit: 'contain' }}
+                                            {...props}
+                                        />
+                                    );
                                 },
                                 video: ({ src, controls, autoplay, loop, muted, poster, ...props }) => {
                                     if (!src || !isSafeUrl(src)) return null;
                                     return (
-                                        <video
-                                            src={src}
-                                            controls={controls ?? true}
-                                            autoPlay={autoplay ?? false}
-                                            loop={loop ?? false}
-                                            muted={muted ?? false}
-                                            poster={poster}
-                                            className="w-full"
-                                            {...props}
-                                        />
+                                        <div className="my-4" style={{ maxWidth: '600px', width: '100%' }}>
+                                            <video
+                                                src={src}
+                                                controls={controls ?? true}
+                                                autoPlay={autoplay ?? false}
+                                                loop={loop ?? false}
+                                                muted={muted ?? false}
+                                                poster={poster}
+                                                className="w-full rounded-lg shadow-sm"
+                                                style={{
+                                                    height: 'auto',
+                                                    maxHeight: '400px'
+                                                }}
+                                                {...props}
+                                            />
+                                        </div>
+                                    );
+                                },
+                                audio: ({ src, controls, autoplay, loop, muted, preload, ...props }) => {
+                                    if (!src || !isSafeUrl(src)) return null;
+                                    const fileName = src.split('/').pop()?.split('?')[0] || '音频文件';
+
+                                    return (
+                                        <div className="my-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl shadow-sm" style={{ maxWidth: '500px' }}>
+                                            <div className="flex items-center mb-3">
+                                                <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                                                    <Music className="h-4 w-4 text-white" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium text-gray-900 truncate" title={fileName}>
+                                                        {fileName}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">音频文件</p>
+                                                </div>
+                                            </div>
+                                            <audio
+                                                src={src}
+                                                controls={controls ?? true}
+                                                autoPlay={autoplay ?? false}
+                                                loop={loop ?? false}
+                                                muted={muted ?? false}
+                                                preload={preload ?? 'metadata'}
+                                                className="w-full rounded-md"
+                                                style={{ height: '40px', outline: 'none' }}
+                                                {...props}
+                                            />
+                                        </div>
                                     );
                                 },
                                 source: ({ src, type, ...props }) => {
                                     if (!src || !isSafeUrl(src)) return null;
                                     return <source src={src} type={type} {...props} />;
-                                },
+                                }
                             }}
                         >
                             {content}

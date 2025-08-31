@@ -5,6 +5,7 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 //import xyz.lingview.dimstack.security.JwtRequestFilter;
 import xyz.lingview.dimstack.interceptor.UserPermissionInterceptor;
@@ -62,6 +63,11 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     //     registry.addInterceptor(securityFilter).addPathPatterns("/**");
     // }
 
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/upload/**")
+                .addResourceLocations("file:upload/");
+    }
 
     // 注册权限拦截器
     @Autowired
