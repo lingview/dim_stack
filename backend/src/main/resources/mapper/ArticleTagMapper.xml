@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xyz.lingview.dimstack.mapper.ArticleTagMapper">
+    <select id="findAllEnabledTags" resultType="xyz.lingview.dimstack.domain.ArticleTag">
+        SELECT
+            id,
+            tag_name AS tag_name,
+            tag_explain AS tag_explain,
+            founder,
+            create_time AS create_time,
+            status
+        FROM article_tag
+        WHERE status = 1
+    </select>
+</mapper>
