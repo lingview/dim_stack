@@ -26,33 +26,12 @@ public class SecurityFilter implements Filter {
 
     // XSS检测正则
     private static final Pattern[] XSS_PATTERNS = {
-            Pattern.compile("<script[^>]*>.*?</script>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL),
-            Pattern.compile("<script[^>]*src=.*?>", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("<[/]?[a-zA-Z][a-zA-Z0-9]*\\s*[^>]*>", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("on\\w+\\s*=\\s*['\"][^'\"]*['\"]", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("on\\w+\\s*=\\s*[^>'\" ]+", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("javascript:\\s*[\\w\\W]+", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("data:\\s*text/html;base64,", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("data:\\s*application/javascript", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("<(?:iframe|frame|embed|object)[^>]+(?:src|data)=.+?>", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("<base[^>]+href=", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("<meta[^>]+http-equiv=['\"]?refresh['\"]?[^>]+url=", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("<svg[^>]+onload=", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("<svg[^>]+ontoggle=", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("<details[^>]+ontoggle=", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("eval\\s*\\(", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("setTimeout\\s*\\([^)]*['\"][^'\"]*['\"]", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("setInterval\\s*\\([^)]*['\"][^'\"]*['\"]", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("-->\\s*<script", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("\\]\\]>\\s*<script", Pattern.CASE_INSENSITIVE)
+
     };
 
     // SQL注入检测正则
     private static final Pattern[] SQLI_PATTERNS = {
-            Pattern.compile("(?:')|(?:--)|(/\\*(?:.|[\\n\\r])*?\\*/)|(\\b(?:ALTER|CREATE|DELETE|DROP|EXEC(?:UTE)?|INSERT(?:\\s+INTO)?|MERGE|SELECT|UPDATE|UNION(?:\\s+ALL)?)\\b)", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("\\bOR\\b\\s*[^\\s=<>!]+=[^\\s=<>!]+", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("\\bOR\\b\\s+[^\\s]+\\s+LIKE\\s+[^\\s]+", Pattern.CASE_INSENSITIVE),
-            Pattern.compile("\\b(?:SLEEP|BENCHMARK|DATABASE|VERSION|USER)\\b\\s*\\(", Pattern.CASE_INSENSITIVE)
+
     };
 
     @Override

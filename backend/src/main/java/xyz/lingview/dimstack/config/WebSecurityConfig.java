@@ -28,14 +28,14 @@ public class WebSecurityConfig implements WebMvcConfigurer {
 
 //     注册 SecurityFilter
 
-    @Bean
-    public FilterRegistrationBean<SecurityFilter> securityFilterRegistration() {
-        FilterRegistrationBean<SecurityFilter> registration = new FilterRegistrationBean<>();
-        registration.setFilter(securityFilter);
-        registration.addUrlPatterns("/*");
-        registration.setOrder(1);
-        return registration;
-    }
+//    @Bean
+//    public FilterRegistrationBean<SecurityFilter> securityFilterRegistration() {
+//        FilterRegistrationBean<SecurityFilter> registration = new FilterRegistrationBean<>();
+//        registration.setFilter(securityFilter);
+//        registration.addUrlPatterns("/*");
+//        registration.setOrder(1);
+//        return registration;
+//    }
 
 
 ////    注册 JwtRequestFilter
