@@ -11,6 +11,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import apiClient from '../utils/axios';
 import { getConfig } from '../utils/config';
+import ArticleInfoForm from './ArticleInfoForm';
 
 const SUPPORTED_FILE_TYPES = {
     image: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp'],
@@ -36,6 +37,8 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const [content, setContent] = useState(initialData?.content || '');
     const [isSaving, setIsSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [showArticleInfo, setShowArticleInfo] = useState(false);
+    const [articleInfo, setArticleInfo] = useState(null);
     const textareaRef = useRef(null);
     const fileInputRef = useRef(null);
 
@@ -71,17 +74,49 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             return;
         }
 
+        setArticleInfo({
+            title,
+            content,
+            id: initialData?.id
+        });
+        setShowArticleInfo(true);
+    };
+
+    const handleArticleInfoSave = async (info) => {
         setIsSaving(true);
+        setShowArticleInfo(false);
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            onSave({ title, content, id: initialData?.id });
+            const articlePayload = {
+                article_id: info.id || undefined,
+                article_name: info.title,
+                article_content: info.content,
+                article_cover: info.cover || '',
+                tag: info.tags || '',
+                category: info.category || '',
+                alias: info.alias || '',
+                status: 2
+            };
+
+            Object.keys(articlePayload).forEach(key => {
+                if (articlePayload[key] === undefined || articlePayload[key] === null) {
+                    delete articlePayload[key];
+                }
+            });
+
+            await apiClient.post('/uploadarticle', articlePayload);
+            onSave(info);
         } catch (error) {
             console.error('保存失败:', error);
-            alert('保存失败，请重试');
+            if (error.response?.data?.error) {
+                alert(`保存失败: ${error.response.data.error}`);
+            } else {
+                alert('保存失败，请重试');
+            }
         } finally {
             setIsSaving(false);
         }
     };
+
 
     const insertMarkdown = (syntax) => {
         let snippet = '';
@@ -187,11 +222,13 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         formData.append('file', file);
 
         try {
+
             const response = await apiClient.post('/uploadattachment', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             });
+
             return response.fileUrl;
         } catch (error) {
             throw new Error('普通上传失败: ' + (error.response?.data?.error || error.message));
@@ -383,7 +420,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                                         'blockquote', 'pre', 'code',
                                         'table', 'thead', 'tbody', 'tr', 'th', 'td',
                                         'a', 'img',
-                                        'video', 'audio', 'source', 'track', // 允许媒体标签
+                                        'video', 'audio', 'source', 'track',
                                         'hr', 'sup', 'sub'
                                     ],
                                     attributes: {
@@ -398,17 +435,17 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                                 }]
                             ]}
                             components={{
-                                h1: (props) => <h1 className="text-3xl font-bold mt-6 mb-4" {...props} />,
-                                h2: (props) => <h2 className="text-2xl font-bold mt-5 mb-3" {...props} />,
-                                h3: (props) => <h3 className="text-xl font-semibold mt-4 mb-2" {...props} />,
-                                h4: (props) => <h4 className="text-lg font-semibold mt-3 mb-2" {...props} />,
-                                p: (props) => <p className="mb-3 leading-relaxed" {...props} />,
-                                ul: (props) => <ul className="list-disc list-inside mb-3" {...props} />,
-                                ol: (props) => <ol className="list-decimal list-inside mb-3" {...props} />,
-                                li: (props) => <li className="mb-1" {...props} />,
+                                h1: (props) => <h1 className="text-3xl font-bold mt-6 mb-4 text-white" {...props} />,
+                                h2: (props) => <h2 className="text-2xl font-bold mt-5 mb-3 text-white" {...props} />,
+                                h3: (props) => <h3 className="text-xl font-semibold mt-4 mb-2 text-white" {...props} />,
+                                h4: (props) => <h4 className="text-lg font-semibold mt-3 mb-2 text-white" {...props} />,
+                                p: (props) => <p className="mb-3 leading-relaxed text-gray-300" {...props} />,
+                                ul: (props) => <ul className="list-disc list-inside mb-3 text-gray-300" {...props} />,
+                                ol: (props) => <ol className="list-decimal list-inside mb-3 text-gray-300" {...props} />,
+                                li: (props) => <li className="mb-1 text-gray-300" {...props} />,
                                 blockquote: (props) => (
                                     <blockquote
-                                        className="border-l-4 border-gray-300 pl-4 italic text-gray-600 my-3"
+                                        className="border-l-4 border-blue-500 pl-4 italic text-gray-400 my-3"
                                         {...props}
                                     />
                                 ),
@@ -425,7 +462,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                                         </SyntaxHighlighter>
                                     ) : (
                                         <code
-                                            className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono"
+                                            className="bg-gray-700 px-1 py-0.5 rounded text-sm font-mono text-white"
                                             {...props}
                                         >
                                             {children}
@@ -437,7 +474,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                                     return (
                                         <a
                                             href={href}
-                                            className="text-blue-600 hover:underline hover:text-blue-800"
+                                            className="text-blue-400 hover:underline hover:text-blue-300"
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             {...props}
@@ -494,30 +531,30 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                                     const fileName = src.split('/').pop()?.split('?')[0] || '音频文件';
 
                                     return (
-                                        <span className="inline-block my-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl shadow-sm" style={{ maxWidth: '500px', display: 'block' }}>
-                                            <span className="flex items-center mb-3">
-                                                <span className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
-                                                    <Music className="h-4 w-4 text-white" />
-                                                </span>
-                                                <span className="flex-1 min-w-0">
-                                                    <span className="text-sm font-medium text-gray-900 truncate block" title={fileName}>
-                                                        {fileName}
-                                                    </span>
-                                                    <span className="text-xs text-gray-500 block">音频文件</span>
-                                                </span>
-                                            </span>
-                                            <audio
-                                                src={src}
-                                                controls={controls ?? true}
-                                                autoPlay={autoplay ?? false}
-                                                loop={loop ?? false}
-                                                muted={muted ?? false}
-                                                preload={preload ?? 'metadata'}
-                                                className="w-full rounded-md"
-                                                style={{ height: '40px', outline: 'none' }}
-                                                {...props}
-                                            />
-                                        </span>
+                                        <span className="inline-block my-4 p-4 bg-gradient-to-r from-blue-900 to-purple-900 border border-blue-700 rounded-xl shadow-sm" style={{ maxWidth: '500px', display: 'block' }}>
+                    <span className="flex items-center mb-3">
+                        <span className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
+                            <Music className="h-4 w-4 text-white" />
+                        </span>
+                        <span className="flex-1 min-w-0">
+                            <span className="text-sm font-medium text-white truncate block" title={fileName}>
+                                {fileName}
+                            </span>
+                            <span className="text-xs text-gray-400 block">音频文件</span>
+                        </span>
+                    </span>
+                    <audio
+                        src={src}
+                        controls={controls ?? true}
+                        autoPlay={autoplay ?? false}
+                        loop={loop ?? false}
+                        muted={muted ?? false}
+                        preload={preload ?? 'metadata'}
+                        className="w-full rounded-md"
+                        style={{ height: '40px', outline: 'none' }}
+                        {...props}
+                    />
+                </span>
                                     );
                                 },
                                 source: ({ src, type, ...props }) => {
@@ -528,9 +565,19 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                         >
                             {content}
                         </ReactMarkdown>
+
                     </div>
                 </div>
             </div>
+
+            {showArticleInfo && (
+                <ArticleInfoForm
+                    articleData={articleInfo}
+                    onSave={handleArticleInfoSave}
+                    onCancel={() => setShowArticleInfo(false)}
+                    uploading={isSaving}
+                />
+            )}
         </div>
     );
 }

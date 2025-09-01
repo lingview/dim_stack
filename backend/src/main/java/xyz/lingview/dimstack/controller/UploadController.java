@@ -524,24 +524,9 @@ public class UploadController {
 
     @PostMapping("/uploadarticle")
     @RequiresPermission("post:create")
-    public ResponseEntity<Map<String, String>> uploadArticle(
-            HttpServletRequest request,
-            @RequestParam("article_name") String articleName,
-            @RequestParam("file") MultipartFile file) {
-
-        log.info("开始文章上传流程。文章名称: {}", articleName);
-
-        if (file.isEmpty()) {
-            log.warn("文章上传尝试使用空文件");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "文件为空"));
-        }
-
-        if (file.getSize() > MAX_FILE_SIZE) {
-            log.warn("文章上传尝试使用过大的文件: {} 字节", file.getSize());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "文件过大"));
-        }
+    public ResponseEntity<Map<String, Object>> uploadArticle(HttpServletRequest request,
+                                                             @RequestBody UploadArticle uploadArticle) {
+        log.info("开始文章上传流程");
 
         String username = getUsername(request);
         if (username == null) {
@@ -557,61 +542,57 @@ public class UploadController {
                     .body(Map.of("error", "未找到用户"));
         }
 
-        Path uploadPath = Paths.get("upload", username, "article").normalize();
-        Path allowedRoot = Paths.get("upload").toAbsolutePath().normalize();
-        if (!uploadPath.toAbsolutePath().startsWith(allowedRoot)) {
-            log.error("文章的上传路径无效: {}", uploadPath);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "上传路径无效"));
-        }
-
-        try {
-            Files.createDirectories(uploadPath);
-            log.debug("为文章创建目录: {}", uploadPath);
-        } catch (IOException e) {
-            log.error("为文章创建目录失败: {}", uploadPath, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "创建目录失败"));
-        }
-
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || !originalFilename.endsWith(".md")) {
-            log.warn("文章上传使用了无效的文件类型: {}", originalFilename);
+        // 验证必填字段
+        if (uploadArticle.getArticle_name() == null || uploadArticle.getArticle_name().trim().isEmpty()) {
+            log.warn("文章标题为空");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "文章仅允许使用.md文件"));
+                    .body(Map.of("error", "文章标题不能为空"));
         }
 
-        String uuid = UUID.randomUUID().toString();
-        String fileName = uuid + ".md";
-        Path filePath = uploadPath.resolve(fileName);
+        if (uploadArticle.getArticle_content() == null || uploadArticle.getArticle_content().trim().isEmpty()) {
+            log.warn("文章内容为空");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "文章内容不能为空"));
+        }
+
+        if (uploadArticle.getCategory() == null || uploadArticle.getCategory().trim().isEmpty()) {
+            log.warn("文章分类为空");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "文章分类不能为空"));
+        }
+
+        // 设置用户UUID
+        uploadArticle.setUuid(userUUID);
+
+        // 如果没有提供文章ID，则生成一个
+        if (uploadArticle.getArticle_id() == null || uploadArticle.getArticle_id().trim().isEmpty()) {
+            String articleId = UUID.randomUUID().toString();
+            uploadArticle.setArticle_id(articleId);
+        }
+
+        // 设置默认状态为未发布(2)
+        if (uploadArticle.getStatus() != 1 && uploadArticle.getStatus() != 3) {
+            uploadArticle.setStatus(2); // 未发布
+        }
 
         try {
-            file.transferTo(filePath);
-            log.debug("文章文件已保存: {}", filePath);
-        } catch (IOException e) {
-            log.error("保存文章文件失败: {}", filePath, e);
+            int result = uploadMapper.insertUploadArticle(uploadArticle);
+            if (result == 1) {
+                log.info("文章上传成功，文章ID: {}", uploadArticle.getArticle_id());
+                return ResponseEntity.ok(Map.of(
+                        "message", "文章保存成功",
+                        "articleId", uploadArticle.getArticle_id()
+                ));
+            } else {
+                log.error("插入文章记录到数据库失败");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("error", "保存文章失败"));
+            }
+        } catch (Exception e) {
+            log.error("保存文章时发生错误", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "保存文件失败"));
+                    .body(Map.of("error", "保存文章时发生错误: " + e.getMessage()));
         }
-
-        String articleId = RandomUtil.generateRandomNumber(5, "1234567890qwertyuiopasdfghjklzxcvbnm");
-
-        UploadArticle uploadArticle = new UploadArticle();
-        uploadArticle.setUuid(userUUID);
-        uploadArticle.setArticle_id(articleId);
-        uploadArticle.setArticle_name(articleName);
-        uploadArticle.setArticle_path(filePath.toString());
-        uploadArticle.setStatus(1);
-
-        int result = uploadMapper.insertUploadArticle(uploadArticle);
-        if (result != 1) {
-            log.error("插入文章记录到数据库失败。文章ID: {}", articleId);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "插入数据库失败"));
-        }
-
-        String fileUrl = "/upload/" + username + "/article/" + fileName;
-        log.info("文章上传完成。URL: {}, 文章ID: {}", fileUrl, articleId);
-        return ResponseEntity.ok(Map.of("fileUrl", fileUrl, "articleId", articleId));
     }
+
 }

@@ -9,7 +9,7 @@ public class UploadArticle {
     private String article_name;
     private String article_cover;
     private String article_content;
-    private String tags;
+    private String tag;
     private String category;
     private String alias;
     private int status;

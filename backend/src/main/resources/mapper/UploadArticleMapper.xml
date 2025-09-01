@@ -9,14 +9,14 @@
         <result property="article_name" column="article_name" />
         <result property="article_cover" column="article_cover" />
         <result property="article_content" column="article_content" />
-        <result property="tags" column="tags" />
+        <result property="tag" column="tag" />
         <result property="category" column="category" />
         <result property="alias" column="alias" />
         <result property="status" column="status" />
     </resultMap>
 
     <insert id="insertUploadArticle" parameterType="xyz.lingview.dimstack.domain.UploadArticle">
-        INSERT INTO article(uuid, article_id, article_name, article_cover, article_content, tags, category, alias, status)
-        VALUES (#{uuid}, #{article_id}, #{article_name}, #{article_path}, #{article_content}, #{tags}, #{category}, #{alias}, 1)
+        INSERT INTO article(uuid, article_id, article_name, article_cover, article_content, tag, category, alias, status)
+        VALUES (#{uuid}, #{article_id}, #{article_name}, #{article_cover}, #{article_content}, #{tag}, #{category}, #{alias}, #{status})
     </insert>
 </mapper>

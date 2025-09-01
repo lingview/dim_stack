@@ -130,7 +130,7 @@
   color: #d1d5db;
 }
 
-/* 在 index.css 中添加以下样式 */
+
 .dark .captcha-refresh-btn {
   background-color: #374151;
   border-color: #4b5563;
@@ -191,4 +191,114 @@
 
 .dark .dropdown-menu-item:hover {
   background-color: #4b5563;
+}
+
+
+.dark .prose {
+  color: #f9fafb;
+}
+
+.dark .prose p,
+.dark .prose ul,
+.dark .prose ol,
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3,
+.dark .prose h4,
+.dark .prose h5,
+.dark .prose h6,
+.dark .prose blockquote,
+.dark .prose code,
+.dark .prose pre {
+  color: #f9fafb;
+}
+
+.dark .prose a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.dark .prose img {
+  border-color: #4b5563;
+}
+
+.dark .prose video,
+.dark .prose audio {
+  border-color: #4b5563;
+}
+
+
+.dark .react-syntax-highlighter {
+  background-color: #1e293b !important;
+  color: #f9fafb !important;
+}
+
+.dark .react-syntax-highlighter .token.comment,
+.dark .react-syntax-highlighter .token.prolog,
+.dark .react-syntax-highlighter .token.doctype,
+.dark .react-syntax-highlighter .token.cdata {
+  color: #64748b !important;
+}
+
+.dark .react-syntax-highlighter .token.punctuation {
+  color: #9ca3af !important;
+}
+
+.dark .react-syntax-highlighter .token.property,
+.dark .react-syntax-highlighter .token.tag,
+.dark .react-syntax-highlighter .token.boolean,
+.dark .react-syntax-highlighter .token.number,
+.dark .react-syntax-highlighter .token.constant,
+.dark .react-syntax-highlighter .token.symbol,
+.dark .react-syntax-highlighter .token.deleted {
+  color: #ec4899 !important;
+}
+
+.dark .react-syntax-highlighter .token.selector,
+.dark .react-syntax-highlighter .token.attr-name,
+.dark .react-syntax-highlighter .token.string,
+.dark .react-syntax-highlighter .token.char,
+.dark .react-syntax-highlighter .token.builtin,
+.dark .react-syntax-highlighter .token.inserted,
+.dark .react-syntax-highlighter .token.unit {
+  color: #10b981 !important;
+}
+
+.dark .react-syntax-highlighter .token.operator,
+.dark .react-syntax-highlighter .token.entity,
+.dark .react-syntax-highlighter .token.url,
+.dark .react-syntax-highlighter .token.variable,
+.dark .react-syntax-highlighter .token.atrule,
+.dark .react-syntax-highlighter .token.keyword,
+.dark .react-syntax-highlighter .token.function,
+.dark .react-syntax-highlighter .token.class-name {
+  color: #8b5cf6 !important;
+}
+
+.dark .react-syntax-highlighter .token.regex,
+.dark .react-syntax-highlighter .token.important,
+.dark .react-syntax-highlighter .token.italic,
+.dark .react-syntax-highlighter .token.entity,
+.dark .react-syntax-highlighter .token.link {
+  color: #f59e0b !important;
+}
+
+.dark .react-syntax-highlighter .token.bold {
+  font-weight: bold;
+}
+
+.dark .react-syntax-highlighter .token.underline {
+  text-decoration: underline;
+}
+
+
+/* 暗色模式下文章信息表单头部背景 */
+.dark .article-header-bg {
+  background-image: linear-gradient(to right, #1f2937, #111827);
+}
+.dark .article-header-title {
+  color: #f9fafb !important;
+}
+.dark .article-header-subtitle {
+  color: #d1d5db !important;
 }
