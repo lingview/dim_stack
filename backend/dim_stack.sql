@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 31/08/2025 15:09:52
+ Date: 01/09/2025 11:14:35
 */
 
 SET NAMES utf8mb4;
@@ -28,19 +28,65 @@ CREATE TABLE `article`  (
                             `article_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章名字',
                             `article_cover` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '文章封面',
                             `article_content` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章正文',
-                            `tags` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章标签',
+                            `tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章标签',
                             `category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章分类',
                             `alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章访问链接',
                             `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '文章上传时间',
-                            `status` tinyint NOT NULL COMMENT '文章状态：0=删除, 1=正常, 2=取消发布, 3=违规',
+                            `status` tinyint NOT NULL COMMENT '文章状态：0=删除, 1=正常, 2=未发布, 3=违规',
                             PRIMARY KEY (`id`) USING BTREE,
                             UNIQUE INDEX `article_id`(`article_id` ASC) USING BTREE,
                             INDEX `user_article_uuid`(`uuid` ASC) USING BTREE,
-                            CONSTRAINT `fk_article_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
+                            INDEX `tag`(`tag` ASC) USING BTREE,
+                            INDEX `categories`(`category` ASC) USING BTREE,
+                            CONSTRAINT `fk_article_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE,
+                            CONSTRAINT `tag` FOREIGN KEY (`tag`) REFERENCES `article_tag` (`tag_name`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+                            CONSTRAINT `categories` FOREIGN KEY (`category`) REFERENCES `article_categories` (`article_categories`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '文章上传记录表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of article
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for article_categories
+-- ----------------------------
+DROP TABLE IF EXISTS `article_categories`;
+CREATE TABLE `article_categories`  (
+                                       `id` int NOT NULL AUTO_INCREMENT,
+                                       `article_categories` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '分类名称',
+                                       `categories_explain` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '分类说明',
+                                       `founder` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '创建人',
+                                       `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '创建时间',
+                                       `status` int NOT NULL COMMENT '分类状态：0=未启用, 1=启用',
+                                       PRIMARY KEY (`id`) USING BTREE,
+                                       UNIQUE INDEX `article_categories`(`article_categories` ASC) USING BTREE,
+                                       INDEX `categories_founder`(`founder` ASC) USING BTREE,
+                                       CONSTRAINT `categories_founder` FOREIGN KEY (`founder`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE SET NULL
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of article_categories
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for article_tag
+-- ----------------------------
+DROP TABLE IF EXISTS `article_tag`;
+CREATE TABLE `article_tag`  (
+                                `id` int NOT NULL AUTO_INCREMENT,
+                                `tag_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '标签名称',
+                                `tag_explain` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '标签说明',
+                                `founder` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '创建此标签的用户',
+                                `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '创建时间',
+                                `status` int NOT NULL COMMENT '标签状态：0=未启用, 1=启用',
+                                PRIMARY KEY (`id`) USING BTREE,
+                                UNIQUE INDEX `tag_name`(`tag_name` ASC) USING BTREE,
+                                INDEX `tag_founder`(`founder` ASC) USING BTREE,
+                                CONSTRAINT `tag_founder` FOREIGN KEY (`founder`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of article_tag
 -- ----------------------------
 
 -- ----------------------------
@@ -61,9 +107,6 @@ CREATE TABLE `attachment`  (
                                CONSTRAINT `fk_attachment_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '附件上传记录表' ROW_FORMAT = DYNAMIC;
 
--- ----------------------------
--- Records of attachment
--- ----------------------------
 
 -- ----------------------------
 -- Table structure for permission
