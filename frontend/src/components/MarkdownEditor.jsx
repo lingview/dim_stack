@@ -39,6 +39,8 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const textareaRef = useRef(null);
     const fileInputRef = useRef(null);
 
+    const uploadingFiles = useRef(new Set());
+
     useEffect(() => {
         const handlePaste = async (e) => {
             if (!e.clipboardData) return;
@@ -135,7 +137,16 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             return;
         }
 
+        const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
+
+        if (uploadingFiles.current.has(fileKey)) {
+            console.log('文件正在上传中，跳过重复请求');
+            return;
+        }
+
+        uploadingFiles.current.add(fileKey);
         setUploading(true);
+
         try {
             let fileUrl;
 
@@ -166,6 +177,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             console.error('上传失败:', error);
             alert('文件上传失败: ' + error.message);
         } finally {
+            uploadingFiles.current.delete(fileKey);
             setUploading(false);
         }
     };
@@ -189,18 +201,22 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const multipartUpload = async (file) => {
         const CHUNK_SIZE = 5 * 1024 * 1024;
         const chunks = Math.ceil(file.size / CHUNK_SIZE);
+        let uploadId = null;
 
         try {
             const initResponse = await apiClient.post('/uploadattachment/init', {
                 filename: file.name
             });
 
-            const { uploadId } = initResponse;
+            uploadId = initResponse.uploadId;
+            console.log(`开始分片上传，uploadId: ${uploadId}, 总分片数: ${chunks}`);
 
             for (let i = 0; i < chunks; i++) {
                 const start = i * CHUNK_SIZE;
                 const end = Math.min(start + CHUNK_SIZE, file.size);
                 const chunk = file.slice(start, end);
+
+                console.log(`上传分片 ${i + 1}/${chunks}, 大小: ${chunk.size} bytes`);
 
                 await apiClient.post('/uploadattachment/part', chunk, {
                     headers: {
@@ -211,13 +227,17 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 });
             }
 
+            console.log('所有分片上传完成，开始合并...');
             const completeResponse = await apiClient.post('/uploadattachment/complete', {
                 uploadId,
                 filename: file.name
             });
 
+            console.log(`分片上传完成，文件URL: ${completeResponse.fileUrl}`);
             return completeResponse.fileUrl;
+
         } catch (error) {
+            console.error('分片上传失败:', error);
             throw new Error('分片上传失败: ' + (error.response?.data?.error || error.message));
         }
     };
@@ -367,7 +387,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                                         'hr', 'sup', 'sub'
                                     ],
                                     attributes: {
-                                        '*': ['className', 'style'],
+                                        '*': ['className'],
                                         'a': ['href', 'title', 'target', 'rel'],
                                         'img': ['src', 'alt', 'title', 'width', 'height'],
                                         'video': ['src', 'controls', 'autoplay', 'loop', 'muted', 'poster', 'width', 'height', 'preload'],
@@ -432,8 +452,17 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                                         <img
                                             src={src}
                                             alt={alt}
-                                            className="max-w-full h-auto rounded-lg shadow-sm my-4"
-                                            style={{ maxHeight: '400px', objectFit: 'contain' }}
+                                            className="rounded-lg shadow-sm my-4 block"
+                                            style={{
+                                                maxHeight: '300px',
+                                                maxWidth: '500px',
+                                                height: 'auto',
+                                                width: 'auto',
+                                                objectFit: 'contain',
+                                                cursor: 'pointer'
+                                            }}
+                                            onClick={() => window.open(src, '_blank')}
+                                            title="点击查看大图"
                                             {...props}
                                         />
                                     );
@@ -441,22 +470,23 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                                 video: ({ src, controls, autoplay, loop, muted, poster, ...props }) => {
                                     if (!src || !isSafeUrl(src)) return null;
                                     return (
-                                        <div className="my-4" style={{ maxWidth: '600px', width: '100%' }}>
-                                            <video
-                                                src={src}
-                                                controls={controls ?? true}
-                                                autoPlay={autoplay ?? false}
-                                                loop={loop ?? false}
-                                                muted={muted ?? false}
-                                                poster={poster}
-                                                className="w-full rounded-lg shadow-sm"
-                                                style={{
-                                                    height: 'auto',
-                                                    maxHeight: '400px'
-                                                }}
-                                                {...props}
-                                            />
-                                        </div>
+                                        <video
+                                            src={src}
+                                            controls={controls ?? true}
+                                            autoPlay={autoplay ?? false}
+                                            loop={loop ?? false}
+                                            muted={muted ?? false}
+                                            poster={poster}
+                                            className="rounded-lg shadow-sm my-4 block"
+                                            style={{
+                                                maxHeight: '300px',
+                                                maxWidth: '500px',
+                                                height: 'auto',
+                                                width: 'auto',
+                                                objectFit: 'contain'
+                                            }}
+                                            {...props}
+                                        />
                                     );
                                 },
                                 audio: ({ src, controls, autoplay, loop, muted, preload, ...props }) => {
@@ -464,18 +494,18 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                                     const fileName = src.split('/').pop()?.split('?')[0] || '音频文件';
 
                                     return (
-                                        <div className="my-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl shadow-sm" style={{ maxWidth: '500px' }}>
-                                            <div className="flex items-center mb-3">
-                                                <div className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                                        <span className="inline-block my-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl shadow-sm" style={{ maxWidth: '500px', display: 'block' }}>
+                                            <span className="flex items-center mb-3">
+                                                <span className="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
                                                     <Music className="h-4 w-4 text-white" />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium text-gray-900 truncate" title={fileName}>
+                                                </span>
+                                                <span className="flex-1 min-w-0">
+                                                    <span className="text-sm font-medium text-gray-900 truncate block" title={fileName}>
                                                         {fileName}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500">音频文件</p>
-                                                </div>
-                                            </div>
+                                                    </span>
+                                                    <span className="text-xs text-gray-500 block">音频文件</span>
+                                                </span>
+                                            </span>
                                             <audio
                                                 src={src}
                                                 controls={controls ?? true}
@@ -487,7 +517,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                                                 style={{ height: '40px', outline: 'none' }}
                                                 {...props}
                                             />
-                                        </div>
+                                        </span>
                                     );
                                 },
                                 source: ({ src, type, ...props }) => {
