@@ -8,8 +8,8 @@
     <select id="getSiteConfig" resultType="xyz.lingview.dimstack.domain.SiteConfig">
         SELECT
             id,
-            site_name as siteName,
-            register_user_permission as registerUserPermission,
+            site_name as site_name,
+            register_user_permission as register_user_permission,
             copyright
         FROM site_config
         WHERE id = 1

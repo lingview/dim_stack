@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class SiteConfig {
     private Integer id;
-    private String siteName;
-    private String registerUserPermission;
+    private String site_name;
+    private String register_user_permission;
     private String copyright;
 }
