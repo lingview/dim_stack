@@ -31,7 +31,7 @@ CREATE TABLE `article`  (
                             `page_views` bigint NOT NULL DEFAULT 0 COMMENT '文章阅读量',
                             `like_count` bigint NOT NULL DEFAULT 0 COMMENT '文章点赞数',
                             `favorite_count` bigint NOT NULL DEFAULT 0 COMMENT '文章收藏数',
-                            `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章阅读密码',
+                            `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '文章阅读密码',
                             `tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章标签',
                             `category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章分类',
                             `alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章访问链接',
