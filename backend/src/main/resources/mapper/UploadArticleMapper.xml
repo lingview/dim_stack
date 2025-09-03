@@ -9,6 +9,7 @@
         <result property="article_name" column="article_name" />
         <result property="article_cover" column="article_cover" />
         <result property="article_content" column="article_content" />
+        <result property="password" column="password" />
         <result property="tag" column="tag" />
         <result property="category" column="category" />
         <result property="alias" column="alias" />
@@ -16,7 +17,7 @@
     </resultMap>
 
     <insert id="insertUploadArticle" parameterType="xyz.lingview.dimstack.domain.UploadArticle">
-        INSERT INTO article(uuid, article_id, article_name, article_cover, article_content, tag, category, alias, status)
-        VALUES (#{uuid}, #{article_id}, #{article_name}, #{article_cover}, #{article_content}, #{tag}, #{category}, #{alias}, #{status})
+        INSERT INTO article(uuid, article_id, article_name, article_cover, article_content, password, tag, category, alias, status)
+        VALUES (#{uuid}, #{article_id}, #{article_name}, #{article_cover}, #{article_content}, #{password}, #{tag}, #{category}, #{alias}, #{status})
     </insert>
 </mapper>

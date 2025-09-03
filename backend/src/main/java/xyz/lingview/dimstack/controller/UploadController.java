@@ -3,6 +3,7 @@ package xyz.lingview.dimstack.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -542,7 +543,6 @@ public class UploadController {
                     .body(Map.of("error", "未找到用户"));
         }
 
-        // 验证必填字段
         if (uploadArticle.getArticle_name() == null || uploadArticle.getArticle_name().trim().isEmpty()) {
             log.warn("文章标题为空");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -561,18 +561,23 @@ public class UploadController {
                     .body(Map.of("error", "文章分类不能为空"));
         }
 
-        // 设置用户UUID
+        if (uploadArticle.getPassword() != null && !uploadArticle.getPassword().trim().isEmpty()) {
+            String hashedPassword = BCrypt.hashpw(uploadArticle.getPassword(), BCrypt.gensalt());
+            uploadArticle.setPassword(hashedPassword);
+            log.debug("文章密码已使用BCrypt加密");
+        } else {
+            uploadArticle.setPassword(null);
+        }
+
         uploadArticle.setUuid(userUUID);
 
-        // 如果没有提供文章ID，则生成一个
         if (uploadArticle.getArticle_id() == null || uploadArticle.getArticle_id().trim().isEmpty()) {
             String articleId = UUID.randomUUID().toString();
             uploadArticle.setArticle_id(articleId);
         }
 
-        // 设置默认状态为未发布(2)
         if (uploadArticle.getStatus() != 1 && uploadArticle.getStatus() != 3) {
-            uploadArticle.setStatus(2); // 未发布
+            uploadArticle.setStatus(2);
         }
 
         try {

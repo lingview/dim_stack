@@ -8,7 +8,8 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
         cover: articleData?.cover || '',
         tags: articleData?.tags || '',
         category: articleData?.category || '',
-        alias: articleData?.alias || ''
+        alias: articleData?.alias || '',
+        password: articleData?.password || ''
     });
 
     const [tags, setTags] = useState([]);
@@ -110,7 +111,8 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
             cover: formData.cover,
             tags: formData.tags,
             category: formData.category,
-            alias: formData.alias
+            alias: formData.alias,
+            password: formData.password
         });
     };
 
@@ -276,6 +278,23 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                             />
                             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                                 只能包含字母、数字、连字符(-)和下划线(_)，用于生成文章的访问链接
+                            </p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                文章密码
+                            </label>
+                            <input
+                                type="password"
+                                name="password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                                placeholder="请输入文章访问密码，留空则无需密码"
+                            />
+                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                设置密码后，用户需要输入密码才能访问文章内容
                             </p>
                         </div>
                     </div>

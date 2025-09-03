@@ -13,24 +13,64 @@ import apiClient from '../utils/axios';
 import { getConfig } from '../utils/config';
 import ArticleInfoForm from './ArticleInfoForm';
 
+const rehypeSanitizeSchema = {
+    tagNames: [
+        'div','span','p','br','strong','em','u','s','del','ins',
+        'h1','h2','h3','h4','h5','h6',
+        'ul','ol','li','dl','dt','dd',
+        'blockquote','pre','code',
+        'table','thead','tbody','tr','th','td',
+        'a','img','video','audio','source','track',
+        'hr','sup','sub'
+    ],
+    attributes: {
+        '*': ['className', 'id', 'style'],
+        'a': ['href', 'title', 'target', 'rel'],
+        'img': ['src', 'alt', 'title', 'width', 'height'],
+        'video': ['src', 'controls', 'autoplay', 'loop', 'muted', 'poster', 'width', 'height', 'preload'],
+        'audio': ['src', 'controls', 'autoplay', 'loop', 'muted', 'preload'],
+        'source': ['src', 'type', 'media'],
+        'track': ['src', 'kind', 'srclang', 'label', 'default']
+    }
+};
+
 const SUPPORTED_FILE_TYPES = {
     image: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp'],
     video: ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov', 'video/mkv'],
     audio: ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/aac', 'audio/flac']
 };
 
-const isFileTypeSupported = (fileType) => {
-    return Object.values(SUPPORTED_FILE_TYPES).some(types => types.includes(fileType));
+const MARKDOWN_SNIPPETS = {
+    bold: '**粗体**',
+    italic: '*斜体*',
+    link: '[描述](https://)',
+    image: '![alt](https://)',
+    list: '- 列表项',
+    code: '\n```js\nconsole.log("Hello World");\n```\n'
 };
+
+const TOOLBAR_BUTTONS = [
+    { type: 'bold', icon: Bold, title: '粗体' },
+    { type: 'italic', icon: Italic, title: '斜体' },
+    { type: 'heading', icon: Heading, title: '标题' },
+    { type: 'link', icon: LinkIcon, title: '链接' },
+    { type: 'image', icon: Image, title: '插入图片', isFile: true },
+    { type: 'video', icon: Video, title: '插入视频', isFile: true },
+    { type: 'audio', icon: Music, title: '插入音频', isFile: true },
+    { type: 'list', icon: List, title: '列表' },
+    { type: 'code', icon: Code, title: '代码' }
+];
 
 const getMediaType = (fileType) => {
     for (const [type, mimes] of Object.entries(SUPPORTED_FILE_TYPES)) {
-        if (mimes.includes(fileType)) {
-            return type;
-        }
+        if (mimes.includes(fileType)) return type;
     }
     return null;
 };
+
+const isFileSupported = (fileType) => Object.values(SUPPORTED_FILE_TYPES).flat().includes(fileType);
+
+const isSafeUrl = (url) => url && (url.startsWith('http://') || url.startsWith('https://'));
 
 export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const [title, setTitle] = useState(initialData?.title || '');
@@ -39,36 +79,46 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const [uploading, setUploading] = useState(false);
     const [showArticleInfo, setShowArticleInfo] = useState(false);
     const [articleInfo, setArticleInfo] = useState(null);
+
+    const [showHeadingMenu, setShowHeadingMenu] = useState(false);
+    const headingMenuRef = useRef(null);
+
     const textareaRef = useRef(null);
     const fileInputRef = useRef(null);
-
     const uploadingFiles = useRef(new Set());
 
     useEffect(() => {
         const handlePaste = async (e) => {
-            if (!e.clipboardData) return;
+            const items = e.clipboardData?.items;
+            if (!items) return;
 
-            const items = e.clipboardData.items;
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].kind === 'file') {
+            for (const item of items) {
+                if (item.kind === 'file') {
                     e.preventDefault();
-                    const file = items[i].getAsFile();
-                    if (file) {
-                        await handleFileUpload(file);
-                    }
+                    const file = item.getAsFile();
+                    if (file) await handleFileUpload(file);
                     break;
                 }
             }
         };
 
+        const handleClickOutside = (e) => {
+            if (headingMenuRef.current && !headingMenuRef.current.contains(e.target)) {
+                setShowHeadingMenu(false);
+            }
+        };
+
         const textarea = textareaRef.current;
-        if (textarea) {
-            textarea.addEventListener('paste', handlePaste);
-            return () => textarea.removeEventListener('paste', handlePaste);
-        }
+        textarea?.addEventListener('paste', handlePaste);
+        document.addEventListener('mousedown', handleClickOutside);
+
+        return () => {
+            textarea?.removeEventListener('paste', handlePaste);
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
     }, []);
 
-    const handleSave = async () => {
+    const handleSave = () => {
         if (!title.trim() || !content.trim()) {
             alert('标题和内容不能为空');
             return;
@@ -77,7 +127,8 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         setArticleInfo({
             title,
             content,
-            id: initialData?.id
+            id: initialData?.id,
+            password: initialData?.password || ''
         });
         setShowArticleInfo(true);
     };
@@ -85,71 +136,55 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const handleArticleInfoSave = async (info) => {
         setIsSaving(true);
         setShowArticleInfo(false);
+
         try {
-            const articlePayload = {
-                article_id: info.id || undefined,
+            const payload = {
                 article_name: info.title,
                 article_content: info.content,
                 article_cover: info.cover || '',
+                password: info.password || '',
                 tag: info.tags || '',
                 category: info.category || '',
                 alias: info.alias || '',
-                status: 2
+                status: 2,
+                ...(info.id && { article_id: info.id })
             };
 
-            Object.keys(articlePayload).forEach(key => {
-                if (articlePayload[key] === undefined || articlePayload[key] === null) {
-                    delete articlePayload[key];
-                }
-            });
-
-            await apiClient.post('/uploadarticle', articlePayload);
+            await apiClient.post('/uploadarticle', payload);
             onSave(info);
         } catch (error) {
             console.error('保存失败:', error);
-            if (error.response?.data?.error) {
-                alert(`保存失败: ${error.response.data.error}`);
-            } else {
-                alert('保存失败，请重试');
-            }
+            alert(`保存失败: ${error.response?.data?.error || '请重试'}`);
         } finally {
             setIsSaving(false);
         }
     };
 
-
-    const insertMarkdown = (syntax) => {
-        let snippet = '';
-        switch (syntax) {
-            case 'bold': snippet = '**粗体**'; break;
-            case 'italic': snippet = '*斜体*'; break;
-            case 'heading': snippet = '# 标题'; break;
-            case 'link': snippet = '[描述](https://)'; break;
-            case 'image': snippet = '![alt](https://)'; break;
-            case 'list': snippet = '- 列表项'; break;
-            case 'code': snippet = '\n```js\nconsole.log("Hello World");\n```\n'; break;
-            default: return;
+    const insertMarkdown = (type) => {
+        const snippet = MARKDOWN_SNIPPETS[type];
+        if (snippet) {
+            setContent(prev => prev + (prev.endsWith('\n') ? '' : '\n') + snippet);
         }
-        setContent(prev => prev + (prev.endsWith('\n') ? '' : '\n') + snippet);
     };
+
+    const handleToolbarClick = (buttonType) => {
+        const button = TOOLBAR_BUTTONS.find(b => b.type === buttonType);
+        if (button?.isFile) {
+            handleFileSelect(buttonType);
+        } else if (buttonType === 'heading') {
+            setShowHeadingMenu(prev => !prev);
+        } else {
+            insertMarkdown(buttonType);
+        }
+    };
+
 
     const handleFileSelect = (fileType) => {
         if (!fileInputRef.current) return;
 
-        let acceptTypes = '';
-        switch (fileType) {
-            case 'image':
-                acceptTypes = SUPPORTED_FILE_TYPES.image.join(',');
-                break;
-            case 'video':
-                acceptTypes = SUPPORTED_FILE_TYPES.video.join(',');
-                break;
-            case 'audio':
-                acceptTypes = SUPPORTED_FILE_TYPES.audio.join(',');
-                break;
-            default:
-                acceptTypes = Object.values(SUPPORTED_FILE_TYPES).flat().join(',');
-        }
+        const acceptTypes = fileType === 'image' || fileType === 'video' || fileType === 'audio'
+            ? SUPPORTED_FILE_TYPES[fileType].join(',')
+            : Object.values(SUPPORTED_FILE_TYPES).flat().join(',');
 
         fileInputRef.current.accept = acceptTypes;
         fileInputRef.current.click();
@@ -157,56 +192,41 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
 
     const handleFileInputChange = (e) => {
         const file = e.target.files?.[0];
-        if (file) {
-            handleFileUpload(file);
-        }
+        if (file) handleFileUpload(file);
         e.target.value = '';
     };
 
     const handleFileUpload = async (file) => {
-        if (!file) return;
-
-        if (!isFileTypeSupported(file.type)) {
-            const supportedTypes = Object.values(SUPPORTED_FILE_TYPES).flat().join(', ');
-            alert(`不支持的文件类型: ${file.type}\n\n仅支持以下类型:\n${supportedTypes}`);
+        if (!file || !isFileSupported(file.type)) {
+            if (!isFileSupported(file.type)) {
+                alert(`不支持的文件类型: ${file.type}\n\n仅支持: ${Object.values(SUPPORTED_FILE_TYPES).flat().join(', ')}`);
+            }
             return;
         }
 
         const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
-
-        if (uploadingFiles.current.has(fileKey)) {
-            console.log('文件正在上传中，跳过重复请求');
-            return;
-        }
+        if (uploadingFiles.current.has(fileKey)) return;
 
         uploadingFiles.current.add(fileKey);
         setUploading(true);
 
         try {
-            let fileUrl;
-
-            if (file.size > 10 * 1024 * 1024) {
-                fileUrl = await multipartUpload(file);
-            } else {
-                fileUrl = await normalUpload(file);
-            }
+            const fileUrl = file.size > 10 * 1024 * 1024
+                ? await multipartUpload(file)
+                : await normalUpload(file);
 
             if (fileUrl) {
-                const config = getConfig();
-                const fullUrl = config.getFullUrl(fileUrl);
-
+                const fullUrl = getConfig().getFullUrl(fileUrl);
                 const mediaType = getMediaType(file.type);
-                let markdownSnippet = '';
 
-                if (mediaType === 'image') {
-                    markdownSnippet = `\n![${file.name}](${fullUrl})\n`;
-                } else if (mediaType === 'video') {
-                    markdownSnippet = `\n<video src="${fullUrl}" controls style="max-width: 100%; height: auto;"></video>\n`;
-                } else if (mediaType === 'audio') {
-                    markdownSnippet = `\n<audio src="${fullUrl}" controls preload="metadata"></audio>\n`;
-                }
+                const snippets = {
+                    image: `\n![${file.name}](${fullUrl})\n`,
+                    video: `\n<video src="${fullUrl}" controls style="width: 400px;"></video>\n`,
+                    audio: `\n<audio src="${fullUrl}" controls preload="metadata"></audio>\n`
+                };
 
-                setContent(prev => prev + markdownSnippet);
+                const snippet = snippets[mediaType];
+                if (snippet) setContent(prev => prev + snippet);
             }
         } catch (error) {
             console.error('上传失败:', error);
@@ -222,13 +242,9 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         formData.append('file', file);
 
         try {
-
             const response = await apiClient.post('/uploadattachment', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+                headers: { 'Content-Type': 'multipart/form-data' }
             });
-
             return response.fileUrl;
         } catch (error) {
             throw new Error('普通上传失败: ' + (error.response?.data?.error || error.message));
@@ -238,22 +254,15 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const multipartUpload = async (file) => {
         const CHUNK_SIZE = 5 * 1024 * 1024;
         const chunks = Math.ceil(file.size / CHUNK_SIZE);
-        let uploadId = null;
 
         try {
-            const initResponse = await apiClient.post('/uploadattachment/init', {
+            const { uploadId } = await apiClient.post('/uploadattachment/init', {
                 filename: file.name
             });
 
-            uploadId = initResponse.uploadId;
-            console.log(`开始分片上传，uploadId: ${uploadId}, 总分片数: ${chunks}`);
-
             for (let i = 0; i < chunks; i++) {
                 const start = i * CHUNK_SIZE;
-                const end = Math.min(start + CHUNK_SIZE, file.size);
-                const chunk = file.slice(start, end);
-
-                console.log(`上传分片 ${i + 1}/${chunks}, 大小: ${chunk.size} bytes`);
+                const chunk = file.slice(start, Math.min(start + CHUNK_SIZE, file.size));
 
                 await apiClient.post('/uploadattachment/part', chunk, {
                     headers: {
@@ -264,29 +273,139 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 });
             }
 
-            console.log('所有分片上传完成，开始合并...');
-            const completeResponse = await apiClient.post('/uploadattachment/complete', {
+            const { fileUrl } = await apiClient.post('/uploadattachment/complete', {
                 uploadId,
                 filename: file.name
             });
 
-            console.log(`分片上传完成，文件URL: ${completeResponse.fileUrl}`);
-            return completeResponse.fileUrl;
-
+            return fileUrl;
         } catch (error) {
-            console.error('分片上传失败:', error);
             throw new Error('分片上传失败: ' + (error.response?.data?.error || error.message));
         }
     };
 
-    const isSafeUrl = (url) => {
-        if (!url) return false;
-        return url.startsWith('http://') || url.startsWith('https://');
+    const renderMarkdownComponents = {
+        h1: (props) => (
+            <h1 className="text-3xl font-bold mt-6 mb-4 text-gray-900 dark:text-white" {...props} />
+        ),
+        h2: (props) => (
+            <h2 className="text-2xl font-bold mt-5 mb-3 text-gray-900 dark:text-white" {...props} />
+        ),
+        h3: (props) => (
+            <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-900 dark:text-white" {...props} />
+        ),
+        h4: (props) => (
+            <h4 className="text-lg font-semibold mt-3 mb-2 text-gray-900 dark:text-white" {...props} />
+        ),
+        p: (props) => (
+            <p className="mb-3 leading-relaxed text-gray-700 dark:text-gray-300" {...props} />
+        ),
+        ul: (props) => (
+            <ul className="list-disc list-inside mb-3 text-gray-700 dark:text-gray-300" {...props} />
+        ),
+        ol: (props) => (
+            <ol className="list-decimal list-inside mb-3 text-gray-700 dark:text-gray-300" {...props} />
+        ),
+        li: (props) => (
+            <li className="mb-1 text-gray-700 dark:text-gray-300" {...props} />
+        ),
+        blockquote: (props) => (
+            <blockquote className="border-l-4 border-blue-500 pl-4 italic my-3 text-gray-600 dark:text-gray-400" {...props} />
+        ),
+        code({ className, children, ...props }) {
+            const match = /language-(\w+)/.exec(className || "");
+            return match ? (
+                <SyntaxHighlighter
+                    style={oneDark}
+                    language={match[1]}
+                    PreTag="div"
+                    {...props}
+                >
+                    {String(children).replace(/\n$/, "")}
+                </SyntaxHighlighter>
+            ) : (
+                <code
+                    className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-sm font-mono text-gray-800 dark:text-white"
+                    {...props}
+                >
+                    {children}
+                </code>
+            );
+        },
+        a: ({ href, children, ...props }) => {
+            if (!isSafeUrl(href)) return <span {...props}>{children}</span>;
+            return (
+                <a
+                    href={href}
+                    className="text-blue-600 dark:text-blue-400 hover:underline hover:text-blue-500 dark:hover:text-blue-300"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    {...props}
+                >
+                    {children}
+                </a>
+            );
+        },
+        img: ({ src, alt, ...props }) => {
+            if (!isSafeUrl(src)) return null;
+            return (
+                <img
+                    src={src}
+                    alt={alt}
+                    className="rounded-lg shadow-sm my-4 block cursor-pointer border border-gray-200 dark:border-gray-600"
+                    style={{
+                        maxHeight: "300px",
+                        maxWidth: "400px",
+                        height: "auto",
+                        width: "auto",
+                        objectFit: "contain",
+                    }}
+                    onClick={() => window.open(src, "_blank")}
+                    title="点击查看大图"
+                    {...props}
+                />
+            );
+        },
+
+        audio: ({ src, controls = true, preload = "metadata", ...props }) => {
+            if (!isSafeUrl(src)) return null;
+            const fileName = src.split("/").pop()?.split("?")[0] || "音频文件";
+
+            return (
+                <div className="inline-block my-4 p-4 bg-gray-100 dark:bg-gradient-to-r dark:from-blue-900 dark:to-purple-900 border border-gray-200 dark:border-blue-700 rounded-xl shadow-sm max-w-lg">
+                    <div className="flex items-center mb-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
+                            <Music className="h-4 w-4 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-gray-900 dark:text-white truncate" title={fileName}>
+                                {fileName}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                                音频文件
+                            </div>
+                        </div>
+                    </div>
+                    <audio
+                        src={src}
+                        controls={controls}
+                        preload={preload}
+                        className="w-full rounded-md"
+                        style={{ height: "40px", outline: "none" }}
+                        {...props}
+                    />
+                </div>
+            );
+        },
+        source: ({ src, type, ...props }) => {
+            if (!isSafeUrl(src)) return null;
+            return <source src={src} type={type} {...props} />;
+        },
     };
 
     return (
         <div className="fixed inset-0 z-50 bg-white flex flex-col">
-            {/* 顶部工具栏 */}
+            {/* Header */}
             <div className="border-b border-gray-200 p-4 flex items-center justify-between bg-white">
                 <div className="flex items-center space-x-2">
                     <FileText className="h-6 w-6 text-blue-600" />
@@ -299,12 +418,10 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                     />
                 </div>
                 <div className="flex items-center space-x-2">
-                    {uploading && (
-                        <div className="text-sm text-blue-600">文件上传中...</div>
-                    )}
+                    {uploading && <div className="text-sm text-blue-600">文件上传中...</div>}
                     <button
                         onClick={onCancel}
-                        className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors duration-200"
+                        className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
                     >
                         <X className="h-4 w-4 mr-1" />
                         取消
@@ -312,7 +429,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                     <button
                         onClick={handleSave}
                         disabled={isSaving || uploading}
-                        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors duration-200"
+                        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
                     >
                         <Save className="h-4 w-4 mr-1" />
                         {isSaving ? '保存中...' : '保存'}
@@ -321,254 +438,67 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             </div>
 
             <div className="flex-1 flex overflow-hidden">
-                <div className="w-1/2 border-r border-gray-200 flex flex-col">
-                    <div className="p-3 bg-gray-50 border-b border-gray-200 flex space-x-3 text-gray-600">
-                        <button
-                            onClick={() => insertMarkdown('bold')}
-                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="粗体"
-                        >
-                            <Bold className="h-5 w-5" />
-                        </button>
-                        <button
-                            onClick={() => insertMarkdown('italic')}
-                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="斜体"
-                        >
-                            <Italic className="h-5 w-5" />
-                        </button>
-                        <button
-                            onClick={() => insertMarkdown('heading')}
-                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="标题"
-                        >
-                            <Heading className="h-5 w-5" />
-                        </button>
-                        <button
-                            onClick={() => insertMarkdown('link')}
-                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="链接"
-                        >
-                            <LinkIcon className="h-5 w-5" />
-                        </button>
-                        <button
-                            onClick={() => handleFileSelect('image')}
-                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="插入图片"
-                        >
-                            <Image className="h-5 w-5" />
-                        </button>
-                        <button
-                            onClick={() => handleFileSelect('video')}
-                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="插入视频"
-                        >
-                            <Video className="h-5 w-5" />
-                        </button>
-                        <button
-                            onClick={() => handleFileSelect('audio')}
-                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="插入音频"
-                        >
-                            <Music className="h-5 w-5" />
-                        </button>
-                        <button
-                            onClick={() => insertMarkdown('list')}
-                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="列表"
-                        >
-                            <List className="h-5 w-5" />
-                        </button>
-                        <button
-                            onClick={() => insertMarkdown('code')}
-                            className="p-2 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="代码"
-                        >
-                            <Code className="h-5 w-5" />
-                        </button>
+                {/* Editor */}
+                <div className="w-1/2 flex flex-col border-r border-gray-200 overflow-hidden">
+                    <div className="flex items-center border-b border-gray-200 bg-gray-50 px-2">
+                        {TOOLBAR_BUTTONS.map((button) => (
+                            <div key={button.type} className="relative">
+                                <button
+                                    onClick={() => handleToolbarClick(button.type)}
+                                    title={button.title}
+                                    className="p-2 hover:bg-gray-100 rounded"
+                                >
+                                    <button.icon className="h-5 w-5" />
+                                </button>
+                                {button.type === 'heading' && showHeadingMenu && (
+                                    <div
+                                        ref={headingMenuRef}
+                                        className="absolute top-full left-0 mt-1 w-32 bg-white rounded-md shadow-lg border border-gray-200 z-10"
+                                    >
+                                        {['# 一级标题', '## 二级标题', '### 三级标题'].map((h, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => {
+                                                    setContent(prev => prev + '\n' + h + '\n');
+                                                    setShowHeadingMenu(false);
+                                                }}
+                                                className="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+                                            >
+                                                {h}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
                     <textarea
                         ref={textareaRef}
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
-                        className="flex-1 p-4 font-mono text-sm resize-none focus:outline-none"
-                        placeholder="在此输入Markdown内容...&#10;&#10;提示：可以直接粘贴图片/视频/音频文件进行上传&#10;支持格式：图片(jpg,png,gif,webp等)、视频(mp4,webm,mov等)、音频(mp3,wav,m4a等)&#10;&#10;HTML标签示例：&#10;&lt;script&gt;alert('Hello')&lt;/script&gt; 会显示为普通文本&#10;&lt;video src='url' controls&gt;&lt;/video&gt; 会正常渲染视频&#10;&lt;audio src='url' controls&gt;&lt;/audio&gt; 会正常渲染音频&#10;只有安全的媒体标签会被渲染，脚本标签显示为文本"
-                    />
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        onChange={handleFileInputChange}
-                        style={{ display: 'none' }}
+                        placeholder="在此输入 Markdown 内容..."
+                        className="flex-1 p-4 focus:outline-none font-mono resize-none text-gray-900 dark:text-white bg-white dark:bg-gray-900"
+                        spellCheck={false}
                     />
                 </div>
 
-                <div className="w-1/2 flex flex-col">
-                    <div className="p-2 bg-gray-50 border-b border-gray-200 text-sm text-gray-500">
-                        预览 (支持安全媒体标签渲染，脚本标签显示为文本)
-                    </div>
-                    <div className="flex-1 p-4 overflow-y-auto prose max-w-none">
-                        <h1 className="text-2xl font-bold mb-4">{title}</h1>
-                        <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            rehypePlugins={[
-                                rehypeRaw,
-                                [rehypeSanitize, {
-                                    tagNames: [
-                                        'div', 'span', 'p', 'br', 'strong', 'em', 'u', 's', 'del', 'ins',
-                                        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-                                        'ul', 'ol', 'li', 'dl', 'dt', 'dd',
-                                        'blockquote', 'pre', 'code',
-                                        'table', 'thead', 'tbody', 'tr', 'th', 'td',
-                                        'a', 'img',
-                                        'video', 'audio', 'source', 'track',
-                                        'hr', 'sup', 'sub'
-                                    ],
-                                    attributes: {
-                                        '*': ['className'],
-                                        'a': ['href', 'title', 'target', 'rel'],
-                                        'img': ['src', 'alt', 'title', 'width', 'height'],
-                                        'video': ['src', 'controls', 'autoplay', 'loop', 'muted', 'poster', 'width', 'height', 'preload'],
-                                        'audio': ['src', 'controls', 'autoplay', 'loop', 'muted', 'preload'],
-                                        'source': ['src', 'type', 'media'],
-                                        'track': ['src', 'kind', 'srclang', 'label', 'default']
-                                    }
-                                }]
-                            ]}
-                            components={{
-                                h1: (props) => <h1 className="text-3xl font-bold mt-6 mb-4 text-white" {...props} />,
-                                h2: (props) => <h2 className="text-2xl font-bold mt-5 mb-3 text-white" {...props} />,
-                                h3: (props) => <h3 className="text-xl font-semibold mt-4 mb-2 text-white" {...props} />,
-                                h4: (props) => <h4 className="text-lg font-semibold mt-3 mb-2 text-white" {...props} />,
-                                p: (props) => <p className="mb-3 leading-relaxed text-gray-300" {...props} />,
-                                ul: (props) => <ul className="list-disc list-inside mb-3 text-gray-300" {...props} />,
-                                ol: (props) => <ol className="list-decimal list-inside mb-3 text-gray-300" {...props} />,
-                                li: (props) => <li className="mb-1 text-gray-300" {...props} />,
-                                blockquote: (props) => (
-                                    <blockquote
-                                        className="border-l-4 border-blue-500 pl-4 italic text-gray-400 my-3"
-                                        {...props}
-                                    />
-                                ),
-                                code({ className, children, ...props }) {
-                                    const match = /language-(\w+)/.exec(className || "");
-                                    return match ? (
-                                        <SyntaxHighlighter
-                                            style={oneDark}
-                                            language={match[1]}
-                                            PreTag="div"
-                                            {...props}
-                                        >
-                                            {String(children).replace(/\n$/, "")}
-                                        </SyntaxHighlighter>
-                                    ) : (
-                                        <code
-                                            className="bg-gray-700 px-1 py-0.5 rounded text-sm font-mono text-white"
-                                            {...props}
-                                        >
-                                            {children}
-                                        </code>
-                                    );
-                                },
-                                a: ({ href, children, ...props }) => {
-                                    if (!href || !isSafeUrl(href)) return <span {...props}>{children}</span>;
-                                    return (
-                                        <a
-                                            href={href}
-                                            className="text-blue-400 hover:underline hover:text-blue-300"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            {...props}
-                                        >
-                                            {children}
-                                        </a>
-                                    );
-                                },
-                                img: ({ src, alt, ...props }) => {
-                                    if (!src || !isSafeUrl(src)) return null;
-                                    return (
-                                        <img
-                                            src={src}
-                                            alt={alt}
-                                            className="rounded-lg shadow-sm my-4 block"
-                                            style={{
-                                                maxHeight: '300px',
-                                                maxWidth: '500px',
-                                                height: 'auto',
-                                                width: 'auto',
-                                                objectFit: 'contain',
-                                                cursor: 'pointer'
-                                            }}
-                                            onClick={() => window.open(src, '_blank')}
-                                            title="点击查看大图"
-                                            {...props}
-                                        />
-                                    );
-                                },
-                                video: ({ src, controls, autoplay, loop, muted, poster, ...props }) => {
-                                    if (!src || !isSafeUrl(src)) return null;
-                                    return (
-                                        <video
-                                            src={src}
-                                            controls={controls ?? true}
-                                            autoPlay={autoplay ?? false}
-                                            loop={loop ?? false}
-                                            muted={muted ?? false}
-                                            poster={poster}
-                                            className="rounded-lg shadow-sm my-4 block"
-                                            style={{
-                                                maxHeight: '300px',
-                                                maxWidth: '500px',
-                                                height: 'auto',
-                                                width: 'auto',
-                                                objectFit: 'contain'
-                                            }}
-                                            {...props}
-                                        />
-                                    );
-                                },
-                                audio: ({ src, controls, autoplay, loop, muted, preload, ...props }) => {
-                                    if (!src || !isSafeUrl(src)) return null;
-                                    const fileName = src.split('/').pop()?.split('?')[0] || '音频文件';
-
-                                    return (
-                                        <span className="inline-block my-4 p-4 bg-gradient-to-r from-blue-900 to-purple-900 border border-blue-700 rounded-xl shadow-sm" style={{ maxWidth: '500px', display: 'block' }}>
-                    <span className="flex items-center mb-3">
-                        <span className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
-                            <Music className="h-4 w-4 text-white" />
-                        </span>
-                        <span className="flex-1 min-w-0">
-                            <span className="text-sm font-medium text-white truncate block" title={fileName}>
-                                {fileName}
-                            </span>
-                            <span className="text-xs text-gray-400 block">音频文件</span>
-                        </span>
-                    </span>
-                    <audio
-                        src={src}
-                        controls={controls ?? true}
-                        autoPlay={autoplay ?? false}
-                        loop={loop ?? false}
-                        muted={muted ?? false}
-                        preload={preload ?? 'metadata'}
-                        className="w-full rounded-md"
-                        style={{ height: '40px', outline: 'none' }}
-                        {...props}
+                {/* Preview */}
+                <div className="w-1/2 p-4 overflow-y-auto bg-white dark:bg-gray-900">
+                    <ReactMarkdown
+                        children={content}
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeRaw, [rehypeSanitize, rehypeSanitizeSchema]]}
+                        components={renderMarkdownComponents}
                     />
-                </span>
-                                    );
-                                },
-                                source: ({ src, type, ...props }) => {
-                                    if (!src || !isSafeUrl(src)) return null;
-                                    return <source src={src} type={type} {...props} />;
-                                }
-                            }}
-                        >
-                            {content}
-                        </ReactMarkdown>
-
-                    </div>
                 </div>
             </div>
+
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileInputChange}
+            />
 
             {showArticleInfo && (
                 <ArticleInfoForm
