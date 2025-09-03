@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 03/09/2025 18:06:32
+ Date: 03/09/2025 19:25:14
 */
 
 SET NAMES utf8mb4;
@@ -31,7 +31,7 @@ CREATE TABLE `article`  (
                             `page_views` bigint NOT NULL DEFAULT 0 COMMENT '文章阅读量',
                             `like_count` bigint NOT NULL DEFAULT 0 COMMENT '文章点赞数',
                             `favorite_count` bigint NOT NULL DEFAULT 0 COMMENT '文章收藏数',
-                            `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '文章阅读密码',
+                            `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章阅读密码',
                             `tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章标签',
                             `category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章分类',
                             `alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章访问链接',
@@ -216,6 +216,7 @@ CREATE TABLE `site_config`  (
                                 `site_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '站点名称',
                                 `register_user_permission` int NULL DEFAULT NULL COMMENT '注册用户默认角色id',
                                 `copyright` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '版权信息',
+                                `article_status` int NOT NULL COMMENT '用户上传文章默认状态0为不发布1为发布',
                                 PRIMARY KEY (`id`) USING BTREE,
                                 INDEX `register_user_permission`(`register_user_permission` ASC) USING BTREE,
                                 CONSTRAINT `register_user_permission` FOREIGN KEY (`register_user_permission`) REFERENCES `role` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
@@ -224,7 +225,7 @@ CREATE TABLE `site_config`  (
 -- ----------------------------
 -- Records of site_config
 -- ----------------------------
-INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 2, '© 2025 次元栈 - Dim Stack. All rights reserved.');
+INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 2, '© 2025 次元栈 - Dim Stack. All rights reserved.', 1);
 
 -- ----------------------------
 -- Table structure for user_information
