@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 03/09/2025 17:24:21
+ Date: 03/09/2025 18:06:32
 */
 
 SET NAMES utf8mb4;
@@ -66,11 +66,12 @@ CREATE TABLE `article_categories`  (
                                        UNIQUE INDEX `article_categories`(`article_categories` ASC) USING BTREE,
                                        INDEX `categories_founder`(`founder` ASC) USING BTREE,
                                        CONSTRAINT `categories_founder` FOREIGN KEY (`founder`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE SET NULL
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of article_categories
 -- ----------------------------
+INSERT INTO `article_categories` VALUES (1, '默认分类', '默认分类', '075eb86f721743e3940f35869154a140175689381296899805858', '2025-09-03 18:05:44', 1);
 
 -- ----------------------------
 -- Table structure for article_tag
@@ -87,11 +88,12 @@ CREATE TABLE `article_tag`  (
                                 UNIQUE INDEX `tag_name`(`tag_name` ASC) USING BTREE,
                                 INDEX `tag_founder`(`founder` ASC) USING BTREE,
                                 CONSTRAINT `tag_founder` FOREIGN KEY (`founder`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of article_tag
 -- ----------------------------
+INSERT INTO `article_tag` VALUES (1, '默认标签', '默认标签', '075eb86f721743e3940f35869154a140175689381296899805858', '2025-09-03 18:05:11', 1);
 
 -- ----------------------------
 -- Table structure for attachment
@@ -245,10 +247,11 @@ CREATE TABLE `user_information`  (
                                      UNIQUE INDEX `uuid`(`uuid` ASC) USING BTREE,
                                      INDEX `idx_role_id`(`role_id` ASC) USING BTREE,
                                      CONSTRAINT `fk_user_role` FOREIGN KEY (`role_id`) REFERENCES `role` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户信息表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '用户信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of user_information
 -- ----------------------------
+INSERT INTO `user_information` VALUES (1, '075eb86f721743e3940f35869154a140175689381296899805858', 'admin', NULL, NULL, 'official@dimstack.com', NULL, '$2a$10$hNfMxBf3egQkomuMql9LDeMJb2AC9IXkp904GgqX6DAxc8u9i1aAm', NULL, 2, '2025-09-03 18:03:33', 1);
 
 SET FOREIGN_KEY_CHECKS = 1;
