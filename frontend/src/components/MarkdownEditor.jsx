@@ -142,6 +142,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 article_name: info.title,
                 article_content: info.content,
                 article_cover: info.cover || '',
+                excerpt: info.excerpt || '',
                 password: info.password || '',
                 tag: info.tags || '',
                 category: info.category || '',
