@@ -19,4 +19,7 @@ public interface SiteConfigMapper {
 
     // 查询版权信息
     String getCopyright();
+
+    // 获取文章默认状态
+    int getArticleStatus();
 }

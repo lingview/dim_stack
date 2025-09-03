@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.domain.UploadArticle;
 import xyz.lingview.dimstack.domain.UploadAttachment;
+import xyz.lingview.dimstack.mapper.SiteConfigMapper;
 import xyz.lingview.dimstack.mapper.UploadMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.util.RandomUtil;
@@ -35,6 +36,9 @@ public class UploadController {
 
     @Autowired
     private UserInformationMapper userInformationMapper;
+
+    @Autowired
+    SiteConfigMapper siteConfigMapper;
 
     private static final long MAX_FILE_SIZE = 100 * 1024 * 1024;
 
@@ -523,6 +527,8 @@ public class UploadController {
     }
 
 
+
+
     @PostMapping("/uploadarticle")
     @RequiresPermission("post:create")
     public ResponseEntity<Map<String, Object>> uploadArticle(HttpServletRequest request,
@@ -577,7 +583,7 @@ public class UploadController {
         }
 
         if (uploadArticle.getStatus() != 1 && uploadArticle.getStatus() != 3) {
-            uploadArticle.setStatus(2);
+            uploadArticle.setStatus(siteConfigMapper.getArticleStatus());
         }
 
         try {

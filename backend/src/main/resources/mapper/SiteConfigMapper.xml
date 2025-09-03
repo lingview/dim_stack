@@ -35,4 +35,12 @@
         FROM site_config
         WHERE id = 1
     </select>
+
+    <!-- 查询文章默认状态 -->
+    <select id="getArticleStatus" resultType="int">
+        SELECT article_status
+        FROM site_config
+        WHERE id = 1
+    </select>
+
 </mapper>

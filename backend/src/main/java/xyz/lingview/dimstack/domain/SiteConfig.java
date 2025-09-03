@@ -8,4 +8,5 @@ public class SiteConfig {
     private String site_name;
     private String register_user_permission;
     private String copyright;
+    private int article_status;
 }
