@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xyz.lingview.dimstack.mapper.ArticleMapper">
+
+    <resultMap id="articleDtoMap" type="xyz.lingview.dimstack.dto.ArticleDTO">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="excerpt" column="excerpt"/>
+        <result property="image" column="image"/>
+        <result property="date" column="date"/>
+        <result property="author" column="author"/>
+        <result property="category" column="category"/>
+        <result property="read_time" column="read_time"/>
+    </resultMap>
+
+    <!-- 查询首页文章列表 -->
+    <select id="selectArticlesForHomePage" resultMap="articleDtoMap">
+        SELECT
+        a.id,
+        a.article_name AS title,
+        a.excerpt,
+        a.article_cover AS image,
+        a.create_time AS date,
+        u.username AS author,
+        a.category,
+        '5分钟阅读' AS read_time
+        FROM article a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.status = 1
+        <if test="category != null and category != ''">
+            AND a.category = #{category}
+        </if>
+        ORDER BY a.create_time DESC
+        LIMIT #{param1}, #{param2}
+    </select>
+
+    <!-- 统计文章总数 -->
+    <select id="countArticles" resultType="int">
+        SELECT COUNT(*)
+        FROM article a
+        WHERE a.status = 1
+        <if test="category != null and category != ''">
+            AND a.category = #{category}
+        </if>
+    </select>
+
+</mapper>

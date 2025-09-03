@@ -1,23 +1,56 @@
+import { getConfig } from '../utils/config';
+
 export default function ArticleCard({ article }) {
-    // 限制title和excerpt显示长度
     const truncate = (text, maxLength) =>
         text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+
+    const getFullImageUrl = (url) => {
+        if (!url) return '/images/default-article-image.jpg';
+
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            return url;
+        }
+
+        try {
+            const config = getConfig();
+            return config.getFullUrl(url);
+        } catch (error) {
+            if (url.startsWith('/')) {
+                return url;
+            }
+
+            return `/upload/${url}`;
+        }
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.getFullYear() + '-' +
+               String(date.getMonth() + 1).padStart(2, '0') + '-' +
+               String(date.getDate()).padStart(2, '0');
+    };
 
     return (
         <article className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col">
             {/* 头图 */}
             <img
                 className="w-full h-48 object-cover"
-                src={article.image}
+                src={getFullImageUrl(article.image)}
                 alt={article.title}
+                onError={(e) => {
+                    if (!e.target.src.endsWith('/images/default-article-image.jpg')) {
+                        e.target.src = '/images/default-article-image.jpg';
+                    }
+                }}
             />
 
             {/* 内容区 */}
             <div className="p-6 flex flex-col flex-1">
                 <div className="flex items-center text-sm text-gray-500 mb-3">
-                    <span>{article.date}</span>
+                    <span>{formatDate(article.date)}</span>
                     <span className="mx-2">•</span>
-                    <span>{article.readTime}</span>
+                    <span>{article.read_time}</span>
                 </div>
 
                 <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors duration-200">
@@ -30,12 +63,11 @@ export default function ArticleCard({ article }) {
                     {truncate(article.excerpt, 40)}
                 </p>
 
-                {/* 用户名和分类信息固定在底部 */}
                 <div className="flex justify-between items-center mt-auto">
                     <span className="text-sm text-gray-500">作者: {article.author}</span>
                     <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-            {article.category}
-          </span>
+                        {article.category}
+                    </span>
                 </div>
             </div>
         </article>
