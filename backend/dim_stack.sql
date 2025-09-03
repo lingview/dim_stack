@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 01/09/2025 11:14:35
+ Date: 03/09/2025 17:24:21
 */
 
 SET NAMES utf8mb4;
@@ -28,6 +28,10 @@ CREATE TABLE `article`  (
                             `article_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章名字',
                             `article_cover` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '文章封面',
                             `article_content` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章正文',
+                            `page_views` bigint NOT NULL DEFAULT 0 COMMENT '文章阅读量',
+                            `like_count` bigint NOT NULL DEFAULT 0 COMMENT '文章点赞数',
+                            `favorite_count` bigint NOT NULL DEFAULT 0 COMMENT '文章收藏数',
+                            `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章阅读密码',
                             `tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章标签',
                             `category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章分类',
                             `alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '文章访问链接',
@@ -38,9 +42,9 @@ CREATE TABLE `article`  (
                             INDEX `user_article_uuid`(`uuid` ASC) USING BTREE,
                             INDEX `tag`(`tag` ASC) USING BTREE,
                             INDEX `categories`(`category` ASC) USING BTREE,
+                            CONSTRAINT `categories` FOREIGN KEY (`category`) REFERENCES `article_categories` (`article_categories`) ON DELETE RESTRICT ON UPDATE RESTRICT,
                             CONSTRAINT `fk_article_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE,
-                            CONSTRAINT `tag` FOREIGN KEY (`tag`) REFERENCES `article_tag` (`tag_name`) ON DELETE RESTRICT ON UPDATE RESTRICT,
-                            CONSTRAINT `categories` FOREIGN KEY (`category`) REFERENCES `article_categories` (`article_categories`) ON DELETE RESTRICT ON UPDATE RESTRICT
+                            CONSTRAINT `tag` FOREIGN KEY (`tag`) REFERENCES `article_tag` (`tag_name`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '文章上传记录表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
@@ -62,7 +66,7 @@ CREATE TABLE `article_categories`  (
                                        UNIQUE INDEX `article_categories`(`article_categories` ASC) USING BTREE,
                                        INDEX `categories_founder`(`founder` ASC) USING BTREE,
                                        CONSTRAINT `categories_founder` FOREIGN KEY (`founder`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE SET NULL
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of article_categories
@@ -83,7 +87,7 @@ CREATE TABLE `article_tag`  (
                                 UNIQUE INDEX `tag_name`(`tag_name` ASC) USING BTREE,
                                 INDEX `tag_founder`(`founder` ASC) USING BTREE,
                                 CONSTRAINT `tag_founder` FOREIGN KEY (`founder`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of article_tag
@@ -107,6 +111,9 @@ CREATE TABLE `attachment`  (
                                CONSTRAINT `fk_attachment_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '附件上传记录表' ROW_FORMAT = DYNAMIC;
 
+-- ----------------------------
+-- Records of attachment
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for permission
