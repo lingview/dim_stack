@@ -212,7 +212,7 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                                             alt="封面预览"
                                             className="h-20 w-32 object-cover rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm"
                                             onError={(e) => {
-                                                e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2NjYyIvPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1zaXplPSIxMiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzY2NiI+5byg5bCP5LqLPC90ZXh0Pjwvc3ZnPg==';
+                                                e.target.src = '/image_error.svg';
                                             }}
                                         />
                                     </div>

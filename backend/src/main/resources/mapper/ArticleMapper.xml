@@ -6,26 +6,26 @@
 
     <resultMap id="articleDtoMap" type="xyz.lingview.dimstack.dto.ArticleDTO">
         <id property="id" column="id"/>
+        <result property="uuid" column="uuid"/>
         <result property="title" column="title"/>
         <result property="excerpt" column="excerpt"/>
         <result property="image" column="image"/>
         <result property="date" column="date"/>
         <result property="author" column="author"/>
         <result property="category" column="category"/>
-        <result property="read_time" column="read_time"/>
     </resultMap>
 
     <!-- 查询首页文章列表 -->
     <select id="selectArticlesForHomePage" resultMap="articleDtoMap">
         SELECT
         a.id,
+        a.uuid,
         a.article_name AS title,
         a.excerpt,
         a.article_cover AS image,
         a.create_time AS date,
         u.username AS author,
-        a.category,
-        '5分钟阅读' AS read_time
+        a.category
         FROM article a
         JOIN user_information u ON a.uuid = u.uuid
         WHERE a.status = 1

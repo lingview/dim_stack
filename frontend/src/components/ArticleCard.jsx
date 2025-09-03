@@ -5,7 +5,7 @@ export default function ArticleCard({ article }) {
         text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
 
     const getFullImageUrl = (url) => {
-        if (!url) return '/images/default-article-image.jpg';
+        if (!url) return null;
 
         if (url.startsWith('http://') || url.startsWith('https://')) {
             return url;
@@ -31,17 +31,17 @@ export default function ArticleCard({ article }) {
                String(date.getDate()).padStart(2, '0');
     };
 
+    const imageUrl = getFullImageUrl(article.image);
+
     return (
         <article className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col">
             {/* 头图 */}
             <img
                 className="w-full h-48 object-cover"
-                src={getFullImageUrl(article.image)}
+                src={imageUrl || '/image_error.svg'}
                 alt={article.title}
                 onError={(e) => {
-                    if (!e.target.src.endsWith('/images/default-article-image.jpg')) {
-                        e.target.src = '/images/default-article-image.jpg';
-                    }
+                    e.target.src = '/image_error.svg';
                 }}
             />
 
@@ -49,8 +49,6 @@ export default function ArticleCard({ article }) {
             <div className="p-6 flex flex-col flex-1">
                 <div className="flex items-center text-sm text-gray-500 mb-3">
                     <span>{formatDate(article.date)}</span>
-                    <span className="mx-2">•</span>
-                    <span>{article.read_time}</span>
                 </div>
 
                 <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors duration-200">
