@@ -130,7 +130,6 @@
   color: #d1d5db;
 }
 
-
 .dark .captcha-refresh-btn {
   background-color: #374151;
   border-color: #4b5563;
@@ -193,7 +192,6 @@
   background-color: #4b5563;
 }
 
-
 .dark .prose {
   color: #f9fafb;
 }
@@ -226,7 +224,6 @@
 .dark .prose audio {
   border-color: #4b5563;
 }
-
 
 .dark .react-syntax-highlighter {
   background-color: #1e293b !important;
@@ -291,7 +288,6 @@
   text-decoration: underline;
 }
 
-
 /* 暗色模式下文章信息表单头部背景 */
 .dark .article-header-bg {
   background-image: linear-gradient(to right, #1f2937, #111827);
@@ -301,4 +297,72 @@
 }
 .dark .article-header-subtitle {
   color: #d1d5db !important;
+}
+
+/* 分页按钮样式 */
+.dark .pagination-button {
+  background-color: #374151;
+  color: #d1d5db;
+  border: 1px solid #4b5563;
+  transition: all 0.2s ease;
+}
+
+/* 分页按钮悬停效果 */
+.dark .pagination-button:hover:not(.disabled) {
+  background-color: #4b5563;
+  color: #f9fafb;
+  border-color: #6b7280;
+}
+
+
+/* 禁用按钮样式 */
+.dark .pagination-button.disabled {
+  background-color: #1f2937;
+  color: #6b7280;
+  border-color: #374151;
+  opacity: 1;
+}
+
+/* 上一页/下一页按钮特殊样式 */
+.dark .pagination-prev-next {
+  background-color: #1f2937;
+  border-color: #4b5563;
+}
+
+.dark .pagination-prev-next:hover:not(.disabled) {
+  background-color: #374151;
+}
+
+/* 分页信息样式 */
+.dark .pagination-info {
+  color: #d1d5db;
+  background-color: #1f2937;
+  border: 1px solid #4b5563;
+  border-radius: 0.375rem;
+}
+
+
+
+/* 移动端菜单暗色模式样式 */
+.dark .mobile-menu {
+  background-color: #1f2937;
+  border-top-color: #374151;
+}
+
+.dark .mobile-menu-item {
+  color: #d1d5db;
+}
+
+.dark .mobile-menu-item:hover {
+  color: #3b82f6;
+  background-color: #374151;
+}
+
+.dark .mobile-menu-button {
+  background-color: #374151;
+  color: #d1d5db;
+}
+
+.dark .mobile-menu-button:hover {
+  background-color: #4b5563;
 }
