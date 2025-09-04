@@ -13,6 +13,7 @@
         <result property="date" column="date"/>
         <result property="author" column="author"/>
         <result property="category" column="category"/>
+        <result property="alias" column="alias"/>
     </resultMap>
 
     <!-- 查询首页文章列表 -->
@@ -26,7 +27,8 @@
         a.article_cover AS image,
         a.create_time AS date,
         u.username AS author,
-        a.category
+        a.category,
+        a.alias
         FROM article a
         JOIN user_information u ON a.uuid = u.uuid
         WHERE a.status = 1
