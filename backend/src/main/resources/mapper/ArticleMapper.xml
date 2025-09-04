@@ -6,7 +6,7 @@
 
     <resultMap id="articleDtoMap" type="xyz.lingview.dimstack.dto.ArticleDTO">
         <id property="id" column="id"/>
-        <result property="uuid" column="uuid"/>
+        <result property="article_id" column="article_id"/>
         <result property="title" column="title"/>
         <result property="excerpt" column="excerpt"/>
         <result property="image" column="image"/>
@@ -20,6 +20,7 @@
         SELECT
         a.id,
         a.uuid,
+        a.article_id,
         a.article_name AS title,
         a.excerpt,
         a.article_cover AS image,
