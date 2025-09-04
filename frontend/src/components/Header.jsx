@@ -2,6 +2,7 @@ import { fakeData } from '../Api.jsx'
 import ThemeToggle from './ThemeToggle'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import apiClient from '../utils/axios.jsx'
 
 export default function Header() {
     const navigate = useNavigate()
@@ -12,19 +13,48 @@ export default function Header() {
 
     // 检查登录状态
     useEffect(() => {
-        const loggedIn = localStorage.getItem('isLoggedIn') === 'true'
-        const user = localStorage.getItem('username')
-        setIsLoggedIn(loggedIn)
-        setUsername(user || '')
+        const checkLoginStatus = async () => {
+            try {
+
+                const response = await apiClient.get('/user/status')
+
+                if (response && response.loggedIn) {
+                    setIsLoggedIn(true)
+                    setUsername(response.username || '')
+
+                    localStorage.setItem('isLoggedIn', 'true')
+                    localStorage.setItem('username', response.username || '')
+                } else {
+                    setIsLoggedIn(false)
+                    setUsername('')
+                    localStorage.removeItem('isLoggedIn')
+                    localStorage.removeItem('username')
+                }
+            } catch (error) {
+                setIsLoggedIn(false)
+                setUsername('')
+                localStorage.removeItem('isLoggedIn')
+                localStorage.removeItem('username')
+                console.error('验证登录状态失败:', error)
+            }
+        }
+
+        checkLoginStatus()
     }, [location])
 
-    const handleLogout = () => {
-        localStorage.removeItem('isLoggedIn')
-        localStorage.removeItem('username')
-        setIsLoggedIn(false)
-        setUsername('')
-        navigate('/login')
-        setIsMobileMenuOpen(false)
+    const handleLogout = async () => {
+        try {
+            await apiClient.post('/user/logout')
+        } catch (error) {
+            console.error('登出请求失败:', error)
+        } finally {
+            localStorage.removeItem('isLoggedIn')
+            localStorage.removeItem('username')
+            setIsLoggedIn(false)
+            setUsername('')
+            navigate('/login')
+            setIsMobileMenuOpen(false)
+        }
     }
 
     const toggleMobileMenu = () => {
@@ -81,9 +111,9 @@ export default function Header() {
                         {/* 登录/用户下拉 */}
                         {isLoggedIn ? (
                             <div className="relative group flex items-center space-x-4">
-                <span className="text-gray-700 dark:text-gray-300 hidden md:inline cursor-pointer">
-                  欢迎, {username}
-                </span>
+                                <span className="text-gray-700 dark:text-gray-300 hidden md:inline cursor-pointer">
+                                    欢迎, {username}
+                                </span>
                                 <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200 z-50">
                                     <button
                                         onClick={() => {

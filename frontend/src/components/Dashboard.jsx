@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 
 import { lazy, Suspense } from 'react';
+import apiClient from '../utils/axios.jsx';
 
 const MarkdownEditor = lazy(() => import('./MarkdownEditor'));
 
@@ -20,14 +21,36 @@ export default function Dashboard() {
     const [notifications, setNotifications] = useState([])
     const [username, setUsername] = useState('')
     const [showEditor, setShowEditor] = useState(false)
+    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        if (fakeData && fakeData.dashboard) {
-            setNotifications(fakeData.dashboard.notifications || [])
+        const checkLoginStatus = async () => {
+            try {
+                const response = await apiClient.get('/user/status')
+
+                if (response && response.loggedIn) {
+                    setUsername(response.username || '')
+                } else {
+                    navigate('/login')
+                }
+            } catch (error) {
+                console.error('验证登录状态失败:', error)
+                navigate('/login')
+            } finally {
+                setLoading(false)
+            }
         }
-        const username =  localStorage.getItem('username')
-        setUsername(username)
-    }, [])
+
+        checkLoginStatus()
+    }, [navigate])
+
+    useEffect(() => {
+        if (!loading && username) {
+            if (fakeData && fakeData.dashboard) {
+                setNotifications(fakeData.dashboard.notifications || [])
+            }
+        }
+    }, [loading, username])
 
     useEffect(() => {
         const unreadCount = notifications.filter(n => n && !n.read).length
@@ -73,6 +96,31 @@ export default function Dashboard() {
         }
     }
 
+    const handleLogout = async () => {
+        try {
+            await apiClient.post('/logout')
+        } catch (error) {
+            console.error('登出请求失败:', error)
+        } finally {
+            navigate('/login')
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">验证登录状态中...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (!username) {
+        return null
+    }
+
     const dashboardData = fakeData?.dashboard || {}
     const stats = dashboardData.stats || []
     const quickActions = dashboardData.quickActions || []
@@ -97,9 +145,7 @@ export default function Dashboard() {
                         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
                         sidebarOpen={sidebarOpen}
                         username={username}
-                        onLogout={() => {
-                            navigate('/login')
-                        }}
+                        onLogout={handleLogout}
                         showNewArticleButton={activeTab === 'articles'}
                         onNewArticle={() => setShowEditor(true)}
                     />
