@@ -33,73 +33,75 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 transition-colors duration-200">
       <Header />
-      <Hero />
+      <div className="pt-20">
+        <Hero />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* 主内容区 */}
-          <div className="lg:w-2/3">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 transition-colors duration-200 dark:text-white">
-                最新文章
-              </h2>
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* 主内容区 */}
+            <div className="lg:w-2/3">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4 transition-colors duration-200 dark:text-white">
+                  最新文章
+                </h2>
 
-              {loading ? (
-                <div>加载中...</div>
-              ) : articles.length > 0 ? (
-                <div className="grid md:grid-cols-3 gap-6">
-                  {articles.map((article) => (
-                    <ArticleCard key={article.id} article={article} />
-                  ))}
+                {loading ? (
+                  <div>加载中...</div>
+                ) : articles.length > 0 ? (
+                  <div className="grid md:grid-cols-3 gap-6">
+                    {articles.map((article) => (
+                      <ArticleCard key={article.id} article={article} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    暂无文章
+                  </div>
+                )}
+
+                {/* 分页控件 */}
+                <div className="flex justify-center mt-8 pagination-container">
+                  <button
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button pagination-prev-next"
+                  >
+                    上一页
+                  </button>
+
+                  <span className="px-4 py-2 mx-1 pagination-info">
+                    {page} / {totalPages}
+                  </span>
+
+                  <button
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button pagination-prev-next"
+                  >
+                    下一页
+                  </button>
                 </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  暂无文章
-                </div>
-              )}
+              </div>
+            </div>
 
-              {/* 分页控件 */}
-              <div className="flex justify-center mt-8 pagination-container">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button pagination-prev-next"
-                >
-                  上一页
-                </button>
-
-                <span className="px-4 py-2 mx-1 pagination-info">
-                  {page} / {totalPages}
-                </span>
-
-                <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button pagination-prev-next"
-                >
-                  下一页
-                </button>
+            {/* 侧边栏 */}
+            <div className="lg:w-1/3">
+              <div className="sticky top-28">
+                <CategorySidebar />
+                <RecommendedArticles />
               </div>
             </div>
           </div>
+        </main>
 
-          {/* 侧边栏 */}
-          <div className="lg:w-1/3">
-            <div className="sticky top-8">
-              <CategorySidebar />
-              <RecommendedArticles />
+        <footer className="bg-white mt-12 transition-colors duration-200">
+          <div className="container mx-auto px-4 py-8">
+            <div className="text-center text-gray-600 transition-colors duration-200">
+              <p>{fakeData.siteInfo.copyright}</p>
             </div>
           </div>
-        </div>
-      </main>
-
-      <footer className="bg-white border-t mt-12 transition-colors duration-200">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center text-gray-600 transition-colors duration-200">
-            <p>{fakeData.siteInfo.copyright}</p>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { getConfig } from '../utils/config';
+import { Link } from 'react-router-dom';
 
 export default function ArticleCard({ article }) {
     const truncate = (text, maxLength) =>
@@ -52,9 +53,9 @@ export default function ArticleCard({ article }) {
                 </div>
 
                 <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors duration-200">
-                    <a href={`/article/${article.id}`}>
+                    <Link to={`/article/${article.alias}`}>
                         {truncate(article.title, 30)}
-                    </a>
+                    </Link>
                 </h2>
 
                 <p className="text-gray-600 mb-4 flex-1">

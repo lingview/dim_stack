@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xyz.lingview.dimstack.mapper.ReadArticleMapper">
+
+    <resultMap id="readArticleMap" type="xyz.lingview.dimstack.domain.ReadArticle">
+        <id property="id" column="id"/>
+        <result property="uuid" column="uuid"/>
+        <result property="article_id" column="article_id"/>
+        <result property="article_name" column="article_name"/>
+        <result property="article_cover" column="article_cover"/>
+        <result property="excerpt" column="excerpt"/>
+        <result property="article_content" column="article_content"/>
+        <result property="page_views" column="page_views"/>
+        <result property="like_count" column="like_count"/>
+        <result property="favorite_count" column="favorite_count"/>
+        <result property="password" column="password"/>
+        <result property="tag" column="tag"/>
+        <result property="category" column="category"/>
+        <result property="alias" column="alias"/>
+        <result property="create_time" column="create_time"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <!-- 根据文章ID查询文章是否需要密码 -->
+    <select id="selectPasswordByArticleId" resultType="string">
+        SELECT password
+        FROM article
+        WHERE article_id = #{article_id} AND status = 1
+    </select>
+
+    <!-- 获取文章数据 -->
+    <select id="selectByArticleId" resultMap="readArticleMap">
+        SELECT
+            id,
+            uuid,
+            article_id,
+            article_name,
+            article_cover,
+            excerpt,
+            article_content,
+            page_views,
+            like_count,
+            favorite_count,
+            password,
+            tag,
+            category,
+            alias,
+            create_time,
+            status
+        FROM article
+        WHERE article_id = #{article_id} AND status = 1
+    </select>
+
+    <!-- 根据别名获取文章 -->
+    <select id="selectByAlias" resultMap="readArticleMap">
+        SELECT
+            id,
+            uuid,
+            article_id,
+            article_name,
+            article_cover,
+            excerpt,
+            article_content,
+            page_views,
+            like_count,
+            favorite_count,
+            password,
+            tag,
+            category,
+            alias,
+            create_time,
+            status
+        FROM article
+        WHERE alias = #{alias} AND status = 1
+    </select>
+
+    <!-- 检查文章是否需要密码 -->
+    <select id="isArticleNeedPassword" resultType="boolean">
+        SELECT CASE WHEN password IS NOT NULL AND password != '' THEN true ELSE false END
+        FROM article
+        WHERE alias = #{alias} AND status = 1
+    </select>
+
+    <!-- 更新文章阅读量 -->
+    <update id="updatePageViews">
+        UPDATE article
+        SET page_views = page_views + 1
+        WHERE article_id = #{article_id}
+    </update>
+
+</mapper>

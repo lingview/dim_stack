@@ -3,6 +3,8 @@ import Home from './pages/Home'
 import Login from './components/Login'
 import Register from './components/Register'
 import Dashboard from "./components/Dashboard.jsx";
+import ArticleReader from './components/ArticleReader';
+
 function App() {
   return (
     <Routes>
@@ -11,6 +13,7 @@ function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/dashboard/*" element={<Dashboard />} />
+      <Route path="/article/:articleId" element={<ArticleReader />} />
     </Routes>
   )
 }
