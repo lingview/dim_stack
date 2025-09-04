@@ -37,6 +37,8 @@ public class SessionAuthFilter implements Filter {
         "/swagger-ui/**",
         "/webjars/**",
         "/api/captcha",
+        "/api/articles",
+        "/api/article/**",
         "/v3/api-docs/**"
     ));
 
