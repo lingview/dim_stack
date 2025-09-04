@@ -4,18 +4,18 @@ import apiClient from './utils/axios';
 
 // 获取文章列表
 export const fetchArticles = async (page = 1, size = 10, category = null) => {
-  try {
-    const params = { page, size };
-    if (category) {
-      params.category = category;
-    }
+    try {
+        const params = { page, size };
+        if (category) {
+            params.category = category;
+        }
 
-    const response = await apiClient.get('/articles', { params });
-    return response;
-  } catch (error) {
-    console.error('获取文章列表失败:', error);
-    throw error;
-  }
+        const response = await apiClient.get('/articles', { params });
+        return response;
+    } catch (error) {
+        console.error('获取文章列表失败:', error);
+        throw error;
+    }
 };
 
 export const fakeData = {
@@ -122,6 +122,15 @@ export const fakeData = {
             { id: 1, title: '欢迎登录', content: '欢迎回来，lingview！', time: '5分钟前', read: false },
             { id: 2, title: '新评论', content: '有人在你的文章下留言。', time: '10分钟前', read: false },
             { id: 3, title: '系统更新', content: '后台已更新至最新版本。', time: '1小时前', read: true }
+        ],
+
+        // 文章数据
+        articles: [
+            { id: 1, title: '洛天依最新单曲解读', author: 'lingview', date: '2025-01-15', status: '已发布' },
+            { id: 2, title: '无限共鸣演唱会全程回顾', author: 'lingview', date: '2025-01-12', status: '草稿' },
+            { id: 3, title: 'Vsinger发展史深度解析', author: 'lingview', date: '2025-01-10', status: '已发布' },
+            { id: 4, title: '乐正龙牙专访记录', author: 'lingview', date: '2025-01-08', status: '已发布' },
+            { id: 5, title: '言和最新动态追踪', author: 'lingview', date: '2025-01-05', status: '草稿' }
         ]
     }
 };

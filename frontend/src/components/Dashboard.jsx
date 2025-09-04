@@ -25,8 +25,8 @@ export default function Dashboard() {
         if (fakeData && fakeData.dashboard) {
             setNotifications(fakeData.dashboard.notifications || [])
         }
-        const storedUsername = localStorage.getItem('username') || '未登录'
-        setUsername(storedUsername)
+        const username =  localStorage.getItem('username')
+        setUsername(username)
     }, [])
 
     useEffect(() => {
@@ -98,14 +98,11 @@ export default function Dashboard() {
                         sidebarOpen={sidebarOpen}
                         username={username}
                         onLogout={() => {
-                            localStorage.removeItem('isLoggedIn')
-                            localStorage.removeItem('username')
                             navigate('/login')
                         }}
                         showNewArticleButton={activeTab === 'articles'}
                         onNewArticle={() => setShowEditor(true)}
                     />
-
 
                     <main className="flex-1 overflow-y-auto p-6">
                         {/* 仪表盘视图 */}
@@ -156,7 +153,7 @@ export default function Dashboard() {
     )
 }
 
-
+// 仪表盘视图组件
 function DashboardView({ stats, quickActions, notifications, onMarkAsRead, onMarkAllAsRead }) {
     if (!stats || !quickActions || !notifications) {
         return <div>加载中...</div>
@@ -288,53 +285,53 @@ function ArticlesView({ onNewArticle, articles }) {
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
-                        <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                标题
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                作者
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                日期
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                状态
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                操作
-                            </th>
-                        </tr>
+                    <tr>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            标题
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            作者
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            日期
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            状态
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            操作
+                        </th>
+                    </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {articles.map((article) => (
-                            article && (
-                                <tr key={article.id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900">{article.title}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-500">{article.author}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-500">{article.date}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                    {articles.map((article) => (
+                        article && (
+                            <tr key={article.id} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="text-sm font-medium text-gray-900">{article.title}</div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="text-sm text-gray-500">{article.author}</div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="text-sm text-gray-500">{article.date}</div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                            article.status === '已发布' 
-                                                ? 'bg-green-100 text-green-800' 
+                                            article.status === '已发布'
+                                                ? 'bg-green-100 text-green-800'
                                                 : 'bg-yellow-100 text-yellow-800'
                                         }`}>
                                             {article.status}
                                         </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button className="text-blue-600 hover:text-blue-900 mr-3">编辑</button>
-                                        <button className="text-red-600 hover:text-red-900">删除</button>
-                                    </td>
-                                </tr>
-                            )
-                        ))}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button className="text-blue-600 hover:text-blue-900 mr-3">编辑</button>
+                                    <button className="text-red-600 hover:text-red-900">删除</button>
+                                </td>
+                            </tr>
+                        )
+                    ))}
                     </tbody>
                 </table>
             </div>
@@ -377,7 +374,6 @@ function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onClose, username, 
                 isOpen ? 'w-64' : 'w-16'
             } bg-white border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col relative z-30`}>
 
-
                 <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
@@ -387,7 +383,6 @@ function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onClose, username, 
                         </div>
                     </div>
                 </div>
-
 
                 {/* 导航菜单 */}
                 <nav className="mt-4 flex-1 overflow-y-auto">
@@ -480,7 +475,6 @@ function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onClose, username, 
                         {isOpen && (
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-gray-900 truncate">{username}</p>
-                                <p className="text-xs text-gray-500">超级管理员</p>
                             </div>
                         )}
                         {isOpen && (
@@ -533,7 +527,7 @@ function DashboardHeader({ onToggleSidebar, username, onLogout, showNewArticleBu
                         </button>
                     )}
 
-                    <div className="relative">
+                    <div className="relative hidden sm:block">
                         <input
                             type="text"
                             placeholder="搜索..."
@@ -553,7 +547,7 @@ function DashboardHeader({ onToggleSidebar, username, onLogout, showNewArticleBu
                             <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
                                 {getUserInitial(username)}
                             </div>
-                            <span className="hidden md:inline font-medium">{username}</span>
+                            <span className="font-medium text-sm sm:text-base">{username}</span>
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                             </svg>
@@ -617,6 +611,7 @@ function getIcon(iconName) {
         case 'content': return <Book className="w-5 h-5" />
         case 'appearance':
         case 'settings': return <Settings className="w-5 h-5" />
+        case 'system': return <Settings className="w-5 h-5" />
         case 'tools': return <Wrench className="w-5 h-5" />
         case 'media': return <Image className="w-5 h-5" />
         case 'link': return <LinkIcon className="w-5 h-5" />
@@ -625,6 +620,7 @@ function getIcon(iconName) {
         case 'backup': return <Database className="w-5 h-5" />
         case 'marketplace': return <ShoppingCart className="w-5 h-5" />
         case 'migrate': return <Package className="w-5 h-5" />
+        case 'overview': return <BarChart2 className="w-5 h-5" />
         default: return <File className="w-5 h-5" />
     }
 }
