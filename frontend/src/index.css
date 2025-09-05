@@ -366,3 +366,33 @@
 .dark .mobile-menu-button:hover {
   background-color: #4b5563;
 }
+
+
+
+
+/* MarkdownEditor工具栏暗色模式适配 */
+.dark .markdown-editor-toolbar {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+.dark .markdown-editor-toolbar button {
+  color: #d1d5db;
+}
+
+.dark .markdown-editor-toolbar button:hover {
+  background-color: #374151 !important;
+}
+
+.dark .markdown-editor-toolbar .heading-menu {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+.dark .markdown-editor-toolbar .heading-menu button {
+  color: #d1d5db;
+}
+
+.dark .markdown-editor-toolbar .heading-menu button:hover {
+  background-color: #374151 !important;
+}

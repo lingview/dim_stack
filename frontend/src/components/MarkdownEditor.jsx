@@ -441,7 +441,8 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             <div className="flex-1 flex overflow-hidden">
                 {/* Editor */}
                 <div className="w-1/2 flex flex-col border-r border-gray-200 overflow-hidden">
-                    <div className="flex items-center border-b border-gray-200 bg-gray-50 px-2">
+                    <div className="flex items-center border-b border-gray-200 bg-gray-50 px-2 markdown-editor-toolbar">
+
                         {TOOLBAR_BUTTONS.map((button) => (
                             <div key={button.type} className="relative">
                                 <button
@@ -454,7 +455,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                                 {button.type === 'heading' && showHeadingMenu && (
                                     <div
                                         ref={headingMenuRef}
-                                        className="absolute top-full left-0 mt-1 w-32 bg-white rounded-md shadow-lg border border-gray-200 z-10"
+                                        className="absolute top-full left-0 mt-1 w-32 bg-white rounded-md shadow-lg border border-gray-200 z-10 heading-menu"
                                     >
                                         {['# 一级标题', '## 二级标题', '### 三级标题'].map((h, idx) => (
                                             <button
