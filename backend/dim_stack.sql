@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 03/09/2025 21:33:33
+ Date: 06/09/2025 19:21:24
 */
 
 SET NAMES utf8mb4;
@@ -43,6 +43,7 @@ CREATE TABLE `article`  (
                             INDEX `user_article_uuid`(`uuid` ASC) USING BTREE,
                             INDEX `tag`(`tag` ASC) USING BTREE,
                             INDEX `categories`(`category` ASC) USING BTREE,
+                            UNIQUE INDEX `alias`(`alias` ASC) USING BTREE,
                             CONSTRAINT `categories` FOREIGN KEY (`category`) REFERENCES `article_categories` (`article_categories`) ON DELETE RESTRICT ON UPDATE RESTRICT,
                             CONSTRAINT `fk_article_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE,
                             CONSTRAINT `tag` FOREIGN KEY (`tag`) REFERENCES `article_tag` (`tag_name`) ON DELETE RESTRICT ON UPDATE RESTRICT

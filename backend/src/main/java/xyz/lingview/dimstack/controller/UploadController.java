@@ -527,6 +527,9 @@ public class UploadController {
     }
 
 
+    private boolean isAliasExists(String alias, String uuid) {
+        return uploadMapper.selectArticleCountByAliasAndUuid(alias, uuid) > 0;
+    }
 
 
     @PostMapping("/uploadarticle")
@@ -567,6 +570,15 @@ public class UploadController {
                     .body(Map.of("error", "文章分类不能为空"));
         }
 
+        // 检查文章别名是否重复
+        if (uploadArticle.getAlias() != null && !uploadArticle.getAlias().trim().isEmpty()) {
+            if (isAliasExists(uploadArticle.getAlias(), userUUID)) {
+                log.warn("文章别名已存在: {}", uploadArticle.getAlias());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "文章别名不能重复"));
+            }
+        }
+
         if (uploadArticle.getPassword() != null && !uploadArticle.getPassword().trim().isEmpty()) {
             String hashedPassword = BCrypt.hashpw(uploadArticle.getPassword(), BCrypt.gensalt());
             uploadArticle.setPassword(hashedPassword);
@@ -602,7 +614,7 @@ public class UploadController {
         } catch (Exception e) {
             log.error("保存文章时发生错误", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "保存文章时发生错误: " + e.getMessage()));
+                    .body(Map.of("error", "保存文章时发生内部错误"));
         }
     }
 
