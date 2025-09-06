@@ -38,6 +38,8 @@ public class SessionAuthFilter implements Filter {
         "/webjars/**",
         "/api/captcha",
         "/api/articles",
+        "/api/categories",
+        "/api/categoriesandcount",
         "/api/article/**",
         "/v3/api-docs/**"
     ));
