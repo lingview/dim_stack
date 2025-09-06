@@ -31,7 +31,7 @@
 
 | 层级       | 技术选型                                                         |
 |------------|--------------------------------------------------------------|
-| **后端**   | Java 17, Spring Boot 3.5, Mybatis, MySQL, Redis, JWT         |
+| **后端**   | Java 17, Spring Boot 3.5, Mybatis, MySQL, Redis, Cookie      |
 | **前端**   | React 19, JavaScript, Vite, Axios, Tailwind CSS / Ant Design |
 | **构建**   | Maven (后端), npm/pnpm (前端)                                    |
 | **部署**   | Docker, Nginx, Linux, Windows                                |
