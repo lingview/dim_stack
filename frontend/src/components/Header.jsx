@@ -59,7 +59,7 @@ export default function Header() {
 
     const handleLogout = async () => {
         try {
-            await apiClient.post('/user/logout')
+            await apiClient.post('/logout')
         } catch (error) {
             console.error('登出请求失败:', error)
         } finally {
