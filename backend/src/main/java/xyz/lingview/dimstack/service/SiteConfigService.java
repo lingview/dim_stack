@@ -7,5 +7,6 @@ public interface SiteConfigService {
     SiteConfig getSiteConfig();
     HeroDTO getHeroConfig();
     String getCopyright();
+    String getSiteName();
 
 }

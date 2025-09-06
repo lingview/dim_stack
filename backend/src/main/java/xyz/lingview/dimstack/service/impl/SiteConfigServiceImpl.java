@@ -39,4 +39,13 @@ public class SiteConfigServiceImpl implements SiteConfigService {
         }
         return null;
     }
+
+    @Override
+    public String getSiteName() {
+        SiteConfig config = siteConfigMapper.getSiteConfig();
+        if (config != null) {
+            return config.getSite_name();
+        }
+        return null;
+    }
 }

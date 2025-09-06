@@ -1,4 +1,3 @@
-import { fakeData } from '../Api.jsx'
 import ThemeToggle from './ThemeToggle'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
@@ -10,12 +9,12 @@ export default function Header() {
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [username, setUsername] = useState('')
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const [siteName, setSiteName] = useState('次元栈 - Dim Stack')
 
     // 检查登录状态
     useEffect(() => {
         const checkLoginStatus = async () => {
             try {
-
                 const response = await apiClient.get('/user/status')
 
                 if (response && response.loggedIn) {
@@ -41,6 +40,22 @@ export default function Header() {
 
         checkLoginStatus()
     }, [location])
+
+    // 获取站点名称
+    useEffect(() => {
+        const fetchSiteName = async () => {
+            try {
+                const response = await apiClient.get('/site/name')
+                if (response) {
+                    setSiteName(response)
+                }
+            } catch (error) {
+                console.error('获取站点名称失败:', error)
+            }
+        }
+
+        fetchSiteName()
+    }, [])
 
     const handleLogout = async () => {
         try {
@@ -71,12 +86,17 @@ export default function Header() {
             <div className="container mx-auto px-4">
                 <div className="flex justify-between items-center py-4 relative z-50">
                     <div className="flex items-center">
-                        <h1 className="text-2xl font-bold text-blue-400">{fakeData.siteInfo.title}</h1>
+                        <h1 className="text-2xl font-bold text-blue-400">{siteName}</h1>
                     </div>
 
                     <nav className="hidden md:block">
                         <ul className="flex space-x-8">
-                            {fakeData.navItems.map((item) => (
+                            {[
+                                { id: 1, name: '首页', href: '/' },
+                                { id: 2, name: 'Vsinger', href: '/category/vsinger' },
+                                { id: 3, name: '音乐', href: '/category/music' },
+                                { id: 4, name: '关于', href: '/about' },
+                            ].map((item) => (
                                 <li key={item.id}>
                                     <a
                                         href={item.href}
@@ -154,7 +174,12 @@ export default function Header() {
                 >
                     <nav className="border-t border-gray-200 dark:border-gray-700 pt-4 px-4">
                         <ul className="space-y-3">
-                            {fakeData.navItems.map((item) => (
+                            {[
+                                { id: 1, name: '首页', href: '/' },
+                                { id: 2, name: 'Vsinger', href: '/category/vsinger' },
+                                { id: 3, name: '音乐', href: '/category/music' },
+                                { id: 4, name: '关于', href: '/about' },
+                            ].map((item) => (
                                 <li key={item.id}>
                                     <a
                                         href={item.href}

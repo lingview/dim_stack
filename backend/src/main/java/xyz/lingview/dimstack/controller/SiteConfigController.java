@@ -23,4 +23,9 @@ public class SiteConfigController {
     public String getCopyright() {
         return siteConfigService.getCopyright();
     }
+
+    @GetMapping("/name")
+    public String getSiteName() {
+        return siteConfigService.getSiteName();
+    }
 }
