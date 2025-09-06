@@ -6,4 +6,6 @@ import xyz.lingview.dimstack.dto.HeroDTO;
 public interface SiteConfigService {
     SiteConfig getSiteConfig();
     HeroDTO getHeroConfig();
+    String getCopyright();
+
 }

@@ -4,17 +4,19 @@ import Hero from '../components/Hero';
 import ArticleCard from '../components/ArticleCard';
 import CategorySidebar from '../components/CategorySidebar';
 import RecommendedArticles from '../components/RecommendedArticles';
-import { fakeData } from '../Api.jsx';
 import { fetchArticles } from '../Api.jsx';
+import apiClient from '../utils/axios';
 
 export default function Home() {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
+  const [copyright, setCopyright] = useState('© 2025 次元栈 - Dim Stack. All rights reserved.');
 
   useEffect(() => {
     loadArticles();
+    loadCopyright();
   }, [page]);
 
   const loadArticles = async () => {
@@ -30,10 +32,21 @@ export default function Home() {
     }
   };
 
+  const loadCopyright = async () => {
+    try {
+      const response = await apiClient.get('/site/copyright');
+      if (response) {
+        setCopyright(response);
+      }
+    } catch (error) {
+      console.error('加载版权信息失败:', error);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 transition-colors duration-200">
+    <div className="flex bg-gray-50 flex-col min-h-screen">
       <Header />
-      <div className="pt-20">
+      <div className="pt-20 flex-grow">
         <Hero />
 
         <main className="container mx-auto px-4 py-8">
@@ -93,15 +106,15 @@ export default function Home() {
             </div>
           </div>
         </main>
-
-        <footer className="bg-white mt-12 transition-colors duration-200">
-          <div className="container mx-auto px-4 py-8">
-            <div className="text-center text-gray-600 transition-colors duration-200">
-              <p>{fakeData.siteInfo.copyright}</p>
-            </div>
-          </div>
-        </footer>
       </div>
+
+      <footer className="bg-white mt-auto transition-colors duration-200">
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center text-gray-600 transition-colors duration-200">
+            <p>{copyright}</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

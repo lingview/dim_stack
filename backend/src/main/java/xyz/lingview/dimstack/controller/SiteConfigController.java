@@ -18,4 +18,9 @@ public class SiteConfigController {
     public HeroDTO getHeroConfig() {
         return siteConfigService.getHeroConfig();
     }
+
+    @GetMapping("/copyright")
+    public String getCopyright() {
+        return siteConfigService.getCopyright();
+    }
 }

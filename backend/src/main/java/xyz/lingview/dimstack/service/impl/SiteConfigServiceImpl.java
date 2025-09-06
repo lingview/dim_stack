@@ -30,4 +30,13 @@ public class SiteConfigServiceImpl implements SiteConfigService {
         }
         return null;
     }
+
+    @Override
+    public String getCopyright() {
+        SiteConfig config = siteConfigMapper.getSiteConfig();
+        if (config != null) {
+            return config.getCopyright();
+        }
+        return null;
+    }
 }
