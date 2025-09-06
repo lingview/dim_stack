@@ -9,4 +9,7 @@ public class SiteConfig {
     private String register_user_permission;
     private String copyright;
     private int article_status;
+    private String hero_image;
+    private String hero_title;
+    private String hero_subtitle;
 }

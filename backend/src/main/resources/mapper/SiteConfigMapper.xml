@@ -10,7 +10,11 @@
             id,
             site_name as site_name,
             register_user_permission as register_user_permission,
-            copyright
+            copyright,
+            article_status,
+            hero_image as hero_image,
+            hero_title as hero_title,
+            hero_subtitle as hero_subtitle
         FROM site_config
         WHERE id = 1
     </select>

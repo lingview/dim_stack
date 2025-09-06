@@ -1,5 +1,3 @@
-import heroImage from './images/963c11d14f4928906520150421af25b9.jpg';
-
 import apiClient from './utils/axios';
 
 // 获取文章列表
@@ -34,15 +32,6 @@ export const fakeData = {
         { id: 3, name: '音乐', href: '/category/music' },
         { id: 4, name: '关于', href: '/about' },
     ],
-
-    // 头图数据
-    hero: {
-        title: '欢迎来到瓦纳海姆星',
-        subtitle: '探索洛天依和Vsinger家族的音乐之旅',
-        image: heroImage,
-        ctaText: '了解更多',
-        ctaLink: '/about'
-    },
 
 
     // 控制台相关数据
