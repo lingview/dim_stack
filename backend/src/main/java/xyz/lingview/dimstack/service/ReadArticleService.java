@@ -9,4 +9,5 @@ import org.springframework.stereotype.Service;
 public interface ReadArticleService {
     boolean isArticleNeedPassword(String alias);
     ReadArticle getArticleByAlias(String alias, String password) throws Exception;
+    void updatePageViews(String alias);
 }

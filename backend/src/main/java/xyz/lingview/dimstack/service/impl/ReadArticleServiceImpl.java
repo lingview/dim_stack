@@ -33,7 +33,14 @@ public class ReadArticleServiceImpl implements ReadArticleService {
                 throw new Exception("文章密码错误");
             }
         }
+        readArticleMapper.updatePageViews(alias);
 
         return article;
     }
+
+    @Override
+    public void updatePageViews(String alias) {
+        readArticleMapper.updatePageViews(alias);
+    }
+
 }

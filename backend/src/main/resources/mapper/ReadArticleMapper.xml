@@ -87,7 +87,7 @@
     <update id="updatePageViews">
         UPDATE article
         SET page_views = page_views + 1
-        WHERE article_id = #{article_id}
+        WHERE alias = #{alias}
     </update>
 
 </mapper>

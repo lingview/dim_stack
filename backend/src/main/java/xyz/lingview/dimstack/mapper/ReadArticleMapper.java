@@ -14,5 +14,5 @@ public interface ReadArticleMapper {
 
     boolean isArticleNeedPassword(@Param("alias") String alias);
 
-    void updatePageViews(@Param("article_id") String articleId);
+    void updatePageViews(@Param("alias") String alias);
 }
