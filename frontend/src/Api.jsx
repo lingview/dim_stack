@@ -45,14 +45,6 @@ export const fakeData = {
     },
 
 
-    // 推荐文章数据
-    recommendedArticles: [
-        { id: 1, title: '洛天依最新单曲解读', date: '2023-06-12' },
-        { id: 2, title: '无限共鸣演唱会全程回顾', date: '2023-06-08' },
-        { id: 3, title: '乐正龙牙专访', date: '2023-06-01' },
-        { id: 4, title: 'Vsinger发展史', date: '2023-05-25' },
-    ],
-
     // 控制台相关数据
     dashboard: {
         stats: [
