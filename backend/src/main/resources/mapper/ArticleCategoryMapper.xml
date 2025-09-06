@@ -3,6 +3,7 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="xyz.lingview.dimstack.mapper.ArticleCategoryMapper">
+
     <select id="findAllEnabledCategories" resultType="xyz.lingview.dimstack.domain.ArticleCategory">
         SELECT
             id,
@@ -23,7 +24,7 @@
             ac.founder,
             ac.create_time AS create_time,
             ac.status,
-            COUNT(a.id) AS article_count
+            COUNT(a.id) AS articleCount
         FROM article_categories ac
         LEFT JOIN article a ON ac.article_categories = a.category
             AND a.status = 1
