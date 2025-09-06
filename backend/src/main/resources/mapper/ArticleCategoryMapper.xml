@@ -14,4 +14,21 @@
         FROM article_categories
         WHERE status = 1
     </select>
+
+    <select id="findAllEnabledCategoriesAndCount" resultType="xyz.lingview.dimstack.domain.ArticleCategoryAndCount">
+        SELECT
+            ac.id,
+            ac.article_categories AS article_categories,
+            ac.categories_explain AS categories_explain,
+            ac.founder,
+            ac.create_time AS create_time,
+            ac.status,
+            COUNT(a.id) AS article_count
+        FROM article_categories ac
+        LEFT JOIN article a ON ac.article_categories = a.category
+            AND a.status = 1
+        WHERE ac.status = 1
+        GROUP BY ac.id, ac.article_categories, ac.categories_explain, ac.founder, ac.create_time, ac.status
+        ORDER BY ac.create_time DESC
+    </select>
 </mapper>

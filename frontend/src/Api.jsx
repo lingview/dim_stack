@@ -44,13 +44,6 @@ export const fakeData = {
         ctaLink: '/about'
     },
 
-    // 分类数据
-    categories: [
-        { id: 1, name: 'Vsinger', count: 12 },
-        { id: 2, name: '音乐', count: 8 },
-        { id: 3, name: '活动', count: 5 },
-        { id: 4, name: '幕后', count: 3 },
-    ],
 
     // 推荐文章数据
     recommendedArticles: [
