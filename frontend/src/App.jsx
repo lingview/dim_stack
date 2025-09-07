@@ -2,7 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
 import Login from './components/Login'
 import Register from './components/Register'
-import Dashboard from "./components/Dashboard.jsx";
+import Dashboard from "./components/dashboard/Dashboard.jsx";
 import ArticleReader from './components/ArticleReader';
 
 function App() {
