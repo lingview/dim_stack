@@ -13,6 +13,7 @@ import Header from './Header';
 import CategorySidebar from './CategorySidebar';
 import RecommendedArticles from './RecommendedArticles';
 
+
 const rehypeSanitizeSchema = {
     tagNames: [
         'div','span','p','br','strong','em','u','s','del','ins',
@@ -24,19 +25,141 @@ const rehypeSanitizeSchema = {
         'hr','sup','sub'
     ],
     attributes: {
-        '*': ['className', 'id', 'style'],
+        '*': ['className', 'id'],
         'a': ['href', 'title', 'target', 'rel'],
         'img': ['src', 'alt', 'title', 'width', 'height'],
         'video': ['src', 'controls', 'autoplay', 'loop', 'muted', 'poster', 'width', 'height', 'preload'],
         'audio': ['src', 'controls', 'autoplay', 'loop', 'muted', 'preload'],
         'source': ['src', 'type', 'media'],
         'track': ['src', 'kind', 'srclang', 'label', 'default']
-    }
+    },
+    protocols: {
+        'href': ['http', 'https', 'mailto'],
+        'src': ['http', 'https']
+    },
+    clobberPrefix: 'user-content-',
+    clobber: ['name', 'id']
 };
 
 const isSafeUrl = (url) => {
     if (!url) return false;
     return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
+};
+
+const sanitizeHtmlContent = (content) => {
+    if (!content) return '';
+
+    let processedContent = content;
+    const dangerousBlocks = [];
+
+    const dangerousPatterns = [
+        // meta标签
+        { pattern: /<meta[^>]*>/gi, label: 'Meta标签' },
+        // script标签及其内容
+        { pattern: /<script[^>]*>[\s\S]*?<\/script>/gi, label: 'JavaScript代码' },
+        // iframe标签
+        { pattern: /<iframe[^>]*>[\s\S]*?<\/iframe>/gi, label: 'IFrame嵌入' },
+        // object和embed 标签
+        { pattern: /<(object|embed)[^>]*>[\s\S]*?<\/\1>/gi, label: '嵌入对象' },
+        // link标签
+        { pattern: /<link[^>]*>/gi, label: 'Link标签' },
+        // style标签及其内容
+        { pattern: /<style[^>]*>[\s\S]*?<\/style>/gi, label: 'CSS样式' },
+        // form标签
+        { pattern: /<\/?form[^>]*>/gi, label: '表单标签' },
+        // 表单元素
+        { pattern: /<(input|button|textarea|select|option)[^>]*>/gi, label: '表单元素' },
+        // base标签
+        { pattern: /<base[^>]*>/gi, label: 'Base标签' }
+    ];
+
+    dangerousPatterns.forEach(({ pattern, label }) => {
+        const matches = [];
+        let match;
+
+        pattern.lastIndex = 0;
+
+        while ((match = pattern.exec(processedContent)) !== null) {
+            matches.push({
+                code: match[0],
+                index: match.index,
+                length: match[0].length
+            });
+        }
+
+        matches.reverse().forEach(({ code, index, length }) => {
+            const placeholder = `__DANGEROUS_BLOCK_${dangerousBlocks.length}__`;
+
+            dangerousBlocks.push({
+                code: code,
+                label: label,
+                placeholder: placeholder
+            });
+
+            processedContent = processedContent.substring(0, index) +
+                placeholder +
+                processedContent.substring(index + length);
+        });
+    });
+
+
+    processedContent = processedContent
+        // 处理危险协议
+        .replace(/javascript:/gi, 'about:blank#')
+        .replace(/vbscript:/gi, 'about:blank#')
+        .replace(/data:(?!image\/(png|jpg|jpeg|gif|svg\+xml|webp))[^"']*/gi, 'about:blank#')
+        // 处理事件处理属性
+        .replace(/\s+(on\w+\s*=\s*["'][^"']*["'])/gi, (match, eventHandler) => {
+            const placeholder = `__DANGEROUS_BLOCK_${dangerousBlocks.length}__`;
+            dangerousBlocks.push({
+                code: eventHandler.trim(),
+                label: '事件处理器',
+                placeholder: placeholder
+            });
+            return ` ${placeholder}`;
+        })
+        // 处理危险的内联样式
+        .replace(/style\s*=\s*["']([^"']*)["']/gi, (match, styleContent) => {
+            if (/javascript:|expression\(|@import|behavior:/i.test(styleContent)) {
+                const placeholder = `__DANGEROUS_BLOCK_${dangerousBlocks.length}__`;
+                dangerousBlocks.push({
+                    code: match,
+                    label: '危险CSS样式',
+                    placeholder: placeholder
+                });
+                return placeholder;
+            }
+            return match;
+        });
+
+    dangerousBlocks.forEach(({ code, label, placeholder }) => {
+        const escapedCode = code
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#x27;');
+
+        const codeBlock = `<div class="my-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <div class="flex items-center mb-2">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200">
+                        ⚠️ 安全提示: ${label}
+                    </span>
+                </div>
+                <pre class="bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm overflow-x-auto"><code>${escapedCode}</code></pre>
+                <div class="mt-2 text-xs text-red-600 dark:text-red-400">
+                    此内容可能存在安全风险，已被安全地显示为代码块
+                </div>
+            </div>`;
+
+        processedContent = processedContent.replace(placeholder, codeBlock);
+    });
+
+    processedContent = processedContent
+        .replace(/class="my-4 flex justify-center"/g, 'class="my-4"')
+        .replace(/style="width:\s*400px;"/g, 'style="max-width: 100%; max-height: 400px;"');
+
+    return processedContent;
 };
 
 export default function ArticleReader() {
@@ -66,7 +189,6 @@ export default function ArticleReader() {
         }
     };
 
-    // Markdown 渲染组件配置
     const renderMarkdownComponents = {
         h1: (props) => (
             <h1 className="text-3xl font-bold mt-6 mb-4 text-gray-900 dark:text-white" {...props} />
@@ -118,7 +240,6 @@ export default function ArticleReader() {
         hr: (props) => (
             <hr className="my-6 border-gray-300 dark:border-gray-600" {...props} />
         ),
-        // 代码块渲染
         code({ className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || "");
             return match ? (
@@ -299,7 +420,6 @@ export default function ArticleReader() {
         fetchArticleContent(password);
     };
 
-
     const isMarkdownContent = (content) => {
         if (!content) return false;
 
@@ -319,11 +439,9 @@ export default function ArticleReader() {
         return markdownPatterns.some(pattern => pattern.test(content));
     };
 
-
     const renderArticleContent = (content) => {
         if (!content) return null;
 
-        // 如果是Markdown内容，使用ReactMarkdown渲染
         if (isMarkdownContent(content)) {
             return (
                 <div className="markdown-content">
@@ -336,10 +454,7 @@ export default function ArticleReader() {
                 </div>
             );
         } else {
-            // HTML内容，添加样式处理去除居中
-            const processedContent = content
-                .replace(/class="my-4 flex justify-center"/g, 'class="my-4"')
-                .replace(/style="width:\s*400px;"/g, 'style="max-width: 100%; max-height: 400px;"');
+            const sanitizedContent = sanitizeHtmlContent(content);
 
             return (
                 <div
@@ -354,7 +469,7 @@ export default function ArticleReader() {
                         [&_video]:my-4 [&_video]:max-w-full [&_video]:h-auto
                         [&_img]:my-4 [&_img]:max-w-full [&_img]:h-auto
                         [&_.justify-center]:justify-start"
-                    dangerouslySetInnerHTML={{ __html: processedContent }}
+                    dangerouslySetInnerHTML={{ __html: sanitizedContent }}
                 />
             );
         }
