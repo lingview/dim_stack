@@ -21,7 +21,6 @@ public class EditArticleController {
     @Autowired
     private EditArticleService editArticleService;
 
-
     @GetMapping("/getarticlelist")
     public ResponseEntity<Map<String, Object>> getArticleList(HttpSession session) {
         Map<String, Object> response = new HashMap<>();
@@ -50,11 +49,7 @@ public class EditArticleController {
     }
 
 
-    /**
-     * 更新文章接口
-     * 验证文章是否是用户的：使用传来的文章id查找归属的uuid，
-     * 再用uuid在用户表查用户名，再验证用户名和cookie获取的是否一致
-     */
+    // 文章更新
     @PostMapping("/updatearticle")
     public ResponseEntity<Map<String, Object>> updateArticle(
             @RequestBody UpdateArticleDTO updateArticleDTO,
