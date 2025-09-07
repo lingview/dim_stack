@@ -1,166 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Music } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import rehypeRaw from 'rehype-raw';
-import rehypeSanitize from 'rehype-sanitize';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { getConfig } from '../utils/config';
 import apiClient from '../utils/axios';
 import Header from './Header';
 import CategorySidebar from './CategorySidebar';
 import RecommendedArticles from './RecommendedArticles';
-
-
-const rehypeSanitizeSchema = {
-    tagNames: [
-        'div','span','p','br','strong','em','u','s','del','ins',
-        'h1','h2','h3','h4','h5','h6',
-        'ul','ol','li','dl','dt','dd',
-        'blockquote','pre','code',
-        'table','thead','tbody','tr','th','td',
-        'a','img','video','audio','source','track',
-        'hr','sup','sub'
-    ],
-    attributes: {
-        '*': ['className', 'id'],
-        'a': ['href', 'title', 'target', 'rel'],
-        'img': ['src', 'alt', 'title', 'width', 'height'],
-        'video': ['src', 'controls', 'autoplay', 'loop', 'muted', 'poster', 'width', 'height', 'preload'],
-        'audio': ['src', 'controls', 'autoplay', 'loop', 'muted', 'preload'],
-        'source': ['src', 'type', 'media'],
-        'track': ['src', 'kind', 'srclang', 'label', 'default']
-    },
-    protocols: {
-        'href': ['http', 'https', 'mailto'],
-        'src': ['http', 'https']
-    },
-    clobberPrefix: 'user-content-',
-    clobber: ['name', 'id']
-};
-
-const isSafeUrl = (url) => {
-    if (!url) return false;
-    return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
-};
-
-const sanitizeHtmlContent = (content) => {
-    if (!content) return '';
-
-    let processedContent = content;
-    const dangerousBlocks = [];
-
-    const dangerousPatterns = [
-        // meta标签
-        { pattern: /<meta[^>]*>/gi, label: 'Meta标签' },
-        // script标签及其内容
-        { pattern: /<script[^>]*>[\s\S]*?<\/script>/gi, label: 'JavaScript代码' },
-        // iframe标签
-        { pattern: /<iframe[^>]*>[\s\S]*?<\/iframe>/gi, label: 'IFrame嵌入' },
-        // object和embed 标签
-        { pattern: /<(object|embed)[^>]*>[\s\S]*?<\/\1>/gi, label: '嵌入对象' },
-        // link标签
-        { pattern: /<link[^>]*>/gi, label: 'Link标签' },
-        // style标签及其内容
-        { pattern: /<style[^>]*>[\s\S]*?<\/style>/gi, label: 'CSS样式' },
-        // form标签
-        { pattern: /<\/?form[^>]*>/gi, label: '表单标签' },
-        // 表单元素
-        { pattern: /<(input|button|textarea|select|option)[^>]*>/gi, label: '表单元素' },
-        // base标签
-        { pattern: /<base[^>]*>/gi, label: 'Base标签' }
-    ];
-
-    dangerousPatterns.forEach(({ pattern, label }) => {
-        const matches = [];
-        let match;
-
-        pattern.lastIndex = 0;
-
-        while ((match = pattern.exec(processedContent)) !== null) {
-            matches.push({
-                code: match[0],
-                index: match.index,
-                length: match[0].length
-            });
-        }
-
-        matches.reverse().forEach(({ code, index, length }) => {
-            const placeholder = `__DANGEROUS_BLOCK_${dangerousBlocks.length}__`;
-
-            dangerousBlocks.push({
-                code: code,
-                label: label,
-                placeholder: placeholder
-            });
-
-            processedContent = processedContent.substring(0, index) +
-                placeholder +
-                processedContent.substring(index + length);
-        });
-    });
-
-
-    processedContent = processedContent
-        // 处理危险协议
-        .replace(/javascript:/gi, 'about:blank#')
-        .replace(/vbscript:/gi, 'about:blank#')
-        .replace(/data:(?!image\/(png|jpg|jpeg|gif|svg\+xml|webp))[^"']*/gi, 'about:blank#')
-        // 处理事件处理属性
-        .replace(/\s+(on\w+\s*=\s*["'][^"']*["'])/gi, (match, eventHandler) => {
-            const placeholder = `__DANGEROUS_BLOCK_${dangerousBlocks.length}__`;
-            dangerousBlocks.push({
-                code: eventHandler.trim(),
-                label: '事件处理器',
-                placeholder: placeholder
-            });
-            return ` ${placeholder}`;
-        })
-        // 处理危险的内联样式
-        .replace(/style\s*=\s*["']([^"']*)["']/gi, (match, styleContent) => {
-            if (/javascript:|expression\(|@import|behavior:/i.test(styleContent)) {
-                const placeholder = `__DANGEROUS_BLOCK_${dangerousBlocks.length}__`;
-                dangerousBlocks.push({
-                    code: match,
-                    label: '危险CSS样式',
-                    placeholder: placeholder
-                });
-                return placeholder;
-            }
-            return match;
-        });
-
-    dangerousBlocks.forEach(({ code, label, placeholder }) => {
-        const escapedCode = code
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#x27;');
-
-        const codeBlock = `<div class="my-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                <div class="flex items-center mb-2">
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200">
-                        ⚠️ 安全提示: ${label}
-                    </span>
-                </div>
-                <pre class="bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm overflow-x-auto"><code>${escapedCode}</code></pre>
-                <div class="mt-2 text-xs text-red-600 dark:text-red-400">
-                    此内容可能存在安全风险，已被安全地显示为代码块
-                </div>
-            </div>`;
-
-        processedContent = processedContent.replace(placeholder, codeBlock);
-    });
-
-    processedContent = processedContent
-        .replace(/class="my-4 flex justify-center"/g, 'class="my-4"')
-        .replace(/style="width:\s*400px;"/g, 'style="max-width: 100%; max-height: 400px;"');
-
-    return processedContent;
-};
+import ArticlePreview from './ArticlePreview.jsx';
 
 export default function ArticleReader() {
     const { articleId } = useParams();
@@ -187,182 +32,6 @@ export default function ArticleReader() {
             }
             return `/upload/${url}`;
         }
-    };
-
-    const renderMarkdownComponents = {
-        h1: (props) => (
-            <h1 className="text-3xl font-bold mt-6 mb-4 text-gray-900 dark:text-white" {...props} />
-        ),
-        h2: (props) => (
-            <h2 className="text-2xl font-bold mt-5 mb-3 text-gray-900 dark:text-white" {...props} />
-        ),
-        h3: (props) => (
-            <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-900 dark:text-white" {...props} />
-        ),
-        h4: (props) => (
-            <h4 className="text-lg font-semibold mt-3 mb-2 text-gray-900 dark:text-white" {...props} />
-        ),
-        h5: (props) => (
-            <h5 className="text-base font-semibold mt-3 mb-2 text-gray-900 dark:text-white" {...props} />
-        ),
-        h6: (props) => (
-            <h6 className="text-sm font-semibold mt-3 mb-2 text-gray-900 dark:text-white" {...props} />
-        ),
-        p: (props) => (
-            <p className="mb-3 leading-relaxed text-gray-700 dark:text-gray-300" {...props} />
-        ),
-        ul: (props) => (
-            <ul className="list-disc list-inside mb-4 space-y-1 text-gray-700 dark:text-gray-300" {...props} />
-        ),
-        ol: (props) => (
-            <ol className="list-decimal list-inside mb-4 space-y-1 text-gray-700 dark:text-gray-300" {...props} />
-        ),
-        li: (props) => (
-            <li className="mb-1 text-gray-700 dark:text-gray-300 leading-relaxed" {...props} />
-        ),
-        blockquote: (props) => (
-            <blockquote className="border-l-4 border-blue-500 pl-4 italic my-4 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 py-2 rounded-r" {...props} />
-        ),
-        table: (props) => (
-            <div className="overflow-x-auto my-4">
-                <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600" {...props} />
-            </div>
-        ),
-        thead: (props) => (
-            <thead className="bg-gray-100 dark:bg-gray-700" {...props} />
-        ),
-        th: (props) => (
-            <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-semibold text-gray-900 dark:text-white" {...props} />
-        ),
-        td: (props) => (
-            <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300" {...props} />
-        ),
-        hr: (props) => (
-            <hr className="my-6 border-gray-300 dark:border-gray-600" {...props} />
-        ),
-        code({ className, children, ...props }) {
-            const match = /language-(\w+)/.exec(className || "");
-            return match ? (
-                <div className="my-4">
-                    <SyntaxHighlighter
-                        style={oneDark}
-                        language={match[1]}
-                        PreTag="div"
-                        className="rounded-lg shadow-sm"
-                        {...props}
-                    >
-                        {String(children).replace(/\n$/, "")}
-                    </SyntaxHighlighter>
-                </div>
-            ) : (
-                <code
-                    className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm font-mono text-gray-800 dark:text-white"
-                    {...props}
-                >
-                    {children}
-                </code>
-            );
-        },
-        a: ({ href, children, ...props }) => {
-            if (!isSafeUrl(href)) {
-                return <span className="text-gray-500" {...props}>{children}</span>;
-            }
-            return (
-                <a
-                    href={href}
-                    className="text-blue-600 dark:text-blue-400 hover:underline hover:text-blue-500 dark:hover:text-blue-300 transition-colors"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    {...props}
-                >
-                    {children}
-                </a>
-            );
-        },
-        img: ({ src, alt, ...props }) => {
-            if (!isSafeUrl(src)) return null;
-            const fullSrc = getFullImageUrl(src);
-
-            return (
-                <div className="my-4 flex">
-                    <img
-                        src={fullSrc}
-                        alt={alt || '图片'}
-                        className="rounded-lg shadow-sm cursor-pointer border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow"
-                        style={{
-                            maxHeight: "400px",
-                            maxWidth: "100%",
-                            height: "auto",
-                            width: "auto",
-                            objectFit: "contain",
-                        }}
-                        onClick={() => window.open(fullSrc, "_blank")}
-                        title="点击查看大图"
-                        onError={(e) => {
-                            e.target.src = '/image_error.svg';
-                            e.target.alt = '图片加载失败';
-                        }}
-                        {...props}
-                    />
-                </div>
-            );
-        },
-        video: ({ src, controls = true, ...props }) => {
-            if (!isSafeUrl(src)) return null;
-            const fullSrc = getFullImageUrl(src);
-
-            return (
-                <div className="my-4 flex">
-                    <video
-                        src={fullSrc}
-                        controls={controls}
-                        className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-600"
-                        style={{ maxWidth: "100%", maxHeight: "400px" }}
-                        {...props}
-                    >
-                        您的浏览器不支持视频播放。
-                    </video>
-                </div>
-            );
-        },
-        audio: ({ src, controls = true, preload = "metadata", ...props }) => {
-            if (!isSafeUrl(src)) return null;
-            const fullSrc = getFullImageUrl(src);
-            const fileName = src.split("/").pop()?.split("?")[0] || "音频文件";
-
-            return (
-                <div className="my-4 p-4 bg-gray-100 dark:bg-gradient-to-r dark:from-blue-900 dark:to-purple-900 border border-gray-200 dark:border-blue-700 rounded-xl shadow-sm max-w-lg">
-                    <div className="flex items-center mb-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
-                            <Music className="h-4 w-4 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-gray-900 dark:text-white truncate" title={fileName}>
-                                {fileName}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                                音频文件
-                            </div>
-                        </div>
-                    </div>
-                    <audio
-                        src={fullSrc}
-                        controls={controls}
-                        preload={preload}
-                        className="w-full rounded-md"
-                        style={{ height: "40px", outline: "none" }}
-                        {...props}
-                    >
-                        您的浏览器不支持音频播放。
-                    </audio>
-                </div>
-            );
-        },
-        source: ({ src, type, ...props }) => {
-            if (!isSafeUrl(src)) return null;
-            const fullSrc = getFullImageUrl(src);
-            return <source src={fullSrc} type={type} {...props} />;
-        },
     };
 
     useEffect(() => {
@@ -418,61 +87,6 @@ export default function ArticleReader() {
     const handlePasswordSubmit = (e) => {
         e.preventDefault();
         fetchArticleContent(password);
-    };
-
-    const isMarkdownContent = (content) => {
-        if (!content) return false;
-
-        const markdownPatterns = [
-            /^#{1,6}\s/m,           // 标题
-            /\*\*.*\*\*/,           // 粗体
-            /\*.*\*/,               // 斜体
-            /\[.*\]\(.*\)/,         // 链接
-            /!\[.*\]\(.*\)/,        // 图片
-            /^>\s/m,                // 引用
-            /^[-*+]\s/m,            // 无序列表
-            /^\d+\.\s/m,            // 有序列表
-            /```[\s\S]*```/,        // 代码块
-            /`.*`/,                 // 内联代码
-        ];
-
-        return markdownPatterns.some(pattern => pattern.test(content));
-    };
-
-    const renderArticleContent = (content) => {
-        if (!content) return null;
-
-        if (isMarkdownContent(content)) {
-            return (
-                <div className="markdown-content">
-                    <ReactMarkdown
-                        children={content}
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeRaw, [rehypeSanitize, rehypeSanitizeSchema]]}
-                        components={renderMarkdownComponents}
-                    />
-                </div>
-            );
-        } else {
-            const sanitizedContent = sanitizeHtmlContent(content);
-
-            return (
-                <div
-                    className="prose max-w-none dark:prose-invert
-                        prose-headings:text-gray-900 dark:prose-headings:text-white
-                        prose-p:text-gray-700 dark:prose-p:text-gray-300
-                        prose-a:text-blue-600 dark:prose-a:text-blue-400
-                        prose-blockquote:text-gray-600 dark:prose-blockquote:text-gray-400
-                        prose-strong:text-gray-900 dark:prose-strong:text-white
-                        prose-code:bg-gray-100 dark:prose-code:bg-gray-700
-                        prose-pre:bg-gray-800 dark:prose-pre:bg-gray-900
-                        [&_video]:my-4 [&_video]:max-w-full [&_video]:h-auto
-                        [&_img]:my-4 [&_img]:max-w-full [&_img]:h-auto
-                        [&_.justify-center]:justify-start"
-                    dangerouslySetInnerHTML={{ __html: sanitizedContent }}
-                />
-            );
-        }
     };
 
     if (loading) {
@@ -536,6 +150,7 @@ export default function ArticleReader() {
                     </div>
                 ) : article ? (
                     <div className="relative">
+                        {/* 文章封面 */}
                         {article.article_cover && (
                             <div className="relative w-full -mt-8 mb-8">
                                 <div className="h-96 w-full overflow-hidden">
@@ -552,31 +167,14 @@ export default function ArticleReader() {
                             </div>
                         )}
 
-                        {/* 主要内容区域 */}
                         <main className="container mx-auto px-4 py-8">
                             <div className="flex flex-col lg:flex-row gap-8">
-                                {/* 文章内容区 */}
                                 <div className="lg:w-2/3">
-                                    <article className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 -mt-20 relative z-10">
-                                        <h1 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">
-                                            {article.article_name}
-                                        </h1>
-                                        <div className="text-gray-600 dark:text-gray-400 mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
-                                            <span>发布时间: {new Date(article.create_time).toLocaleDateString()}</span>
-                                            <span className="mx-2">|</span>
-                                            <span>阅读量: {article.page_views}</span>
-                                            {article.tag && (
-                                                <>
-                                                    <span className="mx-2">|</span>
-                                                    <span>标签: {article.tag}</span>
-                                                </>
-                                            )}
-                                        </div>
+                                    <div className="-mt-20 relative z-10 space-y-8">
+                                        {/* 文章阅读器组件 */}
+                                        <ArticlePreview article={article} />
 
-                                        <div className="article-content">
-                                            {renderArticleContent(article.article_content)}
-                                        </div>
-                                    </article>
+                                    </div>
                                 </div>
 
                                 {/* 侧边栏 */}
