@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 07/09/2025 20:43:11
+ Date: 07/09/2025 20:56:31
 */
 
 SET NAMES utf8mb4;
@@ -52,7 +52,6 @@ CREATE TABLE `article`  (
 -- ----------------------------
 -- Records of article
 -- ----------------------------
-
 
 -- ----------------------------
 -- Table structure for article_categories
@@ -120,7 +119,6 @@ CREATE TABLE `attachment`  (
 -- Records of attachment
 -- ----------------------------
 
-
 -- ----------------------------
 -- Table structure for comment
 -- ----------------------------
@@ -132,19 +130,18 @@ CREATE TABLE `comment`  (
                             `article_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '所属文章id',
                             `root_comment_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '如果为空则为顶级评论，如果不为空则为顶级评论的id',
                             `to_comment_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '如果为null则为顶级评论,否则为目标评论id',
-                            `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '评论时间',
+                            `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '评论创建时间',
+                            `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
                             `content` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '内容',
                             `comment_like_count` bigint NOT NULL COMMENT '点赞数',
                             `status` int NOT NULL COMMENT '0为删除，1为正常',
                             PRIMARY KEY (`id`) USING BTREE,
                             UNIQUE INDEX `comment_id`(`comment_id` ASC) USING BTREE,
-                            UNIQUE INDEX `root_comment_id`(`root_comment_id` ASC) USING BTREE,
-                            UNIQUE INDEX `to_comment_id`(`to_comment_id` ASC) USING BTREE,
                             INDEX `comment_article_id`(`article_id` ASC) USING BTREE,
                             INDEX `comment_user_id`(`user_id` ASC) USING BTREE,
                             CONSTRAINT `comment_article_id` FOREIGN KEY (`article_id`) REFERENCES `article` (`article_id`) ON DELETE CASCADE ON UPDATE CASCADE,
                             CONSTRAINT `comment_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of comment
