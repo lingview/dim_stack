@@ -40,6 +40,7 @@ const SUPPORTED_FILE_TYPES = {
     audio: ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/aac', 'audio/flac']
 };
 
+
 const MARKDOWN_SNIPPETS = {
     bold: '**粗体**',
     italic: '*斜体*',
@@ -73,8 +74,8 @@ const isFileSupported = (fileType) => Object.values(SUPPORTED_FILE_TYPES).flat()
 const isSafeUrl = (url) => url && (url.startsWith('http://') || url.startsWith('https://'));
 
 export default function MarkdownEditor({ onSave, onCancel, initialData }) {
-    const [title, setTitle] = useState(initialData?.title || '');
-    const [content, setContent] = useState(initialData?.content || '');
+    const [title, setTitle] = useState(initialData?.article_name || '');
+    const [content, setContent] = useState(initialData?.article_content || '');
     const [isSaving, setIsSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [showArticleInfo, setShowArticleInfo] = useState(false);
@@ -86,6 +87,13 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const textareaRef = useRef(null);
     const fileInputRef = useRef(null);
     const uploadingFiles = useRef(new Set());
+
+    useEffect(() => {
+        if (initialData) {
+            setTitle(initialData.article_name || '');
+            setContent(initialData.article_content || '');
+        }
+    }, [initialData]);
 
     useEffect(() => {
         const handlePaste = async (e) => {
@@ -127,7 +135,12 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         setArticleInfo({
             title,
             content,
-            id: initialData?.id,
+            id: initialData?.article_id,
+            cover: initialData?.article_cover || '',
+            excerpt: initialData?.excerpt || '',
+            tags: initialData?.tag || '',
+            category: initialData?.category || '',
+            alias: initialData?.alias || '',
             password: initialData?.password || ''
         });
         setShowArticleInfo(true);
@@ -151,15 +164,39 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 ...(info.id && { article_id: info.id })
             };
 
-            await apiClient.post('/uploadarticle', payload);
-            onSave(info);
+
+            const isUpdate = initialData && initialData.article_id;
+
+            let response;
+            if (isUpdate) {
+
+                response = await apiClient.post('/updatearticle', payload);
+            } else {
+                response = await apiClient.post('/uploadarticle', payload);
+            }
+
+
+            if (response.success === true || response.message) {
+                onSave(info);
+            } else {
+                throw new Error(response.message || response.error || '操作失败');
+            }
         } catch (error) {
             console.error('保存失败:', error);
-            alert(`保存失败: ${error.response?.data?.error || '请重试'}`);
+            let errorMessage = '请重试';
+            if (error.response?.data?.error) {
+                errorMessage = error.response.data.error;
+            } else if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            } else if (error.message && error.message !== '请重试') {
+                errorMessage = error.message;
+            }
+            alert(`保存失败: ${errorMessage}`);
         } finally {
             setIsSaving(false);
         }
     };
+
 
     const insertMarkdown = (type) => {
         const snippet = MARKDOWN_SNIPPETS[type];
@@ -178,7 +215,6 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             insertMarkdown(buttonType);
         }
     };
-
 
     const handleFileSelect = (fileType) => {
         if (!fileInputRef.current) return;
@@ -406,7 +442,6 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
 
     return (
         <div className="fixed inset-0 z-50 bg-white flex flex-col">
-            {/* Header */}
             <div className="border-b border-gray-200 p-4 flex items-center justify-between bg-white">
                 <div className="flex items-center space-x-2">
                     <FileText className="h-6 w-6 text-blue-600" />
@@ -439,7 +474,6 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             </div>
 
             <div className="flex-1 flex overflow-hidden">
-                {/* Editor */}
                 <div className="w-1/2 flex flex-col border-r border-gray-200 overflow-hidden">
                     <div className="flex items-center border-b border-gray-200 bg-gray-50 px-2 markdown-editor-toolbar">
 
@@ -484,7 +518,6 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                     />
                 </div>
 
-                {/* Preview */}
                 <div className="w-1/2 p-4 overflow-y-auto bg-white dark:bg-gray-900">
                     <ReactMarkdown
                         children={content}

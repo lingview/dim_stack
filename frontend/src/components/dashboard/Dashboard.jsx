@@ -19,6 +19,8 @@ export default function Dashboard() {
     const [username, setUsername] = useState('')
     const [showEditor, setShowEditor] = useState(false)
     const [loading, setLoading] = useState(true)
+    const [articles, setArticles] = useState([])
+    const [editingArticle, setEditingArticle] = useState(null) // 添加编辑文章状态
 
     useEffect(() => {
         const checkLoginStatus = async () => {
@@ -40,6 +42,28 @@ export default function Dashboard() {
 
         checkLoginStatus()
     }, [navigate])
+
+    // 获取文章列表
+    useEffect(() => {
+        const fetchArticles = async () => {
+            if (activeTab === 'articles' && username) {
+                try {
+                    const response = await apiClient.get('/getarticlelist')
+                    if (response.success) {
+                        setArticles(response.data || [])
+                    } else {
+                        console.error('获取文章列表失败:', response.message)
+                        setArticles([])
+                    }
+                } catch (error) {
+                    console.error('获取文章列表错误:', error)
+                    setArticles([])
+                }
+            }
+        }
+
+        fetchArticles()
+    }, [activeTab, username])
 
     useEffect(() => {
         if (!loading && username) {
@@ -103,6 +127,53 @@ export default function Dashboard() {
         }
     }
 
+    const handleEditArticle = async (articleId) => {
+        try {
+            // 获取文章详情
+            const response = await apiClient.get(`/getarticle/${articleId}`);
+
+            if (response.success) {
+                setEditingArticle(response.data);
+                setShowEditor(true);
+            } else {
+                console.error('获取文章详情失败:', response.message);
+                alert('获取文章详情失败: ' + response.message);
+            }
+        } catch (error) {
+            console.error('获取文章详情错误:', error);
+            alert('获取文章详情时发生错误');
+        }
+    };
+
+    const handleEditorSave = (articleData) => {
+        console.log('保存文章:', articleData);
+        setShowEditor(false);
+        setEditingArticle(null);
+
+        if (activeTab === 'articles') {
+            const fetchArticles = async () => {
+                try {
+                    const response = await apiClient.get('/getarticlelist')
+                    if (response.success) {
+                        setArticles(response.data || [])
+                    } else {
+                        console.error('获取文章列表失败:', response.message)
+                        setArticles([])
+                    }
+                } catch (error) {
+                    console.error('获取文章列表错误:', error)
+                    setArticles([])
+                }
+            }
+            fetchArticles()
+        }
+    };
+
+    const handleEditorCancel = () => {
+        setShowEditor(false);
+        setEditingArticle(null);
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -122,7 +193,6 @@ export default function Dashboard() {
     const stats = dashboardData.stats || []
     const quickActions = dashboardData.quickActions || []
     const sidebarMenu = dashboardData.sidebarMenu || []
-    const articles = dashboardData.articles || []
 
     return (
         <div className="min-h-screen bg-gray-50 transition-colors duration-200">
@@ -169,6 +239,7 @@ export default function Dashboard() {
                             <Suspense fallback={<div>加载中...</div>}>
                                 <ArticlesView
                                     onNewArticle={() => setShowEditor(true)}
+                                    onEditArticle={handleEditArticle} // 添加编辑文章处理函数
                                     articles={articles}
                                 />
                             </Suspense>
@@ -191,12 +262,9 @@ export default function Dashboard() {
             {showEditor && (
                 <Suspense fallback={<div className="fixed inset-0 z-50 bg-white flex items-center justify-center">加载编辑器中...</div>}>
                     <MarkdownEditor
-                        onSave={(articleData) => {
-                            console.log('保存文章:', articleData);
-                            // 后续后端完成后添加QAQ
-                            setShowEditor(false);
-                        }}
-                        onCancel={() => setShowEditor(false)}
+                        onSave={handleEditorSave}
+                        onCancel={handleEditorCancel}
+                        initialData={editingArticle}
                     />
                 </Suspense>
             )}

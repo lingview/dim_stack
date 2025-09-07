@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xyz.lingview.dimstack.mapper.EditArticleMapper">
+
+    <select id="getArticleListByUuid" parameterType="string" resultType="xyz.lingview.dimstack.dto.EditArticleDTO">
+        SELECT
+            a.article_id as article_id,
+            a.article_name as article_name,
+            a.alias,
+            u.username as author_name,
+            a.create_time as create_time,
+            a.status
+        FROM article a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.uuid = #{uuid} AND a.status != 0
+    </select>
+
+    <!-- 获取文章详情 -->
+    <select id="getArticleDetailById" parameterType="string" resultType="xyz.lingview.dimstack.dto.ArticleDetailDTO">
+        SELECT
+            article_id as article_id,
+            article_name as article_name,
+            article_cover as article_cover,
+            excerpt,
+            article_content as article_content,
+            password,
+            tag,
+            category,
+            alias,
+            status
+        FROM article
+        WHERE article_id = #{article_id}
+    </select>
+
+    <!-- 根据用户名查找用户uuid -->
+    <select id="getUuidByUsername" parameterType="string" resultType="string">
+        SELECT uuid
+        FROM user_information
+        WHERE username = #{username}
+    </select>
+
+
+    <!-- 根据文章id获取用户uuid -->
+    <select id="getUuidByArticleId" parameterType="string" resultType="string">
+        SELECT uuid
+        FROM article
+        WHERE article_id = #{article_id}
+    </select>
+
+    <!-- 根据uuid获取用户名 -->
+    <select id="getUsernameByUuid" parameterType="string" resultType="string">
+        SELECT username
+        FROM user_information
+        WHERE uuid = #{uuid}
+    </select>
+
+    <!-- 更新文章 -->
+    <update id="updateArticle" parameterType="xyz.lingview.dimstack.dto.UpdateArticleDTO">
+        UPDATE article
+        SET
+            article_name = #{article_name},
+            article_cover = #{article_cover},
+            excerpt = #{excerpt},
+            article_content = #{article_content},
+            password = #{password},
+            tag = #{tag},
+            category = #{category},
+            alias = #{alias}
+        WHERE article_id = #{article_id}
+    </update>
+</mapper>

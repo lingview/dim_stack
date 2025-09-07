@@ -4,23 +4,41 @@ import { getConfig } from '../utils/config';
 
 export default function ArticleInfoForm({ articleData, onSave, onCancel, uploading }) {
     const [formData, setFormData] = useState({
-        title: articleData?.title || '',
-        cover: articleData?.cover || '',
-        excerpt: articleData?.excerpt || '',
-        tags: articleData?.tags || '',
-        category: articleData?.category || '',
-        alias: articleData?.alias || '',
-        password: articleData?.password || ''
+        title: '',
+        cover: '',
+        excerpt: '',
+        tags: '',
+        category: '',
+        alias: '',
+        password: ''
     });
 
     const [tags, setTags] = useState([]);
     const [categories, setCategories] = useState([]);
     const [coverUploading, setCoverUploading] = useState(false);
+    const [hasOriginalPassword, setHasOriginalPassword] = useState(false); // 标记是否有原始密码
     const fileInputRef = useRef(null);
 
     useEffect(() => {
         fetchTagsAndCategories();
     }, []);
+
+    useEffect(() => {
+        if (articleData) {
+            const hasPassword = articleData.password && articleData.password.trim() !== '';
+            setHasOriginalPassword(hasPassword);
+
+            setFormData({
+                title: articleData.article_name || articleData.title || '',
+                cover: articleData.article_cover || articleData.cover || '',
+                excerpt: articleData.excerpt || '',
+                tags: articleData.tag || articleData.tags || '',
+                category: articleData.category || '',
+                alias: articleData.alias || '',
+                password: ''
+            });
+        }
+    }, [articleData]);
 
     const fetchTagsAndCategories = async () => {
         try {
@@ -106,16 +124,29 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
             return;
         }
 
-        onSave({
+        const saveData = {
             ...articleData,
             title: formData.title,
             cover: formData.cover,
             excerpt: formData.excerpt,
             tags: formData.tags,
             category: formData.category,
-            alias: formData.alias,
-            password: formData.password
-        });
+            alias: formData.alias
+        };
+
+        // 密码处理逻辑：
+        // 1. 如果是新建文章，直接使用输入的密码（可以为空）
+        // 2. 如果是编辑文章且用户输入了新密码，使用新密码
+        // 3. 如果是编辑文章且用户没有输入密码，保持原密码不变
+        if (articleData?.article_id) {
+            if (formData.password.trim() !== '') {
+                saveData.password = formData.password;
+            }
+        } else {
+            saveData.password = formData.password;
+        }
+
+        onSave(saveData);
     };
 
     const getFullImageUrl = (url) => {
@@ -137,7 +168,6 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                 onClick={onCancel}
             ></div>
 
-
             <div
                 className="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden z-10 transform transition-all sm:my-8 sm:w-full sm:max-w-lg pointer-events-auto"
                 onClick={(e) => e.stopPropagation()}
@@ -145,11 +175,13 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                 <div
                     className="bg-gradient-to-r from-blue-50 to-indigo-50 article-header-bg px-6 py-4 border-b border-gray-200 dark:border-gray-700"
                 >
-                    <h2 className="text-2xl font-bold text-gray-800 article-header-title">文章信息设置</h2>
-                    <p className="text-gray-600 article-header-subtitle text-sm mt-1">请填写文章的基本信息</p>
+                    <h2 className="text-2xl font-bold text-gray-800 article-header-title">
+                        {articleData?.article_id ? '编辑文章' : '新建文章'}
+                    </h2>
+                    <p className="text-gray-600 article-header-subtitle text-sm mt-1">
+                        {articleData?.article_id ? '修改文章信息' : '请填写文章的基本信息'}
+                    </p>
                 </div>
-
-
 
                 <div className="p-6 overflow-y-auto max-h-[70vh]">
                     <div className="space-y-6">
@@ -237,7 +269,6 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                             </p>
                         </div>
 
-
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 文章分类 <span className="text-red-500">*</span>
@@ -304,6 +335,11 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 文章密码
+                                {hasOriginalPassword && (
+                                    <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">
+                                        已设置密码
+                                    </span>
+                                )}
                             </label>
                             <input
                                 type="password"
@@ -311,10 +347,20 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                                 value={formData.password}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                                placeholder="请输入文章访问密码，留空则无需密码"
+                                placeholder={
+                                    articleData?.article_id
+                                        ? hasOriginalPassword
+                                            ? "留空保持原密码，输入新密码则更新"
+                                            : "请输入文章访问密码，留空则无需密码"
+                                        : "请输入文章访问密码，留空则无需密码"
+                                }
                             />
                             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                设置密码后，用户需要输入密码才能访问文章内容
+                                {articleData?.article_id
+                                    ? hasOriginalPassword
+                                        ? "当前文章已设置密码，留空则保持原密码不变，输入新密码则更新密码"
+                                        : "当前文章无密码保护，输入密码可为文章设置访问密码"
+                                    : "设置密码后，用户需要输入密码才能访问文章内容"}
                             </p>
                         </div>
                     </div>
@@ -341,7 +387,7 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                                 </svg>
                                 保存中...
                             </>
-                        ) : '保存文章'}
+                        ) : (articleData?.article_id ? '更新文章' : '保存文章')}
                     </button>
                 </div>
             </div>
