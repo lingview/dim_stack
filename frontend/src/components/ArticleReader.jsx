@@ -6,6 +6,7 @@ import Header from './Header';
 import CategorySidebar from './CategorySidebar';
 import RecommendedArticles from './RecommendedArticles';
 import ArticlePreview from './ArticlePreview.jsx';
+import CommentSection from './CommentSection.jsx';
 
 export default function ArticleReader() {
     const { articleId } = useParams();
@@ -173,7 +174,9 @@ export default function ArticleReader() {
                                     <div className="-mt-20 relative z-10 space-y-8">
                                         {/* 文章阅读器组件 */}
                                         <ArticlePreview article={article} />
-
+                                        
+                                        {/* 评论区组件 */}
+                                        <CommentSection articleAlias={article.alias} />
                                     </div>
                                 </div>
 

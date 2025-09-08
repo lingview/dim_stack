@@ -49,4 +49,12 @@
         </if>
     </select>
 
+    <!-- 评论区 -->
+    <select id="selectArticleByAlias" parameterType="string" resultType="xyz.lingview.dimstack.domain.Article">
+        SELECT * FROM article WHERE alias = #{alias} AND status IN (1, 2)
+    </select>
+    <select id="selectArticleByArticleId" parameterType="string" resultType="xyz.lingview.dimstack.domain.Article">
+        SELECT * FROM article WHERE article_id = #{articleId} AND status IN (1, 2)
+    </select>
+
 </mapper>

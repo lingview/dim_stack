@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.lingview.dimstack.mapper.CommentMapper">
+
+    <insert id="insertComment" parameterType="xyz.lingview.dimstack.domain.Comment">
+        INSERT INTO comment (
+            user_id, comment_id, article_id, root_comment_id,
+            to_comment_id, content, comment_like_count, status
+        ) VALUES (
+            #{user_id}, #{comment_id}, #{article_id}, #{root_comment_id},
+            #{to_comment_id}, #{content}, #{comment_like_count}, #{status}
+        )
+    </insert>
+
+    <select id="selectCommentsByArticleId" parameterType="string" resultType="xyz.lingview.dimstack.domain.Comment">
+        SELECT * FROM comment
+        WHERE article_id = #{articleId}
+        AND status = 1
+        ORDER BY create_time ASC
+    </select>
+
+    <select id="selectCommentByCommentId" parameterType="string" resultType="xyz.lingview.dimstack.domain.Comment">
+        SELECT * FROM comment WHERE comment_id = #{commentId} AND status = 1
+    </select>
+
+    <update id="updateCommentLikeCount">
+        UPDATE comment 
+        SET comment_like_count = #{likeCount}
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <update id="deleteComment">
+        UPDATE comment
+        SET status = 0
+        WHERE comment_id = #{commentId}
+    </update>
+</mapper>
