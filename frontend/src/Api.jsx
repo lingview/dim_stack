@@ -45,17 +45,15 @@ export const fakeData = {
 
         quickActions: [
             { id: 1, title: '个人中心', description: '管理您的个人信息', icon: 'user', link: '/dashboard/profile' },
-            { id: 2, title: '查看站点', description: '预览您的网站', icon: 'eye', link: '/site-preview' },
             { id: 3, title: '创建文章', description: '撰写新的文章', icon: 'edit', link: '/dashboard/articles/create' },
             { id: 4, title: '创建页面', description: '创建新的页面', icon: 'page', link: '/dashboard/pages/create' },
-            { id: 5, title: '附件上传', description: '上传文件和图片', icon: 'upload', link: '/dashboard/media/upload' },
-            { id: 8, title: '新建用户', description: '创建新用户账户', icon: 'add-user', link: '/dashboard/users/create' },
         ],
 
         sidebarMenu: [
             { id: 1, title: '仪表盘', icon: 'dashboard', link: '/dashboard', active: true },
+            { id: 2, title: '个人中心', icon: 'user', link: '/dashboard/profile' },
             {
-                id: 2, title: '内容', icon: 'content',
+                id: 3, title: '内容', icon: 'content',
                 children: [
                     { id: 21, title: '文章', icon: 'article', link: '/dashboard/articles' },
                     { id: 22, title: '页面', icon: 'page', link: '/dashboard/pages' },
@@ -65,14 +63,14 @@ export const fakeData = {
                 ]
             },
             {
-                id: 3, title: '外观', icon: 'appearance',
+                id: 4, title: '外观', icon: 'appearance',
                 children: [
                     { id: 31, title: '主题', icon: 'theme', link: '/dashboard/theme' },
                     { id: 32, title: '菜单', icon: 'menu', link: '/dashboard/menu' }
                 ]
             },
             {
-                id: 4, title: '系统', icon: 'system',
+                id: 5, title: '系统', icon: 'system',
                 children: [
                     { id: 41, title: '插件', icon: 'plugin', link: '/dashboard/plugins' },
                     { id: 42, title: '用户', icon: 'users', link: '/dashboard/users' },
@@ -84,7 +82,7 @@ export const fakeData = {
                 ]
             },
             {
-                id: 5, title: '工具', icon: 'tools',
+                id: 6, title: '工具', icon: 'tools',
                 children: [
                     { id: 51, title: '迁移', icon: 'migrate', link: '/dashboard/migrate' }
                 ]

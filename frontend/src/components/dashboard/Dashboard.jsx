@@ -9,6 +9,7 @@ const DashboardHeader = lazy(() => import('./DashboardHeader'));
 const DashboardView = lazy(() => import('./DashboardView'));
 const ArticlesView = lazy(() => import('./ArticlesView'));
 const MarkdownEditor = lazy(() => import('../MarkdownEditor'));
+const ProfileView = lazy(() => import('./ProfileView'));
 
 export default function Dashboard() {
     const navigate = useNavigate()
@@ -242,6 +243,12 @@ export default function Dashboard() {
                                     onEditArticle={handleEditArticle} // 添加编辑文章处理函数
                                     articles={articles}
                                 />
+                            </Suspense>
+                        )}
+
+                        {activeTab === 'profile' && (
+                            <Suspense fallback={<div>加载中...</div>}>
+                                <ProfileView />
                             </Suspense>
                         )}
 

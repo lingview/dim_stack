@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../utils/axios';
+import { getConfig } from '../utils/config';
 
 const CommentSection = ({ articleAlias }) => {
   const [comments, setComments] = useState([]);
@@ -13,6 +14,25 @@ const CommentSection = ({ articleAlias }) => {
   useEffect(() => {
     fetchComments();
   }, [articleAlias]);
+
+  const getFullImageUrl = (url) => {
+    if (!url) return null;
+
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+
+    try {
+      const config = getConfig();
+      return config.getFullUrl(url);
+    } catch (error) {
+      if (url.startsWith('/')) {
+        return url;
+      }
+
+      return `/upload/${url}`;
+    }
+  };
 
   const fetchComments = async () => {
     try {
@@ -139,7 +159,6 @@ const CommentSection = ({ articleAlias }) => {
     }
   };
 
-
   const renderReplyComment = (comment, isNested = false, parentComment = null) => {
     return (
       <div key={comment.comment_id} className={`${isNested ? 'ml-8 mt-3' : ''}`}>
@@ -148,9 +167,12 @@ const CommentSection = ({ articleAlias }) => {
           <div className="flex-shrink-0 mr-3">
             {comment.avatar ? (
               <img
-                src={comment.avatar}
+                src={getFullImageUrl(comment.avatar)}
                 alt={comment.username}
                 className="h-8 w-8 rounded-full object-cover"
+                onError={(e) => {
+                  e.target.src = '/default-avatar.png';
+                }}
               />
             ) : (
               <div className="bg-gray-200 border-2 border-dashed rounded-xl w-8 h-8" />
@@ -265,9 +287,12 @@ const CommentSection = ({ articleAlias }) => {
           <div className="flex-shrink-0 mr-3">
             {comment.avatar ? (
               <img
-                src={comment.avatar}
+                src={getFullImageUrl(comment.avatar)}
                 alt={comment.username}
                 className="h-10 w-10 rounded-full object-cover"
+                onError={(e) => {
+                  e.target.src = '/default-avatar.png';
+                }}
               />
             ) : (
               <div className="bg-gray-200 border-2 border-dashed rounded-xl w-10 h-10" />

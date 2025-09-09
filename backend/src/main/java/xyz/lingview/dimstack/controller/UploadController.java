@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.domain.UploadArticle;
 import xyz.lingview.dimstack.domain.UploadAttachment;
+import xyz.lingview.dimstack.domain.UserInformation;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
 import xyz.lingview.dimstack.mapper.UploadMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
@@ -617,5 +618,106 @@ public class UploadController {
                     .body(Map.of("error", "保存文章时发生内部错误"));
         }
     }
+
+
+    @PostMapping("/uploadavatar")
+    @RequiresPermission("post:create")
+    public ResponseEntity<Map<String, String>> uploadAvatar(HttpServletRequest request,
+                                                           @RequestParam("file") MultipartFile file) {
+        log.info("开始头像上传流程");
+
+        if (file.isEmpty()) {
+            log.warn("尝试上传空文件");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "文件为空"));
+        }
+
+        // 头像文件大小限制为5MB
+        long MAX_AVATAR_SIZE = 5 * 1024 * 1024;
+        if (file.getSize() > MAX_AVATAR_SIZE) {
+            log.warn("尝试上传过大的头像文件: {} 字节", file.getSize());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "头像文件过大，最大支持5MB"));
+        }
+
+        String username = getUsername(request);
+        if (username == null) {
+            log.warn("未授权的头像上传尝试");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "用户未登录或用户名无效"));
+        }
+
+        String userUUID = getUserUUID(username);
+        if (userUUID == null) {
+            log.error("未找到用户名 {} 的UUID", username);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "未找到用户"));
+        }
+
+        String contentType = file.getContentType();
+        String originalFilename = file.getOriginalFilename();
+        String extension = "";
+
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+        }
+
+        List<String> allowedImageTypes = SUPPORTED_FILE_TYPES.get("image");
+        if (contentType == null || !allowedImageTypes.contains(contentType) || !isExtensionAllowed(extension)) {
+            log.warn("尝试上传非图片类型作为头像。MIME: {}, 扩展名: {}", contentType, extension);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "头像文件必须是图片格式"));
+        }
+
+        Path uploadPath = Paths.get("upload", username, "avatar").normalize();
+        Path allowedRoot = Paths.get("upload").toAbsolutePath().normalize();
+
+        if (!uploadPath.toAbsolutePath().startsWith(allowedRoot)) {
+            log.error("检测到无效的头像上传路径: {}", uploadPath);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "上传路径无效"));
+        }
+
+        try {
+            Files.createDirectories(uploadPath);
+            log.debug("创建头像目录: {}", uploadPath);
+        } catch (IOException e) {
+            log.error("创建头像目录失败: {}", uploadPath, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "创建目录失败"));
+        }
+
+        String timestamp = String.valueOf(Instant.now().getEpochSecond());
+        UUID uuid = UUID.randomUUID();
+        String fileUUID = "avatar-" + uuid + "-" + timestamp;
+        String fileName = fileUUID + extension;
+
+        Path filePath = uploadPath.resolve(fileName);
+
+        try {
+            file.transferTo(filePath);
+            log.info("头像上传成功。路径: {}", filePath);
+        } catch (IOException e) {
+            log.error("保存头像文件失败: {}", filePath, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "保存头像文件失败"));
+        }
+
+        String fileUrl = "/upload/" + username + "/avatar/" + fileName;
+        log.info("头像上传完成。URL: {}", fileUrl);
+
+        try {
+            UserInformation user = new UserInformation();
+            user.setUuid(userUUID);
+            user.setAvatar(fileUrl);
+            userInformationMapper.updateUserByUUID(user);
+            log.debug("用户头像信息更新成功");
+        } catch (Exception e) {
+            log.error("更新用户头像信息失败", e);
+        }
+
+        return ResponseEntity.ok(Map.of("fileUrl", fileUrl));
+    }
+
 
 }

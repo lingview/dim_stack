@@ -16,4 +16,18 @@
         WHERE uuid = #{uuid} AND status = 1
     </select>
 
+    <update id="updateUserByUUID" parameterType="xyz.lingview.dimstack.domain.UserInformation">
+        UPDATE user_information
+        <set>
+            <if test="username != null and username != ''">username = #{username},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="password != null and password != ''">password = #{password},</if>
+            <if test="birthday != null">birthday = #{birthday},</if>
+        </set>
+        WHERE uuid = #{uuid} AND status = 1
+    </update>
+
 </mapper>
