@@ -3,6 +3,7 @@ package xyz.lingview.dimstack.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.domain.Comment;
 import xyz.lingview.dimstack.dto.CommentDTO;
 import xyz.lingview.dimstack.service.BackendCommentService;
@@ -19,6 +20,7 @@ public class BackentCommentController {
 
     // 获取指定文章的所有评论
     @GetMapping("/article/{article_id}")
+    @RequiresPermission("post:review")
     public ResponseEntity<Map<String, Object>> getCommentsByArticleId(@PathVariable String article_id) {
         List<CommentDTO> comments = backendCommentService.getCommentsByArticleId(article_id);
         String articleTitle = backendCommentService.getArticleTitle(article_id);
@@ -33,6 +35,7 @@ public class BackentCommentController {
 
     // 获取评论详情
     @GetMapping("/{comment_id}")
+    @RequiresPermission("post:review")
     public ResponseEntity<Comment> getCommentDetail(@PathVariable String comment_id) {
         Comment comment = backendCommentService.getCommentDetail(comment_id);
         if (comment == null) {
@@ -43,6 +46,7 @@ public class BackentCommentController {
 
     // 修改评论内容
     @PutMapping("/{comment_id}")
+    @RequiresPermission("post:review")
     public ResponseEntity<Map<String, Object>> updateComment(@PathVariable String comment_id,
                                                              @RequestBody Map<String, String> payload) {
         String content = payload.get("content");
@@ -65,6 +69,7 @@ public class BackentCommentController {
 
     // 删除评论
     @DeleteMapping("/{comment_id}")
+    @RequiresPermission("post:review")
     public ResponseEntity<Map<String, Object>> deleteComment(@PathVariable String comment_id) {
         boolean success = backendCommentService.deleteComment(comment_id);
         Map<String, Object> result = new HashMap<>();
@@ -80,6 +85,7 @@ public class BackentCommentController {
 
     // 分页获取所有评论
     @GetMapping
+    @RequiresPermission("post:review")
     public ResponseEntity<Map<String, Object>> getAllComments(@RequestParam(defaultValue = "1") int page,
                                                               @RequestParam(defaultValue = "10") int size) {
         List<CommentDTO> comments = backendCommentService.getAllCommentsWithPagination(page, size);
