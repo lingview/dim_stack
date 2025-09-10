@@ -181,9 +181,9 @@ const CommentSection = ({ articleAlias }) => {
 
           {/* 评论内容 */}
           <div className="flex-1">
-            <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
+            <div className="bg-gray-100  rounded-lg p-3">
               <div className="flex items-center">
-                <span className="font-medium text-gray-900 dark:text-white text-sm">
+                <span className="font-medium text-gray-900 text-sm">
                   {comment.username || '匿名用户'}
                 </span>
                 {parentComment && (
@@ -197,7 +197,7 @@ const CommentSection = ({ articleAlias }) => {
                 </span>
               </div>
 
-              <p className="mt-1 text-gray-700 dark:text-gray-300 text-sm">
+              <p className="mt-1 text-gray-700 text-sm">
                 {comment.content}
               </p>
             </div>
@@ -241,7 +241,7 @@ const CommentSection = ({ articleAlias }) => {
                     onChange={(e) => setReplyContent(e.target.value)}
                     onKeyDown={(e) => handleReplyCommentKeyDown(e, comment.comment_id)}
                     placeholder={`回复 ${comment.username}...`}
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white resize-none pr-20"
+                    className="w-full border border-gray-300  rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none pr-20"
                     rows="3"
                   />
                   <div className="absolute bottom-2 right-2 flex space-x-1">
@@ -254,7 +254,7 @@ const CommentSection = ({ articleAlias }) => {
                     </button>
                     <button
                       onClick={() => setReplyingTo(null)}
-                      className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
+                      className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300 "
                     >
                       取消
                     </button>
@@ -281,7 +281,7 @@ const CommentSection = ({ articleAlias }) => {
   // 渲染顶级评论
   const renderTopLevelComment = (comment) => {
     return (
-      <div key={comment.comment_id} className="border-b border-gray-200 dark:border-gray-700 py-4">
+      <div key={comment.comment_id} className="border-b border-gray-200 py-4">
         <div className="flex">
           {/* 用户头像 */}
           <div className="flex-shrink-0 mr-3">
@@ -301,7 +301,7 @@ const CommentSection = ({ articleAlias }) => {
 
           <div className="flex-1">
             <div className="flex items-center">
-              <span className="font-medium text-gray-900 dark:text-white">
+              <span className="font-medium text-gray-900">
                 {comment.username || '匿名用户'}
               </span>
               <span className="mx-2 text-gray-500">•</span>
@@ -310,7 +310,7 @@ const CommentSection = ({ articleAlias }) => {
               </span>
             </div>
 
-            <p className="mt-1 text-gray-700 dark:text-gray-300">
+            <p className="mt-1 text-gray-700 ">
               {comment.content}
             </p>
             <div className="mt-2 flex items-center space-x-4">
@@ -352,7 +352,7 @@ const CommentSection = ({ articleAlias }) => {
                     onChange={(e) => setReplyContent(e.target.value)}
                     onKeyDown={(e) => handleReplyCommentKeyDown(e, comment.comment_id)}
                     placeholder={`回复 ${comment.username}...`}
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-white resize-none pr-20"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent  resize-none pr-20"
                     rows="3"
                   />
                   <div className="absolute bottom-2 right-2 flex space-x-1">
@@ -365,7 +365,7 @@ const CommentSection = ({ articleAlias }) => {
                     </button>
                     <button
                       onClick={() => setReplyingTo(null)}
-                      className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
+                      className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300"
                     >
                       取消
                     </button>
@@ -389,8 +389,8 @@ const CommentSection = ({ articleAlias }) => {
   };
 
   return (
-    <div className="mt-10 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">评论</h2>
+    <div className="mt-10 bg-white  rounded-lg shadow p-6">
+      <h2 className="text-xl font-bold text-gray-900  mb-6">评论</h2>
 
       <form onSubmit={handleAddComment} className="mb-8">
         <div className="relative">
@@ -399,14 +399,14 @@ const CommentSection = ({ articleAlias }) => {
             onChange={(e) => setNewComment(e.target.value)}
             onKeyDown={handleNewCommentKeyDown}
             placeholder="写下你的评论..."
-            className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-none pr-24"
+            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none pr-24"
             rows="4"
           />
           <div className="absolute bottom-3 right-3 flex space-x-2">
             <button
               type="button"
               onClick={() => setNewComment('')}
-              className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500"
+              className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300 "
             >
               清空
             </button>

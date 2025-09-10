@@ -92,12 +92,12 @@ export default function ArticleReader() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <div className="min-h-screen bg-gray-50 ">
                 <Header />
                 <div className="pt-20 container mx-auto px-4 py-8">
                     <div className="flex items-center justify-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                        <span className="ml-3 text-gray-600 dark:text-gray-400">加载中...</span>
+                        <span className="ml-3 text-gray-600 ">加载中...</span>
                     </div>
                 </div>
             </div>
@@ -106,7 +106,7 @@ export default function ArticleReader() {
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <div className="min-h-screen bg-gray-50">
                 <Header />
                 <div className="pt-20 container mx-auto px-4 py-8">
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -118,15 +118,15 @@ export default function ArticleReader() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="min-h-screen bg-gray-50 ">
             <Header />
             <div className="pt-20">
                 {showPasswordInput ? (
                     <div className="container mx-auto px-4 py-8">
                         <div className="max-w-md mx-auto mt-10">
-                            <form onSubmit={handlePasswordSubmit} className="bg-white dark:bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
+                            <form onSubmit={handlePasswordSubmit} className="bg-white  shadow-md rounded px-8 pt-6 pb-8 mb-4">
                                 <div className="mb-4">
-                                    <label className="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" htmlFor="password">
+                                    <label className="block text-gray-700  text-sm font-bold mb-2" htmlFor="password">
                                         此文章需要密码访问
                                     </label>
                                     <input
@@ -134,7 +134,7 @@ export default function ArticleReader() {
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-300 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                        className="shadow appearance-none border  rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                         placeholder="请输入文章密码"
                                     />
                                 </div>

@@ -323,31 +323,31 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
 
     const renderMarkdownComponents = {
         h1: (props) => (
-            <h1 className="text-3xl font-bold mt-6 mb-4 text-gray-900 dark:text-white" {...props} />
+            <h1 className="text-3xl font-bold mt-6 mb-4 " {...props} />
         ),
         h2: (props) => (
-            <h2 className="text-2xl font-bold mt-5 mb-3 text-gray-900 dark:text-white" {...props} />
+            <h2 className="text-2xl font-bold mt-5 mb-3 " {...props} />
         ),
         h3: (props) => (
-            <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-900 dark:text-white" {...props} />
+            <h3 className="text-xl font-semibold mt-4 mb-2 " {...props} />
         ),
         h4: (props) => (
-            <h4 className="text-lg font-semibold mt-3 mb-2 text-gray-900 dark:text-white" {...props} />
+            <h4 className="text-lg font-semibold mt-3 mb-2 " {...props} />
         ),
         p: (props) => (
-            <p className="mb-3 leading-relaxed text-gray-700 dark:text-gray-300" {...props} />
+            <p className="mb-3 leading-relaxed text-gray-700 " {...props} />
         ),
         ul: (props) => (
-            <ul className="list-disc list-inside mb-3 text-gray-700 dark:text-gray-300" {...props} />
+            <ul className="list-disc list-inside mb-3 text-gray-700 " {...props} />
         ),
         ol: (props) => (
-            <ol className="list-decimal list-inside mb-3 text-gray-700 dark:text-gray-300" {...props} />
+            <ol className="list-decimal list-inside mb-3 text-gray-700 " {...props} />
         ),
         li: (props) => (
-            <li className="mb-1 text-gray-700 dark:text-gray-300" {...props} />
+            <li className="mb-1 text-gray-700 " {...props} />
         ),
         blockquote: (props) => (
-            <blockquote className="border-l-4 border-blue-500 pl-4 italic my-3 text-gray-600 dark:text-gray-400" {...props} />
+            <blockquote className="border-l-4 border-blue-500 pl-4 italic my-3 text-gray-600 " {...props} />
         ),
         code({ className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || "");
@@ -362,7 +362,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 </SyntaxHighlighter>
             ) : (
                 <code
-                    className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-sm font-mono text-gray-800 dark:text-white"
+                    className="bg-gray-100  px-1 py-0.5 rounded text-sm font-mono text-gray-800 dark:text-white"
                     {...props}
                 >
                     {children}
@@ -389,7 +389,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 <img
                     src={src}
                     alt={alt}
-                    className="rounded-lg shadow-sm my-4 block cursor-pointer border border-gray-200 dark:border-gray-600"
+                    className="rounded-lg shadow-sm my-4 block cursor-pointer border border-gray-200"
                     style={{
                         maxHeight: "300px",
                         maxWidth: "400px",
@@ -409,16 +409,16 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             const fileName = src.split("/").pop()?.split("?")[0] || "音频文件";
 
             return (
-                <div className="inline-block my-4 p-4 bg-gray-100 dark:bg-gradient-to-r dark:from-blue-900 dark:to-purple-900 border border-gray-200 dark:border-blue-700 rounded-xl shadow-sm max-w-lg">
+                <div className="inline-block my-4 p-4 bg-gray-100  border border-gray-200 rounded-xl shadow-sm max-w-lg">
                     <div className="flex items-center mb-3">
                         <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
                             <Music className="h-4 w-4 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-gray-900 dark:text-white truncate" title={fileName}>
+                            <div className="text-sm font-medium text-gray-900  truncate" title={fileName}>
                                 {fileName}
                             </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                            <div className="text-xs text-gray-500 ">
                                 音频文件
                             </div>
                         </div>
@@ -513,12 +513,12 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
                         placeholder="在此输入 Markdown 内容..."
-                        className="flex-1 p-4 focus:outline-none font-mono resize-none text-gray-900 dark:text-white bg-white dark:bg-gray-900"
+                        className="flex-1 p-4 focus:outline-none font-mono resize-none text-gray-900 bg-white "
                         spellCheck={false}
                     />
                 </div>
 
-                <div className="w-1/2 p-4 overflow-y-auto bg-white dark:bg-gray-900">
+                <div className="w-1/2 p-4 overflow-y-auto bg-white text-gray-900">
                     <ReactMarkdown
                         children={content}
                         remarkPlugins={[remarkGfm]}

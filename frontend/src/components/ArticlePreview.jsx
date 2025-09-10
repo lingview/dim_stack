@@ -314,16 +314,16 @@ export default function ArticlePreview({ article }) {
             const fileName = src.split("/").pop()?.split("?")[0] || "音频文件";
 
             return (
-                <div className="my-4 p-4 bg-gray-100 dark:bg-gradient-to-r dark:from-blue-900 dark:to-purple-900 border border-gray-200 dark:border-blue-700 rounded-xl shadow-sm max-w-lg">
+                <div className="my-4 p-4 bg-gray-100  border border-gray-200 rounded-xl shadow-sm max-w-lg">
                     <div className="flex items-center mb-3">
                         <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
                             <Music className="h-4 w-4 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-gray-900 dark:text-white truncate" title={fileName}>
+                            <div className="text-sm font-medium text-gray-900 truncate" title={fileName}>
                                 {fileName}
                             </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                            <div className="text-xs text-gray-500 ">
                                 音频文件
                             </div>
                         </div>
@@ -408,11 +408,11 @@ export default function ArticlePreview({ article }) {
     }
 
     return (
-        <article className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h1 className="text-3xl font-bold mb-4 text-gray-900 dark:text-white">
+        <article className="bg-white rounded-lg shadow-md p-6">
+            <h1 className="text-3xl font-bold mb-4 text-gray-900">
                 {article.article_name}
             </h1>
-            <div className="text-gray-600 dark:text-gray-400 mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+            <div className="text-gray-600 mb-6 border-b border-gray-200 pb-4">
                 <span>发布时间: {new Date(article.create_time).toLocaleDateString()}</span>
                 <span className="mx-2">|</span>
                 <span>阅读量: {article.page_views}</span>

@@ -82,7 +82,7 @@ export default function Header() {
     }
 
     return (
-        <header className="bg-white dark:bg-gray-800 shadow border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
+        <header className="bg-white shadow border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
             <div className="container mx-auto px-4">
                 <div className="flex justify-between items-center py-4 relative z-50">
                     <div className="flex items-center">
@@ -100,7 +100,7 @@ export default function Header() {
                                 <li key={item.id}>
                                     <a
                                         href={item.href}
-                                        className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
+                                        className="text-gray-600  hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
                                     >
                                         {item.name}
                                     </a>
@@ -114,7 +114,7 @@ export default function Header() {
 
                         {/* 移动端菜单按钮 */}
                         <button
-                            className="md:hidden relative z-50 p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                            className="md:hidden relative z-50 p-2 rounded hover:bg-gray-200 transition-colors duration-200"
                             onClick={toggleMobileMenu}
                         >
                             <svg
@@ -131,22 +131,22 @@ export default function Header() {
                         {/* 登录/用户下拉 */}
                         {isLoggedIn ? (
                             <div className="relative group flex items-center space-x-4">
-                                <span className="text-gray-700 dark:text-gray-300 hidden md:inline cursor-pointer">
+                                <span className="text-gray-700  hidden md:inline cursor-pointer">
                                     欢迎, {username}
                                 </span>
-                                <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-lg rounded-md overflow-hidden opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200 z-50">
+                                <div className="absolute top-full right-0 mt-2 w-48 bg-white shadow-lg rounded-md overflow-hidden opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200 z-50">
                                     <button
                                         onClick={() => {
                                             navigate('/dashboard')
                                             closeMobileMenu()
                                         }}
-                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700  hover:bg-gray-100"
                                     >
                                         进入控制台
                                     </button>
                                     <button
                                         onClick={handleLogout}
-                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700  hover:bg-gray-100"
                                     >
                                         登出
                                     </button>
@@ -168,11 +168,11 @@ export default function Header() {
 
                 {/* 移动端菜单 */}
                 <div
-                    className={`md:hidden overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out absolute top-full left-0 w-full bg-white dark:bg-gray-800 z-40 ${
+                    className={`md:hidden overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out absolute top-full left-0 w-full bg-white z-40 ${
                         isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
                     }`}
                 >
-                    <nav className="border-t border-gray-200 dark:border-gray-700 pt-4 px-4">
+                    <nav className="border-t border-gray-200 pt-4 px-4">
                         <ul className="space-y-3">
                             {[
                                 { id: 1, name: '首页', href: '/' },

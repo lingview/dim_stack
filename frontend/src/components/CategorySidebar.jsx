@@ -47,17 +47,17 @@ export default function CategorySidebar() {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6 transition-colors duration-200 border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 dark:text-white">文章分类</h3>
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6 transition-colors duration-200 border border-gray-200  dark:border-gray-700">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 ">文章分类</h3>
             <ul className="space-y-2">
                 {categories.map((category) => (
                     <li key={category.id}>
                         <a
                             href={`/category/${category.article_categories}`}
-                            className="flex justify-between items-center text-gray-600 transition-colors duration-200 hover:bg-gray-50 px-2 py-1 rounded dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-700"
+                            className="flex justify-between items-center text-gray-600 transition-colors duration-200 hover:bg-gray-50 px-2 py-1 rounded dark:hover:text-blue-400"
                         >
                             <span>{category.article_categories}</span>
-                            <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded-full dark:bg-gray-700 dark:text-gray-300">
+                            <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded-full  ">
                                 {category.articleCount || 0}
                             </span>
                         </a>
