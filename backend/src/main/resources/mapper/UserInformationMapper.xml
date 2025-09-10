@@ -30,4 +30,12 @@
         WHERE uuid = #{uuid} AND status = 1
     </update>
 
+
+    <select id="getUsernameByUuid" parameterType="string" resultType="string">
+        SELECT username
+        FROM user_information
+        WHERE uuid = #{uuid}
+    </select>
+
+
 </mapper>

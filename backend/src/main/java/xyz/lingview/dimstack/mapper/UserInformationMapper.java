@@ -13,4 +13,7 @@ public interface UserInformationMapper {
     UserInformation selectUserByUUID(@Param("uuid") String uuid);
 
     int updateUserByUUID(UserInformation userInformation);
+
+    String getUsernameByUuid(@Param("uuid") String uuid);
+
 }

@@ -12,6 +12,7 @@ const ArticlesView = lazy(() => import('./ArticlesView'));
 const MarkdownEditor = lazy(() => import('../MarkdownEditor'));
 const ProfileView = lazy(() => import('./ProfileView'));
 const CommentsView = lazy(() => import('./CommentsView'));
+const ArticlesReview = lazy(() => import('./ArticlesReview'));
 
 export default function Dashboard() {
     const navigate = useNavigate()
@@ -260,6 +261,11 @@ export default function Dashboard() {
                             </Suspense>
                         )}
 
+                        {activeTab === 'articlesreview' && (
+                            <Suspense fallback={<div>加载中...</div>}>
+                                <ArticlesReview />
+                            </Suspense>
+                        )}
                         {/*{activeTab !== 'dashboard' && activeTab !== 'articles' && (*/}
                         {/*    <div className="bg-white rounded-lg shadow-sm p-6">*/}
                         {/*        <h2 className="text-xl font-semibold text-gray-900 mb-4">*/}

@@ -1,17 +1,16 @@
 package xyz.lingview.dimstack.dto;
 
 import lombok.Data;
+import java.time.LocalDateTime;
 
 @Data
-public class UpdateArticleDTO {
+public class ArticleReviewDTO {
     private String article_id;
     private String article_name;
-    private String article_cover;
+    private String uuid;
+    private String author_name;
     private String excerpt;
-    private String article_content;
-    private String password;
+    private LocalDateTime create_time;
     private String tag;
     private String category;
-    private String alias;
-    private int status;
 }

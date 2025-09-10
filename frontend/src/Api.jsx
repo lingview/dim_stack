@@ -56,8 +56,9 @@ export const fakeData = {
                 id: 3, title: '内容', icon: 'content',
                 children: [
                     { id: 21, title: '文章', icon: 'article', link: '/dashboard/articles' },
-                    { id: 22, title: '页面', icon: 'page', link: '/dashboard/pages' },
-                    { id: 23, title: '评论', icon: 'comment', link: '/dashboard/comments' },
+                    { id: 22, title: '文章审核', icon: 'article', link: '/dashboard/articlesreview' },
+                    { id: 23, title: '页面', icon: 'page', link: '/dashboard/pages' },
+                    { id: 24, title: '评论', icon: 'comment', link: '/dashboard/comments' },
                     // { id: 24, title: '附件', icon: 'media', link: '/dashboard/media' },
                     // { id: 25, title: '链接', icon: 'link', link: '/dashboard/links' }
                 ]

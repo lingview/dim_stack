@@ -67,7 +67,8 @@
             password = #{password},
             tag = #{tag},
             category = #{category},
-            alias = #{alias}
+            alias = #{alias},
+            status = #{status}
         WHERE article_id = #{article_id}
     </update>
 </mapper>

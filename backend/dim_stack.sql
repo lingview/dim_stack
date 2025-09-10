@@ -37,7 +37,7 @@ CREATE TABLE `article`  (
                             `category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章分类',
                             `alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章访问链接',
                             `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '文章上传时间',
-                            `status` tinyint NOT NULL COMMENT '文章状态：0=删除, 1=正常, 2=未发布, 3=违规',
+                            `status` tinyint NOT NULL COMMENT '文章状态：0=删除, 1=正常, 2=未发布, 3=待审核，4违规',
                             PRIMARY KEY (`id`) USING BTREE,
                             UNIQUE INDEX `article_id`(`article_id` ASC) USING BTREE,
                             UNIQUE INDEX `alias`(`alias` ASC) USING BTREE,
@@ -258,7 +258,7 @@ CREATE TABLE `site_config`  (
 -- ----------------------------
 -- Records of site_config
 -- ----------------------------
-INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 2, '© 2025 次元栈 - Dim Stack. All rights reserved.', 1, 'https://lingview.xyz/upload/a2c28b53fdc12fde51bf23928127066f.jpg', '欢迎来到瓦纳海姆星', '探索洛天依和Vsinger家族的音乐之旅');
+INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 2, '© 2025 次元栈 - Dim Stack. All rights reserved.', 3, 'https://lingview.xyz/upload/a2c28b53fdc12fde51bf23928127066f.jpg', '欢迎来到瓦纳海姆星', '探索洛天依和Vsinger家族的音乐之旅');
 
 -- ----------------------------
 -- Table structure for user_information

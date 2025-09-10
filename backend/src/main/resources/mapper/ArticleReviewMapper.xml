@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xyz.lingview.dimstack.mapper.ArticleReviewMapper">
+
+    <!-- 获取未审核文章列表 -->
+    <select id="selectUnreviewedArticles" resultType="xyz.lingview.dimstack.dto.ArticleReviewDTO">
+        SELECT
+            a.article_id,
+            a.article_name,
+            a.uuid,
+            a.excerpt,
+            a.create_time,
+            a.tag,
+            a.category
+        FROM article a
+        WHERE a.status = 3
+        ORDER BY a.create_time DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <!-- 统计未审核文章数量 -->
+    <select id="countUnreviewedArticles" resultType="int">
+        SELECT COUNT(*)
+        FROM article
+        WHERE status = 3
+    </select>
+
+    <!-- 根据文章id获取文章详情 -->
+    <select id="selectArticleById" parameterType="string" resultType="xyz.lingview.dimstack.domain.Article">
+        SELECT *
+        FROM article
+        WHERE article_id = #{article_id}
+    </select>
+
+    <!-- 更新文章状态 -->
+    <update id="updateArticleStatus">
+        UPDATE article
+        SET status = #{status}
+        WHERE article_id = #{article_id}
+    </update>
+</mapper>

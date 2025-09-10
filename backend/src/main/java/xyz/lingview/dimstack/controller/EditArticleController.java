@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.dto.ArticleDetailDTO;
 import xyz.lingview.dimstack.dto.EditArticleDTO;
 import xyz.lingview.dimstack.dto.UpdateArticleDTO;
+import xyz.lingview.dimstack.mapper.SiteConfigMapper;
 import xyz.lingview.dimstack.service.EditArticleService;
 
 import java.util.HashMap;
@@ -21,6 +22,8 @@ public class EditArticleController {
     @Autowired
     private EditArticleService editArticleService;
 
+    @Autowired
+    private SiteConfigMapper SiteConfigMapper;
     @GetMapping("/getarticlelist")
     public ResponseEntity<Map<String, Object>> getArticleList(HttpSession session) {
         Map<String, Object> response = new HashMap<>();
@@ -69,6 +72,10 @@ public class EditArticleController {
                 String hashedPassword = BCrypt.hashpw(updateArticleDTO.getPassword(), BCrypt.gensalt());
                 updateArticleDTO.setPassword(hashedPassword);
             }
+            int articleDefault = SiteConfigMapper.getArticleStatus();
+
+            updateArticleDTO.setStatus(articleDefault);
+
 
             boolean result = editArticleService.updateArticle(updateArticleDTO, username);
 
