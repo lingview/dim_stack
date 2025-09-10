@@ -10,7 +10,9 @@ import xyz.lingview.dimstack.mapper.EditArticleMapper;
 import xyz.lingview.dimstack.service.ArticleService;
 import xyz.lingview.dimstack.service.EditArticleService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class EditArticleServiceImpl implements EditArticleService {
@@ -77,4 +79,87 @@ public class EditArticleServiceImpl implements EditArticleService {
             return false;
         }
     }
+
+    @Override
+    public boolean deleteArticle(String articleId, String sessionUsername) {
+        try {
+            String articleUuid = editArticleMapper.getUuidByArticleId(articleId);
+            if (articleUuid == null) {
+                return false;
+            }
+
+            String articleOwner = editArticleMapper.getUsernameByUuid(articleUuid);
+            if (articleOwner == null || !articleOwner.equals(sessionUsername)) {
+                return false;
+            }
+
+            Map<String, Object> params = new HashMap<>();
+            params.put("article_id", articleId);
+            params.put("uuid", articleUuid);
+
+            int result = editArticleMapper.deleteArticle(params);
+            return result > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public boolean unpublishArticle(String articleId, String sessionUsername) {
+        try {
+            String articleUuid = editArticleMapper.getUuidByArticleId(articleId);
+            if (articleUuid == null) {
+                return false;
+            }
+
+            String articleOwner = editArticleMapper.getUsernameByUuid(articleUuid);
+            if (articleOwner == null || !articleOwner.equals(sessionUsername)) {
+                return false;
+            }
+
+            Map<String, Object> params = new HashMap<>();
+            params.put("article_id", articleId);
+            params.put("uuid", articleUuid);
+
+            int result = editArticleMapper.unpublishArticle(params);
+            return result > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    @Override
+    public boolean publishArticle(String articleId, String sessionUsername) {
+        try {
+            String articleUuid = editArticleMapper.getUuidByArticleId(articleId);
+            if (articleUuid == null) {
+                return false;
+            }
+
+            String articleOwner = editArticleMapper.getUsernameByUuid(articleUuid);
+            if (articleOwner == null || !articleOwner.equals(sessionUsername)) {
+                return false;
+            }
+
+            Map<String, Object> params = new HashMap<>();
+            params.put("article_id", articleId);
+            params.put("uuid", articleUuid);
+
+            int result = editArticleMapper.publishArticle(params);
+            return result > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @Override
+    public String getArticleUuid(String articleId) {
+        return editArticleMapper.getUuidByArticleId(articleId);
+    }
+
 }

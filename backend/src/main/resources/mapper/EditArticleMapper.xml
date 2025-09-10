@@ -71,4 +71,27 @@
             status = #{status}
         WHERE article_id = #{article_id}
     </update>
+
+
+    <!-- 删除文章 -->
+    <update id="deleteArticle" parameterType="map">
+        UPDATE article
+        SET status = 0
+        WHERE article_id = #{article_id} AND uuid = #{uuid}
+    </update>
+
+    <!-- 取消发布文章 -->
+    <update id="unpublishArticle" parameterType="map">
+        UPDATE article
+        SET status = 2
+        WHERE article_id = #{article_id} AND uuid = #{uuid}
+    </update>
+
+    <!-- 发布文章 -->
+    <update id="publishArticle" parameterType="map">
+        UPDATE article
+        SET status = #{status}
+        WHERE article_id = #{article_id} AND uuid = #{uuid}
+    </update>
+
 </mapper>

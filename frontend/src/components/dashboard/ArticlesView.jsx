@@ -1,4 +1,5 @@
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, EyeOff, Send } from 'lucide-react';
+import apiClient from "../../utils/axios.jsx";
 
 export default function ArticlesView({ onNewArticle, articles, onEditArticle }) {
     const formatDate = (dateString) => {
@@ -29,7 +30,6 @@ export default function ArticlesView({ onNewArticle, articles, onEditArticle }) 
         }
     };
 
-
     const getStatusStyle = (status) => {
         switch (status) {
             case 1: return 'bg-green-100 text-green-800';
@@ -57,6 +57,66 @@ export default function ArticlesView({ onNewArticle, articles, onEditArticle }) 
     };
 
     const sortedArticles = sortArticlesByDate(articles);
+
+    const handleDeleteArticle = async (articleId) => {
+        if (!window.confirm('确定要删除这篇文章吗？')) {
+            return;
+        }
+
+        try {
+            const response = await apiClient.post('/deletearticle', { article_id: articleId });
+
+            if (response.success) {
+                alert('文章删除成功');
+                window.location.reload();
+            } else {
+                alert(response.message || '删除失败');
+            }
+        } catch (error) {
+            console.error('删除文章时出错:', error);
+            alert('删除文章时出错');
+        }
+    };
+
+    const handleUnpublishArticle = async (articleId) => {
+        if (!window.confirm('确定要取消发布这篇文章吗？')) {
+            return;
+        }
+
+        try {
+            const response = await apiClient.post('/unpublisharticle', { article_id: articleId });
+
+            if (response.success) {
+                alert('文章已取消发布');
+                window.location.reload();
+            } else {
+                alert(response.message || '取消发布失败');
+            }
+        } catch (error) {
+            console.error('取消发布文章时出错:', error);
+            alert('取消发布文章时出错');
+        }
+    };
+
+    const handlePublishArticle = async (articleId) => {
+        if (!window.confirm('确定要发布这篇文章吗？')) {
+            return;
+        }
+
+        try {
+            const response = await apiClient.post('/publisharticle', { article_id: articleId });
+
+            if (response.success) {
+                alert('文章已发布');
+                window.location.reload();
+            } else {
+                alert(response.message || '发布失败');
+            }
+        } catch (error) {
+            console.error('发布文章时出错:', error);
+            alert('发布文章时出错');
+        }
+    };
 
     return (
         <div className="bg-white rounded-lg shadow-sm p-6">
@@ -95,7 +155,6 @@ export default function ArticlesView({ onNewArticle, articles, onEditArticle }) 
                     <tbody className="bg-white divide-y divide-gray-200">
                     {sortedArticles && sortedArticles.length > 0 ? (
                         sortedArticles.map((article, index) => {
-
                             if (!article) return null;
 
                             return (
@@ -116,13 +175,34 @@ export default function ArticlesView({ onNewArticle, articles, onEditArticle }) 
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button
-                                            onClick={() => onEditArticle(article.article_id)} // 只传递文章ID
+                                            onClick={() => onEditArticle(article.article_id)}
                                             className="text-blue-600 hover:text-blue-900 mr-3 flex items-center"
                                         >
                                             <Edit className="h-4 w-4 mr-1" />
                                             编辑
                                         </button>
-                                        <button className="text-red-600 hover:text-red-900 flex items-center">
+                                        {article.status === 1 && (
+                                            <button
+                                                onClick={() => handleUnpublishArticle(article.article_id)}
+                                                className="text-yellow-600 hover:text-yellow-900 mr-3 flex items-center"
+                                            >
+                                                <EyeOff className="h-4 w-4 mr-1" />
+                                                取消发布
+                                            </button>
+                                        )}
+                                        {article.status === 2 && (
+                                            <button
+                                                onClick={() => handlePublishArticle(article.article_id)}
+                                                className="text-green-600 hover:text-green-900 mr-3 flex items-center"
+                                            >
+                                                <Send className="h-4 w-4 mr-1" />
+                                                发布
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => handleDeleteArticle(article.article_id)}
+                                            className="text-red-600 hover:text-red-900 flex items-center"
+                                        >
                                             <Trash2 className="h-4 w-4 mr-1" />
                                             删除
                                         </button>

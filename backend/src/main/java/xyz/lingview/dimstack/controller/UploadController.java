@@ -596,7 +596,7 @@ public class UploadController {
         }
 
         if (uploadArticle.getStatus() != 1 && uploadArticle.getStatus() != 3) {
-            uploadArticle.setStatus(siteConfigMapper.getArticleStatus());
+            uploadArticle.setStatus(2);
         }
 
         try {
