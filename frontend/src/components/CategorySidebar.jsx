@@ -47,7 +47,7 @@ export default function CategorySidebar() {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6 transition-colors duration-200 border border-gray-200  dark:border-gray-700">
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6 transition-colors duration-200 border border-gray-200  ">
             <h3 className="text-lg font-bold text-gray-900 mb-4 ">文章分类</h3>
             <ul className="space-y-2">
                 {categories.map((category) => (
