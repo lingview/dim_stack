@@ -58,15 +58,6 @@ export default function DashboardHeader({ onToggleSidebar, username, onLogout })
                                 <button
                                     onClick={() => {
                                         setUserMenuOpen(false)
-                                        navigate('/profile')
-                                    }}
-                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                >
-                                    个人资料
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setUserMenuOpen(false)
                                         navigate('/')
                                     }}
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
