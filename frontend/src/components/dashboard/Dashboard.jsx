@@ -252,16 +252,17 @@ export default function Dashboard() {
                             </Suspense>
                         )}
 
-                        {activeTab !== 'dashboard' && activeTab !== 'articles' && (
-                            <div className="bg-white rounded-lg shadow-sm p-6">
-                                <h2 className="text-xl font-semibold text-gray-900 mb-4">
-                                    {sidebarMenu.find(m => m.link && m.link.includes(activeTab))?.title || '页面'}
-                                </h2>
-                                <p className="text-gray-600">
-                                    这是 {activeTab} 页面的内容，正在开发中...
-                                </p>
-                            </div>
-                        )}
+                        {/*{activeTab !== 'dashboard' && activeTab !== 'articles' && (*/}
+                        {/*    <div className="bg-white rounded-lg shadow-sm p-6">*/}
+                        {/*        <h2 className="text-xl font-semibold text-gray-900 mb-4">*/}
+                        {/*            {sidebarMenu.find(m => m.link && m.link.includes(activeTab))?.title || '页面'}*/}
+                        {/*        </h2>*/}
+                        {/*        <p className="text-gray-600">*/}
+                        {/*            这是 {activeTab} 页面的内容，正在开发中...*/}
+                        {/*        </p>*/}
+                        {/*    </div>*/}
+                        {/*)}*/}
+
                     </main>
                 </div>
             </div>

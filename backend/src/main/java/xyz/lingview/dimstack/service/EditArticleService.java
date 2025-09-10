@@ -7,6 +7,7 @@ import xyz.lingview.dimstack.dto.UpdateArticleDTO;
 import java.util.List;
 
 public interface EditArticleService {
+
     List<EditArticleDTO> getArticleListByUsername(String username);
 
     ArticleDetailDTO getArticleDetailById(String articleId, String username);
