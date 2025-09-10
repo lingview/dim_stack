@@ -4,12 +4,14 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { lazy, Suspense } from 'react';
 import apiClient from '../../utils/axios.jsx';
 
+
 const Sidebar = lazy(() => import('./Sidebar'));
 const DashboardHeader = lazy(() => import('./DashboardHeader'));
 const DashboardView = lazy(() => import('./DashboardView'));
 const ArticlesView = lazy(() => import('./ArticlesView'));
 const MarkdownEditor = lazy(() => import('../MarkdownEditor'));
 const ProfileView = lazy(() => import('./ProfileView'));
+const CommentsView = lazy(() => import('./CommentsView'));
 
 export default function Dashboard() {
     const navigate = useNavigate()
@@ -249,6 +251,12 @@ export default function Dashboard() {
                         {activeTab === 'profile' && (
                             <Suspense fallback={<div>加载中...</div>}>
                                 <ProfileView />
+                            </Suspense>
+                        )}
+
+                        {activeTab === 'comments' && (
+                            <Suspense fallback={<div>加载中...</div>}>
+                                <CommentsView />
                             </Suspense>
                         )}
 

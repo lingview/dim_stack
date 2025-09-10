@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xyz.lingview.dimstack.mapper.BackendCommentMapper">
+
+    <!-- 查询文章的所有评论 -->
+    <select id="selectCommentsWithUserInfoByArticleId" resultType="xyz.lingview.dimstack.dto.CommentDTO">
+        SELECT
+            c.comment_id,
+            c.user_id,
+            u.username,
+            u.avatar,
+            c.content,
+            c.create_time,
+            c.comment_like_count,
+            c.to_comment_id,
+            c.root_comment_id,
+            tc.user_id AS to_comment_user_id,
+            tu.username AS to_comment_username
+        FROM `comment` c
+                 LEFT JOIN `user_information` u ON c.user_id = u.uuid
+                 LEFT JOIN `comment` tc ON c.to_comment_id = tc.comment_id
+                 LEFT JOIN `user_information` tu ON tc.user_id = tu.uuid
+        WHERE c.article_id = #{article_id}
+          AND c.status = 1
+        ORDER BY c.create_time ASC
+    </select>
+
+    <!-- 根据评论id获取评论详情 -->
+    <select id="selectCommentByCommentId" resultType="xyz.lingview.dimstack.domain.Comment">
+        SELECT * FROM `comment` WHERE comment_id = #{comment_id}
+    </select>
+
+    <!-- 更新评论内容 -->
+    <update id="updateCommentContent">
+        UPDATE `comment`
+        SET content = #{content}, update_time = NOW()
+        WHERE comment_id = #{comment_id}
+    </update>
+
+    <!-- 软删除评论 -->
+    <update id="deleteComment">
+        UPDATE `comment`
+        SET status = 0, update_time = NOW()
+        WHERE comment_id = #{comment_id}
+    </update>
+
+    <!-- 获取所有评论 -->
+    <select id="selectAllCommentsWithPagination" resultType="xyz.lingview.dimstack.dto.CommentDTO">
+        SELECT
+            c.comment_id,
+            c.article_id,
+            a.article_name AS article_title,
+            c.user_id,
+            u.username,
+            u.avatar,
+            c.content,
+            c.create_time,
+            c.comment_like_count,
+            c.status,
+            c.to_comment_id,
+            tc.user_id AS to_comment_user_id,
+            tu.username AS to_comment_username
+        FROM `comment` c
+                 LEFT JOIN `user_information` u ON c.user_id = u.uuid
+                 LEFT JOIN `article` a ON c.article_id = a.article_id
+                 LEFT JOIN `comment` tc ON c.to_comment_id = tc.comment_id
+                 LEFT JOIN `user_information` tu ON tc.user_id = tu.uuid
+        WHERE c.status = 1
+        ORDER BY c.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 根据文章id获取文章标题 -->
+    <select id="selectArticleTitleByArticleId" resultType="java.lang.String">
+        SELECT article_name FROM `article` WHERE article_id = #{article_id}
+    </select>
+
+    <select id="countTotalComments" resultType="int">
+        SELECT COUNT(*) FROM `comment` WHERE status = 1
+    </select>
+</mapper>

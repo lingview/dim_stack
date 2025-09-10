@@ -58,35 +58,36 @@ export const fakeData = {
                     { id: 21, title: '文章', icon: 'article', link: '/dashboard/articles' },
                     { id: 22, title: '页面', icon: 'page', link: '/dashboard/pages' },
                     { id: 23, title: '评论', icon: 'comment', link: '/dashboard/comments' },
-                    { id: 24, title: '附件', icon: 'media', link: '/dashboard/media' },
-                    { id: 25, title: '链接', icon: 'link', link: '/dashboard/links' }
+                    // { id: 24, title: '附件', icon: 'media', link: '/dashboard/media' },
+                    // { id: 25, title: '链接', icon: 'link', link: '/dashboard/links' }
                 ]
             },
+            // {
+            //     id: 4, title: '外观', icon: 'theme',
+            //     children: [
+            //
+            //     ]
+            // },
             {
-                id: 4, title: '外观', icon: 'appearance',
+                id: 5, title: '设置', icon: 'settings',
                 children: [
                     { id: 31, title: '主题', icon: 'theme', link: '/dashboard/theme' },
-                    { id: 32, title: '菜单', icon: 'menu', link: '/dashboard/menu' }
-                ]
-            },
-            {
-                id: 5, title: '系统', icon: 'system',
-                children: [
-                    { id: 41, title: '插件', icon: 'plugin', link: '/dashboard/plugins' },
+                    // { id: 41, title: '插件', icon: 'plugin', link: '/dashboard/plugins' },
                     { id: 42, title: '用户', icon: 'users', link: '/dashboard/users' },
-                    { id: 43, title: '设置', icon: 'settings', link: '/dashboard/settings' },
-                    { id: 44, title: '概览', icon: 'overview', link: '/dashboard/overview' },
+                    { id: 43, title: '站点信息', icon: 'info', link: '/dashboard/settings' },
+                    // { id: 44, title: '概览', icon: 'overview', link: '/dashboard/overview' },
                     { id: 45, title: '备份', icon: 'backup', link: '/dashboard/backup' },
                     { id: 46, title: '工具', icon: 'tools', link: '/dashboard/tools' },
-                    { id: 47, title: '应用市场', icon: 'marketplace', link: '/dashboard/marketplace' }
+                    // { id: 47, title: '应用市场', icon: 'marketplace', link: '/dashboard/marketplace' },
+                    // { id: 51, title: '迁移', icon: 'migrate', link: '/dashboard/migrate' }
                 ]
             },
-            {
-                id: 6, title: '工具', icon: 'tools',
-                children: [
-                    { id: 51, title: '迁移', icon: 'migrate', link: '/dashboard/migrate' }
-                ]
-            }
+            // {
+            //     id: 6, title: '工具', icon: 'tools',
+            //     children: [
+            //
+            //     ]
+            // }
         ],
 
         // 通知数据

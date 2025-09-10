@@ -30,7 +30,7 @@ public class UserServiceImpl implements UserService {
             user.setUsername(userUpdateDTO.getUsername());
         }
         if (userUpdateDTO.getAvatar() != null && !userUpdateDTO.getAvatar().isEmpty()) {
-            user.setAvatar(userUpdateDTO.getAvatar());
+            System.out.println("头像不在这里设置");
         }
         if (userUpdateDTO.getPhone() != null && !userUpdateDTO.getPhone().isEmpty()) {
             user.setPhone(userUpdateDTO.getPhone());

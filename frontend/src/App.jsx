@@ -4,7 +4,6 @@ import Login from './components/Login'
 import Register from './components/Register'
 import Dashboard from "./components/dashboard/Dashboard.jsx";
 import ArticleReader from './components/ArticleReader';
-
 function App() {
   return (
     <Routes>
@@ -14,6 +13,7 @@ function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/dashboard/*" element={<Dashboard />} />
       <Route path="/article/:articleId" element={<ArticleReader />} />
+
     </Routes>
   )
 }
