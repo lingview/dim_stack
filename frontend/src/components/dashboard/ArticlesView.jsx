@@ -2,6 +2,28 @@ import { Plus, Edit, Trash2, EyeOff, Send } from 'lucide-react';
 import apiClient from "../../utils/axios.jsx";
 
 export default function ArticlesView({ onNewArticle, articles, onEditArticle }) {
+    const escapeHtml = (unsafe) => {
+        if (!unsafe) return unsafe;
+
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    };
+
+    const unescapeHtml = (safe) => {
+        if (!safe) return safe;
+
+        return safe
+            .replace(/&amp;/g, "&")
+            .replace(/&lt;/g, "<")
+            .replace(/&gt;/g, ">")
+            .replace(/&quot;/g, '"')
+            .replace(/&#039;/g, "'");
+    };
+
     const formatDate = (dateString) => {
         if (!dateString) return '未知日期';
         try {
@@ -56,7 +78,18 @@ export default function ArticlesView({ onNewArticle, articles, onEditArticle }) 
         });
     };
 
-    const sortedArticles = sortArticlesByDate(articles);
+    const processArticlesForDisplay = (articles) => {
+        if (!articles || !Array.isArray(articles)) return [];
+
+        return articles.map(article => ({
+            ...article,
+            article_name: escapeHtml(article.article_name) || '无标题',
+            author_name: escapeHtml(article.author_name) || '未知作者'
+        }));
+    };
+
+    const processedArticles = processArticlesForDisplay(articles);
+    const sortedArticles = sortArticlesByDate(processedArticles);
 
     const handleDeleteArticle = async (articleId) => {
         if (!window.confirm('确定要删除这篇文章吗？')) {
@@ -160,10 +193,10 @@ export default function ArticlesView({ onNewArticle, articles, onEditArticle }) 
                             return (
                                 <tr key={article.article_id || index} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900">{article.article_name || '无标题'}</div>
+                                        <div className="text-sm font-medium text-gray-900">{unescapeHtml(article.article_name) || '无标题'}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-500">{article.author_name || '未知作者'}</div>
+                                        <div className="text-sm text-gray-500">{unescapeHtml(article.author_name) || '未知作者'}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-500">{formatDate(article.create_time)}</div>

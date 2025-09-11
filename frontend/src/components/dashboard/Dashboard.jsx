@@ -15,6 +15,7 @@ const CommentsView = lazy(() => import('./CommentsView'));
 const ArticlesReview = lazy(() => import('./ArticlesReview'));
 const MenusView = lazy(() => import('./MenusView'));
 const UsersView = lazy(() => import('./UsersView'));
+const SiteSettingsView = lazy(() => import('./SiteSettingsView'));
 
 
 export default function Dashboard() {
@@ -282,6 +283,11 @@ export default function Dashboard() {
                             </Suspense>
                         )}
 
+                        {activeTab === 'settings' && (
+                            <Suspense fallback={<div>加载中...</div>}>
+                                <SiteSettingsView />
+                            </Suspense>
+                        )}
 
                         {/*{activeTab !== 'dashboard' && activeTab !== 'articles' && (*/}
                         {/*    <div className="bg-white rounded-lg shadow-sm p-6">*/}

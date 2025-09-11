@@ -47,4 +47,16 @@
         WHERE id = 1
     </select>
 
+    <!-- 更新站点配置 -->
+    <update id="updateSiteConfig" parameterType="xyz.lingview.dimstack.domain.SiteConfig">
+        UPDATE site_config
+        SET site_name = #{site_name},
+            register_user_permission = #{register_user_permission},
+            copyright = #{copyright},
+            article_status = #{article_status},
+            hero_image = #{hero_image},
+            hero_title = #{hero_title},
+            hero_subtitle = #{hero_subtitle}
+        WHERE id = 1
+    </update>
 </mapper>

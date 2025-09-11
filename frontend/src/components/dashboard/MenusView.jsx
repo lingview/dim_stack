@@ -12,6 +12,28 @@ export default function MenusView() {
   });
   const [error, setError] = useState('');
 
+  const escapeHtml = (unsafe) => {
+    if (!unsafe) return unsafe;
+
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  };
+
+  const unescapeHtml = (safe) => {
+    if (!safe) return safe;
+
+    return safe
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'");
+  };
+
   useEffect(() => {
     fetchMenus();
   }, []);
@@ -20,7 +42,18 @@ export default function MenusView() {
     try {
       setLoading(true);
       const response = await apiClient.get('/getmenus');
-      setMenus(response || []);
+
+      if (Array.isArray(response)) {
+        const escapedMenus = response.map(menu => ({
+          ...menu,
+          menus_name: escapeHtml(menu.menus_name) || '',
+          menus_url: escapeHtml(menu.menus_url) || '',
+          username: escapeHtml(menu.username) || ''
+        }));
+        setMenus(escapedMenus);
+      } else {
+        setMenus([]);
+      }
     } catch (error) {
       console.error('获取菜单列表失败:', error);
       setError('获取菜单列表失败');
@@ -41,8 +74,8 @@ export default function MenusView() {
   const handleEditMenu = (menu) => {
     setEditingMenu(menu);
     setFormData({
-      menus_name: menu.menus_name || '',
-      menus_url: menu.menus_url || ''
+      menus_name: unescapeHtml(menu.menus_name) || '',
+      menus_url: unescapeHtml(menu.menus_url) || ''
     });
     setShowForm(true);
   };
@@ -72,16 +105,21 @@ export default function MenusView() {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
+      const escapedData = {
+        menus_name: escapeHtml(formData.menus_name),
+        menus_url: escapeHtml(formData.menus_url)
+      };
+
       if (editingMenu) {
         await apiClient.post('/editmenus', {
           menus_id: editingMenu.menus_id,
-          menus_name: formData.menus_name,
-          menus_url: formData.menus_url
+          menus_name: escapedData.menus_name,
+          menus_url: escapedData.menus_url
         });
       } else {
         await apiClient.post('/addmenus', {
-          menus_name: formData.menus_name,
-          menus_url: formData.menus_url
+          menus_name: escapedData.menus_name,
+          menus_url: escapedData.menus_url
         });
       }
       setShowForm(false);
@@ -212,13 +250,13 @@ export default function MenusView() {
                   {menu.menus_id}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {menu.menus_name}
+                  {unescapeHtml(menu.menus_name)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {menu.menus_url}
+                  {unescapeHtml(menu.menus_url)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {menu.username || menu.user_id || '未指定'}
+                  {unescapeHtml(menu.username) || menu.user_id || '未指定'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <button

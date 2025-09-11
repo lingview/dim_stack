@@ -21,6 +21,28 @@ const getFullImageUrl = (url) => {
     }
 };
 
+const escapeHtml = (unsafe) => {
+    if (!unsafe) return unsafe;
+
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+};
+
+const unescapeHtml = (safe) => {
+    if (!safe) return safe;
+
+    return safe
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'");
+};
+
 export default function ProfileView() {
     const [user, setUser] = useState({
         uuid: '',
@@ -59,13 +81,14 @@ export default function ProfileView() {
                             ? getFullImageUrl(profileResponse.avatar)
                             : '/default-avatar.png';
 
+                        // 对从服务器获取的用户数据进行转义处理
                         setUser({
                             uuid: profileResponse.uuid || '',
-                            username: profileResponse.username || '',
+                            username: escapeHtml(profileResponse.username) || '',
                             avatar: profileResponse.avatar || '',
-                            phone: profileResponse.phone || '',
-                            email: profileResponse.email || '',
-                            gender: profileResponse.gender || '',
+                            phone: escapeHtml(profileResponse.phone) || '',
+                            email: escapeHtml(profileResponse.email) || '',
+                            gender: escapeHtml(profileResponse.gender) || '',
                             birthday: birthdayFormatted,
                         });
 
@@ -84,9 +107,10 @@ export default function ProfileView() {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
+        const escapedValue = escapeHtml(value);
         setUser(prev => ({
             ...prev,
-            [name]: value
+            [name]: escapedValue
         }));
     };
 
@@ -161,18 +185,14 @@ export default function ProfileView() {
         try {
             setSaving(true);
             const updateData = {
-                uuid: user.uuid
+                uuid: user.uuid,
+                username: unescapeHtml(user.username),
+                avatar: user.avatar,
+                phone: unescapeHtml(user.phone),
+                email: unescapeHtml(user.email),
+                gender: unescapeHtml(user.gender),
+                birthday: user.birthday
             };
-
-            if (user.username) updateData.username = user.username;
-            if (user.avatar) updateData.avatar = user.avatar;
-            if (user.phone) updateData.phone = user.phone;
-            if (user.email) updateData.email = user.email;
-            if (user.gender) updateData.gender = user.gender;
-
-            if (user.birthday) {
-                updateData.birthday = user.birthday;
-            }
 
             const response = await apiClient.put('/user/update', updateData);
 
@@ -229,7 +249,7 @@ export default function ProfileView() {
                             type="text"
                             id="username"
                             name="username"
-                            value={user.username}
+                            value={unescapeHtml(user.username)}
                             onChange={handleInputChange}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="请输入用户名"
@@ -276,7 +296,7 @@ export default function ProfileView() {
                             type="email"
                             id="email"
                             name="email"
-                            value={user.email}
+                            value={unescapeHtml(user.email)}
                             onChange={handleInputChange}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="请输入邮箱"
@@ -287,11 +307,12 @@ export default function ProfileView() {
                         <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
                             手机号
                         </label>
+                        {/* 显示时进行反转义 */}
                         <input
                             type="tel"
                             id="phone"
                             name="phone"
-                            value={user.phone}
+                            value={unescapeHtml(user.phone)}
                             onChange={handleInputChange}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="请输入手机号"
@@ -305,7 +326,7 @@ export default function ProfileView() {
                         <select
                             id="gender"
                             name="gender"
-                            value={user.gender}
+                            value={unescapeHtml(user.gender)}
                             onChange={handleInputChange}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >

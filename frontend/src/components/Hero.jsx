@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import apiClient from '../utils/axios';
+import {getConfig} from "../utils/config.jsx";
 
 export default function Hero() {
     const [heroData, setHeroData] = useState(null);
@@ -31,11 +32,8 @@ export default function Hero() {
         }
 
         try {
-            if (url.startsWith('/')) {
-                return url;
-            }
-
-            return `/upload/${url}`;
+            const config = getConfig();
+            return config.getFullUrl(url);
         } catch (error) {
             if (url.startsWith('/')) {
                 return url;

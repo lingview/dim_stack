@@ -9,4 +9,5 @@ public interface SiteConfigService {
     String getCopyright();
     String getSiteName();
 
+    boolean updateSiteConfig(SiteConfig siteConfig);
 }

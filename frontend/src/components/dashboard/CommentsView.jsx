@@ -14,6 +14,28 @@ export default function CommentsView() {
     const [totalPages, setTotalPages] = useState(1);
     const [pageSize] = useState(10);
 
+    const escapeHtml = (unsafe) => {
+        if (!unsafe) return unsafe;
+
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    };
+
+    const unescapeHtml = (safe) => {
+        if (!safe) return safe;
+
+        return safe
+            .replace(/&amp;/g, "&")
+            .replace(/&lt;/g, "<")
+            .replace(/&gt;/g, ">")
+            .replace(/&quot;/g, '"')
+            .replace(/&#039;/g, "'");
+    };
+
     const getFullAvatarUrl = (url) => {
         if (!url) return null;
         if (url.startsWith('http://') || url.startsWith('https://')) {
@@ -36,7 +58,11 @@ export default function CommentsView() {
             try {
                 const response = await apiClient.get('/articles');
                 if (response && response.data && response.data.articles) {
-                    setArticles(response.data.articles);
+                    const escapedArticles = response.data.articles.map(article => ({
+                        ...article,
+                        title: escapeHtml(article.title) || ''
+                    }));
+                    setArticles(escapedArticles);
                 }
             } catch (err) {
                 console.error('获取文章列表失败:', err);
@@ -57,11 +83,28 @@ export default function CommentsView() {
                 } else {
                     response = await apiClient.get(`/backentcomments?page=${currentPage}&size=${pageSize}`);
                 }
-                if (selectedArticle) {
-                    setComments(response.comments || []);
-                } else {
-                    setComments(response.comments || []);
-                    setTotalPages(response.totalPages || 1);
+
+                if (response) {
+                    if (selectedArticle) {
+                        const escapedComments = (response.comments || []).map(comment => ({
+                            ...comment,
+                            content: escapeHtml(comment.content) || '',
+                            username: escapeHtml(comment.username) || '',
+                            to_comment_username: escapeHtml(comment.to_comment_username) || '',
+                            article_title: escapeHtml(comment.article_title) || ''
+                        }));
+                        setComments(escapedComments);
+                    } else {
+                        const escapedComments = (response.comments || []).map(comment => ({
+                            ...comment,
+                            content: escapeHtml(comment.content) || '',
+                            username: escapeHtml(comment.username) || '',
+                            to_comment_username: escapeHtml(comment.to_comment_username) || '',
+                            article_title: escapeHtml(comment.article_title) || ''
+                        }));
+                        setComments(escapedComments);
+                        setTotalPages(response.totalPages || 1);
+                    }
                 }
             } catch (err) {
                 setError('获取评论失败: ' + (err.message || '未知错误'));
@@ -89,7 +132,7 @@ export default function CommentsView() {
     // 编辑评论
     const startEditComment = (comment) => {
         setEditingComment(comment.comment_id);
-        setEditContent(comment.content);
+        setEditContent(unescapeHtml(comment.content));
     };
 
     const saveEditComment = async () => {
@@ -98,10 +141,11 @@ export default function CommentsView() {
             return;
         }
         try {
-            await apiClient.put(`/backentcomments/${editingComment}`, { content: editContent });
+            const escapedContent = escapeHtml(editContent);
+            await apiClient.put(`/backentcomments/${editingComment}`, { content: escapedContent });
             setComments(comments.map(comment =>
                 comment.comment_id === editingComment
-                    ? { ...comment, content: editContent }
+                    ? { ...comment, content: escapedContent }
                     : comment
             ));
             setEditingComment(null);
@@ -133,7 +177,7 @@ export default function CommentsView() {
     // 获取文章标题
     const getArticleTitle = (article_id) => {
         const article = articles.find(a => a.article_id === article_id);
-        return article ? article.title : '未知文章';
+        return article ? unescapeHtml(article.title) : '未知文章';
     };
 
     return (
@@ -149,7 +193,7 @@ export default function CommentsView() {
                         <option value="">所有评论</option>
                         {articles.map(article => (
                             <option key={article.article_id} value={article.article_id}>
-                                {article.title}
+                                {unescapeHtml(article.title)}
                             </option>
                         ))}
                     </select>
@@ -230,7 +274,7 @@ export default function CommentsView() {
                                                 </div>
                                             ) : (
                                                 <div className="text-gray-900 max-w-md break-words whitespace-pre-line">
-                                                    {comment.content}
+                                                    {unescapeHtml(comment.content)}
                                                 </div>
                                             )}
                                         </td>
@@ -239,18 +283,19 @@ export default function CommentsView() {
                                                 {comment.avatar && (
                                                     <img
                                                         src={getFullAvatarUrl(comment.avatar)}
-                                                        alt={comment.username}
+                                                        alt={unescapeHtml(comment.username)}
                                                         className="h-8 w-8 rounded-full mr-2"
                                                         onError={(e) => { e.target.src = '/image_error.svg'; }}
                                                     />
                                                 )}
                                                 <div>
                                                     <div className="text-sm font-medium text-gray-900">
-                                                        {comment.username}
+                                                        {unescapeHtml(comment.username)}
                                                     </div>
                                                     {comment.to_comment_username && (
                                                         <div className="text-xs text-gray-500">
-                                                            回复 @{comment.to_comment_username}
+                                                            {/* 显示时进行反转义 */}
+                                                            回复 @{unescapeHtml(comment.to_comment_username)}
                                                         </div>
                                                     )}
                                                 </div>
@@ -258,7 +303,7 @@ export default function CommentsView() {
                                         </td>
                                         {!selectedArticle && (
                                             <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                                                {comment.article_title || getArticleTitle(comment.article_id)}
+                                                {unescapeHtml(comment.article_title) || getArticleTitle(comment.article_id)}
                                             </td>
                                         )}
                                         <td className="px-6 py-4 text-sm text-gray-500">

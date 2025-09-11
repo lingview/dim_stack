@@ -48,4 +48,14 @@ public class SiteConfigServiceImpl implements SiteConfigService {
         }
         return null;
     }
+
+    @Override
+    public boolean updateSiteConfig(SiteConfig siteConfig) {
+        try {
+            int result = siteConfigMapper.updateSiteConfig(siteConfig);
+            return result > 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

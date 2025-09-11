@@ -31,4 +31,5 @@ public interface UserInformationMapper {
     List<Role> selectAllRoles();
 
     List<String> selectPermissionsByUserId(@Param("userId") Integer userId);
+
 }

@@ -22,4 +22,8 @@ public interface SiteConfigMapper {
 
     // 获取文章默认状态
     int getArticleStatus();
+
+    // 更新站点配置信息
+    int updateSiteConfig(SiteConfig siteConfig);
+
 }

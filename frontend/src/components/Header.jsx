@@ -3,6 +3,17 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import apiClient from '../utils/axios.jsx'
 
+const escapeHtml = (unsafe) => {
+    if (!unsafe) return unsafe;
+
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+};
+
 export default function Header() {
     const navigate = useNavigate()
     const location = useLocation()
@@ -20,7 +31,7 @@ export default function Header() {
 
                 if (response && response.loggedIn) {
                     setIsLoggedIn(true)
-                    setUsername(response.username || '')
+                    setUsername(escapeHtml(response.username) || '')
 
                     localStorage.setItem('isLoggedIn', 'true')
                     localStorage.setItem('username', response.username || '')
@@ -48,7 +59,7 @@ export default function Header() {
             try {
                 const response = await apiClient.get('/site/name')
                 if (response) {
-                    setSiteName(response)
+                    setSiteName(escapeHtml(response) || '次元栈 - Dim Stack')
                 }
             } catch (error) {
                 console.error('获取站点名称失败:', error)
@@ -63,7 +74,12 @@ export default function Header() {
             try {
                 const response = await apiClient.get('/frontendgetmenus')
                 if (response && Array.isArray(response)) {
-                    setMenus(response)
+                    const escapedMenus = response.map(menu => ({
+                        ...menu,
+                        menus_name: escapeHtml(menu.menus_name) || '',
+                        menus_url: escapeHtml(menu.menus_url) || ''
+                    }));
+                    setMenus(escapedMenus)
                 }
             } catch (error) {
                 console.error('获取菜单数据失败:', error)
