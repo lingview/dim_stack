@@ -10,6 +10,7 @@ import xyz.lingview.dimstack.dto.UserDTO;
 import xyz.lingview.dimstack.dto.UserUpdateDTO;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.UserService;
+import xyz.lingview.dimstack.service.UserBlacklistService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +24,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private UserInformationMapper userInformationMapper;
+    @Autowired
+    private UserBlacklistService userBlacklistService;
 
     @GetMapping("/status")
     public Map<String, Object> getUserStatus(HttpSession session) {
@@ -32,6 +35,13 @@ public class UserController {
         String username = (String) session.getAttribute("username");
 
         if (isLoggedIn != null && isLoggedIn && username != null) {
+            if (userBlacklistService.isUserInBlacklist(username)) {
+                response.put("loggedIn", false);
+                response.put("username", null);
+                response.put("message", "用户已被封禁");
+                return response;
+            }
+
             response.put("loggedIn", true);
             response.put("username", username);
         } else {

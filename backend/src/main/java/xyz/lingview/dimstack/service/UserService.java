@@ -30,4 +30,9 @@ public interface UserService {
     // 根据用户id获取权限列表
     List<String> getUserPermissions(Integer userId);
 
+    // 添加用户到黑名单
+    void addUserToBlacklist(String username);
+
+    // 从黑名单中移除用户
+    void removeUserFromBlacklist(String username);
 }

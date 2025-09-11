@@ -8,6 +8,8 @@ import xyz.lingview.dimstack.dto.UserDTO;
 import xyz.lingview.dimstack.dto.UserUpdateDTO;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.UserService;
+import xyz.lingview.dimstack.service.UserBlacklistService;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -18,6 +20,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserInformationMapper userInformationMapper;
+
+    @Autowired
+    private UserBlacklistService userBlacklistService;
 
     @Override
     public UserInformation getUserByUUID(String uuid) {
@@ -94,7 +99,19 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean updateUserStatus(Integer userId, Byte status) {
         try {
+            UserDTO user = userInformationMapper.selectUserById(userId);
+            if (user == null) {
+                return false;
+            }
+
             int result = userInformationMapper.updateUserStatus(userId, status);
+
+            if (status == 0 || status == 2) {
+                userBlacklistService.addUserToBlacklist(user.getUsername());
+            } else if (status == 1) {
+                userBlacklistService.removeUserFromBlacklist(user.getUsername());
+            }
+
             return result > 0;
         } catch (Exception e) {
             return false;
@@ -109,5 +126,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<String> getUserPermissions(Integer userId) {
         return userInformationMapper.selectPermissionsByUserId(userId);
+    }
+
+    @Override
+    public void addUserToBlacklist(String username) {
+        userBlacklistService.addUserToBlacklist(username);
+    }
+
+    @Override
+    public void removeUserFromBlacklist(String username) {
+        userBlacklistService.removeUserFromBlacklist(username);
     }
 }
