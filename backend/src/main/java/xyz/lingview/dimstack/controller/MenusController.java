@@ -22,6 +22,11 @@ public class MenusController {
     @Autowired
     private HttpSession httpSession;
 
+    @GetMapping("/frontendgetmenus")
+    public List<MenusDTO> frontendGetMenus() {
+        return menusService.getAllMenus();
+    }
+
     @GetMapping("/getmenus")
     @RequiresPermission("system:edit")
     public List<MenusDTO> getMenus() {

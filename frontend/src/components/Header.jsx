@@ -10,6 +10,7 @@ export default function Header() {
     const [username, setUsername] = useState('')
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [siteName, setSiteName] = useState('次元栈 - Dim Stack')
+    const [menus, setMenus] = useState([])
 
     // 检查登录状态
     useEffect(() => {
@@ -57,6 +58,22 @@ export default function Header() {
         fetchSiteName()
     }, [])
 
+    useEffect(() => {
+        const fetchMenus = async () => {
+            try {
+                const response = await apiClient.get('/frontendgetmenus')
+                if (response && Array.isArray(response)) {
+                    setMenus(response)
+                }
+            } catch (error) {
+                console.error('获取菜单数据失败:', error)
+                setMenus([])
+            }
+        }
+
+        fetchMenus()
+    }, [])
+
     const handleLogout = async () => {
         try {
             await apiClient.post('/logout')
@@ -91,18 +108,13 @@ export default function Header() {
 
                     <nav className="hidden md:block">
                         <ul className="flex space-x-8">
-                            {[
-                                { id: 1, name: '首页', href: '/' },
-                                { id: 2, name: 'Vsinger', href: '/category/vsinger' },
-                                { id: 3, name: '音乐', href: '/category/music' },
-                                { id: 4, name: '关于', href: '/about' },
-                            ].map((item) => (
-                                <li key={item.id}>
+                            {menus.map((menu, index) => (
+                                <li key={menu.menus_id || index}>
                                     <a
-                                        href={item.href}
-                                        className="text-gray-600  hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
+                                        href={menu.menus_url}
+                                        className="text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
                                     >
-                                        {item.name}
+                                        {menu.menus_name}
                                     </a>
                                 </li>
                             ))}
@@ -131,7 +143,7 @@ export default function Header() {
                         {/* 登录/用户下拉 */}
                         {isLoggedIn ? (
                             <div className="relative group flex items-center space-x-4">
-                                <span className="text-gray-700  hidden md:inline cursor-pointer">
+                                <span className="text-gray-700 hidden md:inline cursor-pointer">
                                     欢迎, {username}
                                 </span>
                                 <div className="absolute top-full right-0 mt-2 w-48 bg-white shadow-lg rounded-md overflow-hidden opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200 z-50">
@@ -140,13 +152,13 @@ export default function Header() {
                                             navigate('/dashboard')
                                             closeMobileMenu()
                                         }}
-                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700  hover:bg-gray-100"
+                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                     >
                                         进入控制台
                                     </button>
                                     <button
                                         onClick={handleLogout}
-                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700  hover:bg-gray-100"
+                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                     >
                                         登出
                                     </button>
@@ -174,19 +186,14 @@ export default function Header() {
                 >
                     <nav className="border-t border-gray-200 pt-4 px-4">
                         <ul className="space-y-3">
-                            {[
-                                { id: 1, name: '首页', href: '/' },
-                                { id: 2, name: 'Vsinger', href: '/category/vsinger' },
-                                { id: 3, name: '音乐', href: '/category/music' },
-                                { id: 4, name: '关于', href: '/about' },
-                            ].map((item) => (
-                                <li key={item.id}>
+                            {menus.map((menu, index) => (
+                                <li key={menu.menus_id || index}>
                                     <a
-                                        href={item.href}
+                                        href={menu.menus_url}
                                         className="block py-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
                                         onClick={closeMobileMenu}
                                     >
-                                        {item.name}
+                                        {menu.menus_name}
                                     </a>
                                 </li>
                             ))}
