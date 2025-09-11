@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 11/09/2025 15:18:09
+ Date: 11/09/2025 16:41:19
 */
 
 SET NAMES utf8mb4;
@@ -180,7 +180,7 @@ CREATE TABLE `permission`  (
                                `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                                PRIMARY KEY (`id`) USING BTREE,
                                UNIQUE INDEX `idx_code`(`code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '权限表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '权限表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of permission
@@ -194,7 +194,8 @@ INSERT INTO `permission` VALUES (6, 'post:edit:any', '编辑所有文章', 'post
 INSERT INTO `permission` VALUES (7, 'post:delete:any', '删除任何文章', 'post', '2025-08-27 09:22:27');
 INSERT INTO `permission` VALUES (8, 'post:publish', '发布文章', 'post', '2025-08-27 09:22:27');
 INSERT INTO `permission` VALUES (9, 'post:review', '审核文章', 'post', '2025-08-27 09:22:27');
-INSERT INTO `permission` VALUES (10, 'system:edit', '系统编辑', 'systen', '2025-09-11 15:16:33');
+INSERT INTO `permission` VALUES (10, 'system:edit', '系统编辑', 'system', '2025-09-11 15:16:33');
+INSERT INTO `permission` VALUES (11, 'user:management', '用户管理', 'user', '2025-09-11 16:03:13');
 
 -- ----------------------------
 -- Table structure for role
@@ -259,6 +260,7 @@ INSERT INTO `role_permission` VALUES (4, 8);
 INSERT INTO `role_permission` VALUES (3, 9);
 INSERT INTO `role_permission` VALUES (4, 9);
 INSERT INTO `role_permission` VALUES (4, 10);
+INSERT INTO `role_permission` VALUES (4, 11);
 
 -- ----------------------------
 -- Table structure for site_config
@@ -309,6 +311,6 @@ CREATE TABLE `user_information`  (
 -- ----------------------------
 -- Records of user_information
 -- ----------------------------
-INSERT INTO `user_information` VALUES (1, '075eb86f721743e3940f35869154a140175689381296899805858', 'admin', NULL, NULL, 'official@dimstack.com', NULL, '$2a$10$hNfMxBf3egQkomuMql9LDeMJb2AC9IXkp904GgqX6DAxc8u9i1aAm', NULL, 4, '2025-09-03 18:03:33', 1);
+INSERT INTO `user_information` VALUES (1, '075eb86f721743e3940f35869154a140175689381296899805858', 'admin', '/upload/admin/avatar/avatar-3e04e348-8bef-4abe-a164-572e0421f17e-1757579183.jpeg', NULL, 'official@dimstack.com', NULL, '$2a$10$hNfMxBf3egQkomuMql9LDeMJb2AC9IXkp904GgqX6DAxc8u9i1aAm', NULL, 4, '2025-09-03 18:03:33', 1);
 
 SET FOREIGN_KEY_CHECKS = 1;

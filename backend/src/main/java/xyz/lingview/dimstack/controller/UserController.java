@@ -3,12 +3,16 @@ package xyz.lingview.dimstack.controller;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import xyz.lingview.dimstack.annotation.RequiresPermission;
+import xyz.lingview.dimstack.domain.Role;
 import xyz.lingview.dimstack.domain.UserInformation;
+import xyz.lingview.dimstack.dto.UserDTO;
 import xyz.lingview.dimstack.dto.UserUpdateDTO;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.UserService;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -59,6 +63,53 @@ public class UserController {
         } else {
             return Map.of("username", username, "uuid", "");
         }
+    }
+
+
+    @GetMapping("/list")
+    @RequiresPermission("user:management")
+    public List<UserDTO> getUserList() {
+        return userService.getAllUsers();
+    }
+
+    @GetMapping("/detail/{id}")
+    @RequiresPermission("user:management")
+    public UserDTO getUserDetail(@PathVariable Integer id) {
+        return userService.getUserById(id);
+    }
+
+    @PostMapping("/updateRole")
+    @RequiresPermission("user:management")
+    public String updateUserRole(@RequestParam Integer userId, @RequestParam Integer roleId) {
+        boolean result = userService.updateUserRole(userId, roleId);
+        if (result) {
+            return "success";
+        } else {
+            return "更新角色失败";
+        }
+    }
+
+    @PostMapping("/updateStatus")
+    @RequiresPermission("user:management")
+    public String updateUserStatus(@RequestParam Integer userId, @RequestParam Byte status) {
+        boolean result = userService.updateUserStatus(userId, status);
+        if (result) {
+            return "success";
+        } else {
+            return "更新状态失败";
+        }
+    }
+
+    @GetMapping("/roles")
+    @RequiresPermission("user:management")
+    public List<Role> getAllRoles() {
+        return userService.getAllRoles();
+    }
+
+    @GetMapping("/permissions/{userId}")
+    @RequiresPermission("user:management")
+    public List<String> getUserPermissions(@PathVariable Integer userId) {
+        return userService.getUserPermissions(userId);
     }
 
 }

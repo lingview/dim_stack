@@ -14,6 +14,8 @@ const ProfileView = lazy(() => import('./ProfileView'));
 const CommentsView = lazy(() => import('./CommentsView'));
 const ArticlesReview = lazy(() => import('./ArticlesReview'));
 const MenusView = lazy(() => import('./MenusView'));
+const UsersView = lazy(() => import('./UsersView'));
+
 
 export default function Dashboard() {
     const navigate = useNavigate()
@@ -273,6 +275,13 @@ export default function Dashboard() {
                                 <MenusView />
                             </Suspense>
                         )}
+
+                        {activeTab === 'users' && (
+                            <Suspense fallback={<div>加载中...</div>}>
+                                <UsersView />
+                            </Suspense>
+                        )}
+
 
                         {/*{activeTab !== 'dashboard' && activeTab !== 'articles' && (*/}
                         {/*    <div className="bg-white rounded-lg shadow-sm p-6">*/}

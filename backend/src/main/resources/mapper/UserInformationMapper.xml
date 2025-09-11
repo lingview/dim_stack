@@ -30,12 +30,96 @@
         WHERE uuid = #{uuid} AND status = 1
     </update>
 
-
     <select id="getUsernameByUuid" parameterType="string" resultType="string">
         SELECT username
         FROM user_information
         WHERE uuid = #{uuid}
     </select>
 
+    <!-- 用户管理 -->
+    <resultMap id="UserDTOMap" type="xyz.lingview.dimstack.dto.UserDTO">
+        <result column="id" property="id"/>
+        <result column="uuid" property="uuid"/>
+        <result column="username" property="username"/>
+        <result column="avatar" property="avatar"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="gender" property="gender"/>
+        <result column="birthday" property="birthday"/>
+        <result column="role_id" property="role_id"/>
+        <result column="role_name" property="role_name"/>
+        <result column="role_code" property="role_code"/>
+        <result column="create_time" property="create_time"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <select id="selectAllUsers" resultMap="UserDTOMap">
+        SELECT
+            u.id,
+            u.uuid,
+            u.username,
+            u.avatar,
+            u.phone,
+            u.email,
+            u.gender,
+            u.birthday,
+            u.role_id,
+            r.name as role_name,
+            r.code as role_code,
+            u.create_time,
+            u.status
+        FROM user_information u
+                 LEFT JOIN role r ON u.role_id = r.id
+        WHERE u.status != 0
+        ORDER BY u.create_time DESC
+    </select>
+
+    <select id="selectUserById" resultMap="UserDTOMap">
+        SELECT
+            u.id,
+            u.uuid,
+            u.username,
+            u.avatar,
+            u.phone,
+            u.email,
+            u.gender,
+            u.birthday,
+            u.role_id,
+            r.name as role_name,
+            r.code as role_code,
+            u.create_time,
+            u.status
+        FROM user_information u
+        LEFT JOIN role r ON u.role_id = r.id
+        WHERE u.id = #{id}
+    </select>
+
+    <update id="updateUserRole">
+        UPDATE user_information
+        SET role_id = #{roleId}
+        WHERE id = #{userId}
+    </update>
+
+    <update id="updateUserStatus">
+        UPDATE user_information
+        SET status = #{status}
+        WHERE id = #{userId}
+    </update>
+
+    <select id="selectAllRoles" resultType="xyz.lingview.dimstack.domain.Role">
+        SELECT id, code, name, description, status
+        FROM role
+        WHERE status = 1
+        ORDER BY id
+    </select>
+
+    <select id="selectPermissionsByUserId" resultType="string">
+        SELECT DISTINCT p.code
+        FROM user_information u
+        JOIN role r ON u.role_id = r.id
+        JOIN role_permission rp ON r.id = rp.role_id
+        JOIN permission p ON rp.permission_id = p.id
+        WHERE u.id = #{userId}
+    </select>
 
 </mapper>

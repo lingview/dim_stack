@@ -4,6 +4,9 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import xyz.lingview.dimstack.domain.UserInformation;
+import xyz.lingview.dimstack.dto.UserDTO;
+import xyz.lingview.dimstack.domain.Role;
+import java.util.List;
 
 @Mapper
 @Repository
@@ -16,4 +19,16 @@ public interface UserInformationMapper {
 
     String getUsernameByUuid(@Param("uuid") String uuid);
 
+    // 新增用户管理相关方法
+    List<UserDTO> selectAllUsers();
+
+    UserDTO selectUserById(@Param("id") Integer id);
+
+    int updateUserRole(@Param("userId") Integer userId, @Param("roleId") Integer roleId);
+
+    int updateUserStatus(@Param("userId") Integer userId, @Param("status") Byte status);
+
+    List<Role> selectAllRoles();
+
+    List<String> selectPermissionsByUserId(@Param("userId") Integer userId);
 }

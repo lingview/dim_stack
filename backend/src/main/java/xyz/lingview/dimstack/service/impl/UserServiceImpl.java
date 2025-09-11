@@ -2,13 +2,16 @@ package xyz.lingview.dimstack.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import xyz.lingview.dimstack.domain.Role;
 import xyz.lingview.dimstack.domain.UserInformation;
+import xyz.lingview.dimstack.dto.UserDTO;
 import xyz.lingview.dimstack.dto.UserUpdateDTO;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.UserService;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -64,5 +67,47 @@ public class UserServiceImpl implements UserService {
     @Override
     public String getUserUUID(String username) {
         return userInformationMapper.selectUserUUID(username);
+    }
+
+
+    // 后台用户管理
+    @Override
+    public List<UserDTO> getAllUsers() {
+        return userInformationMapper.selectAllUsers();
+    }
+
+    @Override
+    public UserDTO getUserById(Integer id) {
+        return userInformationMapper.selectUserById(id);
+    }
+
+    @Override
+    public boolean updateUserRole(Integer userId, Integer roleId) {
+        try {
+            int result = userInformationMapper.updateUserRole(userId, roleId);
+            return result > 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean updateUserStatus(Integer userId, Byte status) {
+        try {
+            int result = userInformationMapper.updateUserStatus(userId, status);
+            return result > 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public List<Role> getAllRoles() {
+        return userInformationMapper.selectAllRoles();
+    }
+
+    @Override
+    public List<String> getUserPermissions(Integer userId) {
+        return userInformationMapper.selectPermissionsByUserId(userId);
     }
 }

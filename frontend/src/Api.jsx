@@ -68,6 +68,7 @@ export const fakeData = {
             {
                 id: 3, title: '内容', icon: 'content',
                 children: [
+                    { id: 42, title: '用户', icon: 'users', link: '/dashboard/users' },
                     { id: 21, title: '文章', icon: 'article', link: '/dashboard/articles' },
                     { id: 22, title: '文章审核', icon: 'review', link: '/dashboard/articlesreview' },
                     // { id: 23, title: '页面', icon: 'page', link: '/dashboard/pages' },
@@ -86,9 +87,8 @@ export const fakeData = {
             {
                 id: 5, title: '设置', icon: 'settings',
                 children: [
-                    { id: 31, title: '主题', icon: 'theme', link: '/dashboard/theme' },
+                    // { id: 31, title: '主题', icon: 'theme', link: '/dashboard/theme' },
                     // { id: 41, title: '插件', icon: 'plugin', link: '/dashboard/plugins' },
-                    { id: 42, title: '用户', icon: 'users', link: '/dashboard/users' },
                     { id: 43, title: '站点信息', icon: 'info', link: '/dashboard/settings' },
                     // { id: 44, title: '概览', icon: 'overview', link: '/dashboard/overview' },
                     { id: 45, title: '备份', icon: 'backup', link: '/dashboard/backup' },

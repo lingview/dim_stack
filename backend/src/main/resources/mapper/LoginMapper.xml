@@ -19,6 +19,7 @@
         SELECT username, password
         FROM user_information
         WHERE username = #{username}
+          AND status = 1
     </select>
 <!--    <select id="loginUser" parameterType="xyz.lingview.happypoem.domain.HappyPoemLogin" resultMap="HappyPoemLogin">-->
 <!--        SELECT username, password, token-->
