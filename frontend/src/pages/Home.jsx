@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Hero from '../components/Hero';
 import ArticleCard from '../components/ArticleCard';
@@ -16,6 +16,8 @@ export default function Home() {
     const [copyright, setCopyright] = useState('© 2025 次元栈 - Dim Stack. All rights reserved.');
     const [selectedCategory, setSelectedCategory] = useState(null);
     const { categoryName } = useParams();
+    const navigate = useNavigate();
+
     useEffect(() => {
         setSelectedCategory(categoryName || null);
         setPage(1);
@@ -65,6 +67,7 @@ export default function Home() {
     };
 
     const handleClearCategory = () => {
+        navigate('/');
         setSelectedCategory(null);
         setPage(1);
     };
