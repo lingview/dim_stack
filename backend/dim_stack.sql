@@ -286,6 +286,6 @@ CREATE TABLE `user_information`  (
 -- ----------------------------
 -- Records of user_information
 -- ----------------------------
-INSERT INTO `user_information` VALUES (1, '075eb86f721743e3940f35869154a140175689381296899805858', 'admin', NULL, NULL, 'official@dimstack.com', NULL, '$2a$10$hNfMxBf3egQkomuMql9LDeMJb2AC9IXkp904GgqX6DAxc8u9i1aAm', NULL, 2, '2025-09-03 18:03:33', 1);
+INSERT INTO `user_information` VALUES (1, '075eb86f721743e3940f35869154a140175689381296899805858', 'admin', NULL, NULL, 'official@dimstack.com', NULL, '$2a$10$hNfMxBf3egQkomuMql9LDeMJb2AC9IXkp904GgqX6DAxc8u9i1aAm', NULL, 4, '2025-09-03 18:03:33', 1);
 
 SET FOREIGN_KEY_CHECKS = 1;
