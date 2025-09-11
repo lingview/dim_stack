@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Hero from '../components/Hero';
 import ArticleCard from '../components/ArticleCard';
@@ -14,6 +15,11 @@ export default function Home() {
     const [totalPages, setTotalPages] = useState(0);
     const [copyright, setCopyright] = useState('© 2025 次元栈 - Dim Stack. All rights reserved.');
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const { categoryName } = useParams();
+    useEffect(() => {
+        setSelectedCategory(categoryName || null);
+        setPage(1);
+    }, [categoryName]);
 
     useEffect(() => {
         loadArticles();

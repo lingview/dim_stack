@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../utils/axios';
 
-export default function CategorySidebar({ onCategorySelect, selectedCategory }) {
+export default function CategorySidebar({selectedCategory }) {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -26,9 +28,9 @@ export default function CategorySidebar({ onCategorySelect, selectedCategory }) 
 
     const handleCategoryClick = (categoryName) => {
         if (selectedCategory === categoryName) {
-            onCategorySelect(null);
+            navigate('/');
         } else {
-            onCategorySelect(categoryName);
+            navigate(`/category/${categoryName}`);
         }
     };
 
