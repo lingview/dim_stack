@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import apiClient from '../utils/axios';
 
-export default function CategorySidebar() {
+export default function CategorySidebar({ onCategorySelect, selectedCategory }) {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -23,6 +23,14 @@ export default function CategorySidebar() {
 
         fetchCategories();
     }, []);
+
+    const handleCategoryClick = (categoryName) => {
+        if (selectedCategory === categoryName) {
+            onCategorySelect(null);
+        } else {
+            onCategorySelect(categoryName);
+        }
+    };
 
     if (loading) {
         return (
@@ -47,20 +55,24 @@ export default function CategorySidebar() {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6 transition-colors duration-200 border border-gray-200  ">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 ">文章分类</h3>
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6 transition-colors duration-200 border border-gray-200">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">文章分类</h3>
             <ul className="space-y-2">
                 {categories.map((category) => (
                     <li key={category.id}>
-                        <a
-                            href={`/category/${category.article_categories}`}
-                            className="flex justify-between items-center text-gray-600 transition-colors duration-200 hover:bg-gray-50 px-2 py-1 rounded dark:hover:text-blue-400"
+                        <button
+                            onClick={() => handleCategoryClick(category.article_categories)}
+                            className={`flex justify-between items-center w-full text-left transition-colors duration-200 px-2 py-1 rounded ${
+                                selectedCategory === category.article_categories
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'text-gray-600 hover:bg-gray-50'
+                            }`}
                         >
                             <span>{category.article_categories}</span>
-                            <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded-full  ">
+                            <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded-full">
                                 {category.articleCount || 0}
                             </span>
-                        </a>
+                        </button>
                     </li>
                 ))}
             </ul>

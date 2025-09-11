@@ -1,5 +1,8 @@
 import apiClient from './utils/axios';
 
+
+
+
 // 获取文章列表
 export const fetchArticles = async (page = 1, size = 10, category = null) => {
     try {
@@ -12,6 +15,16 @@ export const fetchArticles = async (page = 1, size = 10, category = null) => {
         return response;
     } catch (error) {
         console.error('获取文章列表失败:', error);
+        throw error;
+    }
+};
+
+export const fetchArticlesByCategory = async (category, page, pageSize) => {
+    try {
+        const response = await apiClient.get(`/categories/${encodeURIComponent(category)}/articles?page=${page}&size=${pageSize}`);
+        return response;
+    } catch (error) {
+        console.error('获取分类文章失败:', error);
         throw error;
     }
 };

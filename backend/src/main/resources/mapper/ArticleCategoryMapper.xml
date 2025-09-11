@@ -32,4 +32,30 @@
         GROUP BY ac.id, ac.article_categories, ac.categories_explain, ac.founder, ac.create_time, ac.status
         ORDER BY ac.create_time DESC
     </select>
+
+    <select id="findArticlesByCategory" resultType="xyz.lingview.dimstack.dto.ArticleDTO">
+        SELECT
+            a.id,
+            a.article_id,
+            a.article_name AS title,
+            a.excerpt,
+            a.article_cover AS image,
+            a.create_time AS date,
+            u.username AS author,
+            a.category,
+            a.alias
+        FROM article a
+        LEFT JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.category = #{category}
+          AND a.status = 1
+        ORDER BY a.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countArticlesByCategory" resultType="int">
+        SELECT COUNT(*)
+        FROM article
+        WHERE category = #{category}
+          AND status = 1
+    </select>
 </mapper>
