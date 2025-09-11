@@ -2,7 +2,7 @@ import {
     FileText, User, MessageCircle, Eye, Edit, File, Upload,
     Palette, Plug, UserPlus, RefreshCcw, BarChart2, Book,
     Settings, Wrench, Image, Link as LinkIcon, Clipboard, Users,
-    Database, ShoppingCart, Package
+    Database, ShoppingCart, Package, CheckSquare, List
 } from 'lucide-react';
 
 export function getIcon(iconName) {
@@ -27,12 +27,13 @@ export function getIcon(iconName) {
         case 'tools': return <Wrench className="w-5 h-5" />
         case 'media': return <Image className="w-5 h-5" />
         case 'link': return <LinkIcon className="w-5 h-5" />
-        case 'menu': return <Clipboard className="w-5 h-5" />
+        case 'menu': return <List className="w-5 h-5" />
         case 'users': return <Users className="w-5 h-5" />
         case 'backup': return <Database className="w-5 h-5" />
         case 'marketplace': return <ShoppingCart className="w-5 h-5" />
         case 'migrate': return <Package className="w-5 h-5" />
         case 'overview': return <BarChart2 className="w-5 h-5" />
+        case 'review': return <CheckSquare className="w-5 h-5" />
         default: return <File className="w-5 h-5" />
     }
 }
@@ -56,6 +57,8 @@ export function getIconColor(iconName) {
         case 'appearance': return 'bg-purple-500'
         case 'system': return 'bg-red-500'
         case 'tools': return 'bg-yellow-500'
+        case 'menu': return 'bg-indigo-500'
+        case 'review': return 'bg-teal-500'
         default: return 'bg-gray-500'
     }
 }
