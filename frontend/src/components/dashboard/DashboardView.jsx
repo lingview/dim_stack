@@ -1,6 +1,6 @@
 import { getIcon, getIconColor } from '../../utils/IconUtils';
 
-export default function DashboardView({ stats, quickActions, notifications, onMarkAsRead, onMarkAllAsRead }) {
+export default function DashboardView({ stats, quickActions, notifications}) {
     if (!stats || !quickActions || !notifications) {
         return <div>加载中...</div>
     }
@@ -29,15 +29,15 @@ export default function DashboardView({ stats, quickActions, notifications, onMa
 
             {/* 快捷操作 */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900">快捷访问</h2>
-                    <button
-                        onClick={onMarkAllAsRead}
-                        className="text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-md hover:bg-blue-50 transition-colors duration-200"
-                    >
-                        标记全部已读
-                    </button>
-                </div>
+                {/*<div className="flex items-center justify-between mb-6">*/}
+                {/*    <h2 className="text-lg font-semibold text-gray-900">快捷访问</h2>*/}
+                {/*    <button*/}
+                {/*        onClick={onMarkAllAsRead}*/}
+                {/*        className="text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-md hover:bg-blue-50 transition-colors duration-200"*/}
+                {/*    >*/}
+                {/*        标记全部已读*/}
+                {/*    </button>*/}
+                {/*</div>*/}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {quickActions.map((action, index) => (
@@ -65,47 +65,47 @@ export default function DashboardView({ stats, quickActions, notifications, onMa
             </div>
 
             {/* 通知 */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900">通知</h2>
-                    <button className="text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-md hover:bg-blue-50 transition-colors duration-200">
-                        查看全部
-                    </button>
-                </div>
+            {/*<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">*/}
+            {/*    <div className="flex items-center justify-between mb-6">*/}
+            {/*        <h2 className="text-lg font-semibold text-gray-900">通知</h2>*/}
+            {/*        <button className="text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-md hover:bg-blue-50 transition-colors duration-200">*/}
+            {/*            查看全部*/}
+            {/*        </button>*/}
+            {/*    </div>*/}
 
-                <div className="space-y-4">
-                    {notifications.map((notification, index) => (
-                        notification && (
-                            <div
-                                key={index}
-                                className={`border-l-4 p-4 rounded-r-lg ${
-                                    notification.read
-                                        ? 'border-gray-200 bg-gray-50'
-                                        : 'border-blue-500 bg-blue-50'
-                                }`}
-                            >
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium text-gray-900">{notification.title}</p>
-                                        <p className="text-sm text-gray-500 mt-1">{notification.content}</p>
-                                    </div>
-                                    <div className="flex items-center space-x-2 ml-4">
-                                        <span className="text-xs text-gray-500">{notification.time}</span>
-                                        {!notification.read && (
-                                            <button
-                                                onClick={() => onMarkAsRead(notification.id)}
-                                                className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50 transition-colors duration-200"
-                                            >
-                                                已读
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )
-                    ))}
-                </div>
-            </div>
+            {/*    <div className="space-y-4">*/}
+            {/*        {notifications.map((notification, index) => (*/}
+            {/*            notification && (*/}
+            {/*                <div*/}
+            {/*                    key={index}*/}
+            {/*                    className={`border-l-4 p-4 rounded-r-lg ${*/}
+            {/*                        notification.read*/}
+            {/*                            ? 'border-gray-200 bg-gray-50'*/}
+            {/*                            : 'border-blue-500 bg-blue-50'*/}
+            {/*                    }`}*/}
+            {/*                >*/}
+            {/*                    <div className="flex items-start justify-between">*/}
+            {/*                        <div className="flex-1">*/}
+            {/*                            <p className="text-sm font-medium text-gray-900">{notification.title}</p>*/}
+            {/*                            <p className="text-sm text-gray-500 mt-1">{notification.content}</p>*/}
+            {/*                        </div>*/}
+            {/*                        <div className="flex items-center space-x-2 ml-4">*/}
+            {/*                            <span className="text-xs text-gray-500">{notification.time}</span>*/}
+            {/*                            {!notification.read && (*/}
+            {/*                                <button*/}
+            {/*                                    onClick={() => onMarkAsRead(notification.id)}*/}
+            {/*                                    className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50 transition-colors duration-200"*/}
+            {/*                                >*/}
+            {/*                                    已读*/}
+            {/*                                </button>*/}
+            {/*                            )}*/}
+            {/*                        </div>*/}
+            {/*                    </div>*/}
+            {/*                </div>*/}
+            {/*            )*/}
+            {/*        ))}*/}
+            {/*    </div>*/}
+            {/*</div>*/}
         </div>
     )
 }

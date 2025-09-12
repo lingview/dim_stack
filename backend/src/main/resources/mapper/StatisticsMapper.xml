@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.lingview.dimstack.mapper.StatisticsMapper">
+
+    <select id="countArticles" resultType="long">
+        SELECT COUNT(*) FROM article WHERE status != 0
+    </select>
+
+    <select id="countUsers" resultType="long">
+        SELECT COUNT(*) FROM user_information WHERE status != 0
+    </select>
+
+    <select id="countComments" resultType="long">
+        SELECT COUNT(*) FROM comment WHERE status = 1
+    </select>
+
+    <select id="sumPageViews" resultType="long">
+        SELECT SUM(page_views) FROM article WHERE status != 0
+    </select>
+
+</mapper>

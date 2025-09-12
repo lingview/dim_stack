@@ -29,23 +29,31 @@ export const fetchArticlesByCategory = async (category, page, pageSize) => {
     }
 };
 
+export const fetchStatistics = async () => {
+    try {
+        const [articleCount, userCount, commentCount, browseCount] = await Promise.all([
+            apiClient.get('/statistics/articlecount'),
+            apiClient.get('/statistics/usercount'),
+            apiClient.get('/statistics/commentcount'),
+            apiClient.get('/statistics/browsecount')
+        ]);
+
+        return {
+            stats: [
+                { label: '文章', value: articleCount, icon: 'article' },
+                { label: '用户', value: userCount, icon: 'user' },
+                { label: '评论', value: commentCount, icon: 'comment' },
+                { label: '浏览量', value: browseCount, icon: 'view' }
+            ]
+        };
+    } catch (error) {
+        console.error('获取统计信息失败:', error);
+        throw error;
+    }
+};
+
+
 export const fakeData = {
-    // 网站基本信息
-    siteInfo: {
-        title: '次元栈 - Dim Stack',
-        chineseTitle: '次元栈',
-        englishTitle: 'Dim Stack',
-        copyright: '© 2025 次元栈 - Dim Stack. All rights reserved.'
-    },
-
-    // 顶部导航数据
-    navItems: [
-        { id: 1, name: '首页', href: '/' },
-        { id: 2, name: 'Vsinger', href: '/category/vsinger' },
-        { id: 3, name: '音乐', href: '/category/music' },
-        { id: 4, name: '关于', href: '/about' },
-    ],
-
 
     // 控制台相关数据
     dashboard: {
@@ -91,8 +99,8 @@ export const fakeData = {
                     // { id: 41, title: '插件', icon: 'plugin', link: '/dashboard/plugins' },
                     { id: 43, title: '站点信息', icon: 'info', link: '/dashboard/settings' },
                     // { id: 44, title: '概览', icon: 'overview', link: '/dashboard/overview' },
-                    { id: 45, title: '备份', icon: 'backup', link: '/dashboard/backup' },
-                    { id: 46, title: '工具', icon: 'tools', link: '/dashboard/tools' },
+                    // { id: 45, title: '备份', icon: 'backup', link: '/dashboard/backup' },
+                    // { id: 46, title: '工具', icon: 'tools', link: '/dashboard/tools' },
                     // { id: 47, title: '应用市场', icon: 'marketplace', link: '/dashboard/marketplace' },
                     // { id: 51, title: '迁移', icon: 'migrate', link: '/dashboard/migrate' }
                 ]

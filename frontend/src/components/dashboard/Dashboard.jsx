@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { lazy, Suspense } from 'react';
 import apiClient from '../../utils/axios.jsx';
 
+import { fetchStatistics } from '../../Api.jsx';
 
 const Sidebar = lazy(() => import('./Sidebar'));
 const DashboardHeader = lazy(() => import('./DashboardHeader'));
@@ -17,7 +18,6 @@ const MenusView = lazy(() => import('./MenusView'));
 const UsersView = lazy(() => import('./UsersView'));
 const SiteSettingsView = lazy(() => import('./SiteSettingsView'));
 
-
 export default function Dashboard() {
     const navigate = useNavigate()
     const location = useLocation()
@@ -28,7 +28,8 @@ export default function Dashboard() {
     const [showEditor, setShowEditor] = useState(false)
     const [loading, setLoading] = useState(true)
     const [articles, setArticles] = useState([])
-    const [editingArticle, setEditingArticle] = useState(null) // 添加编辑文章状态
+    const [editingArticle, setEditingArticle] = useState(null)
+    const [stats, setStats] = useState([])
 
     useEffect(() => {
         const checkLoginStatus = async () => {
@@ -80,6 +81,22 @@ export default function Dashboard() {
             }
         }
     }, [loading, username])
+
+    useEffect(() => {
+        const loadStatistics = async () => {
+            if (activeTab === 'dashboard' && username) {
+                try {
+                    const data = await fetchStatistics();
+                    setStats(data.stats);
+                } catch (error) {
+                    console.error('加载统计数据失败:', error);
+                    setStats(fakeData?.dashboard?.stats || []);
+                }
+            }
+        };
+
+        loadStatistics();
+    }, [activeTab, username]);
 
     useEffect(() => {
         const unreadCount = notifications.filter(n => n && !n.read).length
@@ -198,7 +215,6 @@ export default function Dashboard() {
     }
 
     const dashboardData = fakeData?.dashboard || {}
-    const stats = dashboardData.stats || []
     const quickActions = dashboardData.quickActions || []
     const sidebarMenu = dashboardData.sidebarMenu || []
 
@@ -247,7 +263,7 @@ export default function Dashboard() {
                             <Suspense fallback={<div>加载中...</div>}>
                                 <ArticlesView
                                     onNewArticle={() => setShowEditor(true)}
-                                    onEditArticle={handleEditArticle} // 添加编辑文章处理函数
+                                    onEditArticle={handleEditArticle}
                                     articles={articles}
                                 />
                             </Suspense>
@@ -288,17 +304,6 @@ export default function Dashboard() {
                                 <SiteSettingsView />
                             </Suspense>
                         )}
-
-                        {/*{activeTab !== 'dashboard' && activeTab !== 'articles' && (*/}
-                        {/*    <div className="bg-white rounded-lg shadow-sm p-6">*/}
-                        {/*        <h2 className="text-xl font-semibold text-gray-900 mb-4">*/}
-                        {/*            {sidebarMenu.find(m => m.link && m.link.includes(activeTab))?.title || '页面'}*/}
-                        {/*        </h2>*/}
-                        {/*        <p className="text-gray-600">*/}
-                        {/*            这是 {activeTab} 页面的内容，正在开发中...*/}
-                        {/*        </p>*/}
-                        {/*    </div>*/}
-                        {/*)}*/}
 
                     </main>
                 </div>
