@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 11/09/2025 16:41:19
+ Date: 13/09/2025 11:55:56
 */
 
 SET NAMES utf8mb4;
@@ -36,7 +36,7 @@ CREATE TABLE `article`  (
                             `tag` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章标签',
                             `category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章分类',
                             `alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '文章访问链接',
-                            `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '文章上传时间',
+                            `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '文章创建时间',
                             `status` tinyint NOT NULL COMMENT '文章状态：0=删除, 1=正常, 2=未发布, 3=待审核，4违规',
                             PRIMARY KEY (`id`) USING BTREE,
                             UNIQUE INDEX `article_id`(`article_id` ASC) USING BTREE,
@@ -148,6 +148,46 @@ CREATE TABLE `comment`  (
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for dashboard_menu
+-- ----------------------------
+DROP TABLE IF EXISTS `dashboard_menu`;
+CREATE TABLE `dashboard_menu`  (
+                                   `id` int NOT NULL COMMENT '菜单ID',
+                                   `title` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '菜单标题，如“站点设置”',
+                                   `icon` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '图标名称',
+                                   `link` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '路由链接，父菜单可为空',
+                                   `parent_id` int NULL DEFAULT NULL COMMENT '父级菜单ID，NULL表示顶级菜单',
+                                   `permission_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '访问此菜单所需的权限码，如 system:edit',
+                                   `sort_order` int NULL DEFAULT 0 COMMENT '排序权重，值越小越靠前',
+                                   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+                                   `type` enum('sidebar','quick_action') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT 'sidebar' COMMENT '菜单类型',
+                                   PRIMARY KEY (`id`) USING BTREE,
+                                   INDEX `idx_parent_id`(`parent_id` ASC) USING BTREE,
+                                   INDEX `idx_link`(`link` ASC) USING BTREE,
+                                   INDEX `idx_permission_code`(`permission_code` ASC) USING BTREE,
+                                   INDEX `idx_sort_order`(`sort_order` ASC) USING BTREE,
+                                   CONSTRAINT `fk_menu_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `dashboard_menu` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+                                   CONSTRAINT `fk_menu_permission_code` FOREIGN KEY (`permission_code`) REFERENCES `permission` (`code`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '仪表盘菜单表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of dashboard_menu
+-- ----------------------------
+INSERT INTO `dashboard_menu` VALUES (1, '仪表盘', 'dashboard', '/dashboard', NULL, NULL, 10, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (2, '个人中心', 'user', '/dashboard/profile', NULL, NULL, 20, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (3, '内容', 'content', NULL, NULL, NULL, 30, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (5, '设置', 'settings', NULL, NULL, NULL, 50, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (21, '文章', 'article', '/dashboard/articles', 3, 'post:view', 20, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (22, '文章审核', 'review', '/dashboard/articlesreview', 3, 'post:review', 30, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (24, '评论', 'comment', '/dashboard/comments', 3, 'post:review', 40, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (25, '菜单', 'menus', '/dashboard/menus', 3, 'system:edit', 50, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (42, '用户', 'users', '/dashboard/users', 3, 'user:management', 10, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (43, '站点信息', 'info', '/dashboard/settings', 5, 'system:edit', 10, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (101, '个人中心', 'user', '/dashboard/profile', NULL, NULL, 10, '2025-09-13 11:12:42', 'quick_action');
+INSERT INTO `dashboard_menu` VALUES (103, '创建文章', 'edit', '/dashboard/articles/create', NULL, 'post:create', 20, '2025-09-13 11:12:42', 'quick_action');
+INSERT INTO `dashboard_menu` VALUES (104, '创建页面', 'page', '/dashboard/pages/create', NULL, 'system:edit', 30, '2025-09-13 11:12:42', 'quick_action');
+
+-- ----------------------------
 -- Table structure for menus
 -- ----------------------------
 DROP TABLE IF EXISTS `menus`;
@@ -162,7 +202,7 @@ CREATE TABLE `menus`  (
                           UNIQUE INDEX `menus_id`(`menus_id` ASC) USING BTREE,
                           INDEX `menus_user_id`(`user_id` ASC) USING BTREE,
                           CONSTRAINT `menus_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE SET NULL
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of menus

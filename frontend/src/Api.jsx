@@ -1,8 +1,5 @@
 import apiClient from './utils/axios';
 
-
-
-
 // 获取文章列表
 export const fetchArticles = async (page = 1, size = 10, category = null) => {
     try {
@@ -63,57 +60,72 @@ export const fetchSiteName = async () => {
     }
 };
 
-export const fakeData = {
-    // 控制台相关数据
-    dashboard: {
-        quickActions: [
-            { id: 1, title: '个人中心', description: '管理您的个人信息', icon: 'user', link: '/dashboard/profile' },
-            { id: 3, title: '创建文章', description: '撰写新的文章', icon: 'edit', link: '/dashboard/articles/create' },
-            { id: 4, title: '创建页面', description: '创建新的页面', icon: 'page', link: '/dashboard/pages/create' },
-        ],
 
-        sidebarMenu: [
-            { id: 1, title: '仪表盘', icon: 'dashboard', link: '/dashboard', active: true },
-            { id: 2, title: '个人中心', icon: 'user', link: '/dashboard/profile' },
-            {
-                id: 3, title: '内容', icon: 'content',
-                children: [
-                    { id: 42, title: '用户', icon: 'users', link: '/dashboard/users' },
-                    { id: 21, title: '文章', icon: 'article', link: '/dashboard/articles' },
-                    { id: 22, title: '文章审核', icon: 'review', link: '/dashboard/articlesreview' },
+export const fetchDashboardData = async () => {
+    try {
+        const response = await apiClient.get('/dashboard/menus');
+        if (response.success) {
+            return response.data;
+        } else {
+            throw new Error(response.message || '获取仪表盘数据失败');
+        }
+    } catch (error) {
+        console.error('获取仪表盘数据失败:', error);
+        throw error;
+    }
+}
+
+// export const fakeData = {
+    // 控制台相关数据
+    // dashboard: {
+    //     quickActions: [
+    //         { id: 1, title: '个人中心', description: '管理您的个人信息', icon: 'user', link: '/dashboard/profile' },
+    //         { id: 3, title: '创建文章', description: '撰写新的文章', icon: 'edit', link: '/dashboard/articles/create' },
+    //         { id: 4, title: '创建页面', description: '创建新的页面', icon: 'page', link: '/dashboard/pages/create' },
+    //     ],
+    //
+    //     sidebarMenu: [
+    //         { id: 1, title: '仪表盘', icon: 'dashboard', link: '/dashboard', active: true },
+    //         { id: 2, title: '个人中心', icon: 'user', link: '/dashboard/profile' },
+    //         {
+    //             id: 3, title: '内容', icon: 'content',
+    //             children: [
+    //                 { id: 42, title: '用户', icon: 'users', link: '/dashboard/users' },
+    //                 { id: 21, title: '文章', icon: 'article', link: '/dashboard/articles' },
+    //                 { id: 22, title: '文章审核', icon: 'review', link: '/dashboard/articlesreview' },
                     // { id: 23, title: '页面', icon: 'page', link: '/dashboard/pages' },
-                    { id: 24, title: '评论', icon: 'comment', link: '/dashboard/comments' },
-                    { id: 25, title: '菜单', icon: 'menus', link: '/dashboard/menus' },
+                    // { id: 24, title: '评论', icon: 'comment', link: '/dashboard/comments' },
+                    // { id: 25, title: '菜单', icon: 'menus', link: '/dashboard/menus' },
                     // { id: 24, title: '附件', icon: 'media', link: '/dashboard/media' },
                     // { id: 25, title: '链接', icon: 'link', link: '/dashboard/links' }
-                ]
-            },
+            //     ]
+            // },
             // {
             //     id: 4, title: '外观', icon: 'theme',
             //     children: [
             //
             //     ]
             // },
-            {
-                id: 5, title: '设置', icon: 'settings',
-                children: [
+            // {
+            //     id: 5, title: '设置', icon: 'settings',
+            //     children: [
                     // { id: 31, title: '主题', icon: 'theme', link: '/dashboard/theme' },
                     // { id: 41, title: '插件', icon: 'plugin', link: '/dashboard/plugins' },
-                    { id: 43, title: '站点信息', icon: 'info', link: '/dashboard/settings' },
+                    // { id: 43, title: '站点信息', icon: 'info', link: '/dashboard/settings' },
                     // { id: 44, title: '概览', icon: 'overview', link: '/dashboard/overview' },
                     // { id: 45, title: '备份', icon: 'backup', link: '/dashboard/backup' },
                     // { id: 46, title: '工具', icon: 'tools', link: '/dashboard/tools' },
                     // { id: 47, title: '应用市场', icon: 'marketplace', link: '/dashboard/marketplace' },
                     // { id: 51, title: '迁移', icon: 'migrate', link: '/dashboard/migrate' }
-                ]
-            },
+            //     ]
+            // },
             // {
             //     id: 6, title: '工具', icon: 'tools',
             //     children: [
             //
             //     ]
             // }
-        ],
+        // ],
 
         // // 通知数据
         // notifications: [
@@ -130,5 +142,5 @@ export const fakeData = {
         //     { id: 4, title: '乐正龙牙专访记录', author: 'lingview', date: '2025-01-08', status: '已发布' },
         //     { id: 5, title: '言和最新动态追踪', author: 'lingview', date: '2025-01-05', status: '草稿' }
         // ]
-    }
-};
+//     }
+// };

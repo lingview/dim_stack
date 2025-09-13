@@ -1,10 +1,9 @@
-import { fakeData } from '../../Api.jsx'
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { lazy, Suspense } from 'react';
 import apiClient from '../../utils/axios.jsx';
 
-import { fetchStatistics } from '../../Api.jsx';
+import { fetchStatistics, fetchDashboardData } from '../../Api.jsx';
 
 const Sidebar = lazy(() => import('./Sidebar'));
 const DashboardHeader = lazy(() => import('./DashboardHeader'));
@@ -30,6 +29,8 @@ export default function Dashboard() {
     const [articles, setArticles] = useState([])
     const [editingArticle, setEditingArticle] = useState(null)
     const [stats, setStats] = useState([])
+    const [quickActions, setQuickActions] = useState([])
+    const [sidebarMenu, setSidebarMenu] = useState([])
 
     useEffect(() => {
         const checkLoginStatus = async () => {
@@ -75,12 +76,22 @@ export default function Dashboard() {
     }, [activeTab, username])
 
     useEffect(() => {
-        if (!loading && username) {
-            if (fakeData && fakeData.dashboard) {
-                setNotifications(fakeData.dashboard.notifications || [])
+        const loadDashboardData = async () => {
+            if (!loading && username) {
+                try {
+                    const data = await fetchDashboardData();
+                    setQuickActions(data.quickActions || []);
+                    setSidebarMenu(data.sidebarMenu || []);
+                } catch (error) {
+                    console.error('加载仪表盘数据失败:', error);
+                    setQuickActions([]);
+                    setSidebarMenu([]);
+                }
             }
-        }
-    }, [loading, username])
+        };
+
+        loadDashboardData();
+    }, [loading, username]);
 
     useEffect(() => {
         const loadStatistics = async () => {
@@ -90,7 +101,12 @@ export default function Dashboard() {
                     setStats(data.stats);
                 } catch (error) {
                     console.error('加载统计数据失败:', error);
-                    setStats(fakeData?.dashboard?.stats || []);
+                    setStats([
+                        { label: '总文章数', value: 0, icon: 'article' },
+                        { label: '总用户数', value: 0, icon: 'user' },
+                        { label: '总评论数', value: 0, icon: 'comment' },
+                        { label: '总访问量', value: 0, icon: 'view' }
+                    ]);
                 }
             }
         };
@@ -101,9 +117,9 @@ export default function Dashboard() {
     useEffect(() => {
         const unreadCount = notifications.filter(n => n && !n.read).length
         if (unreadCount > 0) {
-            document.title = `(${unreadCount}) ${fakeData?.siteInfo?.title || 'Dashboard'}`
+            document.title = `(${unreadCount}) Dashboard`
         } else {
-            document.title = fakeData?.siteInfo?.title || 'Dashboard'
+            document.title = 'Dashboard'
         }
     }, [notifications])
 
@@ -118,7 +134,6 @@ export default function Dashboard() {
             } else if (path === '/dashboard') {
                 setActiveTab('dashboard')
             }
-
 
             if (!path.includes('/dashboard/articles/') || path === '/dashboard/articles') {
                 setShowEditor(false);
@@ -244,10 +259,6 @@ export default function Dashboard() {
     if (!username) {
         return null
     }
-
-    const dashboardData = fakeData?.dashboard || {}
-    const quickActions = dashboardData.quickActions || []
-    const sidebarMenu = dashboardData.sidebarMenu || []
 
     return (
         <div className="min-h-screen bg-gray-50 transition-colors duration-200">
