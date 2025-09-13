@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import apiClient from '../utils/axios';
-import {getConfig} from "../utils/config.jsx";
+import { getConfig } from "../utils/config.jsx";
 
 export default function Hero() {
     const [heroData, setHeroData] = useState(null);
@@ -41,6 +41,16 @@ export default function Hero() {
 
             return `/upload/${url}`;
         }
+    };
+
+    const escapeHtml = (str) => {
+        if (!str) return '';
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     };
 
     if (loading) {
@@ -96,11 +106,11 @@ export default function Hero() {
             <div className="relative container mx-auto px-4 py-24 md:py-32">
                 <div className="max-w-2xl">
                     <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                        {heroData.title}
+                        {escapeHtml(heroData.title)}
                     </h1>
                     {heroData.subtitle && (
                         <p className="text-xl text-gray-200 mb-8">
-                            {heroData.subtitle}
+                            {escapeHtml(heroData.subtitle)}
                         </p>
                     )}
                 </div>

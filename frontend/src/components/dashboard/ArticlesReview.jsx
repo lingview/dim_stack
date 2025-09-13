@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../utils/axios.jsx';
-import DOMPurify from 'dompurify';
 
 export default function ArticlesReview() {
     const [articles, setArticles] = useState([]);
@@ -17,41 +16,44 @@ export default function ArticlesReview() {
         fetchArticles(currentPage, pageSize);
     }, [currentPage, pageSize]);
 
-    const sanitizeHtml = (html) => {
-        try {
-            if (DOMPurify && typeof DOMPurify.sanitize === 'function') {
-                const clean = DOMPurify.sanitize(html, {
-                    USE_PROFILES: { html: true },
-                    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel):|data:image\/)/i
-                });
+    const htmlToSafeText = (html) => {
+        if (!html) return '';
 
-                try {
-                    const wrapper = document.createElement('div');
-                    wrapper.innerHTML = clean;
-                    const anchors = wrapper.querySelectorAll('a');
-                    anchors.forEach(a => {
-                        a.setAttribute('target', '_blank');
-                        a.setAttribute('rel', 'noopener noreferrer');
-                        const href = a.getAttribute('href') || '';
-                        if (!/^(?:https?:|mailto:|tel:|\/|#)/i.test(href) && !/^data:image\//i.test(href)) {
-                            a.removeAttribute('href');
+        try {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+
+            const blockElements = ['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br', 'hr', 'li', 'blockquote'];
+            blockElements.forEach(tag => {
+                const elements = tempDiv.querySelectorAll(tag);
+                elements.forEach(el => {
+                    if (tag === 'br') {
+                        el.replaceWith('\n');
+                    } else if (tag === 'hr') {
+                        el.replaceWith('\n---\n');
+                    } else if (tag === 'li') {
+                        const text = el.textContent || '';
+                        el.replaceWith(`• ${text}\n`);
+                    } else {
+                        const text = el.textContent || '';
+                        if (text.trim()) {
+                            el.replaceWith(`${text}\n\n`);
                         }
-                    });
-                    return wrapper.innerHTML;
-                } catch (e) {
-                    return clean;
-                }
-            }
-        } catch (e) {
-            console.warn('DOMPurify sanitize failed:', e);
-        }
+                    }
+                });
+            });
 
-        try {
-            const textWrapper = document.createElement('div');
-            textWrapper.textContent = html;
-            return `<pre class="whitespace-pre-wrap">${textWrapper.innerHTML}</pre>`;
-        } catch (e) {
-            return '';
+            let textContent = tempDiv.textContent || tempDiv.innerText || '';
+
+            textContent = textContent
+                .replace(/\n\s*\n\s*\n/g, '\n\n')
+                .replace(/^\s+|\s+$/g, '')
+                .replace(/[ \t]+/g, ' ');
+
+            return textContent;
+        } catch (error) {
+            console.warn('HTML to text conversion failed:', error);
+            return html.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, ' ');
         }
     };
 
@@ -97,8 +99,8 @@ export default function ArticlesReview() {
             const response = res.data ?? res;
 
             if (response) {
-                const safeHtml = sanitizeHtml(response.article_content || '');
-                setArticleDetail({ ...response, article_content: safeHtml });
+                const safeTextContent = htmlToSafeText(response.article_content || '');
+                setArticleDetail({ ...response, article_content: safeTextContent });
             } else {
                 setArticleDetail(null);
             }
@@ -313,20 +315,21 @@ export default function ArticlesReview() {
                     onClick={handleCloseDetail}
                 >
                     <div
-                        className="absolute inset-0 bg-white/5 backdrop-blur-sm transition-opacity"
+                        className="absolute inset-0 bg-white/20 backdrop-blur-md transition-opacity"
                         aria-hidden="true"
                     />
+
                     <div
-                        className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+                        className="relative bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[95vh] overflow-hidden flex flex-col"
                         onClick={(e) => e.stopPropagation()}
                         role="dialog"
                         aria-modal="true"
                     >
                         <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                            <h3 className="text-lg font-medium text-gray-900">文章详情</h3>
+                            <h3 className="text-lg font-medium text-gray-900">文章详情预览</h3>
                             <button
                                 onClick={handleCloseDetail}
-                                className="text-gray-400 hover:text-gray-500"
+                                className="text-gray-400 hover:text-gray-500 transition-colors"
                                 aria-label="关闭"
                             >
                                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -342,10 +345,14 @@ export default function ArticlesReview() {
                         ) : articleDetail ? (
                             <div className="overflow-y-auto flex-1">
                                 <div className="p-6">
-                                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{articleDetail.article_name}</h2>
-                                    <div className="flex items-center text-sm text-gray-500 mb-6">
-                                        <span>状态:
-                                            <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                                    <h2 className="text-2xl font-bold text-gray-900 mb-4 border-b border-gray-200 pb-2">
+                                        {articleDetail.article_name}
+                                    </h2>
+
+                                    <div className="flex flex-wrap items-center text-sm text-gray-600 mb-6 gap-4">
+                                        <div className="flex items-center">
+                                            <span className="font-medium">状态:</span>
+                                            <span className={`ml-2 px-3 py-1 rounded-full text-xs font-medium ${
                                                 articleDetail.status === 1 ? 'bg-green-100 text-green-800' :
                                                     articleDetail.status === 2 ? 'bg-yellow-100 text-yellow-800' :
                                                         articleDetail.status === 3 ? 'bg-blue-100 text-blue-800' :
@@ -357,24 +364,44 @@ export default function ArticlesReview() {
                                                         articleDetail.status === 3 ? '待审核' :
                                                             articleDetail.status === 0 ? '已删除' : '违规'}
                                             </span>
-                                        </span>
-                                        <span className="mx-2">•</span>
-                                        <span>分类: {articleDetail.category}</span>
-                                        <span className="mx-2">•</span>
-                                        <span>标签: {articleDetail.tag}</span>
+                                        </div>
+                                        {articleDetail.category && (
+                                            <div className="flex items-center">
+                                                <span className="font-medium">分类:</span>
+                                                <span className="ml-1 px-2 py-1 bg-gray-100 rounded text-xs">{articleDetail.category}</span>
+                                            </div>
+                                        )}
+                                        {articleDetail.tag && (
+                                            <div className="flex items-center">
+                                                <span className="font-medium">标签:</span>
+                                                <span className="ml-1 px-2 py-1 bg-gray-100 rounded text-xs">{articleDetail.tag}</span>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {articleDetail.excerpt && (
-                                        <div className="mb-6">
-                                            <h4 className="text-sm font-medium text-gray-900 mb-2">摘要</h4>
-                                            <p className="text-gray-600">{articleDetail.excerpt}</p>
+                                        <div className="mb-6 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-500">
+                                            <h4 className="text-sm font-semibold text-gray-900 mb-2">文章摘要</h4>
+                                            <p className="text-gray-700 leading-relaxed">{articleDetail.excerpt}</p>
                                         </div>
                                     )}
 
                                     <div className="mb-6">
-                                        <h4 className="text-sm font-medium text-gray-900 mb-2">正文</h4>
-                                        <div className="prose max-w-none border border-gray-200 rounded p-4">
-                                            <div dangerouslySetInnerHTML={{ __html: articleDetail.article_content }} />
+                                        <h4 className="text-sm font-semibold text-gray-900 mb-3">文章正文</h4>
+                                        <div className="bg-white border border-gray-200 rounded-lg p-6 max-h-96 overflow-y-auto">
+                                            <div
+                                                className="text-gray-800 leading-relaxed text-sm whitespace-pre-wrap font-mono break-words"
+                                                style={{
+                                                    fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                                                    fontSize: '14px',
+                                                    lineHeight: '1.6'
+                                                }}
+                                            >
+                                                {articleDetail.article_content || '无内容'}
+                                            </div>
+                                        </div>
+                                        <div className="mt-2 text-xs text-gray-500">
+                                            字符数: {(articleDetail.article_content || '').length}
                                         </div>
                                     </div>
                                 </div>
@@ -384,13 +411,13 @@ export default function ArticlesReview() {
                                         <>
                                             <button
                                                 onClick={() => handleStatusChange(articleDetail.article_id, 1)}
-                                                className="px-4 py-2 bg-blue-400 text-white rounded-md hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                                className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
                                             >
                                                 通过审核
                                             </button>
                                             <button
                                                 onClick={() => handleStatusChange(articleDetail.article_id, 4)}
-                                                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
                                             >
                                                 标记违规
                                             </button>
@@ -398,14 +425,17 @@ export default function ArticlesReview() {
                                     )}
                                     <button
                                         onClick={handleCloseDetail}
-                                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                                        className="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
                                     >
                                         关闭
                                     </button>
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex justify-center items-center h-64">
+                            <div className="flex flex-col justify-center items-center h-64">
+                                <svg className="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
                                 <p className="text-gray-500">无法加载文章详情</p>
                             </div>
                         )}

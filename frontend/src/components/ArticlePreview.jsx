@@ -143,7 +143,8 @@ const sanitizeHtmlContent = (content) => {
                 </div>
             </div>`;
 
-        processedContent = processedContent.replace(placeholder, codeBlock);
+        // processedContent = processedContent.replace(placeholder, codeBlock);
+        processedContent = processedContent.split(placeholder).join(codeBlock);
     });
 
     processedContent = processedContent
