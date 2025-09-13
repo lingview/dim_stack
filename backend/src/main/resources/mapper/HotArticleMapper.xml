@@ -27,6 +27,7 @@
         a.create_time AS date,
         u.username AS author,
         a.category,
+        a.page_views,
         a.alias
         FROM article a
         JOIN user_information u ON a.uuid = u.uuid

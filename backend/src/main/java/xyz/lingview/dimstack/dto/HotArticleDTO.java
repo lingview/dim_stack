@@ -14,5 +14,6 @@ public class HotArticleDTO {
     private Date date;
     private String author;
     private String category;
+    private int page_views ;
     private String alias;
 }

@@ -1,4 +1,5 @@
 import ThemeToggle from './ThemeToggle'
+import Search from './Search'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import apiClient from '../utils/axios.jsx'
@@ -138,6 +139,7 @@ export default function Header() {
                     </nav>
 
                     <div className="flex items-center space-x-4">
+                        <Search />
                         <ThemeToggle />
 
                         {/* 移动端菜单按钮 */}
