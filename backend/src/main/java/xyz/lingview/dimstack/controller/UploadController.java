@@ -571,10 +571,16 @@ public class UploadController {
                     .body(Map.of("error", "文章分类不能为空"));
         }
 
-        // 检查文章别名是否重复
-        if (uploadArticle.getAlias() != null && !uploadArticle.getAlias().trim().isEmpty()) {
-            if (isAliasExists(uploadArticle.getAlias(), userUUID)) {
-                log.warn("文章别名已存在: {}", uploadArticle.getAlias());
+        String alias = uploadArticle.getAlias();
+        if (alias == null || alias.trim().isEmpty()) {
+            alias = UUID.randomUUID().toString();
+            uploadArticle.setAlias(alias);
+        } else {
+            alias = alias.trim();
+            uploadArticle.setAlias(alias);
+
+            if (isAliasExists(alias, userUUID)) {
+                log.warn("文章别名已存在: {}", alias);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of("error", "文章别名不能重复"));
             }
