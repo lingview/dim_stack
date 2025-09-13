@@ -53,17 +53,19 @@ export const fetchStatistics = async () => {
 };
 
 
-export const fakeData = {
+export const fetchSiteName = async () => {
+    try {
+        const response = await apiClient.get('/site/name');
+        return response;
+    } catch (error) {
+        console.error('获取站点名称失败:', error);
+        return null;
+    }
+};
 
+export const fakeData = {
     // 控制台相关数据
     dashboard: {
-        stats: [
-            { label: '文章', value: 56, icon: 'article' },
-            { label: '用户', value: 13, icon: 'user' },
-            { label: '评论', value: 39, icon: 'comment' },
-            { label: '浏览量', value: 8223, icon: 'view' }
-        ],
-
         quickActions: [
             { id: 1, title: '个人中心', description: '管理您的个人信息', icon: 'user', link: '/dashboard/profile' },
             { id: 3, title: '创建文章', description: '撰写新的文章', icon: 'edit', link: '/dashboard/articles/create' },
@@ -113,20 +115,20 @@ export const fakeData = {
             // }
         ],
 
-        // 通知数据
-        notifications: [
-            { id: 1, title: '欢迎登录', content: '欢迎回来，lingview！', time: '5分钟前', read: false },
-            { id: 2, title: '新评论', content: '有人在你的文章下留言。', time: '10分钟前', read: false },
-            { id: 3, title: '系统更新', content: '后台已更新至最新版本。', time: '1小时前', read: true }
-        ],
-
-        // 文章数据
-        articles: [
-            { id: 1, title: '洛天依最新单曲解读', author: 'lingview', date: '2025-01-15', status: '已发布' },
-            { id: 2, title: '无限共鸣演唱会全程回顾', author: 'lingview', date: '2025-01-12', status: '草稿' },
-            { id: 3, title: 'Vsinger发展史深度解析', author: 'lingview', date: '2025-01-10', status: '已发布' },
-            { id: 4, title: '乐正龙牙专访记录', author: 'lingview', date: '2025-01-08', status: '已发布' },
-            { id: 5, title: '言和最新动态追踪', author: 'lingview', date: '2025-01-05', status: '草稿' }
-        ]
+        // // 通知数据
+        // notifications: [
+        //     { id: 1, title: '欢迎登录', content: '欢迎回来，lingview！', time: '5分钟前', read: false },
+        //     { id: 2, title: '新评论', content: '有人在你的文章下留言。', time: '10分钟前', read: false },
+        //     { id: 3, title: '系统更新', content: '后台已更新至最新版本。', time: '1小时前', read: true }
+        // ],
+        //
+        // // 文章数据
+        // articles: [
+        //     { id: 1, title: '洛天依最新单曲解读', author: 'lingview', date: '2025-01-15', status: '已发布' },
+        //     { id: 2, title: '无限共鸣演唱会全程回顾', author: 'lingview', date: '2025-01-12', status: '草稿' },
+        //     { id: 3, title: 'Vsinger发展史深度解析', author: 'lingview', date: '2025-01-10', status: '已发布' },
+        //     { id: 4, title: '乐正龙牙专访记录', author: 'lingview', date: '2025-01-08', status: '已发布' },
+        //     { id: 5, title: '言和最新动态追踪', author: 'lingview', date: '2025-01-05', status: '草稿' }
+        // ]
     }
 };

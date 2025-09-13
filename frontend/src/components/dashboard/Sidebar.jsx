@@ -1,9 +1,23 @@
-import { useState } from 'react';
-import { fakeData } from '../../Api.jsx';
+import { useState, useEffect } from 'react';
 import { getIcon } from '../../utils/IconUtils';
+import { fetchSiteName } from '../../Api.jsx';
 
 export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onClose, username, menuItems }) {
     const [expandedItems, setExpandedItems] = useState({})
+    const [siteName, setSiteName] = useState('');
+
+    useEffect(() => {
+        const loadSiteName = async () => {
+            const name = await fetchSiteName();
+            if (name) {
+                setSiteName(name);
+            } else {
+                setSiteName("次元栈");
+            }
+        };
+
+        loadSiteName();
+    }, []);
 
     const getRouteSegment = (link) => {
         if (!link) return ''
@@ -40,7 +54,7 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onCl
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                             <div className="text-2xl font-bold text-blue-600">
-                                {isOpen ? fakeData?.siteInfo?.chineseTitle : fakeData?.siteInfo?.chineseTitle?.charAt(0)}
+                                {isOpen ? siteName : siteName?.charAt(0)} {/* 使用siteName */}
                             </div>
                         </div>
                     </div>
