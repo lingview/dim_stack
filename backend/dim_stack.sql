@@ -205,13 +205,14 @@ CREATE TABLE `menus`  (
                           UNIQUE INDEX `menus_id`(`menus_id` ASC) USING BTREE,
                           INDEX `menus_user_id`(`user_id` ASC) USING BTREE,
                           CONSTRAINT `menus_user_id` FOREIGN KEY (`user_id`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE SET NULL
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of menus
 -- ----------------------------
 INSERT INTO `menus` VALUES (1, 'menu_f7f08e6b511848c680c98749cc89b073', '075eb86f721743e3940f35869154a140175689381296899805858', 'Github', 'https://github.com/lingview/dim_stack', 1);
 INSERT INTO `menus` VALUES (2, 'menu_096205a759934193952aef85dfe382fa', '075eb86f721743e3940f35869154a140175689381296899805858', '作者主页', 'https://github.com/lingview', 1);
+INSERT INTO `menus` VALUES (3, 'menu_d7f2c129f1df45c4a606bcd69cf02b51', '075eb86f721743e3940f35869154a140175689381296899805858', '关于', '/article/help', 1);
 
 -- ----------------------------
 -- Table structure for permission
