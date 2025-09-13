@@ -1,9 +1,18 @@
 import { getIcon, getIconColor } from '../../utils/IconUtils';
+import { useNavigate } from 'react-router-dom';
 
-export default function DashboardView({ stats, quickActions, notifications}) {
+export default function DashboardView({ stats, quickActions, notifications }) {
+    const navigate = useNavigate();
+
     if (!stats || !quickActions || !notifications) {
         return <div>加载中...</div>
     }
+
+    const handleQuickActionClick = (link) => {
+        if (link) {
+            navigate(link);
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -29,22 +38,13 @@ export default function DashboardView({ stats, quickActions, notifications}) {
 
             {/* 快捷操作 */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                {/*<div className="flex items-center justify-between mb-6">*/}
-                {/*    <h2 className="text-lg font-semibold text-gray-900">快捷访问</h2>*/}
-                {/*    <button*/}
-                {/*        onClick={onMarkAllAsRead}*/}
-                {/*        className="text-sm text-blue-600 hover:text-blue-800 px-3 py-1 rounded-md hover:bg-blue-50 transition-colors duration-200"*/}
-                {/*    >*/}
-                {/*        标记全部已读*/}
-                {/*    </button>*/}
-                {/*</div>*/}
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                     {quickActions.map((action, index) => (
                         action && (
                             <div
                                 key={index}
                                 className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                                onClick={() => handleQuickActionClick(action.link)}
                             >
                                 <div className="flex items-start space-x-3">
                                     <div className="p-2 bg-blue-100 rounded-lg">
