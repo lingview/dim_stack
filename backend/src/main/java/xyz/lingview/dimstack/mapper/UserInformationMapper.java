@@ -19,7 +19,6 @@ public interface UserInformationMapper {
 
     String getUsernameByUuid(@Param("uuid") String uuid);
 
-    // 新增用户管理相关方法
     List<UserDTO> selectAllUsers();
 
     UserDTO selectUserById(@Param("id") Integer id);

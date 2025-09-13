@@ -16,6 +16,8 @@ const ArticlesReview = lazy(() => import('./ArticlesReview'));
 const MenusView = lazy(() => import('./MenusView'));
 const UsersView = lazy(() => import('./UsersView'));
 const SiteSettingsView = lazy(() => import('./SiteSettingsView'));
+const TagsView = lazy(() => import('./TagsView'));
+const CategoriesView = lazy(() => import('./CategoriesView'));
 
 export default function Dashboard() {
     const navigate = useNavigate()
@@ -344,6 +346,17 @@ export default function Dashboard() {
                         {activeTab === 'settings' && (
                             <Suspense fallback={<div>加载中...</div>}>
                                 <SiteSettingsView />
+                            </Suspense>
+                        )}
+                        {activeTab === 'tags' && (
+                            <Suspense fallback={<div>加载中...</div>}>
+                                <TagsView />
+                            </Suspense>
+                        )}
+
+                        {activeTab === 'categories' && (
+                            <Suspense fallback={<div>加载中...</div>}>
+                                <CategoriesView />
                             </Suspense>
                         )}
 

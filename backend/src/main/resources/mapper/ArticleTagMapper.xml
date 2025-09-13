@@ -14,4 +14,76 @@
         FROM article_tag
         WHERE status = 1
     </select>
+
+    <select id="findAll" resultType="xyz.lingview.dimstack.domain.ArticleTag">
+        SELECT
+            id,
+            tag_name AS tag_name,
+            tag_explain AS tag_explain,
+            founder,
+            create_time AS create_time,
+            status
+        FROM article_tag
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="findByStatus" resultType="xyz.lingview.dimstack.domain.ArticleTag">
+        SELECT
+            id,
+            tag_name AS tag_name,
+            tag_explain AS tag_explain,
+            founder,
+            create_time AS create_time,
+            status
+        FROM article_tag
+        WHERE status = #{status}
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="findById" resultType="xyz.lingview.dimstack.domain.ArticleTag">
+        SELECT
+            id,
+            tag_name AS tag_name,
+            tag_explain AS tag_explain,
+            founder,
+            create_time AS create_time,
+            status
+        FROM article_tag
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByName" resultType="xyz.lingview.dimstack.domain.ArticleTag">
+        SELECT
+            id,
+            tag_name AS tag_name,
+            tag_explain AS tag_explain,
+            founder,
+            create_time AS create_time,
+            status
+        FROM article_tag
+        WHERE tag_name = #{tagName}
+    </select>
+
+    <insert id="insert" parameterType="xyz.lingview.dimstack.domain.ArticleTag">
+        INSERT INTO article_tag (tag_name, tag_explain, founder, status)
+        VALUES (#{tag_name}, #{tag_explain}, #{founder}, #{status})
+    </insert>
+
+    <update id="update" parameterType="xyz.lingview.dimstack.domain.ArticleTag">
+        UPDATE article_tag
+        <set>
+            <if test="tag_name != null and tag_name != ''">tag_name = #{tag_name},</if>
+            <if test="tag_explain != null and tag_explain != ''">tag_explain = #{tag_explain},</if>
+            <if test="founder != null and founder != ''">founder = #{founder},</if>
+            <if test="status != null">status = #{status},</if>
+            create_time = CURRENT_TIMESTAMP
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE article_tag
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
 </mapper>

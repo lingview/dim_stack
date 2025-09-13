@@ -58,4 +58,76 @@
         WHERE category = #{category}
           AND status = 1
     </select>
+
+    <select id="findAll" resultType="xyz.lingview.dimstack.domain.ArticleCategory">
+        SELECT
+            id,
+            article_categories AS article_categories,
+            categories_explain AS categories_explain,
+            founder,
+            create_time AS create_time,
+            status
+        FROM article_categories
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="findByStatus" resultType="xyz.lingview.dimstack.domain.ArticleCategory">
+        SELECT
+            id,
+            article_categories AS article_categories,
+            categories_explain AS categories_explain,
+            founder,
+            create_time AS create_time,
+            status
+        FROM article_categories
+        WHERE status = #{status}
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="findById" resultType="xyz.lingview.dimstack.domain.ArticleCategory">
+        SELECT
+            id,
+            article_categories AS article_categories,
+            categories_explain AS categories_explain,
+            founder,
+            create_time AS create_time,
+            status
+        FROM article_categories
+        WHERE id = #{id}
+    </select>
+
+    <select id="findByName" resultType="xyz.lingview.dimstack.domain.ArticleCategory">
+        SELECT
+            id,
+            article_categories AS article_categories,
+            categories_explain AS categories_explain,
+            founder,
+            create_time AS create_time,
+            status
+        FROM article_categories
+        WHERE article_categories = #{categoryName}
+    </select>
+
+    <insert id="insert" parameterType="xyz.lingview.dimstack.domain.ArticleCategory">
+        INSERT INTO article_categories (article_categories, categories_explain, founder, status)
+        VALUES (#{article_categories}, #{categories_explain}, #{founder}, #{status})
+    </insert>
+
+    <update id="update" parameterType="xyz.lingview.dimstack.domain.ArticleCategory">
+        UPDATE article_categories
+        <set>
+            <if test="article_categories != null and article_categories != ''">article_categories = #{article_categories},</if>
+            <if test="categories_explain != null and categories_explain != ''">categories_explain = #{categories_explain},</if>
+            <if test="founder != null and founder != ''">founder = #{founder},</if>
+            <if test="status != null">status = #{status},</if>
+            create_time = CURRENT_TIMESTAMP
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE article_categories
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
 </mapper>

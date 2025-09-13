@@ -621,7 +621,6 @@ public class UploadController {
 
 
     @PostMapping("/uploadavatar")
-    @RequiresPermission("post:create")
     public ResponseEntity<Map<String, String>> uploadAvatar(HttpServletRequest request,
                                                            @RequestParam("file") MultipartFile file) {
         log.info("开始头像上传流程");

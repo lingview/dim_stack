@@ -1,4 +1,3 @@
 *.xml linguist-language=Java
-*.sql linguist-language=java
-*.yml linguist-language=java
-*.js linguist-language=java
+*.sql linguist-language=Java
+*.yml linguist-language=Java
