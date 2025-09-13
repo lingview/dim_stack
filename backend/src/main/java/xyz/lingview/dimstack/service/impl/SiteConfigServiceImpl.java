@@ -50,6 +50,14 @@ public class SiteConfigServiceImpl implements SiteConfigService {
     }
 
     @Override
+    public String getSiteIcon() {
+        SiteConfig config = siteConfigMapper.getSiteConfig();
+        if (config != null) {
+            return config.getSite_icon();
+        }
+        return null;
+    }
+    @Override
     public boolean updateSiteConfig(SiteConfig siteConfig) {
         try {
             int result = siteConfigMapper.updateSiteConfig(siteConfig);

@@ -8,6 +8,6 @@ public interface SiteConfigService {
     HeroDTO getHeroConfig();
     String getCopyright();
     String getSiteName();
-
+    String getSiteIcon();
     boolean updateSiteConfig(SiteConfig siteConfig);
 }

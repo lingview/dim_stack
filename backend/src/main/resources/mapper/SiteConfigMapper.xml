@@ -14,7 +14,8 @@
             article_status,
             hero_image as hero_image,
             hero_title as hero_title,
-            hero_subtitle as hero_subtitle
+            hero_subtitle as hero_subtitle,
+            site_icon as site_icon
         FROM site_config
         WHERE id = 1
     </select>
@@ -47,6 +48,13 @@
         WHERE id = 1
     </select>
 
+    <!-- 查询站点图标 -->
+    <select id="getSiteIcon" resultType="string">
+        SELECT site_icon
+        FROM site_config
+        WHERE id = 1
+    </select>
+
     <!-- 更新站点配置 -->
     <update id="updateSiteConfig" parameterType="xyz.lingview.dimstack.domain.SiteConfig">
         UPDATE site_config
@@ -56,7 +64,8 @@
             article_status = #{article_status},
             hero_image = #{hero_image},
             hero_title = #{hero_title},
-            hero_subtitle = #{hero_subtitle}
+            hero_subtitle = #{hero_subtitle},
+            site_icon = #{site_icon}
         WHERE id = 1
     </update>
 </mapper>

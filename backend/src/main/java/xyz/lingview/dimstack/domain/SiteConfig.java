@@ -12,4 +12,5 @@ public class SiteConfig {
     private String hero_image;
     private String hero_title;
     private String hero_subtitle;
+    private String site_icon;
 }

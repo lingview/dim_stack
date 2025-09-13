@@ -45,6 +45,11 @@ public class SiteConfigController {
         return siteConfigService.getSiteName();
     }
 
+    @GetMapping("/icon")
+    public String getSiteIcon() {
+        return siteConfigService.getSiteIcon();
+    }
+
     @GetMapping("/getsiteconfig")
     @RequiresPermission("system:edit")
     public ResponseEntity<Map<String, Object>> getsiteconfig() {

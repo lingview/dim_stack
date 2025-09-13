@@ -75,6 +75,16 @@ export const fetchDashboardData = async () => {
     }
 }
 
+
+export const fetchSiteIcon = async () => {
+    try {
+        const response = await apiClient.get('/site/icon');
+        return response;
+    } catch (error) {
+        console.error('获取站点图标失败:', error);
+        return null;
+    }
+};
 // export const fakeData = {
     // 控制台相关数据
     // dashboard: {

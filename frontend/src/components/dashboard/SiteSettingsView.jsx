@@ -47,9 +47,11 @@ export default function SiteSettingsView() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [iconUploading, setIconUploading] = useState(false);
     const [roles, setRoles] = useState([]);
     const [articleStatusOptions, setArticleStatusOptions] = useState([]);
     const fileInputRef = useRef(null);
+    const iconFileInputRef = useRef(null);
 
     const [formData, setFormData] = useState({
         site_name: '',
@@ -57,6 +59,7 @@ export default function SiteSettingsView() {
         hero_title: '',
         hero_subtitle: '',
         hero_image: '',
+        site_icon: '', // 添加站点图标字段
         register_user_permission: '2',
         article_status: 3
     });
@@ -84,7 +87,8 @@ export default function SiteSettingsView() {
                     copyright: escapeHtml(response.data.copyright) || '',
                     hero_title: escapeHtml(response.data.hero_title) || '',
                     hero_subtitle: escapeHtml(response.data.hero_subtitle) || '',
-                    hero_image: response.data.hero_image || ''
+                    hero_image: response.data.hero_image || '',
+                    site_icon: response.data.site_icon || '' // 初始化站点图标
                 };
                 setFormData(escapedData);
             } else {
@@ -207,9 +211,51 @@ export default function SiteSettingsView() {
         }
     };
 
+    const handleIconUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            setIconUploading(true);
+            const response = await apiClient.post('/uploadattachment', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            if (response.fileUrl) {
+                setFormData(prev => ({
+                    ...prev,
+                    site_icon: response.fileUrl
+                }));
+                showMessage('success', '站点图标上传成功');
+            } else {
+                showMessage('error', response.error || '站点图标上传失败');
+            }
+        } catch (error) {
+            console.error('站点图标上传失败:', error);
+            showMessage('error', '站点图标上传时发生错误');
+        } finally {
+            setIconUploading(false);
+            if (iconFileInputRef.current) {
+                iconFileInputRef.current.value = '';
+            }
+        }
+    };
+
     const triggerFileInput = () => {
         if (fileInputRef.current) {
             fileInputRef.current.click();
+        }
+    };
+
+    // 触发站点图标文件选择
+    const triggerIconFileInput = () => {
+        if (iconFileInputRef.current) {
+            iconFileInputRef.current.click();
         }
     };
 
@@ -231,6 +277,7 @@ export default function SiteSettingsView() {
     }
 
     const previewImageUrl = formData.hero_image ? getFullImageUrl(formData.hero_image) : null;
+    const previewIconUrl = formData.site_icon ? getFullImageUrl(formData.site_icon) : null;
 
     return (
         <div className="bg-white rounded-lg shadow-sm p-6">
@@ -345,6 +392,52 @@ export default function SiteSettingsView() {
                                     className="max-w-full h-48 object-cover rounded-md"
                                     onError={(e) => {
                                         e.target.src = '/default-image.png';
+                                    }}
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            站点图标
+                        </label>
+                        <div className="flex items-start space-x-4">
+                            <div className="flex-1">
+                                <input
+                                    type="text"
+                                    id="site_icon"
+                                    name="site_icon"
+                                    value={formData.site_icon}
+                                    onChange={handleInputChange}
+                                    placeholder="点击上传按钮或输入图标URL"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <input
+                                    type="file"
+                                    ref={iconFileInputRef}
+                                    onChange={handleIconUpload}
+                                    accept="image/*"
+                                    className="hidden"
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                onClick={triggerIconFileInput}
+                                disabled={iconUploading}
+                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                            >
+                                {iconUploading ? '上传中...' : '上传图标'}
+                            </button>
+                        </div>
+                        {previewIconUrl && (
+                            <div className="mt-2">
+                                <img
+                                    src={previewIconUrl}
+                                    alt="站点图标预览"
+                                    className="w-16 h-16 object-contain rounded-md"
+                                    onError={(e) => {
+                                        e.target.src = '/default-icon.png';
                                     }}
                                 />
                             </div>
