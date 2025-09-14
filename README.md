@@ -199,12 +199,8 @@ server {
     http2 on;
     server_name www.apilinks.cn apilinks.cn;
 
-
-    # CERT-APPLY-CHECK--START
     include /www/server/panel/vhost/nginx/well-known/dimstack.conf;
-    # CERT-APPLY-CHECK--END
 
-    # HTTP_TO_HTTPS_START
     set $isRedcert 1;
     if ($server_port != 443) {
         set $isRedcert 2;
@@ -215,9 +211,7 @@ server {
     if ($isRedcert != 1) {
         return 301 https://$host$request_uri;
     }
-    # HTTP_TO_HTTPS_END
 
-    # SSL 配置（保持不变）
     ssl_certificate    /www/server/panel/vhost/cert/dimstack/fullchain.pem;
     ssl_certificate_key    /www/server/panel/vhost/cert/dimstack/privkey.pem;
     ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;
@@ -248,7 +242,6 @@ server {
         proxy_send_timeout 30s;
     }
 
-    # 日志
     access_log  /www/wwwlogs/dimstack.log;
     error_log   /www/wwwlogs/dimstack.error.log;
 }
