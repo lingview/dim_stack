@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class PermissionBasedTestControllerTest {
 
     private static final String BASE_URL = "http://192.168.1.6:2222";
-    private static final String SESSION_COOKIE = "ZjNlOTFmZDQtYzQxYS00N2Q2LTk2NmItMGYxYzMzZTFiZWEy";
+    private static final String SESSION_COOKIE = "Mjc5ZTI5YmQtMGJlYS00OTBkLTllZDMtYjVlYTg3M2QxNmI3";
     private HttpClient client;
 
     @BeforeAll
