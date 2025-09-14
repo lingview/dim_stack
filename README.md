@@ -51,9 +51,9 @@
 >
 > 演示站：[https://apilinks.cn/](https://apilinks.cn/)
 >
-> 用户名：admin
+> 用户名：自己注册
 >
-> 密码：123456
+> 密码：自己设置
 >
 
 
