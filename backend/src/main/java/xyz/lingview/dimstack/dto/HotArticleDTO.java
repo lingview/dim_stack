@@ -10,7 +10,6 @@ public class HotArticleDTO {
     private String article_id;
     private String title;
     private String excerpt;
-    private String image;
     private Date date;
     private String author;
     private String category;
