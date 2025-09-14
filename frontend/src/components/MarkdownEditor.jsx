@@ -475,17 +475,17 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
 
             <div className="flex-1 flex overflow-hidden">
                 <div className="w-1/2 flex flex-col border-r border-gray-200 overflow-hidden">
-                    <div className="flex items-center border-b border-gray-200 bg-gray-50 px-2 markdown-editor-toolbar">
-
+                    <div className="flex flex-wrap items-center justify-between border-b border-gray-200 bg-gray-50 px-2 markdown-editor-toolbar">
                         {TOOLBAR_BUTTONS.map((button) => (
-                            <div key={button.type} className="relative">
+                            <div key={button.type} className="relative flex-shrink-0">
                                 <button
                                     onClick={() => handleToolbarClick(button.type)}
                                     title={button.title}
-                                    className="p-2 hover:bg-gray-100 rounded"
+                                    className="p-2 sm:p-3 hover:bg-gray-100 rounded w-12 h-12 flex items-center justify-center sm:w-10 sm:h-10"
                                 >
-                                    <button.icon className="h-5 w-5" />
+                                    <button.icon className="h-5 w-5 sm:h-4 sm:w-4" />
                                 </button>
+
                                 {button.type === 'heading' && showHeadingMenu && (
                                     <div
                                         ref={headingMenuRef}

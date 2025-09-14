@@ -56,6 +56,25 @@ export default function Dashboard() {
         checkLoginStatus()
     }, [navigate])
 
+    // 移动端自动收缩侧边栏
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 768) {
+                setSidebarOpen(false);
+            } else {
+                setSidebarOpen(true);
+            }
+        };
+
+        handleResize();
+
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
+
     // 获取文章列表
     useEffect(() => {
         const fetchArticles = async () => {
@@ -78,8 +97,7 @@ export default function Dashboard() {
         }
 
         fetchArticles()
-    }, [activeTab, username, shouldRefresh]) // 添加 shouldRefresh 作为依赖
-
+    }, [activeTab, username, shouldRefresh])
     useEffect(() => {
         const loadDashboardData = async () => {
             if (!loading && username) {

@@ -90,7 +90,10 @@ export default function Search() {
 
             {isSearchOpen && (
                 <>
-                    <div className="search-popup absolute right-0 mt-2 w-96 bg-white/90 backdrop-blur-md shadow-xl rounded-xl z-50 border border-gray-200">
+                    <div className="search-popup absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-white/90 backdrop-blur-md shadow-xl rounded-xl z-50 border border-gray-200
+                                    md:right-0 md:left-auto
+                                    sm:right-1/2 sm:transform sm:translate-x-1/2 sm:left-auto
+                                    max-sm:fixed max-sm:right-4 max-sm:left-4 max-sm:w-auto max-sm:max-w-none max-sm:top-20">
                         <div className="p-4">
                             <form onSubmit={(e) => e.preventDefault()} className="relative">
                                 <input
@@ -127,7 +130,7 @@ export default function Search() {
                             )}
 
                             {!isLoading && searchResults.length > 0 && (
-                                <div className="mt-3 max-h-96 overflow-y-auto space-y-1">
+                                <div className="mt-3 max-h-96 max-sm:max-h-[60vh] overflow-y-auto space-y-1">
                                     {searchResults.map((article) => (
                                         <a
                                             key={article.id}
@@ -135,9 +138,9 @@ export default function Search() {
                                             onClick={handleResultClick}
                                             className="search-result-item block p-3 rounded-xl hover:bg-blue-50 transition-all duration-150 border border-transparent hover:border-blue-100"
                                         >
-                                            <h3 className="search-result-title font-semibold text-gray-800 line-clamp-1">{article.title}</h3>
+                                            <h3 className="search-result-title font-semibold text-gray-800 line-clamp-1 text-sm sm:text-base">{article.title}</h3>
                                             {article.excerpt && (
-                                                <p className="search-result-excerpt text-sm text-gray-500 mt-1 line-clamp-2 leading-tight">
+                                                <p className="search-result-excerpt text-xs sm:text-sm text-gray-500 mt-1 line-clamp-2 leading-tight">
                                                     {article.excerpt}
                                                 </p>
                                             )}
