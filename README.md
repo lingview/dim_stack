@@ -52,3 +52,117 @@
 
 >评论区
 ![img.png](./images/comment.png)
+
+
+
+## 致谢
+
+在此，我们衷心感谢以下为本项目提供帮助、支持或灵感的个人和组织：
+
+### 贡献者
+感谢所有参与本项目的贡献者（按字母顺序排列）：
+- [@bytegeek](https://github.com/xrb114) - 渗透测试
+- [@lingview](https://github.com/lingview) - 系统开发
+- [@q1uf3ng](https://github.com/q1uf3ng) - 渗透测试
+
+
+
+
+感谢以下框架、库和工具对本项目的支持 🙏
+
+---
+
+### 后端依赖（Java / Spring Boot）
+
+#### 🌱 Spring 生态
+- [Spring Boot Starter](https://spring.io/projects/spring-boot)
+- Spring Boot Starter Web
+- Spring Boot Starter AOP
+- Spring Boot Starter Mail
+- Spring Boot Starter WebSocket
+- Spring Boot Starter Data Redis
+- Spring Boot Starter Actuator
+- [Spring Session Data Redis](https://spring.io/projects/spring-session)
+- Spring Context Support
+- Spring Web
+
+#### 💾 数据库与持久化
+- [MyBatis Spring Boot Starter](https://github.com/mybatis/spring-boot-starter)
+- [MySQL Connector/J](https://dev.mysql.com/downloads/connector/j/)
+- [Druid](https://github.com/alibaba/druid)
+
+#### 🛠 工具类库
+- [Apache Commons IO](https://commons.apache.org/proper/commons-io/)
+- [Apache Commons Lang3](https://commons.apache.org/proper/commons-lang/)
+- [Lombok](https://projectlombok.org/)
+- [Hutool](https://hutool.cn/)
+
+#### 📄 文档与格式解析
+- [Jsoup](https://jsoup.org/)
+- [Apache POI](https://poi.apache.org/)
+- [Flexmark](https://github.com/vsch/flexmark-java)
+
+#### 🔐 安全与加密
+- [jBCrypt](https://www.mindrot.org/projects/jBCrypt/)
+
+#### 🔍 JSON 处理
+- [Jackson Databind](https://github.com/FasterXML/jackson-databind)
+- [Fastjson](https://github.com/alibaba/fastjson)
+- [Gson](https://github.com/google/gson)
+
+#### ⚙️ 系统与代码分析
+- [OSHI](https://github.com/oshi/oshi)
+- [JavaParser](https://javaparser.org/)
+- [CFR Decompiler](https://www.benf.org/other/cfr/)
+
+#### 🌐 其他
+- [juniversalchardet](https://code.google.com/archive/p/juniversalchardet/)
+- Spring Boot Starter Test
+
+---
+
+### 前端依赖（React / Vite）
+
+#### ⚛️ 核心框架
+- [React](https://react.dev/)
+- [React DOM](https://react.dev/)
+- [React Router DOM](https://reactrouter.com/)
+
+#### 🎨 UI 与动画
+- [Framer Motion](https://www.framer.com/motion/)
+- [Lucide React](https://lucide.dev/)
+- [React Favicon](https://github.com/oflisback/react-favicon)
+
+#### 📝 Markdown 与富文本
+- [React Markdown](https://github.com/remarkjs/react-markdown)
+- [React Syntax Highlighter](https://github.com/react-syntax-highlighter/react-syntax-highlighter)
+- [Remark GFM](https://github.com/remarkjs/remark-gfm)
+- [Remark Parse](https://github.com/remarkjs/remark/tree/main/packages/remark-parse)
+- [Remark Rehype](https://github.com/remarkjs/remark-rehype)
+- [Rehype Highlight](https://github.com/rehypejs/rehype-highlight)
+- [Rehype Raw](https://github.com/rehypejs/rehype-raw)
+- [Rehype Sanitize](https://github.com/rehypejs/rehype-sanitize)
+- [Rehype Stringify](https://github.com/rehypejs/rehype/blob/main/packages/rehype-stringify)
+- [Unified](https://unifiedjs.com/)
+
+#### 🌐 网络请求与安全
+- [Axios](https://axios-http.com/)
+- [DOMPurify](https://github.com/cure53/DOMPurify)
+
+#### 🛠 构建与样式
+- [Vite](https://vitejs.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [PostCSS](https://postcss.org/)
+- [Autoprefixer](https://github.com/postcss/autoprefixer)
+- @tailwindcss/vite
+- @tailwindcss/postcss
+
+---
+
+### 💡 特别感谢
+- 感谢所有为本项目贡献代码、提出问题和提供反馈的开发者。
+- 感谢开源社区持续的支持与贡献。
+
+---
+
+💡 如果你在本项目中做出了贡献，请提交 PR 将你的名字加入到致谢名单中！  
