@@ -108,11 +108,19 @@ export default function ProfileView() {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        const escapedValue = escapeHtml(value);
-        setUser(prev => ({
-            ...prev,
-            [name]: escapedValue
-        }));
+        // 密码字段不需要转义
+        if (name === 'password') {
+            setUser(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        } else {
+            const escapedValue = escapeHtml(value);
+            setUser(prev => ({
+                ...prev,
+                [name]: escapedValue
+            }));
+        }
     };
 
     const handleAvatarChange = async (e) => {
