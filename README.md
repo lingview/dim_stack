@@ -143,7 +143,7 @@ management:
   endpoint:
     health:
       enabled: true
-      show-details: always
+      show-details: when-authorized
     info:
       enabled: true
     metrics:
