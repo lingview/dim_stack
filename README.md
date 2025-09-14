@@ -38,7 +38,163 @@
 
 ---
 
+
+
+## 部署文档
+> 环境要求（给出版本为可用版本，其他版本请自行测试）
+>
+> OpenJDK版本：17+
+>
+> Redis版本：5+
+>
+> mysql版本：8+
+>
+
+
+
+### 1、创建配置文件（application.yml）
+> 将Mysql以及Redis密码改为自己的，可以适当修改日志级别
+>
+> 将配置文件放到jar包同级目录下的config文件夹
+>
+
+```yaml
+spring:
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+
+  session:
+    redis:
+      namespace: "dimstack:session"
+      flush-mode: on_save
+      save-mode: always
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/dim_stack?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true&useAffectedRows=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: ""
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 1000000MB
+      max-request-size: 200000MB
+
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: ""
+      timeout: 5s
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+
+
+  thymeleaf:
+    cache: true
+    enabled: true
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+    servlet:
+      content-type: text/html
+
+  profiles:
+    active: dev
+
+springdoc:
+  api-docs:
+    enabled: false
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: false
+    path: /swagger-ui/index.html
+    cors:
+      enabled: false
+
+project:
+  version: ${project.version}
+  build-date: ${maven.build.timestamp}
+
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+    info:
+      enabled: true
+    metrics:
+      enabled: false
+    shutdown:
+      enabled: false
+
+mybatis:
+  type-aliases-package: xyz.lingview.dimstack.**.domain
+  mapper-locations: classpath*:mapper/*Mapper.xml
+  config-location: classpath:mybatis-config.xml
+
+server:
+  port: 2222
+  servlet:
+    context-path: /
+  tomcat:
+    uri-encoding: UTF-8
+    max-threads: 200
+    min-spare-threads: 10
+    protocol-header: X-Forwarded-Proto
+    remote-ip-header: X-Forwarded-For
+
+
+  forward-headers-strategy: native
+
+logging:
+  level:
+    xyz.lingview.dimstack: debug
+    org.springframework: warn
+    org.springframework.security: info
+    org.springframework.session: debug
+    org.springframework.web: debug
+
+file:
+  upload-dir: upload
+```
+
+### 2.创建数据库并导入数据
+> dim_stack.sql这个文件导入创建的数据库
+>
+
+### 3.启动系统
+```yaml
+java -jar dim_stack.jar
+```
+
+
+
 ## 主要界面展示
+### 前台
 > 白天模式  
 ![](./images/index_light.png)![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1757822244480-fa9faa5f-4964-4ecd-bf60-79452ccd765c.png)
 >
@@ -64,6 +220,7 @@
 > 文章搜索![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1757822460232-b2215a76-2642-4f14-ad76-8e6b440c9eb9.png)
 >
 
+### 后台
 > 控制台主页
 >
 > ![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1757822521982-5c5cdb5a-19c3-4248-bf08-1ae0063def7e.png)
