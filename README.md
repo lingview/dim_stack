@@ -49,8 +49,16 @@
 >
 > mysql版本：8+
 >
+> 演示站：[https://apilinks.cn/](https://apilinks.cn/)
+>
+> 用户名：admin
+>
+> 密码：123456
+>
 
 
+
+注：系统默认账号为admin，密码123456，部署完成后需手动到后台修改
 
 ### 1、创建配置文件（application.yml）
 > 将Mysql以及Redis密码改为自己的，可以适当修改日志级别
@@ -180,6 +188,70 @@ logging:
 
 file:
   upload-dir: upload
+```
+
+### 2.Nginx反向代理配置文件
+```bash
+server {
+    listen 80;
+    listen 443 ssl;
+    listen 443 quic;
+    http2 on;
+    server_name www.apilinks.cn apilinks.cn;
+
+
+    # CERT-APPLY-CHECK--START
+    include /www/server/panel/vhost/nginx/well-known/dimstack.conf;
+    # CERT-APPLY-CHECK--END
+
+    # HTTP_TO_HTTPS_START
+    set $isRedcert 1;
+    if ($server_port != 443) {
+        set $isRedcert 2;
+    }
+    if ( $uri ~ /\.well-known/ ) {
+        set $isRedcert 1;
+    }
+    if ($isRedcert != 1) {
+        return 301 https://$host$request_uri;
+    }
+    # HTTP_TO_HTTPS_END
+
+    # SSL 配置（保持不变）
+    ssl_certificate    /www/server/panel/vhost/cert/dimstack/fullchain.pem;
+    ssl_certificate_key    /www/server/panel/vhost/cert/dimstack/privkey.pem;
+    ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;
+    ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_tickets on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    add_header Strict-Transport-Security "max-age=31536000" always;
+    add_header Alt-Svc 'quic=":443"; h3=":443"; h3-29=":443"; h3-27=":443";h3-25=":443"; h3-T050=":443"; h3-Q050=":443";h3-Q049=":443";h3-Q048=":443"; h3-Q046=":443"; h3-Q043=":443"' always;
+    error_page 497  https://$host$request_uri;
+
+
+    location / {
+        proxy_pass http://127.0.0.1:2222;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_connect_timeout 30s;
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 30s;
+    }
+
+    # 日志
+    access_log  /www/wwwlogs/dimstack.log;
+    error_log   /www/wwwlogs/dimstack.error.log;
+}
 ```
 
 ### 2.创建数据库并导入数据
