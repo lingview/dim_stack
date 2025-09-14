@@ -12,4 +12,10 @@ public class EditArticleDTO {
     private String author_name;
     private Date create_time;
     private Integer status;
+    private String password;
+    private boolean hasPassword;
+
+    public boolean isHasPassword() {
+        return password != null && !password.isEmpty();
+    }
 }

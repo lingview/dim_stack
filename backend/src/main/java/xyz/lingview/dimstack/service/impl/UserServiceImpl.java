@@ -1,5 +1,6 @@
 package xyz.lingview.dimstack.service.impl;
 
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.Role;
@@ -50,7 +51,8 @@ public class UserServiceImpl implements UserService {
             user.setGender(userUpdateDTO.getGender());
         }
         if (userUpdateDTO.getPassword() != null && !userUpdateDTO.getPassword().isEmpty()) {
-            user.setPassword(userUpdateDTO.getPassword());
+            String hashedPassword = BCrypt.hashpw(userUpdateDTO.getPassword(), BCrypt.gensalt());
+            user.setPassword(hashedPassword);
         }
 
         if (userUpdateDTO.getBirthday() != null && !userUpdateDTO.getBirthday().isEmpty()) {
@@ -136,5 +138,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public void removeUserFromBlacklist(String username) {
         userBlacklistService.removeUserFromBlacklist(username);
+    }
+
+    public boolean checkPassword(String plaintextPassword, String hashedPassword) {
+        if (plaintextPassword == null || hashedPassword == null) {
+            return false;
+        }
+        return BCrypt.checkpw(plaintextPassword, hashedPassword);
     }
 }

@@ -52,6 +52,7 @@ export default function ProfileView() {
         email: '',
         gender: '',
         birthday: '',
+        password: ''
     });
 
     const [loading, setLoading] = useState(true);
@@ -154,7 +155,6 @@ export default function ProfileView() {
             });
 
             if (response && response.fileUrl) {
-                // 更新用户数据，保存原始URL
                 setUser(prev => ({
                     ...prev,
                     avatar: response.fileUrl
@@ -191,13 +191,18 @@ export default function ProfileView() {
                 phone: unescapeHtml(user.phone),
                 email: unescapeHtml(user.email),
                 gender: unescapeHtml(user.gender),
-                birthday: user.birthday
+                birthday: user.birthday,
+                password: user.password
             };
 
             const response = await apiClient.put('/user/update', updateData);
 
             if (response) {
                 showMessage('个人信息更新成功', 'success');
+                setUser(prev => ({
+                    ...prev,
+                    password: ''
+                }));
             } else {
                 showMessage('更新失败', 'error');
             }
@@ -271,6 +276,8 @@ export default function ProfileView() {
                                     }}
                                 />
                             </div>
+
+
                             <div>
                                 <label className="bg-blue-600 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-700 transition-colors">
                                     选择图片
@@ -287,7 +294,20 @@ export default function ProfileView() {
                             </div>
                         </div>
                     </div>
-
+                    <div>
+                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                            新密码
+                        </label>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            value={user.password}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="请输入新密码"
+                        />
+                    </div>
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                             邮箱

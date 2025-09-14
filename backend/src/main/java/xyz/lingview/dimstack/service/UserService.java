@@ -35,4 +35,8 @@ public interface UserService {
 
     // 从黑名单中移除用户
     void removeUserFromBlacklist(String username);
+
+    // 密码验证方法
+    boolean checkPassword(String plaintextPassword, String hashedPassword);
+
 }

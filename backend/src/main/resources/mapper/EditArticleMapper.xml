@@ -11,13 +11,15 @@
             a.alias,
             u.username as author_name,
             a.create_time as create_time,
-            a.status
+            a.status,
+            a.password as password
         FROM article a
         JOIN user_information u ON a.uuid = u.uuid
         WHERE a.uuid = #{uuid} AND a.status != 0
         ORDER BY a.create_time DESC
         LIMIT #{offset}, #{size}
     </select>
+
 
     <select id="countArticlesByUuid" parameterType="string" resultType="int">
         SELECT COUNT(*)
@@ -98,6 +100,13 @@
         UPDATE article
         SET status = #{status}
         WHERE article_id = #{article_id} AND uuid = #{uuid}
+    </update>
+
+    <!-- 移除文章密码 -->
+    <update id="removeArticlePassword" parameterType="map">
+        UPDATE article
+        SET password = #{password}
+        WHERE article_id = #{article_id}
     </update>
 
 </mapper>

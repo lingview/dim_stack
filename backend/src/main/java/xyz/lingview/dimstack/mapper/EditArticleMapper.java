@@ -28,4 +28,7 @@ public interface EditArticleMapper {
     int deleteArticle(Map<String, Object> params);
     int unpublishArticle(Map<String, Object> params);
     int publishArticle(Map<String, Object> params);
+
+    int removeArticlePassword(Map<String, Object> params);
+
 }

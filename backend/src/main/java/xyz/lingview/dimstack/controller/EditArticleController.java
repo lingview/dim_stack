@@ -277,4 +277,68 @@ public class EditArticleController {
             return ResponseEntity.ok(response);
         }
     }
+
+
+    @PostMapping("/removearticlepassword")
+    @RequiresPermission("post:create")
+    public ResponseEntity<Map<String, Object>> removeArticlePassword(
+            @RequestBody Map<String, String> payload,
+            HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            String username = (String) session.getAttribute("username");
+
+            if (username == null) {
+                response.put("success", false);
+                response.put("message", "用户未登录");
+                return ResponseEntity.ok(response);
+            }
+
+            String articleId = payload.get("article_id");
+            if (articleId == null || articleId.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "文章ID不能为空");
+                return ResponseEntity.ok(response);
+            }
+
+            // 验证文章是否属于该用户
+            String articleUuid = editArticleService.getArticleUuid(articleId);
+            if (articleUuid == null) {
+                response.put("success", false);
+                response.put("message", "文章不存在");
+                return ResponseEntity.ok(response);
+            }
+
+            String articleOwner = editArticleMapper.getUsernameByUuid(articleUuid);
+            if (articleOwner == null || !articleOwner.equals(username)) {
+                response.put("success", false);
+                response.put("message", "权限不足，无法操作该文章");
+                return ResponseEntity.ok(response);
+            }
+
+            // 移除文章密码
+            Map<String, Object> params = new HashMap<>();
+            params.put("article_id", articleId);
+            params.put("password", null);
+
+            int result = editArticleMapper.removeArticlePassword(params);
+
+            if (result > 0) {
+                response.put("success", true);
+                response.put("message", "文章密码已移除");
+            } else {
+                response.put("success", false);
+                response.put("message", "移除文章密码失败");
+            }
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "移除文章密码失败: " + e.getMessage());
+            return ResponseEntity.ok(response);
+        }
+    }
+
 }
