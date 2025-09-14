@@ -13,4 +13,5 @@ public class ArticleReviewDTO {
     private LocalDateTime create_time;
     private String tag;
     private String category;
+    private Byte status;
 }

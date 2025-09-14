@@ -28,11 +28,12 @@ export default function Dashboard() {
     const [username, setUsername] = useState('')
     const [showEditor, setShowEditor] = useState(false)
     const [loading, setLoading] = useState(true)
-    const [articles, setArticles] = useState([])
+    const [articles, setArticles] = useState(null)
     const [editingArticle, setEditingArticle] = useState(null)
     const [stats, setStats] = useState([])
     const [quickActions, setQuickActions] = useState([])
     const [sidebarMenu, setSidebarMenu] = useState([])
+    const [shouldRefresh, setShouldRefresh] = useState(false)
 
     useEffect(() => {
         const checkLoginStatus = async () => {
@@ -60,7 +61,9 @@ export default function Dashboard() {
         const fetchArticles = async () => {
             if (activeTab === 'articles' && username) {
                 try {
-                    const response = await apiClient.get('/getarticlelist')
+                    const response = await apiClient.get('/getarticlelist', {
+                        params: { page: 1, size: 10 }
+                    })
                     if (response.success) {
                         setArticles(response.data || [])
                     } else {
@@ -75,7 +78,7 @@ export default function Dashboard() {
         }
 
         fetchArticles()
-    }, [activeTab, username])
+    }, [activeTab, username, shouldRefresh]) // 添加 shouldRefresh 作为依赖
 
     useEffect(() => {
         const loadDashboardData = async () => {
@@ -223,23 +226,7 @@ export default function Dashboard() {
         setShowEditor(false);
         setEditingArticle(null);
 
-        if (activeTab === 'articles') {
-            const fetchArticles = async () => {
-                try {
-                    const response = await apiClient.get('/getarticlelist')
-                    if (response.success) {
-                        setArticles(response.data || [])
-                    } else {
-                        console.error('获取文章列表失败:', response.message)
-                        setArticles([])
-                    }
-                } catch (error) {
-                    console.error('获取文章列表错误:', error)
-                    setArticles([])
-                }
-            }
-            fetchArticles()
-        }
+        setShouldRefresh(prev => !prev);
     };
 
     const handleEditorCancel = () => {
@@ -309,6 +296,8 @@ export default function Dashboard() {
                                     onNewArticle={() => setShowEditor(true)}
                                     onEditArticle={handleEditArticle}
                                     articles={articles}
+                                    shouldRefresh={shouldRefresh}
+                                    setShouldRefresh={setShouldRefresh}
                                 />
                             </Suspense>
                         )}

@@ -21,14 +21,40 @@ public class EditArticleServiceImpl implements EditArticleService {
     private EditArticleMapper editArticleMapper;
 
     @Override
-    public List<EditArticleDTO> getArticleListByUsername(String username) {
-        String uuid = editArticleMapper.getUuidByUsername(username);
-        if (uuid == null) {
-            return List.of();
-        }
-        return editArticleMapper.getArticleListByUuid(uuid);
-    }
+    public Map<String, Object> getArticleListByUsername(String username, Integer page, Integer size) {
+        Map<String, Object> result = new HashMap<>();
 
+        try {
+            String uuid = editArticleMapper.getUuidByUsername(username);
+            if (uuid == null) {
+                result.put("articles", List.of());
+                result.put("total", 0);
+                result.put("page", page);
+                result.put("size", size);
+                return result;
+            }
+
+            int offset = (page - 1) * size;
+            List<EditArticleDTO> articles = editArticleMapper.getArticleListByUuid(uuid, offset, size);
+            int total = editArticleMapper.countArticlesByUuid(uuid);
+
+            result.put("articles", articles);
+            result.put("total", total);
+            result.put("page", page);
+            result.put("size", size);
+            result.put("totalPages", (int) Math.ceil((double) total / size));
+
+            return result;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            result.put("articles", List.of());
+            result.put("total", 0);
+            result.put("page", page);
+            result.put("size", size);
+            return result;
+        }
+    }
 
     @Override
     public ArticleDetailDTO getArticleDetailById(String articleId, String username) {
@@ -54,6 +80,7 @@ public class EditArticleServiceImpl implements EditArticleService {
             return null;
         }
     }
+
     @Override
     public boolean updateArticle(UpdateArticleDTO updateArticleDTO, String sessionUsername) {
         try {
@@ -131,6 +158,7 @@ public class EditArticleServiceImpl implements EditArticleService {
             return false;
         }
     }
+
     @Override
     public boolean publishArticle(String articleId, String sessionUsername) {
         try {
@@ -161,5 +189,4 @@ public class EditArticleServiceImpl implements EditArticleService {
     public String getArticleUuid(String articleId) {
         return editArticleMapper.getUuidByArticleId(articleId);
     }
-
 }

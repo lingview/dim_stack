@@ -11,10 +11,11 @@ export default function ArticlesReview() {
     const [showDetail, setShowDetail] = useState(false);
     const [articleDetail, setArticleDetail] = useState(null);
     const [detailLoading, setDetailLoading] = useState(false);
+    const [reviewMode, setReviewMode] = useState('pending');
 
     useEffect(() => {
         fetchArticles(currentPage, pageSize);
-    }, [currentPage, pageSize]);
+    }, [currentPage, pageSize, reviewMode]);
 
     const htmlToSafeText = (html) => {
         if (!html) return '';
@@ -60,7 +61,11 @@ export default function ArticlesReview() {
     const fetchArticles = async (page, size) => {
         setLoading(true);
         try {
-            const res = await apiClient.get('/articlereview/getarticlelist', {
+            const endpoint = reviewMode === 'pending'
+                ? '/articlereview/getarticlelist'
+                : '/articlereview/getallarticles';
+
+            const res = await apiClient.get(endpoint, {
                 params: { page, size }
             });
 
@@ -154,6 +159,11 @@ export default function ArticlesReview() {
         setArticleDetail(null);
     };
 
+    const toggleReviewMode = () => {
+        setReviewMode(prevMode => prevMode === 'pending' ? 'all' : 'pending');
+        setCurrentPage(1);
+    };
+
     if (loading) {
         return (
             <div className="bg-white rounded-lg shadow-sm p-6">
@@ -171,11 +181,21 @@ export default function ArticlesReview() {
         <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">文章审核</h2>
+                <button
+                    onClick={toggleReviewMode}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                >
+                    {reviewMode === 'pending' ? '查看全部文章' : '仅查看待审核'}
+                </button>
             </div>
 
             {articles.length === 0 ? (
                 <div className="text-center py-12">
-                    <p className="text-gray-500">暂无需要审核的文章</p>
+                    <p className="text-gray-500">
+                        {reviewMode === 'pending'
+                            ? '暂无需要审核的文章'
+                            : '暂无文章'}
+                    </p>
                 </div>
             ) : (
                 <>
@@ -197,6 +217,9 @@ export default function ArticlesReview() {
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     创建时间
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    状态
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     操作
@@ -222,6 +245,20 @@ export default function ArticlesReview() {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {new Date(article.create_time).toLocaleDateString()}
                                     </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                            article.status === 1 ? 'bg-green-100 text-green-800' :
+                                            article.status === 2 ? 'bg-yellow-100 text-yellow-800' :
+                                            article.status === 3 ? 'bg-blue-100 text-blue-800' :
+                                            article.status === 0 ? 'bg-gray-100 text-gray-800' :
+                                            'bg-red-100 text-red-800'
+                                        }`}>
+                                            {article.status === 1 ? '已发布' :
+                                             article.status === 2 ? '未发布' :
+                                             article.status === 3 ? '待审核' :
+                                             article.status === 0 ? '已删除' : '违规'}
+                                        </span>
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <button
                                             onClick={() => handleViewDetail(article.article_id)}
@@ -229,6 +266,23 @@ export default function ArticlesReview() {
                                         >
                                             查看
                                         </button>
+                                        {reviewMode === 'all' && article.status !== 3 && (
+                                            <>
+                                                <button
+                                                    onClick={() => handleStatusChange(article.article_id, 3)}
+                                                    className="text-yellow-600 hover:text-yellow-900 mr-3"
+                                                >
+                                                    设为待审核
+                                                </button>
+                                                <button
+                                                    onClick={() => handleStatusChange(article.article_id, 4)}
+                                                    className="text-red-600 hover:text-red-900"
+                                                    disabled={article.status === 4}
+                                                >
+                                                    标记违规
+                                                </button>
+                                            </>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -236,7 +290,6 @@ export default function ArticlesReview() {
                         </table>
                     </div>
 
-                    {/* 分页组件 */}
                     {totalPages > 1 && (
                         <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4">
                             <div className="flex flex-1 justify-between sm:hidden">
@@ -258,15 +311,26 @@ export default function ArticlesReview() {
                             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                                 <div>
                                     <p className="text-sm text-gray-700">
-                                        第 <span className="font-medium">{currentPage}</span> 页，共 <span className="font-medium">{totalPages}</span> 页
+                                        显示第 <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> 到 <span className="font-medium">{Math.min(currentPage * pageSize, totalPages * pageSize)}</span> 条结果，共 <span className="font-medium">{totalPages * pageSize}</span> 条
                                     </p>
                                 </div>
                                 <div>
                                     <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                                         <button
-                                            onClick={() => handlePageChange(currentPage - 1)}
+                                            onClick={() => handlePageChange(1)}
                                             disabled={currentPage === 1}
                                             className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                                        >
+                                            <span className="sr-only">首页</span>
+                                            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414zm-6 0a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L5.414 10l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+
+                                        <button
+                                            onClick={() => handlePageChange(currentPage - 1)}
+                                            disabled={currentPage === 1}
+                                            className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
                                         >
                                             <span className="sr-only">上一页</span>
                                             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -274,31 +338,61 @@ export default function ArticlesReview() {
                                             </svg>
                                         </button>
 
-                                        {[...Array(totalPages)].map((_, i) => {
-                                            const page = i + 1;
-                                            return (
+                                        {(() => {
+                                            const delta = 2;
+                                            const range = [];
+                                            for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+                                                range.push(i);
+                                            }
+
+                                            if (currentPage - delta > 2) {
+                                                range.unshift('...');
+                                            }
+                                            if (currentPage + delta < totalPages - 1) {
+                                                range.push('...');
+                                            }
+
+                                            return [
+                                                1,
+                                                ...range,
+                                                totalPages
+                                            ].map((page, index) => (
                                                 <button
-                                                    key={page}
-                                                    onClick={() => handlePageChange(page)}
+                                                    key={index}
+                                                    onClick={() => typeof page === 'number' && handlePageChange(page)}
+                                                    disabled={page === '...' || page === currentPage}
                                                     className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                                                        currentPage === page
+                                                        page === currentPage
                                                             ? 'z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
-                                                            : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'
+                                                            : page === '...'
+                                                                ? 'text-gray-700'
+                                                                : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'
                                                     }`}
                                                 >
                                                     {page}
                                                 </button>
-                                            );
-                                        })}
+                                            ));
+                                        })()}
 
                                         <button
                                             onClick={() => handlePageChange(currentPage + 1)}
                                             disabled={currentPage === totalPages}
-                                            className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                                            className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
                                         >
                                             <span className="sr-only">下一页</span>
                                             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                                 <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+
+                                        <button
+                                            onClick={() => handlePageChange(totalPages)}
+                                            disabled={currentPage === totalPages}
+                                            className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                                        >
+                                            <span className="sr-only">末页</span>
+                                            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414zm6 0a1 1 0 011.414 0l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414-1.414L14.586 10l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
                                             </svg>
                                         </button>
                                     </nav>

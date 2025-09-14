@@ -13,7 +13,8 @@
             a.excerpt,
             a.create_time,
             a.tag,
-            a.category
+            a.category,
+            a.status
         FROM article a
         WHERE a.status = 3
         ORDER BY a.create_time DESC
@@ -40,4 +41,28 @@
         SET status = #{status}
         WHERE article_id = #{article_id}
     </update>
+
+    <!-- 获取所有文章列表（用于审核全部文章） -->
+    <select id="selectAllArticles" resultType="xyz.lingview.dimstack.dto.ArticleReviewDTO">
+        SELECT
+            a.article_id,
+            a.article_name,
+            a.uuid,
+            a.excerpt,
+            a.create_time,
+            a.tag,
+            a.category,
+            a.status
+        FROM article a
+        WHERE a.status IN (1, 2, 3, 4)
+        ORDER BY a.create_time DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <!-- 统计所有可审核文章数量 -->
+    <select id="countAllArticles" resultType="int">
+        SELECT COUNT(*)
+        FROM article
+        WHERE status IN (1, 2, 3, 4)
+    </select>
 </mapper>

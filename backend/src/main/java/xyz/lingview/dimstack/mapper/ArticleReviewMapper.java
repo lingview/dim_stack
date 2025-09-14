@@ -16,4 +16,11 @@ public interface ArticleReviewMapper {
     Article selectArticleById(@Param("article_id") String articleId);
 
     void updateArticleStatus(@Param("article_id") String articleId, @Param("status") Byte status);
+
+    // 审核已发布的文章
+    List<ArticleReviewDTO> selectAllArticles(@Param("offset") int offset, @Param("size") int size);
+
+    int countAllArticles();
+
+
 }

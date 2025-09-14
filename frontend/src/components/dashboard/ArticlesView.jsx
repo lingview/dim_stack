@@ -1,7 +1,61 @@
 import { Plus, Edit, Trash2, EyeOff, Send } from 'lucide-react';
 import apiClient from "../../utils/axios.jsx";
+import React, { useState, useEffect } from 'react';
 
-export default function ArticlesView({ onNewArticle, articles, onEditArticle }) {
+export default function ArticlesView({ onNewArticle, onEditArticle, articles: externalArticles, shouldRefresh, setShouldRefresh }) {
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize] = useState(10);
+    const [totalArticles, setTotalArticles] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [localArticles, setLocalArticles] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchArticles(currentPage, pageSize);
+    }, [currentPage, pageSize]);
+
+    useEffect(() => {
+        if (shouldRefresh) {
+            fetchArticles(currentPage, pageSize);
+            setShouldRefresh(false);
+        }
+    }, [shouldRefresh, currentPage, pageSize, setShouldRefresh]);
+
+    useEffect(() => {
+        if (externalArticles && Array.isArray(externalArticles.articles)) {
+            setLocalArticles(externalArticles.articles);
+            setTotalArticles(externalArticles.total || 0);
+            setTotalPages(externalArticles.totalPages || Math.ceil((externalArticles.total || 0) / (externalArticles.size || pageSize)));
+            setLoading(false);
+        }
+    }, [externalArticles]);
+
+    const fetchArticles = async (page, size) => {
+        setLoading(true);
+        try {
+            const response = await apiClient.get('/getarticlelist', {
+                params: { page, size }
+            });
+
+            if (response.success && response.data) {
+                setLocalArticles(response.data.articles || []);
+                setTotalArticles(response.data.total || 0);
+                setTotalPages(response.data.totalPages || Math.ceil((response.data.total || 0) / size));
+            } else {
+                setLocalArticles([]);
+                setTotalArticles(0);
+                setTotalPages(0);
+            }
+        } catch (error) {
+            console.error('获取文章列表失败:', error);
+            setLocalArticles([]);
+            setTotalArticles(0);
+            setTotalPages(0);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const escapeHtml = (unsafe) => {
         if (!unsafe) return unsafe;
 
@@ -62,34 +116,10 @@ export default function ArticlesView({ onNewArticle, articles, onEditArticle }) 
         }
     };
 
-    // 按日期排序文章（最新的在最上面）
-    const sortArticlesByDate = (articles) => {
-        if (!articles || !Array.isArray(articles)) return [];
-
-        return [...articles].sort((a, b) => {
-            if (!a.create_time && !b.create_time) return 0;
-            if (!a.create_time) return 1;
-            if (!b.create_time) return -1;
-
-            const dateA = new Date(a.create_time).getTime();
-            const dateB = new Date(b.create_time).getTime();
-
-            return dateB - dateA;
-        });
+    const handlePageChange = (newPage) => {
+        if (newPage < 1 || newPage > totalPages) return;
+        setCurrentPage(newPage);
     };
-
-    const processArticlesForDisplay = (articles) => {
-        if (!articles || !Array.isArray(articles)) return [];
-
-        return articles.map(article => ({
-            ...article,
-            article_name: escapeHtml(article.article_name) || '无标题',
-            author_name: escapeHtml(article.author_name) || '未知作者'
-        }));
-    };
-
-    const processedArticles = processArticlesForDisplay(articles);
-    const sortedArticles = sortArticlesByDate(processedArticles);
 
     const handleDeleteArticle = async (articleId) => {
         if (!window.confirm('确定要删除这篇文章吗？')) {
@@ -101,7 +131,7 @@ export default function ArticlesView({ onNewArticle, articles, onEditArticle }) 
 
             if (response.success) {
                 alert('文章删除成功');
-                window.location.reload();
+                fetchArticles(currentPage, pageSize);
             } else {
                 alert(response.message || '删除失败');
             }
@@ -121,7 +151,7 @@ export default function ArticlesView({ onNewArticle, articles, onEditArticle }) 
 
             if (response.success) {
                 alert('文章已取消发布');
-                window.location.reload();
+                fetchArticles(currentPage, pageSize);
             } else {
                 alert(response.message || '取消发布失败');
             }
@@ -141,7 +171,7 @@ export default function ArticlesView({ onNewArticle, articles, onEditArticle }) 
 
             if (response.success) {
                 alert('文章已发布');
-                window.location.reload();
+                fetchArticles(currentPage, pageSize);
             } else {
                 alert(response.message || '发布失败');
             }
@@ -150,6 +180,26 @@ export default function ArticlesView({ onNewArticle, articles, onEditArticle }) 
             alert('发布文章时出错');
         }
     };
+
+    if (loading) {
+        return (
+            <div className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-xl font-semibold text-gray-900">文章管理</h2>
+                    <button
+                        onClick={onNewArticle}
+                        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                    >
+                        <Plus className="h-4 w-4 mr-1" />
+                        新建文章
+                    </button>
+                </div>
+                <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white rounded-lg shadow-sm p-6">
@@ -180,14 +230,14 @@ export default function ArticlesView({ onNewArticle, articles, onEditArticle }) 
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             状态
                         </th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             操作
                         </th>
                     </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                    {sortedArticles && sortedArticles.length > 0 ? (
-                        sortedArticles.map((article, index) => {
+                    {localArticles && localArticles.length > 0 ? (
+                        localArticles.map((article, index) => {
                             if (!article) return null;
 
                             return (
@@ -206,39 +256,41 @@ export default function ArticlesView({ onNewArticle, articles, onEditArticle }) 
                                             {getStatusLabel(article.status)}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button
-                                            onClick={() => onEditArticle(article.article_id)}
-                                            className="text-blue-600 hover:text-blue-900 mr-3 flex items-center"
-                                        >
-                                            <Edit className="h-4 w-4 mr-1" />
-                                            编辑
-                                        </button>
-                                        {article.status === 1 && (
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm text-gray-500">
                                             <button
-                                                onClick={() => handleUnpublishArticle(article.article_id)}
-                                                className="text-yellow-600 hover:text-yellow-900 mr-3 flex items-center"
+                                                onClick={() => onEditArticle(article.article_id)}
+                                                className="text-blue-600 hover:text-blue-900 flex items-center"
                                             >
-                                                <EyeOff className="h-4 w-4 mr-1" />
-                                                取消发布
+                                                <Edit className="h-4 w-4 mr-1" />
+                                                编辑
                                             </button>
-                                        )}
-                                        {article.status === 2 && (
+                                            {article.status === 1 && (
+                                                <button
+                                                    onClick={() => handleUnpublishArticle(article.article_id)}
+                                                    className="text-yellow-600 hover:text-yellow-900 flex items-center"
+                                                >
+                                                    <EyeOff className="h-4 w-4 mr-1" />
+                                                    取消发布
+                                                </button>
+                                            )}
+                                            {article.status === 2 && (
+                                                <button
+                                                    onClick={() => handlePublishArticle(article.article_id)}
+                                                    className="text-green-600 hover:text-green-900 flex items-center"
+                                                >
+                                                    <Send className="h-4 w-4 mr-1" />
+                                                    发布
+                                                </button>
+                                            )}
                                             <button
-                                                onClick={() => handlePublishArticle(article.article_id)}
-                                                className="text-green-600 hover:text-green-900 mr-3 flex items-center"
+                                                onClick={() => handleDeleteArticle(article.article_id)}
+                                                className="text-red-600 hover:text-red-900 flex items-center"
                                             >
-                                                <Send className="h-4 w-4 mr-1" />
-                                                发布
+                                                <Trash2 className="h-4 w-4 mr-1" />
+                                                删除
                                             </button>
-                                        )}
-                                        <button
-                                            onClick={() => handleDeleteArticle(article.article_id)}
-                                            className="text-red-600 hover:text-red-900 flex items-center"
-                                        >
-                                            <Trash2 className="h-4 w-4 mr-1" />
-                                            删除
-                                        </button>
+                                        </div>
                                     </td>
                                 </tr>
                             );
@@ -253,6 +305,117 @@ export default function ArticlesView({ onNewArticle, articles, onEditArticle }) 
                     </tbody>
                 </table>
             </div>
+
+            {totalPages > 1 && (
+                <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4">
+                    <div className="flex flex-1 justify-between sm:hidden">
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                            上一页
+                        </button>
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                            下一页
+                        </button>
+                    </div>
+                    <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                        <div>
+                            <p className="text-sm text-gray-700">
+                                显示第 <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> 到 <span className="font-medium">{Math.min(currentPage * pageSize, totalArticles)}</span> 条结果，共 <span className="font-medium">{totalArticles}</span> 条
+                            </p>
+                        </div>
+                        <div>
+                            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                                <button
+                                    onClick={() => handlePageChange(1)}
+                                    disabled={currentPage === 1}
+                                    className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                                >
+                                    <span className="sr-only">首页</span>
+                                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414zm-6 0a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L5.414 10l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                                    </svg>
+                                </button>
+
+                                <button
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                                >
+                                    <span className="sr-only">上一页</span>
+                                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+                                    </svg>
+                                </button>
+
+                                {(() => {
+                                    const delta = 2;
+                                    const range = [];
+                                    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+                                        range.push(i);
+                                    }
+
+                                    if (currentPage - delta > 2) {
+                                        range.unshift('...');
+                                    }
+                                    if (currentPage + delta < totalPages - 1) {
+                                        range.push('...');
+                                    }
+
+                                    return [
+                                        1,
+                                        ...range,
+                                        totalPages
+                                    ].map((page, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => typeof page === 'number' && handlePageChange(page)}
+                                            disabled={page === '...' || page === currentPage}
+                                            className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                                                page === currentPage
+                                                    ? 'z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                                                    : page === '...'
+                                                        ? 'text-gray-700'
+                                                        : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'
+                                            }`}
+                                        >
+                                            {page}
+                                        </button>
+                                    ));
+                                })()}
+
+                                <button
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                    className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                                >
+                                    <span className="sr-only">下一页</span>
+                                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                                    </svg>
+                                </button>
+
+                                <button
+                                    onClick={() => handlePageChange(totalPages)}
+                                    disabled={currentPage === totalPages}
+                                    className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                                >
+                                    <span className="sr-only">末页</span>
+                                    <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414zm6 0a1 1 0 011.414 0l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414-1.414L14.586 10l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                                    </svg>
+                                </button>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

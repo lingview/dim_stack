@@ -41,4 +41,12 @@ public class ArticleReviewController {
         Byte status = ((Integer) request.get("status")).byteValue();
         return articleReviewService.updateArticleStatus(articleId, status);
     }
+
+    // 获取所有文章列表（用于审核全部文章）
+    @GetMapping("/getallarticles")
+    @RequiresPermission("post:review")
+    public Map<String, Object> getAllArticles(@RequestParam(defaultValue = "1") Integer page,
+                                              @RequestParam(defaultValue = "10") Integer size) {
+        return articleReviewService.getAllArticles(page, size);
+    }
 }

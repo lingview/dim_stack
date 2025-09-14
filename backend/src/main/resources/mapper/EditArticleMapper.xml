@@ -4,7 +4,7 @@
 
 <mapper namespace="xyz.lingview.dimstack.mapper.EditArticleMapper">
 
-    <select id="getArticleListByUuid" parameterType="string" resultType="xyz.lingview.dimstack.dto.EditArticleDTO">
+    <select id="getArticleListByUuid" resultType="xyz.lingview.dimstack.dto.EditArticleDTO">
         SELECT
             a.article_id as article_id,
             a.article_name as article_name,
@@ -14,6 +14,14 @@
             a.status
         FROM article a
         JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.uuid = #{uuid} AND a.status != 0
+        ORDER BY a.create_time DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countArticlesByUuid" parameterType="string" resultType="int">
+        SELECT COUNT(*)
+        FROM article a
         WHERE a.uuid = #{uuid} AND a.status != 0
     </select>
 
@@ -40,7 +48,6 @@
         FROM user_information
         WHERE username = #{username}
     </select>
-
 
     <!-- 根据文章id获取用户uuid -->
     <select id="getUuidByArticleId" parameterType="string" resultType="string">
@@ -71,7 +78,6 @@
             status = #{status}
         WHERE article_id = #{article_id}
     </update>
-
 
     <!-- 删除文章 -->
     <update id="deleteArticle" parameterType="map">

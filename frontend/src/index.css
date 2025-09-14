@@ -396,3 +396,72 @@
 .dark .markdown-editor-toolbar .heading-menu button:hover {
   background-color: #374151 !important;
 }
+
+
+/* 搜索组件暗色适配 */
+.dark .search-popup {
+  background-color: rgba(31, 41, 55, 0.9) !important;
+  border-color: #4b5563 !important;
+}
+
+.dark .search-input {
+  background-color: rgba(55, 65, 81, 0.8) !important;
+  border-color: #4b5563 !important;
+  color: #f9fafb !important;
+}
+
+.dark .search-input::placeholder {
+  color: #9ca3af !important;
+}
+
+.dark .search-input:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+}
+
+.dark .search-result-item {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+.dark .search-result-item:hover {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.dark .search-result-title {
+  color: #f9fafb !important;
+}
+
+.dark .search-result-excerpt {
+  color: #d1d5db !important;
+}
+
+.dark .search-no-results {
+  color: #9ca3af !important;
+}
+
+.dark .search-no-results svg {
+  opacity: 0.5 !important;
+}
+
+.dark .search-loading {
+  color: #9ca3af !important;
+}
+
+.dark .search-loading-spinner {
+  border-top-color: #3b82f6 !important;
+  border-bottom-color: #3b82f6 !important;
+}
+
+.dark .search-button {
+  color: #d1d5db !important;
+}
+
+.dark .search-button:hover {
+  background-color: #374151 !important;
+}
+
+.dark .search-overlay {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+}

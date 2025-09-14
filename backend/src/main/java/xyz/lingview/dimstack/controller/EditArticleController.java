@@ -32,7 +32,10 @@ public class EditArticleController {
 
     @GetMapping("/getarticlelist")
     @RequiresPermission("post:create")
-    public ResponseEntity<Map<String, Object>> getArticleList(HttpSession session) {
+    public ResponseEntity<Map<String, Object>> getArticleList(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            HttpSession session) {
         Map<String, Object> response = new HashMap<>();
 
         try {
@@ -44,11 +47,11 @@ public class EditArticleController {
                 return ResponseEntity.ok(response);
             }
 
-            List<EditArticleDTO> articles = editArticleService.getArticleListByUsername(username);
+            Map<String, Object> result = editArticleService.getArticleListByUsername(username, page, size);
 
             response.put("success", true);
             response.put("message", "获取文章列表成功");
-            response.put("data", articles);
+            response.put("data", result);
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
@@ -57,7 +60,6 @@ public class EditArticleController {
             return ResponseEntity.ok(response);
         }
     }
-
 
     // 文章更新
     @PostMapping("/updatearticle")
@@ -84,7 +86,6 @@ public class EditArticleController {
 
             updateArticleDTO.setStatus(articleDefault);
 
-
             boolean result = editArticleService.updateArticle(updateArticleDTO, username);
 
             if (result) {
@@ -103,7 +104,6 @@ public class EditArticleController {
             return ResponseEntity.ok(response);
         }
     }
-
 
     @GetMapping("/getarticle/{articleId}")
     @RequiresPermission("post:create")
@@ -277,8 +277,4 @@ public class EditArticleController {
             return ResponseEntity.ok(response);
         }
     }
-
-
-
-
 }

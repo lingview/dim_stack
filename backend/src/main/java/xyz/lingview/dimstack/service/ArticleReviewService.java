@@ -40,6 +40,26 @@ public class ArticleReviewService {
         return result;
     }
 
+    public Map<String, Object> getAllArticles(Integer page, Integer size) {
+        int offset = (page - 1) * size;
+        List<ArticleReviewDTO> articles = articleReviewMapper.selectAllArticles(offset, size);
+
+        for (ArticleReviewDTO article : articles) {
+            String username = userInformationMapper.getUsernameByUuid(article.getUuid());
+            article.setAuthor_name(username);
+        }
+
+        int total = articleReviewMapper.countAllArticles();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("articles", articles);
+        result.put("total", total);
+        result.put("page", page);
+        result.put("size", size);
+        result.put("totalPages", (int) Math.ceil((double) total / size));
+        return result;
+    }
+
     public Article getArticleContent(String articleId) {
         return articleReviewMapper.selectArticleById(articleId);
     }

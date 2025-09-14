@@ -69,7 +69,7 @@ export default function Search() {
         <div className="relative">
             <button
                 onClick={toggleSearch}
-                className="p-2 rounded-full hover:bg-gray-100 transition-all duration-200 ease-in-out text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="search-button p-2 rounded-full hover:bg-gray-100 transition-all duration-200 ease-in-out text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 aria-label="打开搜索"
             >
                 <svg
@@ -90,7 +90,7 @@ export default function Search() {
 
             {isSearchOpen && (
                 <>
-                    <div className="absolute right-0 mt-2 w-96 bg-white/90 backdrop-blur-md shadow-xl rounded-xl z-50 border border-gray-200">
+                    <div className="search-popup absolute right-0 mt-2 w-96 bg-white/90 backdrop-blur-md shadow-xl rounded-xl z-50 border border-gray-200">
                         <div className="p-4">
                             <form onSubmit={(e) => e.preventDefault()} className="relative">
                                 <input
@@ -98,8 +98,8 @@ export default function Search() {
                                     type="text"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    placeholder="搜索文章、笔记..."
-                                    className="w-full px-5 py-3 pl-12 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 text-gray-800 transition-all duration-200"
+                                    placeholder="搜索文章..."
+                                    className="search-input w-full px-5 py-3 pl-12 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/80 text-gray-800 transition-all duration-200"
                                 />
                                 <svg
                                     className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400"
@@ -120,8 +120,8 @@ export default function Search() {
                             {isLoading && (
                                 <div className="flex justify-center py-6">
                                     <div className="flex items-center space-x-2">
-                                        <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-blue-500"></div>
-                                        <span className="text-sm text-gray-500">搜索中...</span>
+                                        <div className="search-loading-spinner animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-blue-500"></div>
+                                        <span className="search-loading text-sm text-gray-500">搜索中...</span>
                                     </div>
                                 </div>
                             )}
@@ -133,11 +133,11 @@ export default function Search() {
                                             key={article.id}
                                             href={`/article/${article.alias}`}
                                             onClick={handleResultClick}
-                                            className="block p-3 rounded-xl hover:bg-blue-50 transition-all duration-150 border border-transparent hover:border-blue-100"
+                                            className="search-result-item block p-3 rounded-xl hover:bg-blue-50 transition-all duration-150 border border-transparent hover:border-blue-100"
                                         >
-                                            <h3 className="font-semibold text-gray-800 line-clamp-1">{article.title}</h3>
+                                            <h3 className="search-result-title font-semibold text-gray-800 line-clamp-1">{article.title}</h3>
                                             {article.excerpt && (
-                                                <p className="text-sm text-gray-500 mt-1 line-clamp-2 leading-tight">
+                                                <p className="search-result-excerpt text-sm text-gray-500 mt-1 line-clamp-2 leading-tight">
                                                     {article.excerpt}
                                                 </p>
                                             )}
@@ -147,7 +147,7 @@ export default function Search() {
                             )}
 
                             {!isLoading && searchTerm && searchResults.length === 0 && (
-                                <div className="py-8 text-center text-gray-500 flex flex-col items-center">
+                                <div className="search-no-results py-8 text-center text-gray-500 flex flex-col items-center">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         className="h-8 w-8 opacity-50 mb-2"
@@ -169,7 +169,7 @@ export default function Search() {
                     </div>
 
                     <div
-                        className="fixed inset-0 bg-black/20 z-40 backdrop-blur-sm transition-opacity duration-200"
+                        className="search-overlay fixed inset-0 bg-black/20 z-40 backdrop-blur-sm transition-opacity duration-200"
                         onClick={() => setIsSearchOpen(false)}
                     ></div>
                 </>
