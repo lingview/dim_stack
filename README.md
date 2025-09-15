@@ -51,9 +51,9 @@
 >
 > 演示站：[https://apilinks.cn/](https://apilinks.cn/)
 >
-> 用户名：自己注册
+> 用户名：admin
 >
-> 密码：自己设置
+> 密码：123456
 >
 
 
@@ -251,7 +251,14 @@ server {
 > dim_stack.sql这个文件导入创建的数据库
 >
 
-### 3.启动系统
+
+
+### 3.安装Redis
+下载5+版本的redis双击redis-server启动即可，linux系统无需多言hhh
+
+![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1757926976965-b1e553e4-fe94-441e-8954-a9fdd6c73d33.png)
+
+### 4.启动系统
 ```yaml
 java -jar dim_stack.jar
 ```
