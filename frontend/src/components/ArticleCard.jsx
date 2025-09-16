@@ -18,7 +18,7 @@ const safeTruncate = (text, maxLength) => {
     return escapedText.length > maxLength ? escapedText.slice(0, maxLength) + "..." : escapedText;
 };
 
-export default function ArticleCard({ article }) {
+export default function ArticleCard({ article, showImage = true }) {
     const safeArticle = {
         ...article,
         title: escapeHtml(article.title) || '',
@@ -51,34 +51,34 @@ export default function ArticleCard({ article }) {
         if (!dateString) return '';
         const date = new Date(dateString);
         return date.getFullYear() + '-' +
-               String(date.getMonth() + 1).padStart(2, '0') + '-' +
-               String(date.getDate()).padStart(2, '0');
+            String(date.getMonth() + 1).padStart(2, '0') + '-' +
+            String(date.getDate()).padStart(2, '0');
     };
 
     const imageUrl = getFullImageUrl(article.image);
 
     return (
-        <article className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col">
-            {/* 头图 */}
-            <img
-                className="w-full h-48 object-cover"
-                src={imageUrl || '/image_error.svg'}
-                alt={safeArticle.title}
-                onError={(e) => {
-                    e.target.src = '/image_error.svg';
-                }}
-            />
+        <article className="relative group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col">
+            {showImage && (
+                <div className="block overflow-hidden h-48 w-full">
+                    <img
+                        className="w-full h-full object-cover transform transition-transform duration-500 ease-in-out group-hover:scale-105"
+                        src={imageUrl || '/image_error.svg'}
+                        alt={safeArticle.title}
+                        onError={(e) => {
+                            e.currentTarget.src = '/image_error.svg';
+                        }}
+                    />
+                </div>
+            )}
 
-            {/* 内容区 */}
             <div className="p-6 flex flex-col flex-1">
                 <div className="flex items-center text-sm text-gray-500 mb-3">
                     <span>{formatDate(safeArticle.date)}</span>
                 </div>
 
                 <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors duration-200">
-                    <Link to={`/article/${safeArticle.alias}`}>
-                        {safeTruncate(safeArticle.title, 30)}
-                    </Link>
+                    <span className="no-underline">{safeTruncate(safeArticle.title, 30)}</span>
                 </h2>
 
                 <p className="text-gray-600 mb-4 flex-1">
@@ -92,6 +92,14 @@ export default function ArticleCard({ article }) {
                     </span>
                 </div>
             </div>
+
+            <Link
+                to={`/article/${safeArticle.alias}`}
+                className="absolute inset-0 z-10"
+                aria-label={`阅读：${safeArticle.title}`}
+            >
+                <span className="sr-only">阅读 {safeArticle.title}</span>
+            </Link>
         </article>
     );
 }

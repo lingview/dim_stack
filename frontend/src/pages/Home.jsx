@@ -15,8 +15,16 @@ export default function Home() {
     const [totalPages, setTotalPages] = useState(0);
     const [copyright, setCopyright] = useState('© 2025 次元栈 - Dim Stack. All rights reserved.');
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [showImages, setShowImages] = useState(true);
     const { categoryName } = useParams();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const savedShowImages = localStorage.getItem('showImages');
+        if (savedShowImages !== null) {
+            setShowImages(JSON.parse(savedShowImages));
+        }
+    }, []);
 
     useEffect(() => {
         setSelectedCategory(categoryName || null);
@@ -27,6 +35,10 @@ export default function Home() {
         loadArticles();
         loadCopyright();
     }, [page, selectedCategory]);
+
+    useEffect(() => {
+        localStorage.setItem('showImages', JSON.stringify(showImages));
+    }, [showImages]);
 
     const loadArticles = async () => {
         try {
@@ -72,6 +84,10 @@ export default function Home() {
         setPage(1);
     };
 
+    const toggleImageDisplay = () => {
+        setShowImages(!showImages);
+    };
+
     return (
         <div className="flex bg-gray-50 flex-col min-h-screen">
             <Header />
@@ -87,14 +103,23 @@ export default function Home() {
                                     <h2 className="text-2xl font-bold text-gray-900 transition-colors duration-200 dark:text-white">
                                         {selectedCategory ? `${selectedCategory} 分类文章` : '最新文章'}
                                     </h2>
-                                    {selectedCategory && (
+                                    <div className="flex items-center space-x-4">
                                         <button
-                                            onClick={handleClearCategory}
-                                            className="text-sm text-blue-600 hover:text-blue-800"
+                                            onClick={toggleImageDisplay}
+                                            className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                                         >
-                                            清除筛选
+                                            {showImages ? '隐藏图片' : '显示图片'}
                                         </button>
-                                    )}
+
+                                        {selectedCategory && (
+                                            <button
+                                                onClick={handleClearCategory}
+                                                className="text-sm text-blue-600 hover:text-blue-800"
+                                            >
+                                                清除筛选
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {loading ? (
@@ -102,7 +127,11 @@ export default function Home() {
                                 ) : articles.length > 0 ? (
                                     <div className="grid md:grid-cols-3 gap-6">
                                         {articles.map((article) => (
-                                            <ArticleCard key={article.id} article={article} />
+                                            <ArticleCard
+                                                key={article.id}
+                                                article={article}
+                                                showImage={showImages} // 传递图片显示控制属性
+                                            />
                                         ))}
                                     </div>
                                 ) : (
