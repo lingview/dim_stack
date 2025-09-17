@@ -180,8 +180,8 @@ const CommentSection = ({ articleAlias }) => {
           </div>
 
           {/* 评论内容 */}
-          <div className="flex-1">
-            <div className="bg-gray-100  rounded-lg p-3">
+          <div className="flex-1 min-w-0"> {/* 添加 min-w-0 防止 flex 项目溢出 */}
+            <div className="bg-gray-100 rounded-lg p-3">
               <div className="flex items-center">
                 <span className="font-medium text-gray-900 text-sm">
                   {comment.username || '匿名用户'}
@@ -197,7 +197,7 @@ const CommentSection = ({ articleAlias }) => {
                 </span>
               </div>
 
-              <p className="mt-1 text-gray-700 text-sm">
+              <p className="mt-1 text-gray-700 text-sm break-words whitespace-pre-wrap overflow-hidden">
                 {comment.content}
               </p>
             </div>
@@ -241,7 +241,7 @@ const CommentSection = ({ articleAlias }) => {
                     onChange={(e) => setReplyContent(e.target.value)}
                     onKeyDown={(e) => handleReplyCommentKeyDown(e, comment.comment_id)}
                     placeholder={`回复 ${comment.username}...`}
-                    className="w-full border border-gray-300  rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none pr-20"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none pr-20"
                     rows="3"
                   />
                   <div className="absolute bottom-2 right-2 flex space-x-1">
@@ -254,7 +254,7 @@ const CommentSection = ({ articleAlias }) => {
                     </button>
                     <button
                       onClick={() => setReplyingTo(null)}
-                      className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300 "
+                      className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300"
                     >
                       取消
                     </button>
@@ -299,7 +299,7 @@ const CommentSection = ({ articleAlias }) => {
             )}
           </div>
 
-          <div className="flex-1">
+          <div className="flex-1 min-w-0"> {/* 添加 min-w-0 防止 flex 项目溢出 */}
             <div className="flex items-center">
               <span className="font-medium text-gray-900">
                 {comment.username || '匿名用户'}
@@ -310,7 +310,7 @@ const CommentSection = ({ articleAlias }) => {
               </span>
             </div>
 
-            <p className="mt-1 text-gray-700 ">
+            <p className="mt-1 text-gray-700 break-words whitespace-pre-wrap overflow-hidden">
               {comment.content}
             </p>
             <div className="mt-2 flex items-center space-x-4">
@@ -352,7 +352,7 @@ const CommentSection = ({ articleAlias }) => {
                     onChange={(e) => setReplyContent(e.target.value)}
                     onKeyDown={(e) => handleReplyCommentKeyDown(e, comment.comment_id)}
                     placeholder={`回复 ${comment.username}...`}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent  resize-none pr-20"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none pr-20"
                     rows="3"
                   />
                   <div className="absolute bottom-2 right-2 flex space-x-1">
@@ -389,8 +389,8 @@ const CommentSection = ({ articleAlias }) => {
   };
 
   return (
-    <div className="mt-10 bg-white  rounded-lg shadow p-6">
-      <h2 className="text-xl font-bold text-gray-900  mb-6">评论</h2>
+    <div className="mt-10 bg-white rounded-lg shadow p-6">
+      <h2 className="text-xl font-bold text-gray-900 mb-6">评论</h2>
 
       <form onSubmit={handleAddComment} className="mb-8">
         <div className="relative">
@@ -406,7 +406,7 @@ const CommentSection = ({ articleAlias }) => {
             <button
               type="button"
               onClick={() => setNewComment('')}
-              className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300 "
+              className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-300"
             >
               清空
             </button>
