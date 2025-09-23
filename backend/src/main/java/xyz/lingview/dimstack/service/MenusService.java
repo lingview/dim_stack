@@ -1,7 +1,7 @@
 package xyz.lingview.dimstack.service;
 
 import xyz.lingview.dimstack.domain.Menus;
-import xyz.lingview.dimstack.dto.MenusDTO;
+import xyz.lingview.dimstack.dto.request.MenusDTO;
 import java.util.List;
 
 public interface MenusService {

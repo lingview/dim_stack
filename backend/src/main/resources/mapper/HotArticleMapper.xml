@@ -6,7 +6,7 @@
 
 
     <!-- 查询阅读量最高的10篇文章 -->
-    <select id="selectHotArticles" resultType="xyz.lingview.dimstack.dto.HotArticleDTO">
+    <select id="selectHotArticles" resultType="xyz.lingview.dimstack.dto.request.HotArticleDTO">
         SELECT
         a.id,
         a.article_id,

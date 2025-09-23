@@ -5,18 +5,24 @@ import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.domain.Login;
+import xyz.lingview.dimstack.dto.request.LoginDTO;
+import xyz.lingview.dimstack.dto.response.LoginResponseDTO;
+import xyz.lingview.dimstack.dto.response.LogoutResponseDTO;
 import xyz.lingview.dimstack.mapper.LoginMapper;
 import xyz.lingview.dimstack.util.CaptchaUtil;
 import xyz.lingview.dimstack.util.PasswordUtil;
+import xyz.lingview.dimstack.common.ApiResponse;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-
+/**
+ * @Auther: lingview
+ * @Date: 2025/08/26 22:57:54
+ * @Description: 用户登录控制器
+ */
 @Slf4j
 @CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 @RestController
@@ -32,32 +38,46 @@ public class LoginController {
     private static final String CAPTCHA_PREFIX = "captcha_";
     private static final String SESSION_CAPTCHA_KEY_ATTR = "captchaKey";
 
+    /**
+     * 用户登录接口
+     *
+     * @param loginDTO 包含登录所需信息的请求体，必须包含以下字段：
+     *                 - username: 用户名（非空）
+     *                 - password: 密码（非空）
+     *                 - captcha: 验证码（非空）
+     *                 - captchaKey: 验证码标识符（非空）
+     * @param httpRequest HTTP请求对象，用于创建新的会话
+     * @param session     当前会话对象，用于验证验证码和管理用户会话
+     * @return ApiResponse<LoginResponseDTO> 登录结果响应：
+     *         - 成功：状态码200，返回包含"success": true和"message": "登录成功"的JSON数据
+     *         - 失败：根据具体错误返回相应状态码和错误信息：
+     *           - 400：请求参数验证失败（如用户名、密码或验证码为空）
+     *           - 401：用户名或密码错误
+     *           - 500：服务器内部错误
+     */
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(
-            @RequestBody Map<String, Object> requestData,
+    public ApiResponse<LoginResponseDTO> login(
+            @RequestBody LoginDTO loginDTO,
             HttpServletRequest httpRequest,
             HttpSession session) {
 
-        Map<String, Object> response = new HashMap<>();
-        Map<String, Object> data = new HashMap<>();
-
         try {
-            String username = (String) requestData.get("username");
-            String password = (String) requestData.get("password");
-            String captcha = (String) requestData.get("captcha");
-            String captchaKey = (String) requestData.get("captchaKey");
+            String username = loginDTO.getUsername();
+            String password = loginDTO.getPassword();
+            String captcha = loginDTO.getCaptcha();
+            String captchaKey = loginDTO.getCaptchaKey();
 
             if (username == null || username.trim().isEmpty()) {
-                return errorResponse("用户名不能为空");
+                return ApiResponse.error(400, "用户名不能为空");
             }
             if (password == null || password.isEmpty()) {
-                return errorResponse("密码不能为空");
+                return ApiResponse.error(400, "密码不能为空");
             }
             if (captcha == null || captcha.isEmpty()) {
-                return errorResponse("验证码不能为空");
+                return ApiResponse.error(400, "验证码不能为空");
             }
             if (captchaKey == null || captchaKey.isEmpty()) {
-                return errorResponse("验证码无效");
+                return ApiResponse.error(400, "验证码无效");
             }
 
             String sessionCaptchaKey = (String) session.getAttribute(SESSION_CAPTCHA_KEY_ATTR);
@@ -68,7 +88,7 @@ public class LoginController {
 
             if (sessionCaptchaKey == null || !sessionCaptchaKey.equals(captchaKey)) {
                 log.warn("验证码 key 不匹配 - Session: {}, 请求: {}", sessionCaptchaKey, captchaKey);
-                return errorResponse("验证码无效或已过期，请重新获取");
+                return ApiResponse.error(400, "验证码无效或已过期，请重新获取");
             }
 
             String redisCaptchaKey = CAPTCHA_PREFIX + captchaKey;
@@ -77,13 +97,13 @@ public class LoginController {
             if (redisCaptcha == null) {
                 log.warn("Redis 中无验证码 - key: {}", redisCaptchaKey);
                 cleanUpCaptcha(session, redisCaptchaKey);
-                return errorResponse("验证码已过期，请重新获取");
+                return ApiResponse.error(400, "验证码已过期，请重新获取");
             }
 
             if (!CaptchaUtil.validateCaptcha(redisCaptcha, captcha)) {
                 log.warn("验证码错误 - 输入: {}, 正确: {}", captcha, redisCaptcha);
                 cleanUpCaptcha(session, redisCaptchaKey);
-                return errorResponse("验证码错误");
+                return ApiResponse.error(400, "验证码错误");
             }
 
             cleanUpCaptcha(session, redisCaptchaKey);
@@ -95,11 +115,11 @@ public class LoginController {
 
             Login result = loginMapper.loginUser(login);
             if (result == null) {
-                return unauthorizedResponse("用户名或密码错误");
+                return ApiResponse.error(401, "用户名或密码错误");
             }
 
             if (!PasswordUtil.checkPassword(password, result.getPassword())) {
-                return unauthorizedResponse("用户名或密码错误");
+                return ApiResponse.error(401, "用户名或密码错误");
             }
 
             session.invalidate();
@@ -110,43 +130,35 @@ public class LoginController {
 
             log.info("用户 {} 登录成功，新 Session ID: {}", username, newSession.getId());
 
-            data.put("success", true);
-            data.put("message", "登录成功");
-            response.put("data", data);
-            return ResponseEntity.ok(response);
+            LoginResponseDTO data = new LoginResponseDTO();
+            data.setSuccess(true);
+            data.setMessage("登录成功");
+            return ApiResponse.success(data);
 
         } catch (Exception e) {
             log.error("登录过程发生未知错误", e);
-            data.put("success", false);
-            data.put("message", "登录失败，请稍后再试");
-            response.put("data", data);
-            return ResponseEntity.status(500).body(response);
+            return ApiResponse.error(500, "登录失败，请稍后再试");
         }
     }
 
+    /**
+     * 用户登出接口
+     *
+     * @param session 当前用户的会话对象
+     * @return ApiResponse<LogoutResponseDTO> 登出结果响应：
+     *         - 状态码200，返回包含"success": true和"message": "登出成功"的JSON数据
+     */
     @PostMapping("/logout")
-    public ResponseEntity<Map<String, Object>> logout(HttpSession session) {
+    public ApiResponse<LogoutResponseDTO> logout(HttpSession session) {
         String username = (String) session.getAttribute("username");
         session.invalidate();
         log.info("用户 {} 登出成功", username);
 
-        Map<String, Object> data = Map.of("success", true, "message", "登出成功");
-        Map<String, Object> response = Map.of("data", data);
-        return ResponseEntity.ok(response);
+        LogoutResponseDTO data = new LogoutResponseDTO();
+        data.setSuccess(true);
+        data.setMessage("登出成功");
+        return ApiResponse.success(data);
     }
-
-    private ResponseEntity<Map<String, Object>> errorResponse(String message) {
-        Map<String, Object> data = Map.of("success", false, "message", message);
-        Map<String, Object> response = Map.of("data", data);
-        return ResponseEntity.badRequest().body(response);
-    }
-
-    private ResponseEntity<Map<String, Object>> unauthorizedResponse(String message) {
-        Map<String, Object> data = Map.of("success", false, "message", message);
-        Map<String, Object> response = Map.of("data", data);
-        return ResponseEntity.status(401).body(response);
-    }
-
 
     private void cleanUpCaptcha(HttpSession session, String redisCaptchaKey) {
         try {

@@ -2,8 +2,8 @@ package xyz.lingview.dimstack.service;
 
 import xyz.lingview.dimstack.domain.Role;
 import xyz.lingview.dimstack.domain.UserInformation;
-import xyz.lingview.dimstack.dto.UserDTO;
-import xyz.lingview.dimstack.dto.UserUpdateDTO;
+import xyz.lingview.dimstack.dto.request.UserDTO;
+import xyz.lingview.dimstack.dto.request.UserUpdateDTO;
 
 import java.util.List;
 

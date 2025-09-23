@@ -4,7 +4,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import xyz.lingview.dimstack.domain.Comment;
-import xyz.lingview.dimstack.dto.CommentDTO;
+import xyz.lingview.dimstack.dto.request.CommentDTO;
 import java.util.List;
 
 @Mapper

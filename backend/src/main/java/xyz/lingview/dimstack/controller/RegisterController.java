@@ -1,26 +1,34 @@
 package xyz.lingview.dimstack.controller;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.domain.Register;
+import xyz.lingview.dimstack.dto.request.RegisterDTO;
+import xyz.lingview.dimstack.dto.response.RegisterResponseDTO;
 import xyz.lingview.dimstack.mapper.RegisterMapper;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
 import xyz.lingview.dimstack.util.PasswordUtil;
 import xyz.lingview.dimstack.util.RandomUtil;
 import xyz.lingview.dimstack.util.CaptchaUtil;
 
-import jakarta.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
+/**
+ * @Auther: lingview
+ * @Date: 2025/08/26 22:57:54
+ * @Description: 用户注册控制器
+ */
 @RestController
 @RequestMapping("/api")
 @Slf4j
@@ -35,29 +43,50 @@ public class RegisterController {
     @Autowired
     SiteConfigMapper siteConfigMapper;
 
+    /**
+     * 用户注册接口
+     *
+     * @param requestDTO 包含注册所需信息的请求体，必须包含以下字段：
+     *                    - username: 用户名（非空）
+     *                    - email: 邮箱（可选）
+     *                    - phone: 手机号（可选）
+     *                    - password: 密码（非空）
+     *                    - captcha: 验证码（非空）
+     *                    - captchaKey: 验证码标识符（非空）
+     * @return ResponseEntity<Map<String, Object>> 注册结果响应：
+     *         - 成功：状态码200，返回包含"success": true和"message": "注册成功！"的JSON数据
+     *         - 失败：根据具体错误返回相应状态码和错误信息：
+     *           - 400：请求参数验证失败（如用户名、密码或验证码为空，验证码错误，账号已存在等）
+     *           - 500：服务器内部错误（如系统配置错误、数据库插入失败等）
+     */
     @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> register(@RequestBody Map<String, Object> requestData) {
-        try {
-            String username = (String) requestData.get("username");
-            String email = (String) requestData.get("email");
-            String phone = (String) requestData.get("phone");
-            String password = (String) requestData.get("password");
-            String captcha = (String) requestData.get("captcha");
-            String captchaKey = (String) requestData.get("captchaKey");
+    public ApiResponse<RegisterResponseDTO> register(@RequestBody @Valid RegisterDTO requestDTO, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            String errorMsg = bindingResult.getFieldError().getDefaultMessage();
+            return ApiResponse.error(400, errorMsg);
+        }
 
-            if (isBlank(username)) return fail("用户名不能为空", HttpStatus.BAD_REQUEST);
-            if (isBlank(password)) return fail("密码不能为空", HttpStatus.BAD_REQUEST);
-            if (isBlank(captcha)) return fail("验证码不能为空", HttpStatus.BAD_REQUEST);
-            if (isBlank(captchaKey)) return fail("验证码无效", HttpStatus.BAD_REQUEST);
+        try {
+            String username = requestDTO.getUsername();
+            String email = requestDTO.getEmail();
+            String phone = requestDTO.getPhone();
+            String password = requestDTO.getPassword();
+            String captcha = requestDTO.getCaptcha();
+            String captchaKey = requestDTO.getCaptchaKey();
+
+            if (isBlank(username)) return ApiResponse.error(400, "用户名不能为空");
+            if (isBlank(password)) return ApiResponse.error(400, "密码不能为空");
+            if (isBlank(captcha)) return ApiResponse.error(400, "验证码不能为空");
+            if (isBlank(captchaKey)) return ApiResponse.error(400, "验证码无效");
 
             String redisCaptcha = redisTemplate.opsForValue().get("captcha_" + captchaKey);
             if (redisCaptcha == null) {
-                return fail("验证码已过期，请重新获取", HttpStatus.BAD_REQUEST);
+                return ApiResponse.error(400, "验证码已过期，请重新获取");
             }
 
             if (!CaptchaUtil.validateCaptcha(redisCaptcha, captcha)) {
                 clearCaptcha(captchaKey);
-                return fail("验证码错误", HttpStatus.BAD_REQUEST);
+                return ApiResponse.error(400, "验证码错误");
             }
 
             clearCaptcha(captchaKey);
@@ -66,7 +95,7 @@ public class RegisterController {
 
             int userExists = registerMapper.selectUser(username);
             if (userExists > 0) {
-                return fail("账号已存在！", HttpStatus.BAD_REQUEST);
+                return ApiResponse.error(400, "账号已存在！");
             }
 
             Register register = new Register();
@@ -77,20 +106,23 @@ public class RegisterController {
             register.setPassword(PasswordUtil.hashPassword(password));
             Integer userDefaultPermission = siteConfigMapper.getRegisterUserPermission();
             if (userDefaultPermission == null) {
-                return fail("系统配置错误，请联系管理员", HttpStatus.INTERNAL_SERVER_ERROR);
+                return ApiResponse.error(500, "系统配置错误，请联系管理员");
             }
             register.setRole_id(userDefaultPermission);
 
             int insertResult = registerMapper.insertUser(register);
             if (insertResult > 0) {
-                return success("注册成功！");
+                RegisterResponseDTO data = new RegisterResponseDTO();
+                data.setSuccess(true);
+                data.setMessage("注册成功！");
+                return ApiResponse.success(data);
             } else {
-                return fail("注册失败，请稍后再试", HttpStatus.INTERNAL_SERVER_ERROR);
+                return ApiResponse.error(500, "注册失败，请稍后再试");
             }
 
         } catch (Exception e) {
             log.error("注册过程中发生错误", e);
-            return fail("注册失败，请检查输入或稍后再试", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ApiResponse.error(500, "注册失败，请检查输入或稍后再试");
         }
     }
 

@@ -1,10 +1,8 @@
 package xyz.lingview.dimstack.service;
 
-import xyz.lingview.dimstack.dto.ArticleDetailDTO;
-import xyz.lingview.dimstack.dto.EditArticleDTO;
-import xyz.lingview.dimstack.dto.UpdateArticleDTO;
+import xyz.lingview.dimstack.dto.request.ArticleDetailDTO;
+import xyz.lingview.dimstack.dto.request.UpdateArticleDTO;
 
-import java.util.List;
 import java.util.Map;
 
 public interface EditArticleService {

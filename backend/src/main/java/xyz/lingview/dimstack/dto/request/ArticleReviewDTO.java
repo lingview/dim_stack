@@ -1,4 +1,4 @@
-package xyz.lingview.dimstack.dto;
+package xyz.lingview.dimstack.dto.request;
 
 import lombok.Data;
 import java.time.LocalDateTime;

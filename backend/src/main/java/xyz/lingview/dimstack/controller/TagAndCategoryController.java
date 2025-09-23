@@ -7,12 +7,12 @@ import org.springframework.web.bind.annotation.RestController;
 import xyz.lingview.dimstack.domain.ArticleCategory;
 import xyz.lingview.dimstack.domain.ArticleCategoryAndCount;
 import xyz.lingview.dimstack.domain.ArticleTag;
-import xyz.lingview.dimstack.dto.ArticleDTO;
+import xyz.lingview.dimstack.dto.request.ArticleDTO;
 import xyz.lingview.dimstack.mapper.ArticleCategoryMapper;
 import xyz.lingview.dimstack.mapper.ArticleTagMapper;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
-import xyz.lingview.dimstack.dto.PageResult;
+import xyz.lingview.dimstack.dto.request.PageResult;
 
 import java.util.List;
 

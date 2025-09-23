@@ -5,12 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.Article;
 import xyz.lingview.dimstack.domain.Comment;
-import xyz.lingview.dimstack.dto.CommentDTO;
+import xyz.lingview.dimstack.dto.request.CommentDTO;
 import xyz.lingview.dimstack.mapper.ArticleMapper;
 import xyz.lingview.dimstack.mapper.BackendCommentMapper;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service

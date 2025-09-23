@@ -3,9 +3,8 @@ package xyz.lingview.dimstack.controller;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.service.ArticleReviewService;
-import xyz.lingview.dimstack.dto.ArticleReviewDTO;
 import xyz.lingview.dimstack.domain.Article;
-import java.util.List;
+
 import java.util.Map;
 
 @RestController

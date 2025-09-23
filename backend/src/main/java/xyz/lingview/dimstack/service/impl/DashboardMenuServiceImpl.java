@@ -4,7 +4,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.DashboardMenu;
-import xyz.lingview.dimstack.dto.DashboardMenuDTO;
+import xyz.lingview.dimstack.dto.request.DashboardMenuDTO;
 import xyz.lingview.dimstack.mapper.DashboardMenuMapper;
 import xyz.lingview.dimstack.mapper.UserPermissionMapper;
 import xyz.lingview.dimstack.service.DashboardMenuService;

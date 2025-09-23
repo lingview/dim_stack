@@ -4,7 +4,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import xyz.lingview.dimstack.domain.UserInformation;
-import xyz.lingview.dimstack.dto.UserDTO;
+import xyz.lingview.dimstack.dto.request.UserDTO;
 import xyz.lingview.dimstack.domain.Role;
 import java.util.List;
 

@@ -2,7 +2,7 @@ package xyz.lingview.dimstack.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import xyz.lingview.dimstack.domain.Menus;
-import xyz.lingview.dimstack.dto.MenusDTO;
+import xyz.lingview.dimstack.dto.request.MenusDTO;
 import java.util.List;
 
 @Mapper

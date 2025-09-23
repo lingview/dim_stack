@@ -3,8 +3,8 @@ package xyz.lingview.dimstack.controller;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import xyz.lingview.dimstack.dto.AddCommentRequest;
-import xyz.lingview.dimstack.dto.CommentDTO;
+import xyz.lingview.dimstack.dto.request.AddCommentRequestDTO;
+import xyz.lingview.dimstack.dto.request.CommentDTO;
 import xyz.lingview.dimstack.service.CommentService;
 
 import java.util.List;
@@ -24,7 +24,7 @@ public class CommentController {
 
     // 添加评论
     @PostMapping
-    public void addComment(@RequestBody AddCommentRequest request, HttpSession session) {
+    public void addComment(@RequestBody AddCommentRequestDTO request, HttpSession session) {
         String username = (String) session.getAttribute("username");
         if (username == null) {
             throw new RuntimeException("用户未登录");

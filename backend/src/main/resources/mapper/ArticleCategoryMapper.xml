@@ -33,7 +33,7 @@
         ORDER BY ac.create_time DESC
     </select>
 
-    <select id="findArticlesByCategory" resultType="xyz.lingview.dimstack.dto.ArticleDTO">
+    <select id="findArticlesByCategory" resultType="xyz.lingview.dimstack.dto.request.ArticleDTO">
         SELECT
             a.id,
             a.article_id,

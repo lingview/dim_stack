@@ -1,6 +1,6 @@
 package xyz.lingview.dimstack.mapper;
 
-import xyz.lingview.dimstack.dto.ArticleDTO;
+import xyz.lingview.dimstack.dto.request.ArticleDTO;
 import xyz.lingview.dimstack.domain.ArticleCategory;
 import xyz.lingview.dimstack.domain.ArticleCategoryAndCount;
 import org.apache.ibatis.annotations.Mapper;

@@ -4,7 +4,7 @@
 
 <mapper namespace="xyz.lingview.dimstack.mapper.ArticleMapper">
 
-    <resultMap id="articleDtoMap" type="xyz.lingview.dimstack.dto.ArticleDTO">
+    <resultMap id="articleDtoMap" type="xyz.lingview.dimstack.dto.request.ArticleDTO">
         <id property="id" column="id"/>
         <result property="article_id" column="article_id"/>
         <result property="title" column="title"/>

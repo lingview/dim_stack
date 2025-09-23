@@ -1,9 +1,9 @@
 package xyz.lingview.dimstack.service;
 
 import xyz.lingview.dimstack.mapper.ArticleMapper;
-import xyz.lingview.dimstack.dto.ArticleDTO;
-import xyz.lingview.dimstack.dto.PageRequest;
-import xyz.lingview.dimstack.dto.PageResult;
+import xyz.lingview.dimstack.dto.request.ArticleDTO;
+import xyz.lingview.dimstack.dto.request.PageRequest;
+import xyz.lingview.dimstack.dto.request.PageResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;

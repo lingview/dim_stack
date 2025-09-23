@@ -37,7 +37,7 @@
     </select>
 
     <!-- 用户管理 -->
-    <resultMap id="UserDTOMap" type="xyz.lingview.dimstack.dto.UserDTO">
+    <resultMap id="UserDTOMap" type="xyz.lingview.dimstack.dto.request.UserDTO">
         <result column="id" property="id"/>
         <result column="uuid" property="uuid"/>
         <result column="username" property="username"/>

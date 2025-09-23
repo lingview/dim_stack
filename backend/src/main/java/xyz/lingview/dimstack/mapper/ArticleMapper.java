@@ -2,7 +2,7 @@ package xyz.lingview.dimstack.mapper;
 
 import org.springframework.stereotype.Repository;
 import xyz.lingview.dimstack.domain.Article;
-import xyz.lingview.dimstack.dto.ArticleDTO;
+import xyz.lingview.dimstack.dto.request.ArticleDTO;
 import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
 

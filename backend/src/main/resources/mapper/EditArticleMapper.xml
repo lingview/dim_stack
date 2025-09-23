@@ -4,7 +4,7 @@
 
 <mapper namespace="xyz.lingview.dimstack.mapper.EditArticleMapper">
 
-    <select id="getArticleListByUuid" resultType="xyz.lingview.dimstack.dto.EditArticleDTO">
+    <select id="getArticleListByUuid" resultType="xyz.lingview.dimstack.dto.request.EditArticleDTO">
         SELECT
             a.article_id as article_id,
             a.article_name as article_name,
@@ -28,7 +28,7 @@
     </select>
 
     <!-- 获取文章详情 -->
-    <select id="getArticleDetailById" parameterType="string" resultType="xyz.lingview.dimstack.dto.ArticleDetailDTO">
+    <select id="getArticleDetailById" parameterType="string" resultType="xyz.lingview.dimstack.dto.request.ArticleDetailDTO">
         SELECT
             article_id as article_id,
             article_name as article_name,
@@ -66,7 +66,7 @@
     </select>
 
     <!-- 更新文章 -->
-    <update id="updateArticle" parameterType="xyz.lingview.dimstack.dto.UpdateArticleDTO">
+    <update id="updateArticle" parameterType="xyz.lingview.dimstack.dto.request.UpdateArticleDTO">
         UPDATE article
         SET
             article_name = #{article_name},

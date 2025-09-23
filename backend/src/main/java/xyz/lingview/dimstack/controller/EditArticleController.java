@@ -6,15 +6,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
-import xyz.lingview.dimstack.dto.ArticleDetailDTO;
-import xyz.lingview.dimstack.dto.EditArticleDTO;
-import xyz.lingview.dimstack.dto.UpdateArticleDTO;
+import xyz.lingview.dimstack.dto.request.ArticleDetailDTO;
+import xyz.lingview.dimstack.dto.request.UpdateArticleDTO;
 import xyz.lingview.dimstack.mapper.EditArticleMapper;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
 import xyz.lingview.dimstack.service.EditArticleService;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController

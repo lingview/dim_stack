@@ -3,7 +3,7 @@ package xyz.lingview.dimstack.service;
 import xyz.lingview.dimstack.mapper.ArticleReviewMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.domain.Article;
-import xyz.lingview.dimstack.dto.ArticleReviewDTO;
+import xyz.lingview.dimstack.dto.request.ArticleReviewDTO;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;

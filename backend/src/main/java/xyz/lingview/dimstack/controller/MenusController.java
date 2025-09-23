@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.domain.Menus;
-import xyz.lingview.dimstack.dto.MenusDTO;
+import xyz.lingview.dimstack.dto.request.MenusDTO;
 import xyz.lingview.dimstack.service.MenusService;
 
 import java.util.List;

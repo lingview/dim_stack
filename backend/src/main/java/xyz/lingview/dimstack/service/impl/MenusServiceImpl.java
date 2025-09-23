@@ -3,7 +3,7 @@ package xyz.lingview.dimstack.service.impl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.Menus;
-import xyz.lingview.dimstack.dto.MenusDTO;
+import xyz.lingview.dimstack.dto.request.MenusDTO;
 import xyz.lingview.dimstack.mapper.MenusMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.MenusService;

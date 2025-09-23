@@ -1,6 +1,6 @@
 package xyz.lingview.dimstack.service.impl;
 
-import xyz.lingview.dimstack.dto.HotArticleDTO;
+import xyz.lingview.dimstack.dto.request.HotArticleDTO;
 import xyz.lingview.dimstack.mapper.HotArticleMapper;
 import xyz.lingview.dimstack.service.HotArticleService;
 import org.springframework.beans.factory.annotation.Autowired;

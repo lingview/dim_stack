@@ -3,7 +3,7 @@ package xyz.lingview.dimstack.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import xyz.lingview.dimstack.domain.Article;
-import xyz.lingview.dimstack.dto.ArticleReviewDTO;
+import xyz.lingview.dimstack.dto.request.ArticleReviewDTO;
 import java.util.List;
 
 @Mapper

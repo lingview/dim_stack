@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.domain.Comment;
-import xyz.lingview.dimstack.dto.CommentDTO;
+import xyz.lingview.dimstack.dto.request.CommentDTO;
 import xyz.lingview.dimstack.service.BackendCommentService;
 import java.util.HashMap;
 import java.util.List;

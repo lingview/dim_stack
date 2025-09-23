@@ -2,12 +2,10 @@ package xyz.lingview.dimstack.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import xyz.lingview.dimstack.dto.ArticleDetailDTO;
-import xyz.lingview.dimstack.dto.UpdateArticleDTO;
-import xyz.lingview.dimstack.mapper.ArticleMapper;
-import xyz.lingview.dimstack.dto.EditArticleDTO;
+import xyz.lingview.dimstack.dto.request.ArticleDetailDTO;
+import xyz.lingview.dimstack.dto.request.UpdateArticleDTO;
+import xyz.lingview.dimstack.dto.request.EditArticleDTO;
 import xyz.lingview.dimstack.mapper.EditArticleMapper;
-import xyz.lingview.dimstack.service.ArticleService;
 import xyz.lingview.dimstack.service.EditArticleService;
 
 import java.util.HashMap;

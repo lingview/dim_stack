@@ -5,7 +5,7 @@
 <mapper namespace="xyz.lingview.dimstack.mapper.ArticleReviewMapper">
 
     <!-- 获取未审核文章列表 -->
-    <select id="selectUnreviewedArticles" resultType="xyz.lingview.dimstack.dto.ArticleReviewDTO">
+    <select id="selectUnreviewedArticles" resultType="xyz.lingview.dimstack.dto.request.ArticleReviewDTO">
         SELECT
             a.article_id,
             a.article_name,
@@ -43,7 +43,7 @@
     </update>
 
     <!-- 获取所有文章列表（用于审核全部文章） -->
-    <select id="selectAllArticles" resultType="xyz.lingview.dimstack.dto.ArticleReviewDTO">
+    <select id="selectAllArticles" resultType="xyz.lingview.dimstack.dto.request.ArticleReviewDTO">
         SELECT
             a.article_id,
             a.article_name,

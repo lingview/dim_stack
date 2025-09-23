@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
-import xyz.lingview.dimstack.dto.ArticleCategoryDTO;
-import xyz.lingview.dimstack.dto.ArticleTagDTO;
+import xyz.lingview.dimstack.dto.request.ArticleCategoryDTO;
+import xyz.lingview.dimstack.dto.request.ArticleTagDTO;
 import xyz.lingview.dimstack.service.ArticleCategoryService;
 import xyz.lingview.dimstack.service.ArticleTagService;
 

@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.Article;
 import xyz.lingview.dimstack.domain.Comment;
 import xyz.lingview.dimstack.domain.UserInformation;
-import xyz.lingview.dimstack.dto.AddCommentRequest;
-import xyz.lingview.dimstack.dto.CommentDTO;
+import xyz.lingview.dimstack.dto.request.AddCommentRequestDTO;
+import xyz.lingview.dimstack.dto.request.CommentDTO;
 import xyz.lingview.dimstack.mapper.ArticleMapper;
 import xyz.lingview.dimstack.mapper.CommentMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
@@ -14,7 +14,6 @@ import xyz.lingview.dimstack.service.CommentService;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class CommentServiceImpl implements CommentService {
@@ -41,7 +40,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public void addComment(String username, AddCommentRequest request) {
+    public void addComment(String username, AddCommentRequestDTO request) {
 
         String userId = userInformationMapper.selectUserUUID(username);
 

@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.ArticleCategory;
-import xyz.lingview.dimstack.dto.ArticleCategoryDTO;
+import xyz.lingview.dimstack.dto.request.ArticleCategoryDTO;
 import xyz.lingview.dimstack.mapper.ArticleCategoryMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.ArticleCategoryService;

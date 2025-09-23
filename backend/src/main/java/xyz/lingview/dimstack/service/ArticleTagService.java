@@ -1,6 +1,6 @@
 package xyz.lingview.dimstack.service;
 
-import xyz.lingview.dimstack.dto.ArticleTagDTO;
+import xyz.lingview.dimstack.dto.request.ArticleTagDTO;
 
 import java.util.List;
 
