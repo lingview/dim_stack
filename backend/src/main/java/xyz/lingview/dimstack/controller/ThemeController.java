@@ -2,6 +2,7 @@ package xyz.lingview.dimstack.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.config.ThemeProperties;
 import xyz.lingview.dimstack.service.SiteConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,7 @@ public class ThemeController {
     private SiteConfigService siteConfigService;
 
     @PostMapping("/switch")
+    @RequiresPermission("system:edit")
     public String switchTheme(@RequestParam String themeName) {
         String themesPath = themeProperties.getThemesPath();
         Path themeDir = Paths.get(themesPath, themeName);
@@ -50,11 +52,13 @@ public class ThemeController {
     }
 
     @GetMapping("/current")
+    @RequiresPermission("system:edit")
     public String getCurrentTheme() {
         return themeProperties.getActiveTheme();
     }
 
     @GetMapping("/list")
+    @RequiresPermission("system:edit")
     public String listAvailableThemes() {
         try {
             StringBuilder result = new StringBuilder("Available themes:\n");
@@ -80,6 +84,7 @@ public class ThemeController {
     }
 
     @PostMapping("/validate")
+    @RequiresPermission("system:edit")
     public String validateTheme(@RequestParam String themeName) {
         try {
             String themesPath = themeProperties.getThemesPath();
@@ -105,6 +110,7 @@ public class ThemeController {
     }
 
     @GetMapping("/list/json")
+    @RequiresPermission("system:edit")
     public ResponseEntity<Map<String, Object>> listAvailableThemesJson() {
         try {
             List<Map<String, Object>> themes = new ArrayList<>();
