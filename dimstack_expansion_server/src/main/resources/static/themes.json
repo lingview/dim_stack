@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "name": "默认主题",
+    "slug": "default",
+    "version": "1.0.0",
+    "author": "lingview",
+    "description": "Dim Stack官方默认主题，基于React + TailWindCSS开发",
+    "download_url": "https://pan.apilinks.cn/f/k8Tv/default.zip",
+    "preview_url": "https://pan.apilinks.cn/f/GZs9/index.png",
+    "file_size": "2.5 MB",
+    "upload_time": "2025-09-22T16:45:00Z",
+    "tags": ["dark", "space", "minimalist"],
+    "status": "approved"
+  },
+  {
+    "id": 2,
+    "name": "测试",
+    "slug": "test",
+    "version": "2.1.0",
+    "author": "test",
+    "description": "主题测试",
+    "download_url": "https://pan.apilinks.cn/f/72hx/test.zip",
+    "preview_url": "https://pan.apilinks.cn/f/29um/Image_2756849649102.jpg",
+    "file_size": "3.8 MB",
+    "upload_time": "2025-09-20T10:30:00Z",
+    "tags": ["blue", "ocean", "dynamic", "relaxing"],
+    "status": "approved"
+  },
+  {
+    "id": 3,
+    "name": "测试1",
+    "slug": "test1",
+    "version": "2.1.0",
+    "author": "test",
+    "description": "主题测试",
+    "download_url": "https://pan.apilinks.cn/f/WMfv/test1.zip",
+    "preview_url": "https://pan.apilinks.cn/f/gMik/995634982fb64ce47cc81c4ef76d2de6.jpeg",
+    "file_size": "3.8 MB",
+    "upload_time": "2025-09-20T10:30:00Z",
+    "tags": ["blue", "ocean", "dynamic", "relaxing"],
+    "status": "approved"
+  },
+  {
+    "id": 4,
+    "name": "测试2",
+    "slug": "test2",
+    "version": "2.1.0",
+    "author": "test",
+    "description": "主题测试",
+    "download_url": "https://pan.apilinks.cn/f/dOCn/test2.zip",
+    "preview_url": "https://pan.apilinks.cn/f/4Ytq/351a98ec24e2cecbb442513e170f4853.jpg",
+    "file_size": "3.8 MB",
+    "upload_time": "2025-09-20T10:30:00Z",
+    "tags": ["blue", "ocean", "dynamic", "relaxing"],
+    "status": "approved"
+  }
+]
