@@ -4,9 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.service.ArticleService;
-import xyz.lingview.dimstack.dto.PageRequest;
-import xyz.lingview.dimstack.dto.PageResult;
-import xyz.lingview.dimstack.dto.ArticleDTO;
+import xyz.lingview.dimstack.dto.request.PageRequest;
+import xyz.lingview.dimstack.dto.request.PageResult;
+import xyz.lingview.dimstack.dto.request.ArticleDTO;
 
 @Slf4j
 @RestController
