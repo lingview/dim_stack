@@ -10,7 +10,7 @@ spring:
       save-mode: always
 
   datasource:
-    url: jdbc:mysql://localhost:3306/dim_stack?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true&useAffectedRows=true
+    url: jdbc:mysql://localhost:3306/dim_stack_expansion_server?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true&useAffectedRows=true
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: "ling060318"
@@ -93,12 +93,12 @@ management:
       enabled: false
 
 mybatis:
-  type-aliases-package: xyz.lingview.dimstack.**.domain
+  type-aliases-package: xyz.lingview.dim_stack_expansion_server.**.domain
   mapper-locations: classpath*:mapper/*Mapper.xml
   config-location: classpath:mybatis-config.xml
 
 server:
-  port: 2222
+  port: 2221
   servlet:
     context-path: /
   tomcat:
@@ -119,10 +119,3 @@ logging:
     org.springframework.session: debug
     org.springframework.web: debug
 
-file:
-  upload-dir: upload
-
-app:
-  theme:
-    active-theme: default
-    themes-path: themes

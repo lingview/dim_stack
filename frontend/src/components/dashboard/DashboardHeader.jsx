@@ -58,7 +58,7 @@ export default function DashboardHeader({ onToggleSidebar, username, onLogout })
                                 <button
                                     onClick={() => {
                                         setUserMenuOpen(false)
-                                        navigate('/')
+                                        window.location.href = '/';
                                     }}
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 >

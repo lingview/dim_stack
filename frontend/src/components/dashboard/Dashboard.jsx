@@ -18,6 +18,7 @@ const UsersView = lazy(() => import('./UsersView'));
 const SiteSettingsView = lazy(() => import('./SiteSettingsView'));
 const TagsView = lazy(() => import('./TagsView'));
 const CategoriesView = lazy(() => import('./CategoriesView'));
+const ThemesStoreView = lazy(() => import('./ThemesStoreView'));
 
 export default function Dashboard() {
     const navigate = useNavigate()
@@ -367,6 +368,11 @@ export default function Dashboard() {
                             </Suspense>
                         )}
 
+                        {activeTab === 'themes' && (
+                            <Suspense fallback={<div>加载中...</div>}>
+                                <ThemesStoreView />
+                            </Suspense>
+                        )}
                     </main>
                 </div>
             </div>

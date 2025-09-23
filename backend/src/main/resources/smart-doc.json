@@ -1,0 +1,11 @@
+{
+  "outPath": "docs",
+  "serverUrl": "http://{{server}}",
+  "allInOne": true,
+  "style":"xt256",
+  "createDebugPage": true,
+  "responseBodyAdvice": {
+    "className": "xyz.lingview.dimstack.common.ApiResponse"
+  },
+  "coverOld": true
+}

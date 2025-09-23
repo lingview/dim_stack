@@ -1,5 +1,7 @@
 package xyz.lingview.dimstack.config;
 
+import org.springframework.web.client.RestTemplate;
+import xyz.lingview.dimstack.interceptor.ThemeResourceFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -7,49 +9,22 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-//import xyz.lingview.dimstack.security.JwtRequestFilter;
 import xyz.lingview.dimstack.interceptor.UserPermissionInterceptor;
-import xyz.lingview.dimstack.security.SecurityFilter;
 import xyz.lingview.dimstack.security.SessionAuthFilter;
 
-
 @Configuration
-public class WebSecurityConfig implements WebMvcConfigurer {
-
-    @Autowired
-    private SecurityFilter securityFilter;
-
-//    @Autowired
-//    private JwtRequestFilter jwtRequestFilter;
+public class WebConfig implements WebMvcConfigurer {
 
     @Autowired
     private SessionAuthFilter sessionAuthFilter;
 
+    @Autowired
+    private ThemeProperties themeProperties;
 
-//     注册 SecurityFilter
+    @Autowired
+    private ThemeResourceFilter themeResourceFilter;
 
-//    @Bean
-//    public FilterRegistrationBean<SecurityFilter> securityFilterRegistration() {
-//        FilterRegistrationBean<SecurityFilter> registration = new FilterRegistrationBean<>();
-//        registration.setFilter(securityFilter);
-//        registration.addUrlPatterns("/*");
-//        registration.setOrder(1);
-//        return registration;
-//    }
-
-
-////    注册 JwtRequestFilter
-//    @Bean
-//    public FilterRegistrationBean<JwtRequestFilter> jwtFilterRegistration() {
-//        FilterRegistrationBean<JwtRequestFilter> registration = new FilterRegistrationBean<>();
-//        registration.setFilter(jwtRequestFilter);
-//        registration.addUrlPatterns("/api/*");
-//        registration.setOrder(2);
-//        return registration;
-//    }
-
-
-// 注册 SessionAuthFilter
+    // 注册 SessionAuthFilter
     @Bean
     public FilterRegistrationBean<SessionAuthFilter> sessionAuthFilterRegistration() {
         FilterRegistrationBean<SessionAuthFilter> registration = new FilterRegistrationBean<>();
@@ -58,10 +33,16 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         registration.setOrder(2);
         return registration;
     }
-    // @Override
-    // public void addInterceptors(InterceptorRegistry registry) {
-    //     registry.addInterceptor(securityFilter).addPathPatterns("/**");
-    // }
+
+    // 注册主题资源过滤器
+    @Bean
+    public FilterRegistrationBean<ThemeResourceFilter> themeResourceFilterRegistration() {
+        FilterRegistrationBean<ThemeResourceFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(themeResourceFilter);
+        registration.addUrlPatterns("/*");
+        registration.setOrder(0);
+        return registration;
+    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -77,5 +58,11 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(userPermissionInterceptor)
                 .addPathPatterns("/api/**");
+    }
+
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }

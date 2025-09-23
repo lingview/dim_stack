@@ -13,4 +13,6 @@ public class SiteConfig {
     private String hero_title;
     private String hero_subtitle;
     private String site_icon;
+    private String site_theme;
+    private String expansion_server;
 }
