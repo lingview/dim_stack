@@ -30,12 +30,12 @@ export default function Header() {
             try {
                 const response = await apiClient.get('/user/status')
 
-                if (response && response.loggedIn) {
+                if (response.code === 200 && response.data.loggedIn) {
                     setIsLoggedIn(true)
-                    setUsername(escapeHtml(response.username) || '')
+                    setUsername(escapeHtml(response.data.username) || '')
 
                     localStorage.setItem('isLoggedIn', 'true')
-                    localStorage.setItem('username', response.username || '')
+                    localStorage.setItem('username', response.data.username || '')
                 } else {
                     setIsLoggedIn(false)
                     setUsername('')

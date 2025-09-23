@@ -69,8 +69,8 @@ export default function ProfileView() {
         try {
             setLoading(true);
             const statusResponse = await apiClient.get('/user/status');
-            if (statusResponse && statusResponse.loggedIn) {
-                const uuidResponse = await apiClient.get(`/user/uuid?username=${statusResponse.username}`);
+            if (statusResponse.code === 200 && statusResponse.data.loggedIn) {
+                const uuidResponse = await apiClient.get(`/user/uuid?username=${statusResponse.data.username}`);
                 if (uuidResponse && uuidResponse.uuid) {
                     const profileResponse = await apiClient.get(`/user/${uuidResponse.uuid}`);
                     if (profileResponse) {

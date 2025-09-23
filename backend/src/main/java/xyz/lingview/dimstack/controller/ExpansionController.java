@@ -8,6 +8,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import xyz.lingview.dimstack.common.ApiResponse;
+import xyz.lingview.dimstack.dto.request.ThemeSlugRequestDTO;
+import xyz.lingview.dimstack.dto.response.ThemeDetailResponseDTO;
+import xyz.lingview.dimstack.dto.response.ThemeListResponseDTO;
 import xyz.lingview.dimstack.service.SiteConfigService;
 
 import java.io.*;
@@ -18,6 +22,11 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.zip.ZipInputStream;
 
+/**
+ * @Auther: lingview
+ * @Date: 2025/09/22 18:57:54
+ * @Description: 系统扩展控制器
+ */
 @RestController
 @RequestMapping("/api")
 public class ExpansionController {
@@ -35,68 +44,55 @@ public class ExpansionController {
     private static final Pattern THEME_SLUG_PATTERN = Pattern.compile("^[a-zA-Z0-9_-]+$");
 
     @PostMapping("/getthemeslist")
-    public Map<String, Object> getThemesList() {
-        Map<String, Object> response = new HashMap<>();
+    public ApiResponse<ThemeListResponseDTO> getThemesList() {
         try {
             // 从数据库获取扩展服务器地址
             String expansionServer = siteConfigService.getExpansionServer();
 
             if (expansionServer == null || expansionServer.isEmpty()) {
-                response.put("success", false);
-                response.put("message", "扩展服务器地址未配置");
-                return response;
+                return ApiResponse.error(400, "扩展服务器地址未配置");
             }
 
             // 从扩展服务器获取主题列表
             String themesJson = restTemplate.getForObject(expansionServer, String.class);
 
             if (themesJson != null) {
+                ThemeListResponseDTO responseDTO = new ThemeListResponseDTO();
                 JsonNode themes = objectMapper.readTree(themesJson);
-                response.put("success", true);
-                response.put("data", themes);
+                responseDTO.setData(themes);
+                return ApiResponse.success(responseDTO);
             } else {
-                response.put("success", false);
-                response.put("message", "无法从扩展服务器获取主题列表");
+                return ApiResponse.error(500, "无法从扩展服务器获取主题列表");
             }
         } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "获取主题列表失败: " + e.getMessage());
+            return ApiResponse.error(500, "获取主题列表失败: " + e.getMessage());
         }
-        return response;
     }
 
     @PostMapping("/gettheme")
-    public Map<String, Object> getTheme(@RequestBody Map<String, String> request) {
-        Map<String, Object> response = new HashMap<>();
+    public ApiResponse<ThemeDetailResponseDTO> getTheme(@RequestBody ThemeSlugRequestDTO request) {
+        ThemeDetailResponseDTO responseDTO = new ThemeDetailResponseDTO();
         try {
-            String slug = request.get("slug");
+            String slug = request.getSlug();
             if (slug == null || slug.isEmpty()) {
-                response.put("success", false);
-                response.put("message", "主题标识(slug)不能为空");
-                return response;
+                return ApiResponse.error(400, "主题标识(slug)不能为空");
             }
 
             // 验证主题标识的合法性
             if (!isValidThemeSlug(slug)) {
-                response.put("success", false);
-                response.put("message", "主题标识包含非法字符，只允许字母、数字、连字符和下划线");
-                return response;
+                return ApiResponse.error(400, "主题标识包含非法字符，只允许字母、数字、连字符和下划线");
             }
 
             // 从数据库获取扩展服务器地址
             String expansionServer = siteConfigService.getExpansionServer();
             if (expansionServer == null || expansionServer.isEmpty()) {
-                response.put("success", false);
-                response.put("message", "扩展服务器地址未配置");
-                return response;
+                return ApiResponse.error(400, "扩展服务器地址未配置");
             }
 
             // 从扩展服务器获取主题列表
             String themesJson = restTemplate.getForObject(expansionServer, String.class);
             if (themesJson == null) {
-                response.put("success", false);
-                response.put("message", "无法从扩展服务器获取主题列表");
-                return response;
+                return ApiResponse.error(500, "无法从扩展服务器获取主题列表");
             }
 
             JsonNode themes = objectMapper.readTree(themesJson);
@@ -113,60 +109,46 @@ public class ExpansionController {
             }
 
             if (targetTheme == null) {
-                response.put("success", false);
-                response.put("message", "未找到标识为 '" + slug + "' 的主题");
-                return response;
+                return ApiResponse.error(404, "未找到标识为 '" + slug + "' 的主题");
             }
 
             // 获取下载URL
             String downloadUrl = targetTheme.get("download_url").asText();
             if (downloadUrl == null || downloadUrl.isEmpty()) {
-                response.put("success", false);
-                response.put("message", "主题下载链接无效");
-                return response;
+                return ApiResponse.error(400, "主题下载链接无效");
             }
 
             // 下载并解压主题
             boolean downloadSuccess = downloadAndExtractTheme(downloadUrl, slug);
             if (downloadSuccess) {
-                response.put("success", true);
-                response.put("message", "主题 '" + slug + "' 下载并安装成功");
-                response.put("data", targetTheme);
+                responseDTO.setData(targetTheme);
+                responseDTO.setMessage("主题 '" + slug + "' 下载并安装成功");
+                return ApiResponse.success("主题 '" + slug + "' 下载并安装成功", responseDTO);
             } else {
-                response.put("success", false);
-                response.put("message", "主题 '" + slug + "' 下载或解压失败");
+                return ApiResponse.error(500, "主题 '" + slug + "' 下载或解压失败");
             }
         } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "获取主题失败: " + e.getMessage());
+            return ApiResponse.error(500, "获取主题失败: " + e.getMessage());
         }
-        return response;
     }
 
     @PostMapping("/deletetheme")
-    public Map<String, Object> deleteTheme(@RequestBody Map<String, String> request) {
-        Map<String, Object> response = new HashMap<>();
+    public ApiResponse<Void> deleteTheme(@RequestBody ThemeSlugRequestDTO request) {
         try {
-            String slug = request.get("slug");
+            String slug = request.getSlug();
             if (slug == null || slug.isEmpty()) {
-                response.put("success", false);
-                response.put("message", "主题标识(slug)不能为空");
-                return response;
+                return ApiResponse.error(400, "主题标识(slug)不能为空");
             }
 
             // 验证主题标识的合法性
             if (!isValidThemeSlug(slug)) {
-                response.put("success", false);
-                response.put("message", "主题标识包含非法字符，只允许字母、数字、连字符和下划线");
-                return response;
+                return ApiResponse.error(400, "主题标识包含非法字符，只允许字母、数字、连字符和下划线");
             }
 
             // 检查是否是当前激活的主题
             String activeTheme = siteConfigService.getSiteTheme();
             if (slug.equals(activeTheme)) {
-                response.put("success", false);
-                response.put("message", "不能删除当前激活的主题");
-                return response;
+                return ApiResponse.error(400, "不能删除当前激活的主题");
             }
 
             // 构建主题路径
@@ -176,34 +158,25 @@ public class ExpansionController {
             // 验证路径是否在themes目录内，防止路径遍历攻击
             Path themesBasePath = Paths.get(themesPath).toAbsolutePath().normalize();
             if (!themeDir.toAbsolutePath().normalize().startsWith(themesBasePath)) {
-                response.put("success", false);
-                response.put("message", "非法的主题路径");
-                return response;
+                return ApiResponse.error(400, "非法的主题路径");
             }
 
             // 检查主题目录是否存在
             if (!Files.exists(themeDir)) {
-                response.put("success", false);
-                response.put("message", "主题目录 '" + slug + "' 不存在");
-                return response;
+                return ApiResponse.error(404, "主题目录 '" + slug + "' 不存在");
             }
 
             // 确保这是一个目录而不是文件
             if (!Files.isDirectory(themeDir)) {
-                response.put("success", false);
-                response.put("message", "'" + slug + "' 不是一个有效的主题目录");
-                return response;
+                return ApiResponse.error(400, "'" + slug + "' 不是一个有效的主题目录");
             }
 
             // 删除主题目录
             deleteDirectory(themeDir);
-            response.put("success", true);
-            response.put("message", "主题 '" + slug + "' 删除成功");
+            return ApiResponse.success("主题 '" + slug + "' 删除成功");
         } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "删除主题失败: " + e.getMessage());
+            return ApiResponse.error(500, "删除主题失败: " + e.getMessage());
         }
-        return response;
     }
 
     /**

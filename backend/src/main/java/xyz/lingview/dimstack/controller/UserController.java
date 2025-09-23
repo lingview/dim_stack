@@ -4,10 +4,12 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
+import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.domain.Role;
 import xyz.lingview.dimstack.domain.UserInformation;
 import xyz.lingview.dimstack.dto.request.UserDTO;
 import xyz.lingview.dimstack.dto.request.UserUpdateDTO;
+import xyz.lingview.dimstack.dto.response.UserStatusResponseDTO;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.UserService;
 import xyz.lingview.dimstack.service.UserBlacklistService;
@@ -28,28 +30,30 @@ public class UserController {
     private UserBlacklistService userBlacklistService;
 
     @GetMapping("/status")
-    public Map<String, Object> getUserStatus(HttpSession session) {
-        Map<String, Object> response = new HashMap<>();
+    public ApiResponse<UserStatusResponseDTO> getUserStatus(HttpSession session) {
+        UserStatusResponseDTO responseDTO = new UserStatusResponseDTO();
 
         Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
         String username = (String) session.getAttribute("username");
 
         if (isLoggedIn != null && isLoggedIn && username != null) {
             if (userBlacklistService.isUserInBlacklist(username)) {
-                response.put("loggedIn", false);
-                response.put("username", null);
-                response.put("message", "用户已被封禁");
-                return response;
+                responseDTO.setLoggedIn(false);
+                responseDTO.setUsername(null);
+                responseDTO.setMessage("用户已被封禁");
+                return ApiResponse.success(responseDTO);
             }
 
-            response.put("loggedIn", true);
-            response.put("username", username);
+            responseDTO.setLoggedIn(true);
+            responseDTO.setUsername(username);
+            responseDTO.setMessage("用户已登录");
         } else {
-            response.put("loggedIn", false);
-            response.put("username", null);
+            responseDTO.setLoggedIn(false);
+            responseDTO.setUsername(null);
+            responseDTO.setMessage("用户未登录");
         }
 
-        return response;
+        return ApiResponse.success(responseDTO);
     }
 
 

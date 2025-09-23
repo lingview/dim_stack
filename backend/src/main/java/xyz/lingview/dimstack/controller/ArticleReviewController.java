@@ -2,8 +2,12 @@ package xyz.lingview.dimstack.controller;
 
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
+import xyz.lingview.dimstack.dto.request.ArticleStatusUpdateRequestDTO;
+import xyz.lingview.dimstack.dto.response.ArticleReviewListResponseDTO;
+import xyz.lingview.dimstack.dto.response.ArticleReviewStatusResponseDTO;
 import xyz.lingview.dimstack.service.ArticleReviewService;
 import xyz.lingview.dimstack.domain.Article;
+import xyz.lingview.dimstack.common.ApiResponse;
 
 import java.util.Map;
 
@@ -20,32 +24,31 @@ public class ArticleReviewController {
     // 获取未审核的文章列表
     @GetMapping("/getarticlelist")
     @RequiresPermission("post:review")
-    public Map<String, Object> getArticleList(@RequestParam(defaultValue = "1") Integer page,
-                                              @RequestParam(defaultValue = "10") Integer size) {
-        return articleReviewService.getUnreviewedArticles(page, size);
+    public ApiResponse<ArticleReviewListResponseDTO> getArticleList(@RequestParam(defaultValue = "1") Integer page,
+                                                                    @RequestParam(defaultValue = "10") Integer size) {
+        return ApiResponse.success(articleReviewService.getUnreviewedArticles(page, size));
     }
 
     // 根据文章id获取文章内容
     @GetMapping("/getarticlecontent")
     @RequiresPermission("post:review")
-    public Article getArticleContent(@RequestParam String articleId) {
-        return articleReviewService.getArticleContent(articleId);
+    public ApiResponse<Article> getArticleContent(@RequestParam String articleId) {
+        return ApiResponse.success(articleReviewService.getArticleContent(articleId));
     }
+
 
     // 修改文章状态
     @PostMapping("/articlestatus")
     @RequiresPermission("post:review")
-    public Map<String, Object> updateArticleStatus(@RequestBody Map<String, Object> request) {
-        String articleId = (String) request.get("articleId");
-        Byte status = ((Integer) request.get("status")).byteValue();
-        return articleReviewService.updateArticleStatus(articleId, status);
+    public ApiResponse<ArticleReviewStatusResponseDTO> updateArticleStatus(@RequestBody ArticleStatusUpdateRequestDTO request) {
+        return ApiResponse.success(articleReviewService.updateArticleStatus(request.getArticleId(), request.getStatus()));
     }
 
     // 获取所有文章列表（用于审核全部文章）
     @GetMapping("/getallarticles")
     @RequiresPermission("post:review")
-    public Map<String, Object> getAllArticles(@RequestParam(defaultValue = "1") Integer page,
-                                              @RequestParam(defaultValue = "10") Integer size) {
-        return articleReviewService.getAllArticles(page, size);
+    public ApiResponse<ArticleReviewListResponseDTO> getAllArticles(@RequestParam(defaultValue = "1") Integer page,
+                                                                    @RequestParam(defaultValue = "10") Integer size) {
+        return ApiResponse.success(articleReviewService.getAllArticles(page, size));
     }
 }

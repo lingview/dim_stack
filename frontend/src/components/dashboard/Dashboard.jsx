@@ -41,8 +41,8 @@ export default function Dashboard() {
             try {
                 const response = await apiClient.get('/user/status')
 
-                if (response && response.loggedIn) {
-                    setUsername(response.username || '')
+                if (response.code === 200 && response.data.loggedIn) {
+                    setUsername(response.data.username || '')
                 } else {
                     navigate('/login')
                 }

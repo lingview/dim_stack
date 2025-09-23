@@ -58,7 +58,7 @@ export default function ArticlesReview() {
         }
     };
 
-    const fetchArticles = async (page, size) => {
+     const fetchArticles = async (page, size) => {
         setLoading(true);
         try {
             const endpoint = reviewMode === 'pending'
@@ -69,10 +69,10 @@ export default function ArticlesReview() {
                 params: { page, size }
             });
 
-            const response = res.data ?? res;
-            if (response && Array.isArray(response.articles)) {
-                setArticles(response.articles);
-                setTotalPages(Math.ceil((response.total || response.articles.length) / (response.size || size)));
+            const response = res;
+            if (response && response.code === 200 && response.data && Array.isArray(response.data.articles)) {
+                setArticles(response.data.articles);
+                setTotalPages(Math.ceil((response.data.total || response.data.articles.length) / (response.data.size || size)));
             } else {
                 setArticles([]);
                 setTotalPages(0);
@@ -101,11 +101,12 @@ export default function ArticlesReview() {
                 params: { articleId }
             });
 
-            const response = res.data ?? res;
+            // 适配ApiResponse格式
+            const response = res; // res.data就是ApiResponse对象
 
-            if (response) {
-                const safeTextContent = htmlToSafeText(response.article_content || '');
-                setArticleDetail({ ...response, article_content: safeTextContent });
+            if (response && response.code === 200 && response.data) {
+                const safeTextContent = htmlToSafeText(response.data.article_content || '');
+                setArticleDetail({ ...response.data, article_content: safeTextContent });
             } else {
                 setArticleDetail(null);
             }
@@ -117,15 +118,17 @@ export default function ArticlesReview() {
         }
     };
 
+
     const handleStatusChange = async (articleId, status) => {
         try {
             const res = await apiClient.post('/articlereview/articlestatus', {
                 articleId,
                 status
             });
-            const response = res.data ?? res;
+            // 适配ApiResponse格式
+            const response = res; // res.data就是ApiResponse对象
 
-            if (response && response.success) {
+            if (response && response.code === 200 && response.data && response.data.success) {
                 setArticles(prev => prev.map(article =>
                     article.article_id === articleId
                         ? { ...article, status }
@@ -152,6 +155,7 @@ export default function ArticlesReview() {
             alert('更新文章状态失败');
         }
     };
+
 
     const handleCloseDetail = () => {
         setShowDetail(false);

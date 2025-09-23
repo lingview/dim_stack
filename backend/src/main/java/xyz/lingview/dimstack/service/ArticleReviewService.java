@@ -1,5 +1,7 @@
 package xyz.lingview.dimstack.service;
 
+import xyz.lingview.dimstack.dto.response.ArticleReviewListResponseDTO;
+import xyz.lingview.dimstack.dto.response.ArticleReviewStatusResponseDTO;
 import xyz.lingview.dimstack.mapper.ArticleReviewMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.domain.Article;
@@ -21,7 +23,7 @@ public class ArticleReviewService {
         this.userInformationMapper = userInformationMapper;
     }
 
-    public Map<String, Object> getUnreviewedArticles(Integer page, Integer size) {
+    public ArticleReviewListResponseDTO getUnreviewedArticles(Integer page, Integer size) {
         int offset = (page - 1) * size;
         List<ArticleReviewDTO> articles = articleReviewMapper.selectUnreviewedArticles(offset, size);
 
@@ -32,15 +34,17 @@ public class ArticleReviewService {
 
         int total = articleReviewMapper.countUnreviewedArticles();
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("articles", articles);
-        result.put("total", total);
-        result.put("page", page);
-        result.put("size", size);
+        ArticleReviewListResponseDTO result = new ArticleReviewListResponseDTO();
+        result.setArticles(articles);
+        result.setTotal(total);
+        result.setPage(page);
+        result.setSize(size);
+        result.setTotalPages((int) Math.ceil((double) total / size));
         return result;
     }
 
-    public Map<String, Object> getAllArticles(Integer page, Integer size) {
+
+    public ArticleReviewListResponseDTO getAllArticles(Integer page, Integer size) {
         int offset = (page - 1) * size;
         List<ArticleReviewDTO> articles = articleReviewMapper.selectAllArticles(offset, size);
 
@@ -51,12 +55,12 @@ public class ArticleReviewService {
 
         int total = articleReviewMapper.countAllArticles();
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("articles", articles);
-        result.put("total", total);
-        result.put("page", page);
-        result.put("size", size);
-        result.put("totalPages", (int) Math.ceil((double) total / size));
+        ArticleReviewListResponseDTO result = new ArticleReviewListResponseDTO();
+        result.setArticles(articles);
+        result.setTotal(total);
+        result.setPage(page);
+        result.setSize(size);
+        result.setTotalPages((int) Math.ceil((double) total / size));
         return result;
     }
 
@@ -64,11 +68,12 @@ public class ArticleReviewService {
         return articleReviewMapper.selectArticleById(articleId);
     }
 
-    public Map<String, Object> updateArticleStatus(String articleId, Byte status) {
+
+    public ArticleReviewStatusResponseDTO updateArticleStatus(String articleId, Byte status) {
         articleReviewMapper.updateArticleStatus(articleId, status);
-        Map<String, Object> result = new HashMap<>();
-        result.put("success", true);
-        result.put("message", "文章状态更新成功");
+        ArticleReviewStatusResponseDTO result = new ArticleReviewStatusResponseDTO();
+        result.setSuccess(true);
+        result.setMessage("文章状态更新成功");
         return result;
     }
 }

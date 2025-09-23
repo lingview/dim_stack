@@ -27,8 +27,8 @@ export default function Search() {
                 const response = await apiClient.get(
                     `/articlesearch/search?keyword=${encodeURIComponent(searchTerm)}`
                 );
-                if (response.success) {
-                    setSearchResults(response.data);
+                if (response.code === 200) {
+                    setSearchResults(response.data.data);
                 } else {
                     setSearchResults([]);
                 }

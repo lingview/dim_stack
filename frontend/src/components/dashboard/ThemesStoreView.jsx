@@ -55,9 +55,11 @@ export default function ThemesStoreView() {
         try {
             setCloudLoading(true);
             const response = await apiClient.post('/getthemeslist');
-            
-            if (response.success) {
-                const themes = Array.isArray(response.data) ? response.data : [];
+
+            if (response.code === 200) {
+                const themesData = response.data;
+                const themes = themesData && themesData.data ?
+                    (Array.isArray(themesData.data) ? themesData.data : []) : [];
                 setCloudThemes(themes);
                 setMessage({ type: 'success', text: '云端主题列表获取成功' });
             } else {
@@ -75,9 +77,9 @@ export default function ThemesStoreView() {
         try {
             setInstalling(true);
             const response = await apiClient.post('/gettheme', { slug });
-            
-            if (response.success) {
-                setMessage({ type: 'success', text: `主题 ${slug} 安装成功` });
+
+            if (response.code === 200) {
+                setMessage({ type: 'success', text: response.message || `主题 ${slug} 安装成功` });
                 loadLocalThemes();
                 setShowPreview(false);
             } else {
@@ -95,9 +97,9 @@ export default function ThemesStoreView() {
         if (window.confirm(`确定要删除主题 "${slug}" 吗？`)) {
             try {
                 const response = await apiClient.post('/deletetheme', { slug });
-                
-                if (response.success) {
-                    setMessage({ type: 'success', text: `主题 ${slug} 删除成功` });
+
+                if (response.code === 200) {
+                    setMessage({ type: 'success', text: response.message || `主题 ${slug} 删除成功` });
                     loadLocalThemes();
                 } else {
                     setMessage({ type: 'error', text: response.message || `删除主题 ${slug} 失败` });
