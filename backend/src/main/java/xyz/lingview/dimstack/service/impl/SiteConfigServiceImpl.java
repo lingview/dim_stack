@@ -1,7 +1,8 @@
+// xyz.lingview.dimstack.service.impl.SiteConfigServiceImpl
 package xyz.lingview.dimstack.service.impl;
 
 import xyz.lingview.dimstack.domain.SiteConfig;
-import xyz.lingview.dimstack.dto.HeroDTO;
+import xyz.lingview.dimstack.dto.request.HeroDTO;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
 import xyz.lingview.dimstack.service.SiteConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,40 @@ public class SiteConfigServiceImpl implements SiteConfigService {
         }
         return null;
     }
+
+    @Override
+    public String getSiteTheme() {
+        SiteConfig config = siteConfigMapper.getSiteConfig();
+        if (config != null) {
+            return config.getSite_theme();
+        }
+        return null;
+    }
+
+    @Override
+    public String getExpansionServer() {
+        SiteConfig config = siteConfigMapper.getSiteConfig();
+        if (config != null) {
+            return config.getExpansion_server();
+        }
+        return null;
+    }
+
+    @Override
+    public boolean updateSiteTheme(String themeName) {
+        try {
+            SiteConfig config = siteConfigMapper.getSiteConfig();
+            if (config != null) {
+                config.setSite_theme(themeName);
+                int result = siteConfigMapper.updateSiteConfig(config);
+                return result > 0;
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     @Override
     public boolean updateSiteConfig(SiteConfig siteConfig) {
         try {

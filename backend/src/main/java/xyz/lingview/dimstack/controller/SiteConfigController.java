@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.domain.Role;
 import xyz.lingview.dimstack.domain.SiteConfig;
-import xyz.lingview.dimstack.dto.HeroDTO;
+import xyz.lingview.dimstack.dto.request.HeroDTO;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.SiteConfigService;
@@ -83,69 +83,104 @@ public class SiteConfigController {
     public ResponseEntity<Map<String, Object>> editsiteconfig(@RequestBody SiteConfig siteConfig) {
         log.info("更新站点配置信息");
         try {
-            if (siteConfig.getSite_name() == null || siteConfig.getSite_name().trim().isEmpty()) {
-                return ResponseEntity.badRequest()
+
+            SiteConfig currentConfig = siteConfigService.getSiteConfig();
+            if (currentConfig == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(Map.of(
-                            "success", false,
-                            "message", "站点名称不能为空"
+                                "success", false,
+                                "message", "无法获取当前站点配置"
                         ));
             }
 
-            if (siteConfig.getCopyright() == null || siteConfig.getCopyright().trim().isEmpty()) {
+            if (siteConfig.getSite_name() != null && !siteConfig.getSite_name().trim().isEmpty()) {
+                currentConfig.setSite_name(siteConfig.getSite_name());
+            } else if (currentConfig.getSite_name() == null || currentConfig.getSite_name().trim().isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body(Map.of(
-                            "success", false,
-                            "message", "版权信息不能为空"
+                                "success", false,
+                                "message", "站点名称不能为空"
                         ));
             }
 
-            if (siteConfig.getHero_title() == null || siteConfig.getHero_title().trim().isEmpty()) {
+            if (siteConfig.getCopyright() != null && !siteConfig.getCopyright().trim().isEmpty()) {
+                currentConfig.setCopyright(siteConfig.getCopyright());
+            } else if (currentConfig.getCopyright() == null || currentConfig.getCopyright().trim().isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body(Map.of(
-                            "success", false,
-                            "message", "首页标题不能为空"
+                                "success", false,
+                                "message", "版权信息不能为空"
                         ));
             }
 
-            if (siteConfig.getHero_subtitle() == null || siteConfig.getHero_subtitle().trim().isEmpty()) {
+            if (siteConfig.getHero_title() != null && !siteConfig.getHero_title().trim().isEmpty()) {
+                currentConfig.setHero_title(siteConfig.getHero_title());
+            } else if (currentConfig.getHero_title() == null || currentConfig.getHero_title().trim().isEmpty()) {
                 return ResponseEntity.badRequest()
                         .body(Map.of(
-                            "success", false,
-                            "message", "首页副标题不能为空"
+                                "success", false,
+                                "message", "首页标题不能为空"
                         ));
             }
 
-            if (siteConfig.getRegister_user_permission() == null) {
-                siteConfig.setRegister_user_permission("2");
+            if (siteConfig.getHero_subtitle() != null && !siteConfig.getHero_subtitle().trim().isEmpty()) {
+                currentConfig.setHero_subtitle(siteConfig.getHero_subtitle());
+            } else if (currentConfig.getHero_subtitle() == null || currentConfig.getHero_subtitle().trim().isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "success", false,
+                                "message", "首页副标题不能为空"
+                        ));
             }
 
-            if (siteConfig.getArticle_status() == 0) {
-                siteConfig.setArticle_status(3);
+            if (siteConfig.getRegister_user_permission() != null) {
+                currentConfig.setRegister_user_permission(siteConfig.getRegister_user_permission());
             }
 
-            int result = siteConfigMapper.updateSiteConfig(siteConfig);
+            if (siteConfig.getArticle_status() != 0) {
+                currentConfig.setArticle_status(siteConfig.getArticle_status());
+            }
+
+            if (siteConfig.getHero_image() != null) {
+                currentConfig.setHero_image(siteConfig.getHero_image());
+            }
+
+            if (siteConfig.getSite_icon() != null) {
+                currentConfig.setSite_icon(siteConfig.getSite_icon());
+            }
+
+            if (siteConfig.getSite_theme() != null) {
+                currentConfig.setSite_theme(siteConfig.getSite_theme());
+            }
+
+            if (siteConfig.getExpansion_server() != null) {
+                currentConfig.setExpansion_server(siteConfig.getExpansion_server());
+            }
+
+            int result = siteConfigMapper.updateSiteConfig(currentConfig);
 
             if (result > 0) {
                 return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "message", "站点配置更新成功"
+                        "success", true,
+                        "message", "站点配置更新成功"
                 ));
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(Map.of(
-                            "success", false,
-                            "message", "更新站点配置失败"
+                                "success", false,
+                                "message", "更新站点配置失败"
                         ));
             }
         } catch (Exception e) {
             log.error("更新站点配置信息失败", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of(
-                        "success", false,
-                        "message", "更新站点配置时发生错误: " + e.getMessage()
+                            "success", false,
+                            "message", "更新站点配置时发生错误: " + e.getMessage()
                     ));
         }
     }
+
 
 
 

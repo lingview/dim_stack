@@ -15,7 +15,9 @@
             hero_image as hero_image,
             hero_title as hero_title,
             hero_subtitle as hero_subtitle,
-            site_icon as site_icon
+            site_icon as site_icon,
+            site_theme as site_theme,
+            expansion_server as expansion_server
         FROM site_config
         WHERE id = 1
     </select>
@@ -65,7 +67,9 @@
             hero_image = #{hero_image},
             hero_title = #{hero_title},
             hero_subtitle = #{hero_subtitle},
-            site_icon = #{site_icon}
+            site_icon = #{site_icon},
+            site_theme = #{site_theme},
+            expansion_server = #{expansion_server}
         WHERE id = 1
     </update>
 </mapper>
