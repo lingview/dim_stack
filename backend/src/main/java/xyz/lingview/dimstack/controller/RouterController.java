@@ -4,7 +4,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class SPAController {
+public class RouterController {
 
     @GetMapping({
         "/",
@@ -14,7 +14,6 @@ public class SPAController {
         "/dashboard/**",
         "/article/**",
         "/category/**",
-        "/about"
     })
     public String frontendRoutes() {
         return "forward:/index.html";
