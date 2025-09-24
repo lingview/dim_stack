@@ -336,7 +336,7 @@ CREATE TABLE `site_config`  (
 -- ----------------------------
 -- Records of site_config
 -- ----------------------------
-INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 2, '© 2025 次元栈 - Dim Stack. All rights reserved.', 3, 'https://pan.apilinks.cn/f/BLUN/a2c28b53fdc12fde51bf23928127066f.jpg', '欢迎来到瓦纳海姆星', '探索洛天依和Vsinger家族的音乐之旅', '', 'default', 'http://127.0.0.1:2221/themes.json');
+INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 2, '© 2025 次元栈 - Dim Stack. All rights reserved.', 3, 'https://pan.apilinks.cn/f/BLUN/a2c28b53fdc12fde51bf23928127066f.jpg', '欢迎来到瓦纳海姆星', '探索洛天依和Vsinger家族的音乐之旅', '', 'default', 'https://apilinks.cn:2221/themes.json');
 
 -- ----------------------------
 -- Table structure for user_information
