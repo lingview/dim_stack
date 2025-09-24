@@ -33,7 +33,7 @@ const CommentSection = ({ articleAlias }) => {
       return `/upload/${url}`;
     }
   };
-  
+
   const fetchComments = async () => {
     try {
       setLoading(true);
