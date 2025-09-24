@@ -43,6 +43,7 @@ public class SessionAuthFilter implements Filter {
         "/api/hot/articles",
         "/api/comments/article/**",
         "/api/frontendgetmenus",
+        "/api/categories/**",
         "/api/site/**",
         "/api/article/**",
         "/v3/api-docs/**"
