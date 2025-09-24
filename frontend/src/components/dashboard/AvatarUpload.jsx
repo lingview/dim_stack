@@ -85,7 +85,7 @@ export default function AvatarUpload({ currentAvatar, onAvatarUpdate }) {
         <div className="flex flex-col items-center">
             <div className="relative">
                 <img
-                    src={preview || '/default-avatar.png'}
+                    src={preview || '/image_error.svg'}
                     alt="头像预览"
                     className="w-32 h-32 rounded-full object-cover border-2 border-gray-300"
                 />

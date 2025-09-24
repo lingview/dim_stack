@@ -59,7 +59,7 @@ export default function ProfileView() {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
     const [messageType, setMessageType] = useState('');
-    const [previewAvatar, setPreviewAvatar] = useState('/default-avatar.png');
+    const [previewAvatar, setPreviewAvatar] = useState('/image_error.svg');
 
     useEffect(() => {
         fetchUserProfile();
@@ -80,7 +80,7 @@ export default function ProfileView() {
 
                         const processedAvatar = profileResponse.avatar
                             ? getFullImageUrl(profileResponse.avatar)
-                            : '/default-avatar.png';
+                            : '/image_error.svg';
 
                         // 对从服务器获取的用户数据进行转义处理
                         setUser({
@@ -93,14 +93,14 @@ export default function ProfileView() {
                             birthday: birthdayFormatted,
                         });
 
-                        setPreviewAvatar(processedAvatar || '/default-avatar.png');
+                        setPreviewAvatar(processedAvatar || '/image_error.svg');
                     }
                 }
             }
         } catch (error) {
             console.error('获取用户信息失败:', error);
             showMessage('获取用户信息失败', 'error');
-            setPreviewAvatar('/default-avatar.png');
+            setPreviewAvatar('/image_error.svg');
         } finally {
             setLoading(false);
         }
@@ -169,13 +169,13 @@ export default function ProfileView() {
                 }));
 
                 const processedAvatar = getFullImageUrl(response.fileUrl);
-                setPreviewAvatar(processedAvatar || '/default-avatar.png');
+                setPreviewAvatar(processedAvatar || '/image_error.svg');
                 showMessage('头像上传成功', 'success');
             } else {
                 showMessage('头像上传失败', 'error');
                 const currentAvatar = user.avatar
                     ? getFullImageUrl(user.avatar)
-                    : '/default-avatar.png';
+                    : '/image_error.svg';
                 setPreviewAvatar(currentAvatar);
             }
         } catch (err) {
@@ -183,7 +183,7 @@ export default function ProfileView() {
             showMessage('头像上传失败: ' + (err.response?.data?.error || err.message), 'error');
             const currentAvatar = user.avatar
                 ? getFullImageUrl(user.avatar)
-                : '/default-avatar.png';
+                : '/image_error.svg';
             setPreviewAvatar(currentAvatar);
         }
     };
@@ -280,7 +280,7 @@ export default function ProfileView() {
                                     alt="头像预览"
                                     className="w-16 h-16 rounded-full object-cover border-2 border-gray-300"
                                     onError={(e) => {
-                                        e.target.src = '/default-avatar.png';
+                                        e.target.src = '/image_error.svg';
                                     }}
                                 />
                             </div>

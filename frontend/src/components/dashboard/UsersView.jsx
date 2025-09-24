@@ -164,7 +164,7 @@ export default function UsersView() {
                         src={getFullImageUrl(user.avatar)}
                         alt={user.username}
                         onError={(e) => {
-                          e.target.src = '/default-avatar.png';
+                          e.target.src = '/image_error.svg';
                         }}
                       />
                     </div>
