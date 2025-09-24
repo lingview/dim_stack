@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 24/09/2025 16:25:30
+ Date: 24/09/2025 16:54:02
 */
 
 SET NAMES utf8mb4;
@@ -185,6 +185,7 @@ INSERT INTO `dashboard_menu` VALUES (24, '评论', 'comment', '/dashboard/commen
 INSERT INTO `dashboard_menu` VALUES (25, '菜单', 'menus', '/dashboard/menus', 3, 'system:edit', 50, '2025-09-13 11:12:42', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (42, '用户', 'users', '/dashboard/users', 3, 'user:management', 10, '2025-09-13 11:12:42', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (43, '站点信息', 'info', '/dashboard/settings', 5, 'system:edit', 10, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (44, '主题管理', 'theme', '/dashboard/themes', 5, 'system:edit', 20, '2025-09-24 16:52:43', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (101, '个人中心', 'user', '/dashboard/profile', NULL, NULL, 10, '2025-09-13 11:12:42', 'quick_action');
 INSERT INTO `dashboard_menu` VALUES (103, '创建文章', 'edit', '/dashboard/articles/create', NULL, 'post:create', 20, '2025-09-13 11:12:42', 'quick_action');
 INSERT INTO `dashboard_menu` VALUES (104, '用户', 'users', '/dashboard/users', NULL, 'system:edit', 30, '2025-09-13 11:12:42', 'quick_action');
