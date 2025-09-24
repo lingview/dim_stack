@@ -5,7 +5,7 @@ spring:
 
   session:
     redis:
-      namespace: "dimstack:session"
+      namespace: "dimstack_expansion_server:session"
       flush-mode: on_save
       save-mode: always
 

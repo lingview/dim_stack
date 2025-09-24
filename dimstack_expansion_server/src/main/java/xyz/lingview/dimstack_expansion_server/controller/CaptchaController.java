@@ -1,14 +1,14 @@
-package xyz.lingview.dimstack.controller;
+package xyz.lingview.dimstack_expansion_server.controller;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import xyz.lingview.dimstack_expansion_server.common.ApiResponse;
+import xyz.lingview.dimstack_expansion_server.util.CaptchaUtil;
 
-import jakarta.servlet.http.HttpSession;
-import xyz.lingview.dimstack.util.CaptchaUtil;
-import xyz.lingview.dimstack.common.ApiResponse;
 
 import java.util.HashMap;
 import java.util.Map;
