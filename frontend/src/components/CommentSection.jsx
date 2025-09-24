@@ -33,7 +33,7 @@ const CommentSection = ({ articleAlias }) => {
       return `/upload/${url}`;
     }
   };
-
+  
   const fetchComments = async () => {
     try {
       setLoading(true);
@@ -46,8 +46,6 @@ const CommentSection = ({ articleAlias }) => {
       setLoading(false);
     }
   };
-
-  // 处理主评论输入框的键盘事件
   const handleNewCommentKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -106,7 +104,7 @@ const CommentSection = ({ articleAlias }) => {
       await apiClient.post('/comments', requestData);
       setReplyContent('');
       setReplyingTo(null);
-      fetchComments(); // 重新获取评论列表
+      fetchComments();
       setError('');
     } catch (err) {
       setError('回复评论失败');
@@ -120,12 +118,13 @@ const CommentSection = ({ articleAlias }) => {
   const handleLikeComment = async (commentId) => {
     try {
       await apiClient.post(`/comments/${commentId}/like`);
-      fetchComments(); // 重新获取评论列表以更新点赞数
+      fetchComments();
     } catch (err) {
       setError('点赞失败');
       console.error(err);
     }
   };
+
 
   // 删除评论
   const handleDeleteComment = async (commentId) => {
@@ -135,7 +134,7 @@ const CommentSection = ({ articleAlias }) => {
 
     try {
       await apiClient.delete(`/comments/${commentId}`);
-      fetchComments(); // 重新获取评论列表
+      fetchComments();
       setError('');
     } catch (err) {
       setError('删除评论失败');
@@ -171,7 +170,7 @@ const CommentSection = ({ articleAlias }) => {
                 alt={comment.username}
                 className="h-8 w-8 rounded-full object-cover"
                 onError={(e) => {
-                  e.target.src = '/default-avatar.png';
+                  e.target.src = '/image_error.svg';
                 }}
               />
             ) : (
@@ -204,8 +203,8 @@ const CommentSection = ({ articleAlias }) => {
 
             <div className="mt-2 flex items-center space-x-4">
               <button
-                onClick={() => handleLikeComment(comment.comment_id)}
-                className="flex items-center text-xs text-gray-500 hover:text-blue-500"
+                  onClick={() => handleLikeComment(comment.comment_id)}
+                  className={`flex items-center text-xs ${comment.is_liked ? 'text-red-500' : 'text-gray-500'} hover:text-red-500`}
               >
                 <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
@@ -291,7 +290,7 @@ const CommentSection = ({ articleAlias }) => {
                 alt={comment.username}
                 className="h-10 w-10 rounded-full object-cover"
                 onError={(e) => {
-                  e.target.src = '/default-avatar.png';
+                  e.target.src = '/image_error.svg';
                 }}
               />
             ) : (
@@ -299,7 +298,7 @@ const CommentSection = ({ articleAlias }) => {
             )}
           </div>
 
-          <div className="flex-1 min-w-0"> {/* 添加 min-w-0 防止 flex 项目溢出 */}
+          <div className="flex-1 min-w-0">
             <div className="flex items-center">
               <span className="font-medium text-gray-900">
                 {comment.username || '匿名用户'}
@@ -315,8 +314,8 @@ const CommentSection = ({ articleAlias }) => {
             </p>
             <div className="mt-2 flex items-center space-x-4">
               <button
-                onClick={() => handleLikeComment(comment.comment_id)}
-                className="flex items-center text-sm text-gray-500 hover:text-blue-500"
+                  onClick={() => handleLikeComment(comment.comment_id)}
+                  className={`flex items-center text-sm ${comment.is_liked ? 'text-red-500' : 'text-gray-500'} hover:text-red-500`}
               >
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>

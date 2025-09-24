@@ -20,6 +20,7 @@ public class CommentDTO {
     private String article_id;
     private String article_title;
     private Integer status;
+    private Boolean is_liked = false;
 
     private List<CommentDTO> children = new ArrayList<>();
 }

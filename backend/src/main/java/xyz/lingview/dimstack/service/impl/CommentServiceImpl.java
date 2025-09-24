@@ -4,10 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.Article;
 import xyz.lingview.dimstack.domain.Comment;
+import xyz.lingview.dimstack.domain.CommentLike;
 import xyz.lingview.dimstack.domain.UserInformation;
 import xyz.lingview.dimstack.dto.request.AddCommentRequestDTO;
 import xyz.lingview.dimstack.dto.request.CommentDTO;
 import xyz.lingview.dimstack.mapper.ArticleMapper;
+import xyz.lingview.dimstack.mapper.CommentLikeMapper;
 import xyz.lingview.dimstack.mapper.CommentMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.CommentService;
@@ -27,8 +29,11 @@ public class CommentServiceImpl implements CommentService {
     @Autowired
     private UserInformationMapper userInformationMapper;
 
+    @Autowired
+    private CommentLikeMapper commentLikeMapper;
+
     @Override
-    public List<CommentDTO> getCommentsByArticleAlias(String articleAlias) {
+    public List<CommentDTO> getCommentsByArticleAlias(String articleAlias, String username) {
         Article article = articleMapper.selectArticleByAlias(articleAlias);
         if (article == null) {
             return new ArrayList<>();
@@ -36,9 +41,13 @@ public class CommentServiceImpl implements CommentService {
 
         List<Comment> comments = commentMapper.selectCommentsByArticleId(article.getArticle_id());
 
-        return buildCommentTree(comments);
-    }
+        String currentUserUuid = null;
+        if (username != null) {
+            currentUserUuid = userInformationMapper.selectUserUUID(username);
+        }
 
+        return buildCommentTree(comments, currentUserUuid);
+    }
     @Override
     public void addComment(String username, AddCommentRequestDTO request) {
 
@@ -77,14 +86,31 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public void likeComment(String username, String commentId) {
+        String userId = userInformationMapper.selectUserUUID(username);
+
         Comment comment = commentMapper.selectCommentByCommentId(commentId);
         if (comment == null) {
             throw new RuntimeException("评论不存在");
         }
 
-        Long newLikeCount = comment.getComment_like_count() + 1;
-        commentMapper.updateCommentLikeCount(commentId, newLikeCount);
+        // 检查用户是否已经点赞过该评论
+        if (commentLikeMapper.existsLike(userId, commentId)) {
+            // 如果已点赞，则取消点赞
+            commentLikeMapper.deleteLike(userId, commentId);
+            Long newLikeCount = comment.getComment_like_count() - 1;
+            commentMapper.updateCommentLikeCount(commentId, newLikeCount);
+        } else {
+            CommentLike like = new CommentLike();
+            like.setUser_id(userId);
+            like.setComment_id(commentId);
+            like.setCreate_time(LocalDateTime.now());
+            commentLikeMapper.insertLike(like);
+
+            Long newLikeCount = comment.getComment_like_count() + 1;
+            commentMapper.updateCommentLikeCount(commentId, newLikeCount);
+        }
     }
+
 
     @Override
     public void deleteComment(String username, String commentId) {
@@ -102,7 +128,7 @@ public class CommentServiceImpl implements CommentService {
         commentMapper.deleteComment(commentId);
     }
 
-    private List<CommentDTO> buildCommentTree(List<Comment> comments) {
+    private List<CommentDTO> buildCommentTree(List<Comment> comments, String currentUserUuid) {
         if (comments == null || comments.isEmpty()) {
             return new ArrayList<>();
         }
@@ -122,7 +148,7 @@ public class CommentServiceImpl implements CommentService {
         Map<String, CommentDTO> dtoMap = new HashMap<>();
 
         for (Comment comment : comments) {
-            CommentDTO dto = convertToDTO(comment, userMap);
+            CommentDTO dto = convertToDTO(comment, userMap, currentUserUuid);
             allCommentDTOs.add(dto);
             dtoMap.put(comment.getComment_id(), dto);
         }
@@ -146,7 +172,7 @@ public class CommentServiceImpl implements CommentService {
         return rootComments;
     }
 
-    private CommentDTO convertToDTO(Comment comment, Map<String, UserInformation> userMap) {
+    private CommentDTO convertToDTO(Comment comment, Map<String, UserInformation> userMap, String currentUserUuid) {
         CommentDTO dto = new CommentDTO();
         dto.setComment_id(comment.getComment_id());
         dto.setUser_id(comment.getUser_id());
@@ -168,6 +194,11 @@ public class CommentServiceImpl implements CommentService {
         } else {
             dto.setUsername("未知用户");
             dto.setAvatar(null);
+        }
+
+        // 检查当前用户是否已点赞该评论
+        if (currentUserUuid != null) {
+            dto.setIs_liked(commentLikeMapper.existsLike(currentUserUuid, comment.getComment_id()));
         }
 
         dto.setChildren(new ArrayList<>());

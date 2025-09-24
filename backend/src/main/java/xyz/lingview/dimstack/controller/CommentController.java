@@ -18,8 +18,9 @@ public class CommentController {
 
     // 获取文章的评论列表
     @GetMapping("/article/{articleAlias}")
-    public List<CommentDTO> getCommentsByArticle(@PathVariable String articleAlias) {
-        return commentService.getCommentsByArticleAlias(articleAlias);
+    public List<CommentDTO> getCommentsByArticle(@PathVariable String articleAlias, HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        return commentService.getCommentsByArticleAlias(articleAlias, username);
     }
 
     // 添加评论

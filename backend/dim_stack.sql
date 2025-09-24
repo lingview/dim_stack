@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 24/09/2025 16:54:02
+ Date: 24/09/2025 19:42:28
 */
 
 SET NAMES utf8mb4;
@@ -147,6 +147,26 @@ CREATE TABLE `comment`  (
 
 -- ----------------------------
 -- Records of comment
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for comment_like
+-- ----------------------------
+DROP TABLE IF EXISTS `comment_like`;
+CREATE TABLE `comment_like`  (
+                                 `id` int NOT NULL AUTO_INCREMENT,
+                                 `user_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '点赞用户ID',
+                                 `comment_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '被点赞的评论ID',
+                                 `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '点赞时间',
+                                 PRIMARY KEY (`id`) USING BTREE,
+                                 UNIQUE INDEX `uk_user_comment`(`user_id` ASC, `comment_id` ASC) USING BTREE,
+                                 INDEX `fk_like_comment`(`comment_id` ASC) USING BTREE,
+                                 CONSTRAINT `fk_like_comment` FOREIGN KEY (`comment_id`) REFERENCES `comment` (`comment_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+                                 CONSTRAINT `fk_like_user` FOREIGN KEY (`user_id`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '评论点赞记录表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of comment_like
 -- ----------------------------
 
 -- ----------------------------

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.lingview.dimstack.mapper.CommentLikeMapper">
+
+    <insert id="insertLike" parameterType="xyz.lingview.dimstack.domain.CommentLike">
+        INSERT INTO comment_like (user_id, comment_id, create_time)
+        VALUES (#{user_id}, #{comment_id}, #{create_time})
+    </insert>
+
+    <delete id="deleteLike">
+        DELETE FROM comment_like WHERE user_id = #{userId} AND comment_id = #{commentId}
+    </delete>
+
+    <select id="existsLike" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1 FROM comment_like
+            WHERE user_id = #{userId} AND comment_id = #{commentId}
+        )
+    </select>
+
+</mapper>
