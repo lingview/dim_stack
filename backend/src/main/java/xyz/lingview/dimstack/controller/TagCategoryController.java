@@ -1,6 +1,7 @@
 package xyz.lingview.dimstack.controller;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -62,7 +63,7 @@ public class TagCategoryController {
 
     @PostMapping("/tags")
     @RequiresPermission("system:edit")
-    public ResponseEntity<Map<String, Object>> createTag(@RequestBody ArticleTagDTO tagDTO, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> createTag(@Valid @RequestBody ArticleTagDTO tagDTO, HttpSession session) {
         try {
             String username = (String) session.getAttribute("username");
 
@@ -89,7 +90,7 @@ public class TagCategoryController {
 
     @PutMapping("/tags/{id}")
     @RequiresPermission("system:edit")
-    public ResponseEntity<Map<String, Object>> updateTag(@PathVariable Integer id, @RequestBody ArticleTagDTO tagDTO) {
+    public ResponseEntity<Map<String, Object>> updateTag(@PathVariable Integer id, @Valid @RequestBody ArticleTagDTO tagDTO) {
         try {
             tagDTO.setId(id);
             boolean result = articleTagService.updateTag(tagDTO);

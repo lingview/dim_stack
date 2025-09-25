@@ -31,7 +31,7 @@ public class UserPermissionInterceptor implements HandlerInterceptor {
 
             HttpSession session = request.getSession();
             String username = (String) session.getAttribute("username");
-            System.out.println("UserPermissionInterceptor: username=" + username);
+//            System.out.println("UserPermissionInterceptor: username=" + username);
 
             if (username == null) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

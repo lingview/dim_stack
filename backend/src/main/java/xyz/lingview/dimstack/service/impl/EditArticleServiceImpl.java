@@ -96,6 +96,18 @@ public class EditArticleServiceImpl implements EditArticleService {
                 return false;
             }
 
+            editArticleMapper.deleteArticleTagRelations(updateArticleDTO.getArticle_id());
+
+            String tagsString = updateArticleDTO.getTag();
+            if (tagsString != null && !tagsString.isEmpty()) {
+                String[] tags = tagsString.split(",");
+                for (String tag : tags) {
+                    if (!tag.trim().isEmpty()) {
+                        editArticleMapper.insertArticleTagRelation(updateArticleDTO.getArticle_id(), tag.trim());
+                    }
+                }
+            }
+
             int result = editArticleMapper.updateArticle(updateArticleDTO);
             return result > 0;
 
@@ -104,6 +116,7 @@ public class EditArticleServiceImpl implements EditArticleService {
             return false;
         }
     }
+
 
     @Override
     public boolean deleteArticle(String articleId, String sessionUsername) {

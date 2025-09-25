@@ -30,22 +30,22 @@ public class SessionAuthFilter implements Filter {
 
     // 不需要认证的路径
     private static final Set<String> WHITE_LIST = new HashSet<>(Arrays.asList(
-        "/api/login",
-        "/api/register",
-        "/swagger-ui.html",
-        "/v3/api-docs",
-        "/swagger-ui/**",
-        "/webjars/**",
-        "/api/captcha",
-        "/api/articles",
-        "/api/categories",
-        "/api/categoriesandcount",
-        "/api/hot/articles",
-        "/api/comments/article/**",
-        "/api/frontendgetmenus",
-        "/api/site/**",
-        "/api/article/**",
-        "/v3/api-docs/**"
+            "/api/login",
+            "/api/register",
+            "/swagger-ui.html",
+            "/v3/api-docs",
+            "/swagger-ui/**",
+            "/webjars/**",
+            "/api/captcha",
+            "/api/articles",
+            "/api/categories",
+            "/api/categoriesandcount",
+            "/api/hot/articles",
+            "/api/comments/article/**",
+            "/api/frontendgetmenus",
+            "/api/site/**",
+            "/api/article/**",
+            "/v3/api-docs/**"
     ));
 
     @Override
@@ -57,55 +57,55 @@ public class SessionAuthFilter implements Filter {
 
         String requestURI = httpRequest.getRequestURI();
 
-        System.out.println("=== SessionAuthFilter 调试信息 ===");
-        System.out.println("请求URI: " + requestURI);
-        System.out.println("请求方法: " + httpRequest.getMethod());
+        log.debug("=== SessionAuthFilter 调试信息 ===");
+        log.debug("请求URI: {}", requestURI);
+        log.debug("请求方法: {}", httpRequest.getMethod());
 
-        System.out.println("=== 请求头信息 ===");
+        log.debug("=== 请求头信息 ===");
         Enumeration<String> headerNames = httpRequest.getHeaderNames();
         while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
-            System.out.println(headerName + ": " + httpRequest.getHeader(headerName));
+            log.debug("{}: {}", headerName, httpRequest.getHeader(headerName));
         }
-        System.out.println("=== 请求头信息结束 ===");
+        log.debug("=== 请求头信息结束 ===");
 
-        System.out.println("=== Cookie信息 ===");
+        log.debug("=== Cookie信息 ===");
         jakarta.servlet.http.Cookie[] cookies = httpRequest.getCookies();
         if (cookies != null) {
             for (jakarta.servlet.http.Cookie cookie : cookies) {
-                System.out.println(cookie.getName() + ": " + cookie.getValue());
+                log.debug("{}: {}", cookie.getName(), cookie.getValue());
             }
         } else {
-            System.out.println("没有Cookie");
+            log.debug("没有Cookie");
         }
-        System.out.println("=== Cookie信息结束 ===");
+        log.debug("=== Cookie信息结束 ===");
 
         if (isWhitelisted(requestURI)) {
-            System.out.println("路径在白名单中，放行: " + requestURI);
+            log.debug("路径在白名单中，放行: {}", requestURI);
             chain.doFilter(request, response);
             return;
         }
 
         HttpSession session = httpRequest.getSession(false);
-        System.out.println("Session对象: " + session);
+        log.debug("Session对象: {}", session);
 
         if (session != null) {
-            System.out.println("Session ID: " + session.getId());
+            log.debug("Session ID: {}", session.getId());
 
             Enumeration<String> attrNames = session.getAttributeNames();
-            System.out.println("所有Session属性:");
+            log.debug("所有Session属性:");
             while (attrNames.hasMoreElements()) {
                 String name = attrNames.nextElement();
-                System.out.println("  " + name + ": " + session.getAttribute(name));
+                log.debug("  {}: {}", name, session.getAttribute(name));
             }
             Object isLoggedIn = session.getAttribute("isLoggedIn");
             Object username = session.getAttribute("username");
-            System.out.println("isLoggedIn属性: " + isLoggedIn);
-            System.out.println("username属性: " + username);
+            log.debug("isLoggedIn属性: {}", isLoggedIn);
+            log.debug("username属性: {}", username);
 
             if (Boolean.TRUE.equals(isLoggedIn)) {
                 if (username != null && userBlacklistService.isUserInBlacklist((String) username)) {
-                    System.out.println("用户在黑名单中: " + username);
+                    log.warn("用户在黑名单中: {}", username);
                     session.invalidate(); // 清除被拉黑用户的session
                     httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     httpResponse.setContentType("application/json;charset=UTF-8");
@@ -117,23 +117,21 @@ public class SessionAuthFilter implements Filter {
                     return;
                 }
 
-                System.out.println("用户已登录，放行请求");
+                log.debug("用户已登录，放行请求");
                 chain.doFilter(request, response);
             } else {
-                System.out.println("用户未登录或会话已过期");
+                log.info("用户未登录或会话已过期");
                 httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 httpResponse.setContentType("application/json;charset=UTF-8");
                 httpResponse.getWriter().write("{\"success\":false,\"message\":\"未登录或会话已过期\"}");
             }
         } else {
-            System.out.println("没有找到Session");
+            log.info("没有找到Session");
             httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             httpResponse.setContentType("application/json;charset=UTF-8");
             httpResponse.getWriter().write("{\"success\":false,\"message\":\"未登录或会话已过期\"}");
         }
-
     }
-
 
     private boolean checkPermission(HttpServletRequest request, HttpServletResponse response, String username)
             throws IOException {
@@ -155,6 +153,7 @@ public class SessionAuthFilter implements Filter {
                 }
 
                 if (!hasPermission) {
+                    log.warn("用户权限不足: 用户={}, 权限={}", username, Arrays.toString(requiredPermissions));
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                     response.setContentType("application/json;charset=UTF-8");
                     response.getWriter().write("{\"success\":false,\"message\":\"权限不足\"}");
@@ -169,9 +168,8 @@ public class SessionAuthFilter implements Filter {
         return true;
     }
 
-
     private boolean isWhitelisted(String requestURI) {
-        return WHITE_LIST.stream().anyMatch(pattern -> {
+        boolean isWhitelisted = WHITE_LIST.stream().anyMatch(pattern -> {
             if (pattern.endsWith("/**")) {
                 String prefix = pattern.substring(0, pattern.length() - 3);
                 return requestURI.startsWith(prefix);
@@ -179,5 +177,7 @@ public class SessionAuthFilter implements Filter {
                 return requestURI.equals(pattern);
             }
         });
+        log.debug("路径是否在白名单中: {} -> {}", requestURI, isWhitelisted);
+        return isWhitelisted;
     }
 }

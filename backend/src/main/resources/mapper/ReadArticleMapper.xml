@@ -33,48 +33,59 @@
     <!-- 获取文章数据 -->
     <select id="selectByArticleId" resultMap="readArticleMap">
         SELECT
-            id,
-            uuid,
-            article_id,
-            article_name,
-            article_cover,
-            excerpt,
-            article_content,
-            page_views,
-            like_count,
-            favorite_count,
-            password,
-            tag,
-            category,
-            alias,
-            create_time,
-            status
-        FROM article
-        WHERE article_id = #{article_id} AND status = 1
+            a.id,
+            a.uuid,
+            a.article_id,
+            a.article_name,
+            a.article_cover,
+            a.excerpt,
+            a.article_content,
+            a.page_views,
+            a.like_count,
+            a.favorite_count,
+            a.password,
+            GROUP_CONCAT(atr.article_tag) as tag,
+            a.category,
+            a.alias,
+            a.create_time,
+            a.status
+        FROM article a
+                 LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
+        WHERE a.article_id = #{article_id} AND a.status = 1
+        GROUP BY a.id, a.uuid, a.article_id, a.article_name, a.article_cover,
+                 a.excerpt, a.article_content, a.page_views, a.like_count,
+                 a.favorite_count, a.password, a.category, a.alias,
+                 a.create_time, a.status
     </select>
 
     <!-- 根据别名获取文章 -->
     <select id="selectByAlias" resultMap="readArticleMap">
         SELECT
-            id,
-            uuid,
-            article_id,
-            article_name,
-            article_cover,
-            excerpt,
-            article_content,
-            page_views,
-            like_count,
-            favorite_count,
-            password,
-            tag,
-            category,
-            alias,
-            create_time,
-            status
-        FROM article
-        WHERE alias = #{alias} AND status = 1
+            a.id,
+            a.uuid,
+            a.article_id,
+            a.article_name,
+            a.article_cover,
+            a.excerpt,
+            a.article_content,
+            a.page_views,
+            a.like_count,
+            a.favorite_count,
+            a.password,
+            GROUP_CONCAT(atr.article_tag) as tag,
+            a.category,
+            a.alias,
+            a.create_time,
+            a.status
+        FROM article a
+                 LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
+        WHERE a.alias = #{alias} AND a.status = 1
+        GROUP BY a.id, a.uuid, a.article_id, a.article_name, a.article_cover,
+                 a.excerpt, a.article_content, a.page_views, a.like_count,
+                 a.favorite_count, a.password, a.category, a.alias,
+                 a.create_time, a.status
     </select>
+
 
     <!-- 检查文章是否需要密码 -->
     <select id="isArticleNeedPassword" resultType="boolean">

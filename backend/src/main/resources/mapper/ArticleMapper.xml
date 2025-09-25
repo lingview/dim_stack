@@ -13,6 +13,7 @@
         <result property="date" column="date"/>
         <result property="author" column="author"/>
         <result property="category" column="category"/>
+        <result property="tag" column="tag"/>
         <result property="alias" column="alias"/>
     </resultMap>
 
@@ -28,16 +29,21 @@
         a.create_time AS date,
         u.username AS author,
         a.category,
-        a.alias
+        a.alias,
+        GROUP_CONCAT(atr.article_tag) as tag
         FROM article a
         JOIN user_information u ON a.uuid = u.uuid
+        LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
         WHERE a.status = 1
         <if test="category != null and category != ''">
             AND a.category = #{category}
         </if>
+        GROUP BY a.id, a.uuid, a.article_id, a.article_name, a.excerpt,
+        a.article_cover, a.create_time, u.username, a.category, a.alias
         ORDER BY a.create_time DESC
         LIMIT #{param1}, #{param2}
     </select>
+
 
     <!-- 统计文章总数 -->
     <select id="countArticles" resultType="int">

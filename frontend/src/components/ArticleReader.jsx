@@ -171,10 +171,10 @@ export default function ArticleReader() {
                         <main className="container mx-auto px-4 py-8">
                             <div className="flex flex-col lg:flex-row gap-8">
                                 <div className="lg:w-2/3">
-                                    <div className="-mt-20 relative z-10 space-y-8">
+                                    <div className={article.article_cover ? "-mt-20 relative z-10" : ""}>
                                         {/* 文章阅读器组件 */}
                                         <ArticlePreview article={article} />
-                                        
+
                                         {/* 评论区组件 */}
                                         <CommentSection articleAlias={article.alias} />
                                     </div>

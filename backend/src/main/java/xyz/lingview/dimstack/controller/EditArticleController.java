@@ -121,7 +121,7 @@ public class EditArticleController {
 
             ArticleDetailDTO article = editArticleService.getArticleDetailById(articleId, username);
 
-            System.out.println("article: " + article);
+//            System.out.println("article: " + article);
             if (article != null) {
                 response.put("success", true);
                 response.put("message", "获取文章详情成功");

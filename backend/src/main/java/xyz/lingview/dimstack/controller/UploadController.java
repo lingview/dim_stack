@@ -608,6 +608,13 @@ public class UploadController {
         try {
             int result = uploadMapper.insertUploadArticle(uploadArticle);
             if (result == 1) {
+                String[] tags = uploadArticle.getTag().split(","); // 假设标签以逗号分隔
+                for (String tag : tags) {
+                    if (!tag.trim().isEmpty()) {
+                        uploadMapper.insertArticleTagRelation(uploadArticle.getArticle_id(), tag.trim());
+                    }
+                }
+
                 log.info("文章上传成功，文章ID: {}", uploadArticle.getArticle_id());
                 return ResponseEntity.ok(Map.of(
                         "message", "文章保存成功",

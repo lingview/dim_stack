@@ -42,6 +42,7 @@ public class ReadArticleController {
         Map<String, Object> response = new HashMap<>();
         try {
             ReadArticle article = readArticleService.getArticleByAlias(alias, password);
+            log.info("Article data: {}", article);
             response.put("success", true);
             response.put("data", article);
             return ResponseEntity.ok(response);
@@ -52,6 +53,7 @@ public class ReadArticleController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
 
 
 }

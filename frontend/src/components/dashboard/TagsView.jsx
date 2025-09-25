@@ -238,7 +238,7 @@ export default function TagsView() {
                             <div className="px-6 py-4 space-y-4">
                                 <div>
                                     <label htmlFor="tag_name" className="block text-sm font-medium text-gray-700">
-                                        标签名称
+                                        标签名称 - 不允许使用符号
                                     </label>
                                     <input
                                         type="text"

@@ -11,19 +11,27 @@
         <result property="excerpt" column="excerpt" />
         <result property="article_content" column="article_content" />
         <result property="password" column="password" />
-        <result property="tag" column="tag" />
         <result property="category" column="category" />
         <result property="alias" column="alias" />
         <result property="status" column="status" />
     </resultMap>
 
     <insert id="insertUploadArticle" parameterType="xyz.lingview.dimstack.domain.UploadArticle">
-        INSERT INTO article(uuid, article_id, article_name, article_cover, excerpt, article_content, password, tag, category, alias, status)
-        VALUES (#{uuid}, #{article_id}, #{article_name}, #{article_cover}, #{excerpt}, #{article_content}, #{password}, #{tag}, #{category}, #{alias}, #{status})
+        INSERT INTO article(uuid, article_id, article_name, article_cover, excerpt, article_content, password, category, alias, status)
+        VALUES (#{uuid}, #{article_id}, #{article_name}, #{article_cover}, #{excerpt}, #{article_content}, #{password}, #{category}, #{alias}, #{status})
     </insert>
 
     <select id="selectArticleCountByAliasAndUuid" resultType="int">
         SELECT COUNT(*) FROM article WHERE alias = #{alias} AND uuid = #{uuid}
     </select>
+
+    <insert id="insertArticleTagRelation">
+        INSERT INTO article_tag_relation(article_id, article_tag)
+        VALUES (#{articleId}, #{tagName})
+    </insert>
+
+    <delete id="deleteArticleTagRelations">
+        DELETE FROM article_tag_relation WHERE article_id = #{articleId}
+    </delete>
 
 </mapper>

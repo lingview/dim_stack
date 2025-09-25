@@ -13,5 +13,6 @@ public class ArticleDTO {
     private Date date;
     private String author;
     private String category;
+    private String tag;
     private String alias;
 }

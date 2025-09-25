@@ -7,7 +7,7 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
         title: '',
         cover: '',
         excerpt: '',
-        tags: '',
+        tags: [],
         category: '',
         alias: '',
         password: ''
@@ -28,17 +28,25 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
             const hasPassword = articleData.password && articleData.password.trim() !== '';
             setHasOriginalPassword(hasPassword);
 
+            // 处理标签数据，确保是数组格式
+            let tagsData = articleData.tag || articleData.tags || [];
+            if (typeof tagsData === 'string') {
+                // 如果是字符串，转换为数组
+                tagsData = tagsData ? tagsData.split(',').map(tag => tag.trim()) : [];
+            }
+
             setFormData({
                 title: articleData.article_name || articleData.title || '',
                 cover: articleData.article_cover || articleData.cover || '',
                 excerpt: articleData.excerpt || '',
-                tags: articleData.tag || articleData.tags || '',
+                tags: tagsData,
                 category: articleData.category || '',
                 alias: articleData.alias || '',
                 password: ''
             });
         }
     }, [articleData]);
+
 
     const fetchTagsAndCategories = async () => {
         try {
@@ -57,12 +65,21 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
     };
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value, options, multiple } = e.target;
+        let newValue = value;
+
+        if (name === 'tags' && multiple) {
+            newValue = Array.from(options)
+                .filter(option => option.selected)
+                .map(option => option.value);
+        }
+
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: newValue
         }));
     };
+
 
     const handleCoverUpload = async (file) => {
         if (!file) return;
@@ -129,15 +146,12 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
             title: formData.title,
             cover: formData.cover,
             excerpt: formData.excerpt,
-            tags: formData.tags,
+            tags: Array.isArray(formData.tags) ? formData.tags.join(',') : formData.tags,
             category: formData.category,
             alias: formData.alias
         };
 
-        // 密码处理逻辑：
-        // 1. 如果是新建文章，直接使用输入的密码（可以为空）
-        // 2. 如果是编辑文章且用户输入了新密码，使用新密码
-        // 3. 如果是编辑文章且用户没有输入密码，保持原密码不变
+        // 密码处理逻辑保持不变
         if (articleData?.article_id) {
             if (formData.password.trim() !== '') {
                 saveData.password = formData.password;
@@ -148,6 +162,7 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
 
         onSave(saveData);
     };
+
 
     const getFullImageUrl = (url) => {
         if (!url) return '';
@@ -292,27 +307,52 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                             </select>
                         </div>
 
+
                         <div>
-                            <label className="block text-sm font-medium text-gray-700  mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
                                 文章标签
                             </label>
-                            <select
-                                name="tags"
-                                value={formData.tags}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300  rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white  text-gray-900 "
-                            >
-                                <option value="" className="text-gray-900  bg-white ">请选择标签</option>
-                                {tags.map(tag => (
-                                    <option
-                                        key={tag.id || tag.tag_name}
-                                        value={tag.tag_name || tag}
-                                        className="text-gray-900  bg-white "
-                                    >
-                                        {tag.tag_name || tag}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded-lg min-h-[40px] bg-white">
+                                {tags.map(tag => {
+                                    const tagValue = tag.tag_name || tag;
+                                    const isSelected = Array.isArray(formData.tags) && formData.tags.includes(tagValue);
+                                    return (
+                                        <button
+                                            key={tag.id || tagValue}
+                                            type="button"
+                                            onClick={() => {
+                                                setFormData(prev => {
+                                                    const current = prev.tags || [];
+                                                    if (current.includes(tagValue)) {
+                                                        return {
+                                                            ...prev,
+                                                            tags: current.filter(t => t !== tagValue)
+                                                        };
+                                                    } else {
+                                                        return {
+                                                            ...prev,
+                                                            tags: [...current, tagValue]
+                                                        };
+                                                    }
+                                                });
+                                            }}
+                                            className={`px-3 py-1 text-sm rounded-full transition ${
+                                                isSelected
+                                                    ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`}
+                                        >
+                                            {tagValue}
+                                        </button>
+                                    );
+                                })}
+                                {tags.length === 0 && (
+                                    <span className="text-gray-400 text-sm">暂无可用标签</span>
+                                )}
+                            </div>
+                            <p className="mt-1 text-sm text-gray-500">
+                                点击标签进行选择或取消
+                            </p>
                         </div>
 
                         <div>

@@ -138,13 +138,14 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             id: initialData?.article_id,
             cover: initialData?.article_cover || '',
             excerpt: initialData?.excerpt || '',
-            tags: initialData?.tag || '',
+            tags: initialData?.tag || initialData?.tags || [],
             category: initialData?.category || '',
             alias: initialData?.alias || '',
             password: initialData?.password || ''
         });
         setShowArticleInfo(true);
     };
+
 
     const handleArticleInfoSave = async (info) => {
         setIsSaving(true);

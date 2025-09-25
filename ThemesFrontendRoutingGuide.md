@@ -2,7 +2,7 @@
 
 > 主题开发者接口文档
 
-## RouterController -路由控制器
+## RouterController - 路由控制器
 **需要主题开发者适配的路由**
 **描述**: 处理所有前端页面的路由请求，将所有匹配的请求转发到 index.html 文件，以便前端路由器（如 React Router 或 Vue Router）能够处理具体的路由逻辑。这些路由需要主题开发者进行适配和实现。
 
@@ -58,7 +58,8 @@ curl -X GET "https://apilinks.cn/api/articles?page=1&size=10"
 | │ ├─ image  | 字符串| 文章的相关图片链接                           |
 | │ ├─ date   | 字符串| 文章的发布日期和时间，格式为 yyyy-MM-dd HH:mm:ss |
 | │ ├─ author | 字符串| 文章的作者名称或标识                         |
-| │ ├─ category| 字符串| 文章所属的分类或标签                         |
+| │ ├─ category| 字符串| 文章所属的分类                         |
+| │ ├─ tag    | 字符串| 文章所属的标签，不同标签使用英文逗号区分                         |
 | │ └─ alias  | 字符串| 文章的别名或URL的一部分                      |
 | ├─ total    | int32 | 数据库中符合条件的数据总数                   |
 | ├─ page     | int32 | 当前返回的数据页码                           |
@@ -73,23 +74,25 @@ curl -X GET "https://apilinks.cn/api/articles?page=1&size=10"
             "id": 2,
             "article_id": "3cb9d2eb-bd24-486e-bb56-c6dc9332b4f1",
             "title": "致谢",
-            "excerpt": "参与次元栈论坛项目的朋友",
+            "excerpt": "致谢",
             "image": "https://pan.apilinks.cn/f/Y5Sw/e5f2f1fe4bfceeb32e88217577732c04.jpg",
             "date": "2025-09-14 11:26:52",
-            "author": "lingview",
+            "author": "admin",
             "category": "默认分类",
+            "tag": "默认标签,次元栈",
             "alias": "thanks"
         },
         {
             "id": 1,
             "article_id": "a1d3112d-fd8e-4484-9c3c-bad24a9e2019",
             "title": "关于",
-            "excerpt": "关于次元栈论坛",
+            "excerpt": "关于",
             "image": "https://pan.apilinks.cn/f/29um/Image_2756849649102.jpg",
             "date": "2025-09-13 12:42:47",
-            "author": "lingview",
+            "author": "admin",
             "category": "默认分类",
-            "alias": "help"
+            "tag": "默认标签,次元栈",
+            "alias": "about"
         }
     ],
     "total": 2,
@@ -427,6 +430,7 @@ curl -X GET -i "https://apilinks.cn/api/categories/%E9%BB%98%E8%AE%A4%E5%88%86%E
 | │ ├─ date       | 字符串 | 发布日期                                 | `"2025-09-14 11:26:52"` |
 | │ ├─ author     | 字符串 | 作者                                     | `"admin"`                 |
 | │ ├─ category   | 字符串 | 文章所属分类                             | `"默认分类"`              |
+| │ ├─ tag        | 字符串 | 文章所属标签                             | `"次元栈,默认标签"`              |
 | │ └─ alias      | 字符串 | 文章别名                                 | `"thanks"`                |
 | ├─ total        | int32  | 总文章数                                 | `3`                       |
 | ├─ page         | int32  | 当前页码                                 | `1`                       |
@@ -445,6 +449,7 @@ curl -X GET -i "https://apilinks.cn/api/categories/%E9%BB%98%E8%AE%A4%E5%88%86%E
             "date": "2025-09-14 11:26:52",
             "author": "admin",
             "category": "默认分类",
+            "tag": "次元栈,默认标签",
             "alias": "thanks"
         },
         {
@@ -456,7 +461,8 @@ curl -X GET -i "https://apilinks.cn/api/categories/%E9%BB%98%E8%AE%A4%E5%88%86%E
             "date": "2025-09-13 12:42:47",
             "author": "admin",
             "category": "默认分类",
-            "alias": "help"
+            "tag": "次元栈,默认标签",
+            "alias": "about"
         }
     ],
     "total": 3,
@@ -572,53 +578,89 @@ curl -X GET -i "https://apilinks.cn/api/comments/article/thanks"
 | │ ├─ to_comment_username| 字符串 | 子评论回复的用户名（如果存在）    | `null`                        |
 | │ ├─ article_id      | 字符串 | 关联子评论的文章唯一标识符        | `null`                        |
 | │ ├─ article_title   | 字符串 | 关联子评论的文章标题              | `null`                        |
-| │ └─ status          | int32  | 子评论状态（例如：0 表示禁用，1 表示启用） | `null`                        |
+| │ ├─ status          | int32  | 子评论状态（例如：0 表示禁用，1 表示启用） | `null`                        |
+| │ └─ is_liked        | 布尔值  | 当前用户是否点赞                 | `null`                        |
 
 **响应示例：**
 ```json
 [
     {
-        "comment_id": "ef5bc7a4-435c-4f0e-a9b3-dcbd678010a4",
-        "user_id": "5fd777d3290540ac8eca0ccc84ebb1eb175783255951989608445",
-        "username": "hanbingniao",
-        "avatar": null,
-        "content": "\uD83D\uDC4D",
-        "create_time": "2025-09-14T14:49:39",
-        "comment_like_count": 0,
+        "comment_id": "13448949-ec6d-4b0a-a6d1-cda606734d64",
+        "user_id": "075eb86f721743e3940f35869154a140175689381296899805858",
+        "username": "admin",
+        "avatar": "/upload/admin/avatar/avatar-3e04e348-8bef-4abe-a164-572e0421f17e-1757579183.jpeg",
+        "content": "Hello World",
+        "create_time": "2025-09-25T21:44:33",
+        "comment_like_count": 2,
         "to_comment_id": null,
         "to_comment_user_id": null,
         "to_comment_username": null,
         "article_id": null,
         "article_title": null,
         "status": null,
+        "is_liked": true,
         "children": [
             {
-                "comment_id": "ce07e85f-1c71-4ab4-a31c-f1b05531ee94",
+                "comment_id": "f97090ef-7b31-4beb-aefd-5bab5c2bd07c",
                 "user_id": "075eb86f721743e3940f35869154a140175689381296899805858",
-                "username": "lingview",
-                "avatar": "/upload/admin/avatar/avatar-4b584fdb-38a7-4c27-8d56-ec72f4bab50c-1757829520.png",
-                "content": "好久不见hhh",
-                "create_time": "2025-09-14T14:57:24",
-                "comment_like_count": 0,
-                "to_comment_id": "ef5bc7a4-435c-4f0e-a9b3-dcbd678010a4",
+                "username": "admin",
+                "avatar": "/upload/admin/avatar/avatar-3e04e348-8bef-4abe-a164-572e0421f17e-1757579183.jpeg",
+                "content": "你好世界",
+                "create_time": "2025-09-25T21:44:46",
+                "comment_like_count": 1,
+                "to_comment_id": "13448949-ec6d-4b0a-a6d1-cda606734d64",
                 "to_comment_user_id": null,
                 "to_comment_username": null,
                 "article_id": null,
                 "article_title": null,
                 "status": null,
+                "is_liked": true,
                 "children": [
-
+                    {
+                        "comment_id": "9685f56b-38f7-4493-b62a-c9abc93a481e",
+                        "user_id": "d6fe60a7bfd64d86a547d8f335af2e94175880793855984296059",
+                        "username": "test",
+                        "avatar": null,
+                        "content": "好久不见",
+                        "create_time": "2025-09-25T21:46:18",
+                        "comment_like_count": 0,
+                        "to_comment_id": "f97090ef-7b31-4beb-aefd-5bab5c2bd07c",
+                        "to_comment_user_id": null,
+                        "to_comment_username": null,
+                        "article_id": null,
+                        "article_title": null,
+                        "status": null,
+                        "is_liked": false,
+                        "children": []
+                    }
                 ]
+            },
+            {
+                "comment_id": "2838e598-aa84-4456-8639-9347708539ff",
+                "user_id": "d6fe60a7bfd64d86a547d8f335af2e94175880793855984296059",
+                "username": "test",
+                "avatar": null,
+                "content": "hello",
+                "create_time": "2025-09-25T21:46:30",
+                "comment_like_count": 0,
+                "to_comment_id": "13448949-ec6d-4b0a-a6d1-cda606734d64",
+                "to_comment_user_id": null,
+                "to_comment_username": null,
+                "article_id": null,
+                "article_title": null,
+                "status": null,
+                "is_liked": false,
+                "children": []
             }
         ]
     },
     {
-        "comment_id": "f7e8930a-becf-42ee-a3f4-6a09d6af837c",
-        "user_id": "1f9a0dd438c24330bd6e91dba1341a5a175834412465279854780",
-        "username": "lmt",
-        "avatar": "/upload/lmt/avatar/avatar-cc57801d-cf81-4a0b-b7f6-eae0edbc131d-1758351584.jpg",
-        "content": "hi",
-        "create_time": "2025-09-20T12:55:54",
+        "comment_id": "d38fd390-bdf4-4b22-bf90-4449d3f4137c",
+        "user_id": "d6fe60a7bfd64d86a547d8f335af2e94175880793855984296059",
+        "username": "test",
+        "avatar": null,
+        "content": "评论测试",
+        "create_time": "2025-09-25T21:46:09",
         "comment_like_count": 0,
         "to_comment_id": null,
         "to_comment_user_id": null,
@@ -626,9 +668,8 @@ curl -X GET -i "https://apilinks.cn/api/comments/article/thanks"
         "article_id": null,
         "article_title": null,
         "status": null,
-        "children": [
-
-        ]
+        "is_liked": false,
+        "children": []
     }
 ]
 ```
@@ -753,8 +794,8 @@ curl -X GET -H "Cookie: SESSION=YTI2MDM3OWUtYThhNi00ZTEwLTg3MTMtYjU4Y2YyOTAyNGZj
 **响应示例：**
 ```json
 {
-    "loggedIn": true,
-    "username": "lingview"
+  "loggedIn": true,
+  "username": "lingview"
 }
 ```
 
@@ -792,8 +833,8 @@ curl -X GET -i "https://apilinks.cn/api/article/thanks/check-password"
 **响应示例：**
 ```json
 {
-    "success": true,
-    "needPassword": false
+  "success": true,
+  "needPassword": false
 }
 ```
 
@@ -845,25 +886,25 @@ curl -X GET -i 'http://{{server}}/api/article/{alias}?password='
 **响应示例：**
 ```json
 {
-    "data": {
-        "id": 1,
-        "uuid": "075eb86f721743e3940f35869154a140175689381296899805858",
-        "article_id": "a1d3112d-fd8e-4484-9c3c-bad24a9e2019",
-        "article_name": "关于",
-        "article_cover": "https://pan.apilinks.cn/f/29um/Image_2756849649102.jpg",
-        "excerpt": "关于次元栈论坛",
-        "article_content": "# 关于次元栈\n## \uD83C\uDF1F 项目简介\n\n**次元栈** 是一个面向多元兴趣群体的内容社区平台，致力于为 **Vsinger 爱好者**、**Minecraft 创作者** 与 **计算机技术爱好者** 提供一个自由表达、知识共享与创作沉淀的空间。\n\n平台核心功能：\n- \uD83D\uDCDD 文章发布与内容管理（CMS）\n- \uD83D\uDCAC 用户互动：评论、点赞、收藏\n- \uD83D\uDD16 标签分类：支持跨圈层内容组织（如 #洛天依、#乐正绫、#星尘、#红石电路、#Java）\n- \uD83D\uDC65 用户系统：注册、登录、个人主页\n- \uD83D\uDD0D 内容搜索与推荐\n- \uD83D\uDCF1 响应式前端，支持移动端浏览\n\n---\n\n## \uD83D\uDEE0 技术栈\n\n| 层级       | 技术选型                                                         |\n|------------|--------------------------------------------------------------|\n| **后端**   | Java 17, Spring Boot 3.5, Mybatis, MySQL, Redis, Cookie      |\n| **前端**   | React 19, JavaScript, Vite, Axios, Tailwind CSS              |\n| **构建**   | Maven (后端), npm/pnpm (前端)                                    |\n| **部署**   | Docker, Nginx, Linux, Windows                                |\n---\n\n",
-        "page_views": 48,
-        "like_count": 0,
-        "favorite_count": 0,
-        "password": "",
-        "tag": "默认标签",
-        "category": "默认分类",
-        "alias": "about",
-        "create_time": "2025-09-13 12:42:47",
-        "status": 1
-    },
-    "success": true
+  "data": {
+    "id": 1,
+    "uuid": "075eb86f721743e3940f35869154a140175689381296899805858",
+    "article_id": "a1d3112d-fd8e-4484-9c3c-bad24a9e2019",
+    "article_name": "关于",
+    "article_cover": "https://pan.apilinks.cn/f/29um/Image_2756849649102.jpg",
+    "excerpt": "关于次元栈论坛",
+    "article_content": "# 关于次元栈\n## \uD83C\uDF1F 项目简介\n\n**次元栈** 是一个面向多元兴趣群体的内容社区平台，致力于为 **Vsinger 爱好者**、**Minecraft 创作者** 与 **计算机技术爱好者** 提供一个自由表达、知识共享与创作沉淀的空间。\n\n平台核心功能：\n- \uD83D\uDCDD 文章发布与内容管理（CMS）\n- \uD83D\uDCAC 用户互动：评论、点赞、收藏\n- \uD83D\uDD16 标签分类：支持跨圈层内容组织（如 #洛天依、#乐正绫、#星尘、#红石电路、#Java）\n- \uD83D\uDC65 用户系统：注册、登录、个人主页\n- \uD83D\uDD0D 内容搜索与推荐\n- \uD83D\uDCF1 响应式前端，支持移动端浏览\n\n---\n\n## \uD83D\uDEE0 技术栈\n\n| 层级       | 技术选型                                                         |\n|------------|--------------------------------------------------------------|\n| **后端**   | Java 17, Spring Boot 3.5, Mybatis, MySQL, Redis, Cookie      |\n| **前端**   | React 19, JavaScript, Vite, Axios, Tailwind CSS              |\n| **构建**   | Maven (后端), npm/pnpm (前端)                                    |\n| **部署**   | Docker, Nginx, Linux, Windows                                |\n---\n\n",
+    "page_views": 48,
+    "like_count": 0,
+    "favorite_count": 0,
+    "password": "",
+    "tag": "默认标签",
+    "category": "默认分类",
+    "alias": "about",
+    "create_time": "2025-09-13 12:42:47",
+    "status": 1
+  },
+  "success": true
 }
 ```
 

@@ -43,11 +43,15 @@
             a.create_time AS date,
             u.username AS author,
             a.category,
-            a.alias
+            a.alias,
+            GROUP_CONCAT(atr.article_tag) as tag
         FROM article a
-        LEFT JOIN user_information u ON a.uuid = u.uuid
+                 LEFT JOIN user_information u ON a.uuid = u.uuid
+                 LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
         WHERE a.category = #{category}
           AND a.status = 1
+        GROUP BY a.id, a.article_id, a.article_name, a.excerpt,
+                 a.article_cover, a.create_time, u.username, a.category, a.alias
         ORDER BY a.create_time DESC
         LIMIT #{offset}, #{limit}
     </select>

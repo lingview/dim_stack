@@ -31,4 +31,7 @@ public interface EditArticleMapper {
 
     int removeArticlePassword(Map<String, Object> params);
 
+    int deleteArticleTagRelations(@Param("articleId") String articleId);
+    int insertArticleTagRelation(@Param("articleId") String articleId, @Param("tagName") String tagName);
+
 }

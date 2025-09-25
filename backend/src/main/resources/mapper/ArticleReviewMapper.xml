@@ -12,14 +12,17 @@
             a.uuid,
             a.excerpt,
             a.create_time,
-            a.tag,
+            GROUP_CONCAT(atr.article_tag) as tag,
             a.category,
             a.status
         FROM article a
+                 LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
         WHERE a.status = 3
+        GROUP BY a.article_id, a.article_name, a.uuid, a.excerpt, a.create_time, a.category, a.status
         ORDER BY a.create_time DESC
         LIMIT #{offset}, #{size}
     </select>
+
 
     <!-- 统计未审核文章数量 -->
     <select id="countUnreviewedArticles" resultType="int">
@@ -50,14 +53,18 @@
             a.uuid,
             a.excerpt,
             a.create_time,
-            a.tag,
+            GROUP_CONCAT(atr.article_tag) as tag,
             a.category,
             a.status
         FROM article a
+                 LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
         WHERE a.status IN (1, 2, 3, 4)
+        GROUP BY a.article_id, a.article_name, a.uuid, a.excerpt, a.create_time, a.category, a.status
         ORDER BY a.create_time DESC
         LIMIT #{offset}, #{size}
     </select>
+
+
 
     <!-- 统计所有可审核文章数量 -->
     <select id="countAllArticles" resultType="int">

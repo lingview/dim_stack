@@ -30,19 +30,23 @@
     <!-- 获取文章详情 -->
     <select id="getArticleDetailById" parameterType="string" resultType="xyz.lingview.dimstack.dto.request.ArticleDetailDTO">
         SELECT
-            article_id as article_id,
-            article_name as article_name,
-            article_cover as article_cover,
-            excerpt,
-            article_content as article_content,
-            password,
-            tag,
-            category,
-            alias,
-            status
-        FROM article
-        WHERE article_id = #{article_id}
+            a.article_id as article_id,
+            a.article_name as article_name,
+            a.article_cover as article_cover,
+            a.excerpt,
+            a.article_content as article_content,
+            a.password,
+            GROUP_CONCAT(atr.article_tag) as tag,
+            a.category,
+            a.alias,
+            a.status
+        FROM article a
+                 LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
+        WHERE a.article_id = #{article_id}
+        GROUP BY a.article_id, a.article_name, a.article_cover, a.excerpt,
+                 a.article_content, a.password, a.category, a.alias, a.status
     </select>
+
 
     <!-- 根据用户名查找用户uuid -->
     <select id="getUuidByUsername" parameterType="string" resultType="string">
@@ -74,12 +78,12 @@
             excerpt = #{excerpt},
             article_content = #{article_content},
             password = #{password},
-            tag = #{tag},
             category = #{category},
             alias = #{alias},
             status = #{status}
         WHERE article_id = #{article_id}
     </update>
+
 
     <!-- 删除文章 -->
     <update id="deleteArticle" parameterType="map">
@@ -108,5 +112,15 @@
         SET password = #{password}
         WHERE article_id = #{article_id}
     </update>
+
+
+    <delete id="deleteArticleTagRelations">
+        DELETE FROM article_tag_relation WHERE article_id = #{articleId}
+    </delete>
+
+    <insert id="insertArticleTagRelation">
+        INSERT INTO article_tag_relation(article_id, article_tag)
+        VALUES (#{articleId}, #{tagName})
+    </insert>
 
 </mapper>
