@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Music } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { getConfig } from '../utils/config';
 
 const rehypeSanitizeSchema = {
@@ -153,7 +153,52 @@ const sanitizeHtmlContent = (content) => {
     return processedContent;
 };
 
+function useTheme() {
+    const [isDark, setIsDark] = useState(false);
+
+    useEffect(() => {
+        const checkInitialTheme = () => {
+            const saved = localStorage.getItem('theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const shouldBeDark = saved ? saved === 'dark' : systemDark;
+
+            setIsDark(shouldBeDark);
+            document.documentElement.classList.toggle('dark', shouldBeDark);
+        };
+
+        checkInitialTheme();
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    const isDarkNow = document.documentElement.classList.contains('dark');
+                    setIsDark(isDarkNow);
+                }
+            });
+        });
+
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+
+        return () => observer.disconnect();
+    }, []);
+
+    return isDark;
+}
+
 export default function ArticlePreview({ article }) {
+    const isDark = useTheme();
+    const [renderKey, setRenderKey] = useState(0);
+
+    useEffect(() => {
+        setRenderKey(prev => prev + 1);
+    }, [isDark]);
+    const syntaxStyle = useMemo(() => {
+        return isDark ? oneDark : oneLight;
+    }, [isDark]);
+
     const getFullImageUrl = (url) => {
         if (!url) return null;
 
@@ -172,7 +217,7 @@ export default function ArticlePreview({ article }) {
         }
     };
 
-    const renderMarkdownComponents = {
+    const renderMarkdownComponents = useMemo(() => ({
         h1: (props) => (
             <h1 className="text-3xl font-bold mt-6 mb-4 text-gray-900" {...props} />
         ),
@@ -226,9 +271,9 @@ export default function ArticlePreview({ article }) {
         code({ className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || "");
             return match ? (
-                <div className="my-4 react-syntax-highlighter">
+                <div className="my-4 react-syntax-highlighter" key={`code-${renderKey}`}>
                     <SyntaxHighlighter
-                        style={oneDark}
+                        style={syntaxStyle}
                         language={match[1]}
                         PreTag="div"
                         className="rounded-lg shadow-sm"
@@ -346,7 +391,7 @@ export default function ArticlePreview({ article }) {
             const fullSrc = getFullImageUrl(src);
             return <source src={fullSrc} type={type} {...props} />;
         },
-    };
+    }), [renderKey, syntaxStyle]);
 
     const isMarkdownContent = (content) => {
         if (!content) return false;
@@ -372,7 +417,7 @@ export default function ArticlePreview({ article }) {
 
         if (isMarkdownContent(content)) {
             return (
-                <div className="markdown-content">
+                <div className="markdown-content" key={`markdown-${renderKey}`}>
                     <ReactMarkdown
                         children={content}
                         remarkPlugins={[remarkGfm]}
@@ -398,6 +443,7 @@ export default function ArticlePreview({ article }) {
                         [&_img]:my-4 [&_img]:max-w-full [&_img]:h-auto
                         [&_.justify-center]:justify-start"
                     dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+                    key={`html-${renderKey}`}
                 />
             );
         }
