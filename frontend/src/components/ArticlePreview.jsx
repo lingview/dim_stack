@@ -131,19 +131,18 @@ const sanitizeHtmlContent = (content) => {
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#x27;');
 
-        const codeBlock = `<div class="my-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        const codeBlock = `<div class="my-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <div class="flex items-center mb-2">
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200">
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                         ⚠️ 安全提示: ${label}
                     </span>
                 </div>
-                <pre class="bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm overflow-x-auto"><code>${escapedCode}</code></pre>
-                <div class="mt-2 text-xs text-red-600 dark:text-red-400">
+                <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>${escapedCode}</code></pre>
+                <div class="mt-2 text-xs text-red-600">
                     此内容可能存在安全风险，已被安全地显示为代码块
                 </div>
             </div>`;
 
-        // processedContent = processedContent.replace(placeholder, codeBlock);
         processedContent = processedContent.split(placeholder).join(codeBlock);
     });
 
@@ -175,59 +174,59 @@ export default function ArticlePreview({ article }) {
 
     const renderMarkdownComponents = {
         h1: (props) => (
-            <h1 className="text-3xl font-bold mt-6 mb-4 text-gray-900 dark:text-white" {...props} />
+            <h1 className="text-3xl font-bold mt-6 mb-4 text-gray-900" {...props} />
         ),
         h2: (props) => (
-            <h2 className="text-2xl font-bold mt-5 mb-3 text-gray-900 dark:text-white" {...props} />
+            <h2 className="text-2xl font-bold mt-5 mb-3 text-gray-900" {...props} />
         ),
         h3: (props) => (
-            <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-900 dark:text-white" {...props} />
+            <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-900" {...props} />
         ),
         h4: (props) => (
-            <h4 className="text-lg font-semibold mt-3 mb-2 text-gray-900 dark:text-white" {...props} />
+            <h4 className="text-lg font-semibold mt-3 mb-2 text-gray-900" {...props} />
         ),
         h5: (props) => (
-            <h5 className="text-base font-semibold mt-3 mb-2 text-gray-900 dark:text-white" {...props} />
+            <h5 className="text-base font-semibold mt-3 mb-2 text-gray-900" {...props} />
         ),
         h6: (props) => (
-            <h6 className="text-sm font-semibold mt-3 mb-2 text-gray-900 dark:text-white" {...props} />
+            <h6 className="text-sm font-semibold mt-3 mb-2 text-gray-900" {...props} />
         ),
         p: (props) => (
-            <p className="mb-3 leading-relaxed text-gray-700 dark:text-gray-300" {...props} />
+            <p className="mb-3 leading-relaxed text-gray-700" {...props} />
         ),
         ul: (props) => (
-            <ul className="list-disc list-inside mb-4 space-y-1 text-gray-700 dark:text-gray-300" {...props} />
+            <ul className="list-disc list-inside mb-4 space-y-1 text-gray-700" {...props} />
         ),
         ol: (props) => (
-            <ol className="list-decimal list-inside mb-4 space-y-1 text-gray-700 dark:text-gray-300" {...props} />
+            <ol className="list-decimal list-inside mb-4 space-y-1 text-gray-700" {...props} />
         ),
         li: (props) => (
-            <li className="mb-1 text-gray-700 dark:text-gray-300 leading-relaxed" {...props} />
+            <li className="mb-1 text-gray-700 leading-relaxed" {...props} />
         ),
         blockquote: (props) => (
-            <blockquote className="border-l-4 border-blue-500 pl-4 italic my-4 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 py-2 rounded-r" {...props} />
+            <blockquote className="border-l-4 border-blue-500 pl-4 italic my-4 text-gray-600 bg-gray-50 py-2 rounded-r" {...props} />
         ),
         table: (props) => (
             <div className="overflow-x-auto my-4">
-                <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600" {...props} />
+                <table className="min-w-full border-collapse border border-gray-300" {...props} />
             </div>
         ),
         thead: (props) => (
-            <thead className="bg-gray-100 dark:bg-gray-700" {...props} />
+            <thead className="bg-gray-100" {...props} />
         ),
         th: (props) => (
-            <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-semibold text-gray-900 dark:text-white" {...props} />
+            <th className="border border-gray-300 px-4 py-2 text-left font-semibold text-gray-900" {...props} />
         ),
         td: (props) => (
-            <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300" {...props} />
+            <td className="border border-gray-300 px-4 py-2 text-gray-700" {...props} />
         ),
         hr: (props) => (
-            <hr className="my-6 border-gray-300 dark:border-gray-600" {...props} />
+            <hr className="my-6 border-gray-300" {...props} />
         ),
         code({ className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || "");
             return match ? (
-                <div className="my-4">
+                <div className="my-4 react-syntax-highlighter">
                     <SyntaxHighlighter
                         style={oneDark}
                         language={match[1]}
@@ -240,7 +239,7 @@ export default function ArticlePreview({ article }) {
                 </div>
             ) : (
                 <code
-                    className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-sm font-mono text-gray-800 dark:text-white"
+                    className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-gray-800"
                     {...props}
                 >
                     {children}
@@ -254,7 +253,7 @@ export default function ArticlePreview({ article }) {
             return (
                 <a
                     href={href}
-                    className="text-blue-600 dark:text-blue-400 hover:underline hover:text-blue-500 dark:hover:text-blue-300 transition-colors"
+                    className="text-blue-600 hover:underline hover:text-blue-500 transition-colors"
                     target="_blank"
                     rel="noopener noreferrer"
                     {...props}
@@ -272,7 +271,7 @@ export default function ArticlePreview({ article }) {
                     <img
                         src={fullSrc}
                         alt={alt || '图片'}
-                        className="rounded-lg shadow-sm cursor-pointer border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow"
+                        className="rounded-lg shadow-sm cursor-pointer border border-gray-200 hover:shadow-md transition-shadow"
                         style={{
                             maxHeight: "400px",
                             maxWidth: "100%",
@@ -300,7 +299,7 @@ export default function ArticlePreview({ article }) {
                     <video
                         src={fullSrc}
                         controls={controls}
-                        className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-600"
+                        className="rounded-lg shadow-sm border border-gray-200"
                         style={{ maxWidth: "100%", maxHeight: "400px" }}
                         {...props}
                     >
@@ -315,7 +314,7 @@ export default function ArticlePreview({ article }) {
             const fileName = src.split("/").pop()?.split("?")[0] || "音频文件";
 
             return (
-                <div className="my-4 p-4 bg-gray-100  border border-gray-200 rounded-xl shadow-sm max-w-lg">
+                <div className="my-4 p-4 bg-gray-100 border border-gray-200 rounded-xl shadow-sm max-w-lg">
                     <div className="flex items-center mb-3">
                         <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
                             <Music className="h-4 w-4 text-white" />
@@ -324,7 +323,7 @@ export default function ArticlePreview({ article }) {
                             <div className="text-sm font-medium text-gray-900 truncate" title={fileName}>
                                 {fileName}
                             </div>
-                            <div className="text-xs text-gray-500 ">
+                            <div className="text-xs text-gray-500">
                                 音频文件
                             </div>
                         </div>
@@ -387,14 +386,14 @@ export default function ArticlePreview({ article }) {
 
             return (
                 <div
-                    className="prose max-w-none dark:prose-invert
-                        prose-headings:text-gray-900 dark:prose-headings:text-white
-                        prose-p:text-gray-700 dark:prose-p:text-gray-300
-                        prose-a:text-blue-600 dark:prose-a:text-blue-400
-                        prose-blockquote:text-gray-600 dark:prose-blockquote:text-gray-400
-                        prose-strong:text-gray-900 dark:prose-strong:text-white
-                        prose-code:bg-gray-100 dark:prose-code:bg-gray-700
-                        prose-pre:bg-gray-800 dark:prose-pre:bg-gray-900
+                    className="prose max-w-none
+                        prose-headings:text-gray-900
+                        prose-p:text-gray-700
+                        prose-a:text-blue-600
+                        prose-blockquote:text-gray-600
+                        prose-strong:text-gray-900
+                        prose-code:bg-gray-100
+                        prose-pre:bg-gray-800
                         [&_video]:my-4 [&_video]:max-w-full [&_video]:h-auto
                         [&_img]:my-4 [&_img]:max-w-full [&_img]:h-auto
                         [&_.justify-center]:justify-start"
