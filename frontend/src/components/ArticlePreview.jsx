@@ -159,11 +159,10 @@ function useTheme() {
     useEffect(() => {
         const checkInitialTheme = () => {
             const saved = localStorage.getItem('theme');
-            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const shouldBeDark = saved ? saved === 'dark' : systemDark;
+            const shouldBeDark = saved === 'dark';
+            const currentIsDark = document.documentElement.classList.contains('dark');
 
-            setIsDark(shouldBeDark);
-            document.documentElement.classList.toggle('dark', shouldBeDark);
+            setIsDark(currentIsDark);
         };
 
         checkInitialTheme();
@@ -195,6 +194,7 @@ export default function ArticlePreview({ article }) {
     useEffect(() => {
         setRenderKey(prev => prev + 1);
     }, [isDark]);
+
     const syntaxStyle = useMemo(() => {
         return isDark ? oneDark : oneLight;
     }, [isDark]);
