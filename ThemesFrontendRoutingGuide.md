@@ -69,36 +69,36 @@ curl -X GET "https://apilinks.cn/api/articles?page=1&size=10"
 **响应示例：**
 ```json
 {
-    "data": [
-        {
-            "id": 2,
-            "article_id": "3cb9d2eb-bd24-486e-bb56-c6dc9332b4f1",
-            "title": "致谢",
-            "excerpt": "致谢",
-            "image": "https://pan.apilinks.cn/f/Y5Sw/e5f2f1fe4bfceeb32e88217577732c04.jpg",
-            "date": "2025-09-14 11:26:52",
-            "author": "admin",
-            "category": "默认分类",
-            "tag": "默认标签,次元栈",
-            "alias": "thanks"
-        },
-        {
-            "id": 1,
-            "article_id": "a1d3112d-fd8e-4484-9c3c-bad24a9e2019",
-            "title": "关于",
-            "excerpt": "关于",
-            "image": "https://pan.apilinks.cn/f/29um/Image_2756849649102.jpg",
-            "date": "2025-09-13 12:42:47",
-            "author": "admin",
-            "category": "默认分类",
-            "tag": "默认标签,次元栈",
-            "alias": "about"
-        }
-    ],
-    "total": 2,
-    "page": 1,
-    "size": 10,
-    "total_pages": 1
+  "data": [
+    {
+      "id": 2,
+      "article_id": "3cb9d2eb-bd24-486e-bb56-c6dc9332b4f1",
+      "title": "致谢",
+      "excerpt": "致谢",
+      "image": "https://pan.apilinks.cn/f/Y5Sw/e5f2f1fe4bfceeb32e88217577732c04.jpg",
+      "date": "2025-09-14 11:26:52",
+      "author": "admin",
+      "category": "默认分类",
+      "tag": "默认标签,次元栈",
+      "alias": "thanks"
+    },
+    {
+      "id": 1,
+      "article_id": "a1d3112d-fd8e-4484-9c3c-bad24a9e2019",
+      "title": "关于",
+      "excerpt": "关于",
+      "image": "https://pan.apilinks.cn/f/29um/Image_2756849649102.jpg",
+      "date": "2025-09-13 12:42:47",
+      "author": "admin",
+      "category": "默认分类",
+      "tag": "默认标签,次元栈",
+      "alias": "about"
+    }
+  ],
+  "total": 2,
+  "page": 1,
+  "size": 10,
+  "total_pages": 1
 }
 ```
 
@@ -178,10 +178,10 @@ curl -X POST "https://apilinks.cn/api/register" -H "Content-Type: application/js
 **响应示例：**
 ```json
 {
-    "data": {
-        "success": true,
-        "message": "注册成功！"
-    }
+  "data": {
+    "success": true,
+    "message": "注册成功！"
+  }
 }
 ```
 
@@ -221,10 +221,10 @@ curl -X POST "https://apilinks.cn/api/login" -H "Content-Type: application/json"
 **响应示例：**
 ```json
 {
-    "data": {
-        "success": true,
-        "message": "登录成功"
-    }
+  "data": {
+    "success": true,
+    "message": "登录成功"
+  }
 }
 ```
 
@@ -340,14 +340,14 @@ curl -X GET -i "https://apilinks.cn/api/categories"
 **响应示例：**
 ```json
 [
-    {
-        "id": 1,
-        "article_categories": "默认分类",
-        "categories_explain": "默认分类",
-        "founder": "075eb86f721743e3940f35869154a140175689381296899805858",
-        "create_time": "2025-09-13T13:35:57",
-        "status": 1
-    }
+  {
+    "id": 1,
+    "article_categories": "默认分类",
+    "categories_explain": "默认分类",
+    "founder": "075eb86f721743e3940f35869154a140175689381296899805858",
+    "create_time": "2025-09-13T13:35:57",
+    "status": 1
+  }
 ]
 ```
 
@@ -382,15 +382,15 @@ curl -X GET -i "https://apilinks.cn/api/categoriesandcount"
 **响应示例：**
 ```json
 [
-    {
-        "id": 1,
-        "article_categories": "默认分类",
-        "categories_explain": "默认分类",
-        "founder": "075eb86f721743e3940f35869154a140175689381296899805858",
-        "create_time": "2025-09-13T13:35:57",
-        "status": 1,
-        "articleCount": 2
-    }
+  {
+    "id": 1,
+    "article_categories": "默认分类",
+    "categories_explain": "默认分类",
+    "founder": "075eb86f721743e3940f35869154a140175689381296899805858",
+    "create_time": "2025-09-13T13:35:57",
+    "status": 1,
+    "articleCount": 2
+  }
 ]
 ```
 
@@ -439,7 +439,98 @@ curl -X GET -i "https://apilinks.cn/api/categories/%E9%BB%98%E8%AE%A4%E5%88%86%E
 **响应示例：**
 ```json
 {
+  "data": [
+    {
+      "id": 2,
+      "article_id": "3cb9d2eb-bd24-486e-bb56-c6dc9332b4f1",
+      "title": "致谢",
+      "excerpt": "致谢",
+      "image": "https://pan.apilinks.cn/f/Y5Sw/e5f2f1fe4bfceeb32e88217577732c04.jpg",
+      "date": "2025-09-14 11:26:52",
+      "author": "admin",
+      "category": "默认分类",
+      "tag": "次元栈,默认标签",
+      "alias": "thanks"
+    },
+    {
+      "id": 1,
+      "article_id": "a1d3112d-fd8e-4484-9c3c-bad24a9e2019",
+      "title": "关于",
+      "excerpt": "关于",
+      "image": "https://pan.apilinks.cn/f/29um/Image_2756849649102.jpg",
+      "date": "2025-09-13 12:42:47",
+      "author": "admin",
+      "category": "默认分类",
+      "tag": "次元栈,默认标签",
+      "alias": "about"
+    }
+  ],
+  "total": 3,
+  "page": 1,
+  "size": 10,
+  "total_pages": 1
+}
+```
+
+
+### 获取该标签的所有文章
+**地址:** /api/tags/{tag}/articles
+
+**请求协议:** GET
+
+
+**内容类型:** application/x-www-form-urlencoded
+
+**描述:**
+
+
+**请求参数:**
+
+| 参数 | 类型   | 必填 | 描述           | 示例 |
+|------|--------|------|----------------|------|
+| page | int32  | 是   | 当前页码       | `1`  |
+| size | int32  | 是   | 每页显示的文章数 | `10` |
+
+**请求示例:**
+```bash
+curl -X GET -i "https://apilinks.cn/api/tags/%e9%bb%98%e8%ae%a4%e6%a0%87%e7%ad%be/articles?page=1&size=10"
+```
+**响应字段:**
+
+| 字段           | 类型   | 描述                                     | 示例                      |
+|----------------|--------|------------------------------------------|---------------------------|
+| data           | 对象   | 包含文章列表及分页信息的对象             | -                         |
+| ├─ data         | 数组   | 文章列表                                 | -                         |
+| │ ├─ id         | int32  | 文章ID                                   | `2`                       |
+| │ ├─ article_id | 字符串 | 文章唯一标识符                           | `"3cb9d2eb-bd24-486e-bb56-c6dc9332b4f1"` |
+| │ ├─ title      | 字符串 | 文章标题                                 | `"致谢"`                  |
+| │ ├─ excerpt    | 字符串 | 文章摘要                                 | `"致谢"`                  |
+| │ ├─ image      | 字符串 | 文章封面图 URL                           | `"https://pan.apilinks.cn/f/Y5Sw/e5f2f1fe4bfceeb32e88217577732c04.jpg"` |
+| │ ├─ date       | 字符串 | 发布日期                                 | `"2025-09-14 11:26:52"` |
+| │ ├─ author     | 字符串 | 作者                                     | `"admin"`                 |
+| │ ├─ category   | 字符串 | 文章所属分类                             | `"默认分类"`              |
+| │ ├─ tag        | 字符串 | 文章所属标签                             | `"次元栈,默认标签"`              |
+| │ └─ alias      | 字符串 | 文章别名                                 | `"thanks"`                |
+| ├─ total        | int32  | 总文章数                                 | `3`                       |
+| ├─ page         | int32  | 当前页码                                 | `1`                       |
+| ├─ size         | int32  | 每页显示的文章数                         | `10`                      |
+| └─ total_pages  | int32  | 总页数                                   | `1`                       |
+**响应示例：**
+```json
+{
     "data": [
+        {
+            "id": 3,
+            "article_id": "52bffedc-5f09-48f4-a6cf-06a906bc73f4",
+            "title": "面向主题开发者接口文档",
+            "excerpt": "面向主题开发者的接口文档",
+            "image": "https://pan.apilinks.cn/f/gMik/995634982fb64ce47cc81c4ef76d2de6.jpeg",
+            "date": "2025-09-25 21:57:39",
+            "author": "admin",
+            "category": "接口文档",
+            "tag": "接口文档,默认标签",
+            "alias": "themeapi"
+        },
         {
             "id": 2,
             "article_id": "3cb9d2eb-bd24-486e-bb56-c6dc9332b4f1",
@@ -449,7 +540,7 @@ curl -X GET -i "https://apilinks.cn/api/categories/%E9%BB%98%E8%AE%A4%E5%88%86%E
             "date": "2025-09-14 11:26:52",
             "author": "admin",
             "category": "默认分类",
-            "tag": "次元栈,默认标签",
+            "tag": "默认标签",
             "alias": "thanks"
         },
         {
@@ -461,7 +552,7 @@ curl -X GET -i "https://apilinks.cn/api/categories/%E9%BB%98%E8%AE%A4%E5%88%86%E
             "date": "2025-09-13 12:42:47",
             "author": "admin",
             "category": "默认分类",
-            "tag": "次元栈,默认标签",
+            "tag": "默认标签",
             "alias": "about"
         }
     ],
@@ -471,6 +562,8 @@ curl -X GET -i "https://apilinks.cn/api/categories/%E9%BB%98%E8%AE%A4%E5%88%86%E
     "total_pages": 1
 }
 ```
+
+
 
 ## HotArticleController - 热门文章控制器
 ### 获取热门文章
