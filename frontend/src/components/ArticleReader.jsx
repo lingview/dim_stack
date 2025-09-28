@@ -7,6 +7,7 @@ import CategorySidebar from './CategorySidebar';
 import RecommendedArticles from './RecommendedArticles';
 import ArticlePreview from './ArticlePreview.jsx';
 import CommentSection from './CommentSection.jsx';
+import TagSidebar from "./TagSidebar.jsx";
 
 export default function ArticleReader() {
     const { articleId } = useParams();
@@ -184,6 +185,7 @@ export default function ArticleReader() {
                                 <div className="lg:w-1/3">
                                     <div className="sticky top-28">
                                         <CategorySidebar />
+                                        <TagSidebar />
                                         <RecommendedArticles />
                                     </div>
                                 </div>
