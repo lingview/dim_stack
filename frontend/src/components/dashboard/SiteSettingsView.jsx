@@ -59,9 +59,10 @@ export default function SiteSettingsView() {
         hero_title: '',
         hero_subtitle: '',
         hero_image: '',
-        site_icon: '', // 添加站点图标字段
+        site_icon: '',
         register_user_permission: '2',
-        article_status: 3
+        article_status: 3,
+        expansion_server: ''
     });
 
     const [message, setMessage] = useState({ type: '', content: '' });
@@ -481,6 +482,22 @@ export default function SiteSettingsView() {
                             ))}
                         </select>
                     </div>
+
+                    <div className="md:col-span-2">
+                        <label htmlFor="expansion_server" className="block text-sm font-medium text-gray-700 mb-1">
+                            扩展服务器地址
+                        </label>
+                        <input
+                            type="text"
+                            id="expansion_server"
+                            name="expansion_server"
+                            value={unescapeHtml(formData.expansion_server)}
+                            onChange={handleInputChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="请输入扩展服务器地址"
+                        />
+                    </div>
+
                 </div>
 
                 <div className="flex justify-end">
