@@ -38,7 +38,7 @@ const renderTags = (tagsString, maxTags = 3, onTagClick) => {
                         e.stopPropagation();
                         onTagClick && onTagClick(tag);
                     }}
-                    className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded hover:bg-gray-200 transition-colors relative z-10"
+                    className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded hover:bg-gray-200 transition-colors"
                 >
                     #{escapeHtml(tag)}
                 </button>
@@ -78,7 +78,6 @@ export default function ArticleCard({ article, showImage = true, onTagClick, onC
             if (url.startsWith('/')) {
                 return url;
             }
-
             return `/upload/${url}`;
         }
     };
@@ -111,8 +110,15 @@ export default function ArticleCard({ article, showImage = true, onTagClick, onC
 
     const imageUrl = getFullImageUrl(article.image);
 
+    const handleCardClick = () => {
+        navigate(`/article/${safeArticle.alias}`);
+    };
+
     return (
-        <article className="relative group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col">
+        <article
+            className="relative group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col cursor-pointer"
+            onClick={handleCardClick}
+        >
             {showImage && (
                 <div className="block overflow-hidden h-48 w-full">
                     <img
@@ -129,35 +135,41 @@ export default function ArticleCard({ article, showImage = true, onTagClick, onC
             <div className="p-6 flex flex-col flex-1">
                 {renderTags(safeArticle.tag, 3, handleTagClick)}
 
-                <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors duration-200 relative z-10">
-                    <span className="no-underline">{safeTruncate(safeArticle.title, 30)}</span>
+                <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors duration-200">
+                    <Link
+                        to={`/article/${safeArticle.alias}`}
+                        className="no-underline hover:underline"
+                        aria-label={`阅读：${safeArticle.title}`}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {safeTruncate(safeArticle.title, 30)}
+                    </Link>
                 </h2>
 
-                <p className="text-gray-600 mb-4 flex-1 relative z-10">
-                    {safeTruncate(safeArticle.excerpt, 40)}
+                <p className="text-gray-600 mb-4 flex-1">
+                    <Link
+                        to={`/article/${safeArticle.alias}`}
+                        className="no-underline hover:underline text-gray-600 hover:text-blue-500"
+                        aria-label={`阅读：${safeArticle.title}`}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {safeTruncate(safeArticle.excerpt, 40)}
+                    </Link>
                 </p>
 
-                <div className="flex flex-wrap items-center justify-between gap-2 mt-auto relative z-10">
+                <div className="flex flex-wrap items-center justify-between gap-2 mt-auto">
                     <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm text-gray-500">作者: {safeArticle.author}</span>
                         <span className="text-sm text-gray-500">发布于: {formatDate(safeArticle.date)}</span>
                     </div>
                     <button
                         onClick={handleCategoryClick}
-                        className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-200 transition-colors relative z-20"
+                        className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-200 transition-colors"
                     >
                         {safeArticle.category}
                     </button>
                 </div>
             </div>
-
-            <Link
-                to={`/article/${safeArticle.alias}`}
-                className="absolute inset-0 z-0"
-                aria-label={`阅读：${safeArticle.title}`}
-            >
-                <span className="sr-only">阅读 {safeArticle.title}</span>
-            </Link>
         </article>
     );
 }
