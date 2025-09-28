@@ -1,5 +1,5 @@
 import { getConfig } from '../utils/config';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const escapeHtml = (unsafe) => {
     if (!unsafe) return unsafe;
@@ -18,7 +18,7 @@ const safeTruncate = (text, maxLength) => {
     return escapedText.length > maxLength ? escapedText.slice(0, maxLength) + "..." : escapedText;
 };
 
-const renderTags = (tagsString, maxTags = 3) => {
+const renderTags = (tagsString, maxTags = 3, onTagClick) => {
     if (!tagsString) return null;
 
     const tags = tagsString.split(',').map(tag => tag.trim()).filter(tag => tag);
@@ -31,12 +31,17 @@ const renderTags = (tagsString, maxTags = 3) => {
     return (
         <div className="flex flex-wrap gap-2 mb-2">
             {displayTags.map((tag, index) => (
-                <span
+                <button
                     key={index}
-                    className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onTagClick && onTagClick(tag);
+                    }}
+                    className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded hover:bg-gray-200 transition-colors relative z-10"
                 >
                     #{escapeHtml(tag)}
-                </span>
+                </button>
             ))}
             {remainingCount > 0 && (
                 <span className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
@@ -47,7 +52,8 @@ const renderTags = (tagsString, maxTags = 3) => {
     );
 };
 
-export default function ArticleCard({ article, showImage = true }) {
+export default function ArticleCard({ article, showImage = true, onTagClick, onCategoryClick }) {
+    const navigate = useNavigate();
     const safeArticle = {
         ...article,
         title: escapeHtml(article.title) || '',
@@ -85,6 +91,24 @@ export default function ArticleCard({ article, showImage = true }) {
             String(date.getDate()).padStart(2, '0');
     };
 
+    const handleCategoryClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onCategoryClick) {
+            onCategoryClick(safeArticle.category);
+        } else {
+            navigate(`/category/${encodeURIComponent(safeArticle.category)}`);
+        }
+    };
+
+    const handleTagClick = (tag) => {
+        if (onTagClick) {
+            onTagClick(tag);
+        } else {
+            navigate(`/tag/${encodeURIComponent(tag)}`);
+        }
+    };
+
     const imageUrl = getFullImageUrl(article.image);
 
     return (
@@ -103,30 +127,33 @@ export default function ArticleCard({ article, showImage = true }) {
             )}
 
             <div className="p-6 flex flex-col flex-1">
-                {renderTags(safeArticle.tag) && renderTags(safeArticle.tag)}
+                {renderTags(safeArticle.tag, 3, handleTagClick)}
 
-                <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors duration-200">
+                <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors duration-200 relative z-10">
                     <span className="no-underline">{safeTruncate(safeArticle.title, 30)}</span>
                 </h2>
 
-                <p className="text-gray-600 mb-4 flex-1">
+                <p className="text-gray-600 mb-4 flex-1 relative z-10">
                     {safeTruncate(safeArticle.excerpt, 40)}
                 </p>
 
-                <div className="flex flex-wrap items-center justify-between gap-2 mt-auto">
+                <div className="flex flex-wrap items-center justify-between gap-2 mt-auto relative z-10">
                     <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm text-gray-500">作者: {safeArticle.author}</span>
                         <span className="text-sm text-gray-500">发布于: {formatDate(safeArticle.date)}</span>
                     </div>
-                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                    <button
+                        onClick={handleCategoryClick}
+                        className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-200 transition-colors relative z-20"
+                    >
                         {safeArticle.category}
-                    </span>
+                    </button>
                 </div>
             </div>
 
             <Link
                 to={`/article/${safeArticle.alias}`}
-                className="absolute inset-0 z-10"
+                className="absolute inset-0 z-0"
                 aria-label={`阅读：${safeArticle.title}`}
             >
                 <span className="sr-only">阅读 {safeArticle.title}</span>

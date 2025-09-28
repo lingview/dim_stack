@@ -3,6 +3,7 @@ package xyz.lingview.dimstack.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import xyz.lingview.dimstack.domain.ArticleTag;
+import xyz.lingview.dimstack.dto.request.ArticleDTO;
 
 import java.util.List;
 
@@ -17,4 +18,10 @@ public interface ArticleTagMapper {
     int insert(ArticleTag tag);
     int update(ArticleTag tag);
     int updateStatus(@Param("id") Integer id, @Param("status") Integer status);
+
+    // 根据标签名称查询文章数量
+    int countArticlesByTag(@Param("tagName") String tagName);
+    List<ArticleDTO> findArticlesByTag(@Param("tagName") String tagName,
+                                       @Param("offset") int offset,
+                                       @Param("size") int size);
 }

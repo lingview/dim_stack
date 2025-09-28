@@ -67,4 +67,29 @@ public class TagAndCategoryController {
 
         return pageResult;
     }
+
+
+    @GetMapping("/tags/{tag}/articles")
+    public PageResult<ArticleDTO> getArticlesByTag(
+            @PathVariable String tag,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        int offset = (page - 1) * size;
+
+        List<ArticleDTO> articles = articleTagMapper.findArticlesByTag(tag, offset, size);
+
+        int total = articleTagMapper.countArticlesByTag(tag);
+
+        int total_pages = (int) Math.ceil((double) total / size);
+
+        PageResult<ArticleDTO> pageResult = new PageResult<>();
+        pageResult.setData(articles);
+        pageResult.setTotal(total);
+        pageResult.setPage(page);
+        pageResult.setSize(size);
+        pageResult.setTotal_pages(total_pages);
+
+        return pageResult;
+    }
 }

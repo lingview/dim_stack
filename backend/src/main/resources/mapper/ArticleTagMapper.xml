@@ -86,4 +86,36 @@
         SET status = #{status}
         WHERE id = #{id}
     </update>
+
+    <!-- 根据标签名称查询文章数量 -->
+    <select id="countArticlesByTag" resultType="int">
+        SELECT COUNT(*)
+        FROM article_tag_relation atr
+                 JOIN article a ON atr.article_id = a.article_id
+        WHERE atr.article_tag = #{tagName} AND a.status = 1
+    </select>
+
+    <!-- 根据标签名称分页查询文章 -->
+    <select id="findArticlesByTag" resultType="xyz.lingview.dimstack.dto.request.ArticleDTO">
+        SELECT
+            a.id,
+            a.article_id,
+            a.article_name AS title,
+            a.excerpt,
+            a.article_cover AS image,
+            a.create_time AS date,
+            u.username AS author,
+            a.category,
+            GROUP_CONCAT(DISTINCT atr2.article_tag) AS tag,
+            a.alias
+        FROM article_tag_relation atr
+                 JOIN article a ON atr.article_id = a.article_id
+                 JOIN user_information u ON a.uuid = u.uuid
+                 LEFT JOIN article_tag_relation atr2 ON a.article_id = atr2.article_id
+        WHERE atr.article_tag = #{tagName} AND a.status = 1
+        GROUP BY a.id, a.article_id, a.article_name, a.excerpt, a.article_cover, a.create_time, u.username, a.category, a.alias
+        ORDER BY a.create_time DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
 </mapper>

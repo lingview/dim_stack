@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import Hero from '../components/Hero';
 import ArticleCard from '../components/ArticleCard';
 import CategorySidebar from '../components/CategorySidebar';
+import TagSidebar from '../components/TagSidebar';
 import RecommendedArticles from '../components/RecommendedArticles';
 import { fetchArticles, fetchArticlesByCategory } from '../Api.jsx';
 import apiClient from '../utils/axios';
@@ -15,8 +16,9 @@ export default function Home() {
     const [totalPages, setTotalPages] = useState(0);
     const [copyright, setCopyright] = useState('© 2025 次元栈 - Dim Stack. All rights reserved.');
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [selectedTag, setSelectedTag] = useState(null);
     const [showImages, setShowImages] = useState(true);
-    const { categoryName } = useParams();
+    const { categoryName, tagName } = useParams();
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -28,13 +30,14 @@ export default function Home() {
 
     useEffect(() => {
         setSelectedCategory(categoryName || null);
+        setSelectedTag(tagName || null);
         setPage(1);
-    }, [categoryName]);
+    }, [categoryName, tagName]);
 
     useEffect(() => {
         loadArticles();
         loadCopyright();
-    }, [page, selectedCategory]);
+    }, [page, selectedCategory, selectedTag]);
 
     useEffect(() => {
         localStorage.setItem('showImages', JSON.stringify(showImages));
@@ -46,10 +49,10 @@ export default function Home() {
             let result;
 
             if (selectedCategory) {
-                // 加载指定分类的文章
                 result = await fetchArticlesByCategory(selectedCategory, page, 6);
+            } else if (selectedTag) {
+                result = await apiClient.get(`/tags/${selectedTag}/articles?page=${page}&size=6`);
             } else {
-                // 加载所有文章
                 result = await fetchArticles(page, 6);
             }
 
@@ -75,17 +78,37 @@ export default function Home() {
 
     const handleCategoryChange = (category) => {
         setSelectedCategory(category);
+        setSelectedTag(null);
         setPage(1);
+        navigate(`/category/${category}`);
     };
 
-    const handleClearCategory = () => {
+    const handleTagChange = (tag) => {
+        setSelectedTag(tag);
+        setSelectedCategory(null);
+        setPage(1);
+        navigate(`/tag/${tag}`);
+    };
+
+    const handleClearFilter = () => {
         navigate('/');
         setSelectedCategory(null);
+        setSelectedTag(null);
         setPage(1);
     };
 
     const toggleImageDisplay = () => {
         setShowImages(!showImages);
+    };
+
+    const getCurrentFilterTitle = () => {
+        if (selectedCategory) {
+            return `${selectedCategory} 分类文章`;
+        } else if (selectedTag) {
+            return `${selectedTag} 标签文章`;
+        } else {
+            return '最新文章';
+        }
     };
 
     return (
@@ -101,7 +124,7 @@ export default function Home() {
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-2xl font-bold text-gray-900 transition-colors duration-200 dark:text-white">
-                                        {selectedCategory ? `${selectedCategory} 分类文章` : '最新文章'}
+                                        {getCurrentFilterTitle()}
                                     </h2>
                                     <div className="flex items-center space-x-4">
                                         <button
@@ -111,9 +134,9 @@ export default function Home() {
                                             {showImages ? '隐藏图片' : '显示图片'}
                                         </button>
 
-                                        {selectedCategory && (
+                                        {(selectedCategory || selectedTag) && (
                                             <button
-                                                onClick={handleClearCategory}
+                                                onClick={handleClearFilter}
                                                 className="text-sm text-blue-600 hover:text-blue-800"
                                             >
                                                 清除筛选
@@ -125,12 +148,14 @@ export default function Home() {
                                 {loading ? (
                                     <div>加载中...</div>
                                 ) : articles.length > 0 ? (
-                                    <div className="grid md:grid-cols-3 gap-6">
-                                        {articles.map((article) => (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {articles.map((article) => (
                                             <ArticleCard
                                                 key={article.id}
                                                 article={article}
-                                                showImage={showImages} // 传递图片显示控制属性
+                                                showImage={showImages}
+                                                onCategoryClick={handleCategoryChange}
+                                                onTagClick={handleTagChange}
                                             />
                                         ))}
                                     </div>
@@ -169,6 +194,7 @@ export default function Home() {
                         <div className="lg:w-1/3">
                             <div className="sticky top-28">
                                 <CategorySidebar onCategorySelect={handleCategoryChange} selectedCategory={selectedCategory} />
+                                <TagSidebar selectedTag={selectedTag} />
                                 <RecommendedArticles />
                             </div>
                         </div>
