@@ -18,6 +18,35 @@ const safeTruncate = (text, maxLength) => {
     return escapedText.length > maxLength ? escapedText.slice(0, maxLength) + "..." : escapedText;
 };
 
+const renderTags = (tagsString, maxTags = 3) => {
+    if (!tagsString) return null;
+
+    const tags = tagsString.split(',').map(tag => tag.trim()).filter(tag => tag);
+
+    if (tags.length === 0) return null;
+
+    const displayTags = tags.slice(0, maxTags);
+    const remainingCount = tags.length - maxTags;
+
+    return (
+        <div className="flex flex-wrap gap-2 mb-2">
+            {displayTags.map((tag, index) => (
+                <span
+                    key={index}
+                    className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded"
+                >
+                    #{escapeHtml(tag)}
+                </span>
+            ))}
+            {remainingCount > 0 && (
+                <span className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
+                    ...
+                </span>
+            )}
+        </div>
+    );
+};
+
 export default function ArticleCard({ article, showImage = true }) {
     const safeArticle = {
         ...article,
@@ -25,7 +54,8 @@ export default function ArticleCard({ article, showImage = true }) {
         excerpt: escapeHtml(article.excerpt) || '',
         author: escapeHtml(article.author) || '',
         category: escapeHtml(article.category) || '',
-        alias: escapeHtml(article.alias) || ''
+        alias: escapeHtml(article.alias) || '',
+        tag: article.tag || ''
     };
 
     const getFullImageUrl = (url) => {
@@ -73,9 +103,7 @@ export default function ArticleCard({ article, showImage = true }) {
             )}
 
             <div className="p-6 flex flex-col flex-1">
-                <div className="flex items-center text-sm text-gray-500 mb-3">
-                    <span>{formatDate(safeArticle.date)}</span>
-                </div>
+                {renderTags(safeArticle.tag) && renderTags(safeArticle.tag)}
 
                 <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors duration-200">
                     <span className="no-underline">{safeTruncate(safeArticle.title, 30)}</span>
@@ -85,8 +113,11 @@ export default function ArticleCard({ article, showImage = true }) {
                     {safeTruncate(safeArticle.excerpt, 40)}
                 </p>
 
-                <div className="flex justify-between items-center mt-auto">
-                    <span className="text-sm text-gray-500">作者: {safeArticle.author}</span>
+                <div className="flex flex-wrap items-center justify-between gap-2 mt-auto">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm text-gray-500">作者: {safeArticle.author}</span>
+                        <span className="text-sm text-gray-500">发布于: {formatDate(safeArticle.date)}</span>
+                    </div>
                     <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
                         {safeArticle.category}
                     </span>
