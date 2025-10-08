@@ -8,6 +8,7 @@ import RecommendedArticles from './RecommendedArticles';
 import ArticlePreview from './ArticlePreview.jsx';
 import CommentSection from './CommentSection.jsx';
 import TagSidebar from "./TagSidebar.jsx";
+import TableOfContents from './TableOfContents.jsx';
 
 export default function ArticleReader() {
     const { articleId } = useParams();
@@ -93,12 +94,12 @@ export default function ArticleReader() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 ">
+            <div className="min-h-screen bg-gray-50">
                 <Header />
                 <div className="pt-20 container mx-auto px-4 py-8">
                     <div className="flex items-center justify-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                        <span className="ml-3 text-gray-600 ">加载中...</span>
+                        <span className="ml-3 text-gray-600">加载中...</span>
                     </div>
                 </div>
             </div>
@@ -119,15 +120,15 @@ export default function ArticleReader() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 ">
+        <div className="min-h-screen bg-gray-50">
             <Header />
             <div className="pt-20">
                 {showPasswordInput ? (
                     <div className="container mx-auto px-4 py-8">
                         <div className="max-w-md mx-auto mt-10">
-                            <form onSubmit={handlePasswordSubmit} className="bg-white  shadow-md rounded px-8 pt-6 pb-8 mb-4">
+                            <form onSubmit={handlePasswordSubmit} className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
                                 <div className="mb-4">
-                                    <label className="block text-gray-700  text-sm font-bold mb-2" htmlFor="password">
+                                    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
                                         此文章需要密码访问
                                     </label>
                                     <input
@@ -135,7 +136,7 @@ export default function ArticleReader() {
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="shadow appearance-none border  rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                         placeholder="请输入文章密码"
                                     />
                                 </div>
@@ -170,19 +171,20 @@ export default function ArticleReader() {
                         )}
 
                         <main className="container mx-auto px-4 py-8">
-                            <div className="flex flex-col lg:flex-row gap-8">
-                                <div className="lg:w-2/3">
-                                    <div className={article.article_cover ? "-mt-20 relative z-10" : ""}>
-                                        {/* 文章阅读器组件 */}
-                                        <ArticlePreview article={article} />
-
-                                        {/* 评论区组件 */}
-                                        <CommentSection articleAlias={article.alias} />
+                            <div className="flex flex-col lg:flex-row gap-6">
+                                <div className="hidden lg:block lg:w-1/4">
+                                    <div className="sticky top-28">
+                                        <TableOfContents article={article} />
                                     </div>
                                 </div>
 
-                                {/* 侧边栏 */}
-                                <div className="lg:w-1/3">
+                                <div className="lg:w-1/2">
+                                    <div className={article.article_cover ? "-mt-20 relative z-10" : ""}>
+                                        <ArticlePreview article={article} />
+                                        <CommentSection articleAlias={article.alias} />
+                                    </div>
+                                </div>
+                                <div className="lg:w-1/4">
                                     <div className="sticky top-28">
                                         <CategorySidebar />
                                         <TagSidebar />
@@ -190,6 +192,7 @@ export default function ArticleReader() {
                                     </div>
                                 </div>
                             </div>
+
                         </main>
                     </div>
                 ) : null}
