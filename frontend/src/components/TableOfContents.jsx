@@ -35,18 +35,29 @@ export default function TableOfContents({ article }) {
 
         const newHeadings = parseHeadings(article.article_content);
         setHeadings(newHeadings);
-        
-        const timer = setTimeout(() => {
-            headingElementsRef.current = newHeadings.map((heading, index) => {
+
+        const updateHeadingElements = () => {
+            headingElementsRef.current = newHeadings.map((heading) => {
                 const articleContent = document.querySelector('.article-content');
                 if (!articleContent) return null;
 
-                const allHeadings = articleContent.querySelectorAll('h1, h2, h3, h4, h5, h6');
-                return allHeadings[index] || null;
+                const allHeadings = Array.from(articleContent.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+                return allHeadings.find(h => h.textContent.trim() === heading.text) || null;
             });
-        }, 500);
+        };
 
-        return () => clearTimeout(timer);
+        const timer = setTimeout(updateHeadingElements, 500);
+
+        const handleThemeChange = () => {
+            setTimeout(updateHeadingElements, 100);
+        };
+
+        window.addEventListener('theme-change', handleThemeChange);
+
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('theme-change', handleThemeChange);
+        };
     }, [article]);
 
     useEffect(() => {
@@ -76,7 +87,15 @@ export default function TableOfContents({ article }) {
     const scrollToHeading = (index) => {
         setActiveId(headings[index].id);
 
-        const element = headingElementsRef.current[index];
+        let element = headingElementsRef.current[index];
+
+        if (!element) {
+            const articleContent = document.querySelector('.article-content');
+            if (articleContent) {
+                const allHeadings = Array.from(articleContent.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+                element = allHeadings.find(h => h.textContent.trim() === headings[index].text) || null;
+            }
+        }
 
         if (element) {
             const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
@@ -86,22 +105,6 @@ export default function TableOfContents({ article }) {
                 top: offsetPosition,
                 behavior: 'smooth'
             });
-        } else {
-            const articleContent = document.querySelector('.article-content');
-            if (articleContent) {
-                const allHeadings = articleContent.querySelectorAll('h1, h2, h3, h4, h5, h6');
-                const targetElement = allHeadings[index];
-
-                if (targetElement) {
-                    const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
-                    const offsetPosition = elementPosition - 120;
-
-                    window.scrollTo({
-                        top: offsetPosition,
-                        behavior: 'smooth'
-                    });
-                }
-            }
         }
     };
 
