@@ -462,13 +462,21 @@ export default function ArticlePreview({ article }) {
                 <span>发布时间: {new Date(article.create_time).toLocaleDateString()}</span>
                 <span className="mx-2">|</span>
                 <span>阅读量: {article.page_views}</span>
+                {article.category && (
+                    <>
+                        <span className="mx-2">|</span>
+                        <span>分类: {article.category}</span>
+                    </>
+                )}
                 {article.tag && (
                     <>
                         <span className="mx-2">|</span>
-                        <span>标签: {article.tag}</span>
+                        <span>标签: {article.tag.split(',').map(tag => `#${tag.trim()}`).filter(tag => tag !== '#').join(' ')}</span>
                     </>
                 )}
             </div>
+
+
 
             <div className="article-content">
                 {renderArticleContent(article.article_content)}
