@@ -18,6 +18,7 @@ export default function ArticleReader() {
     const [showPasswordInput, setShowPasswordInput] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [showBackToTop, setShowBackToTop] = useState(false);
 
     const getFullImageUrl = (url) => {
         if (!url) return null;
@@ -40,6 +41,19 @@ export default function ArticleReader() {
     useEffect(() => {
         checkPasswordRequirement();
     }, [articleId]);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 300) {
+                setShowBackToTop(true);
+            } else {
+                setShowBackToTop(false);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const checkPasswordRequirement = async () => {
         try {
@@ -90,6 +104,13 @@ export default function ArticleReader() {
     const handlePasswordSubmit = (e) => {
         e.preventDefault();
         fetchArticleContent(password);
+    };
+
+    const scrollToTop = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     };
 
     if (loading) {
@@ -197,6 +218,19 @@ export default function ArticleReader() {
                     </div>
                 ) : null}
             </div>
+
+            {showBackToTop && (
+                <button
+                    onClick={scrollToTop}
+                    className="fixed bottom-8 right-8 bg-white hover:bg-gray-100 text-black rounded-full p-3 shadow-lg transition-all duration-300 z-50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white"
+                    aria-label="返回顶部"
+                >
+                    <svg xmlns="http://www.w.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    </svg>
+                </button>
+            )}
+
         </div>
     );
 }
