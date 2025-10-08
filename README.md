@@ -268,11 +268,11 @@ java -jar dim_stack.jar
 ## 主要界面展示
 ### 前台
 > 白天模式  
-![](./images/index_light.png)![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1757822244480-fa9faa5f-4964-4ecd-bf60-79452ccd765c.png)
+![](./images/index_light.png)![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1759940349525-80d15679-510f-43b8-b493-48e2a0fe572c.png)
 >
 
 > 夜晚模式  
-![](./images/index_dark.png)![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1757822267974-e0c9ea50-99ca-4d06-a913-89001e392ccc.png)
+![](./images/index_dark.png)![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1759940370887-4cd7478c-47db-4b31-b606-c6bc978c12c8.png)
 >
 
 > 密码文章  
@@ -280,11 +280,11 @@ java -jar dim_stack.jar
 >
 
 > 文章阅读器  
-![](./images/articleread.png)![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1757822325554-566b8f14-1a75-44f8-b4b5-3e579503d9a1.png)
+![](./images/articleread.png)![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1759940413055-e4cecb63-e558-427e-b125-a2c137e0886a.png)
 >
 
 > 评论区  
-![](./images/comment.png)![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1757822415639-6bced7dc-279d-4f5b-a480-fa86c50b5ffa.png)
+![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1759940440917-ad75c96e-1b4e-4c66-a1eb-90ed60732c98.png)
 >
 
 
@@ -346,6 +346,11 @@ java -jar dim_stack.jar
 > 站点信息设置
 >
 > ![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1757823311575-bc09aad5-f234-4242-898a-6da96f72e5cf.png)
+>
+
+> 主题设置
+>
+> ![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1759940311884-7019af97-a5d2-4ad0-9ba7-9c937a03dbd7.png)
 >
 
 
