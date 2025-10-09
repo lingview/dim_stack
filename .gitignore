@@ -4,3 +4,6 @@ dimstack_expansion_server/target/
 dimstack_expansion_server/docs/
 frontend/node_modules/
 frontend/dist/
+.idea/
+upload/
+logs/
