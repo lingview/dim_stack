@@ -1,10 +1,5 @@
-name: Build
+name: Build and Release
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-
   workflow_dispatch:
 
 jobs:
@@ -25,13 +20,67 @@ jobs:
           java-version: 17
           distribution: 'temurin'
 
-      - name: Build with Maven
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Clean backend static directory
+        run: |
+          cd backend
+          rm -rf src/main/resources/static/*
+
+      - name: Copy frontend build to backend static
+        run: |
+          cp -r frontend/dist/* backend/src/main/resources/static/
+
+      - name: Build backend with Maven
         run: |
           cd backend
           mvn clean package -DskipTests
 
-      - name: Upload a Build Artifact
+      - name: Create release package
+        run: |
+          cd backend
+          mkdir release
+          cp target/*.jar release/
+          cp dim_stack.sql release/
+          cd release
+          zip -r dim_stack-release.zip *
+
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dimstack-jar
-          path: backend/target/*.jar
+          name: dimstack-release
+          path: backend/release/dim_stack-release.zip
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: backend/release/dim_stack-release.zip
+          asset_name: dim_stack-release.zip
+          asset_content_type: application/zip
