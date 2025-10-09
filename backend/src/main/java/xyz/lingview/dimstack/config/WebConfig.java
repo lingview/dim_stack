@@ -18,8 +18,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Autowired
     private SessionAuthFilter sessionAuthFilter;
 
-    @Autowired
-    private ThemeProperties themeProperties;
+//    @Autowired
+//    private ThemeProperties themeProperties;
 
     @Autowired
     private ThemeResourceFilter themeResourceFilter;
