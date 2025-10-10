@@ -51,10 +51,6 @@
 >
 > 演示站：[https://apilinks.cn/](https://apilinks.cn/)
 >
-> 用户名：admin
->
-> 密码：123456
->
 
 
 
@@ -79,16 +75,22 @@ spring:
       save-mode: always
 
   datasource:
-    url: jdbc:mysql://localhost:3306/dim_stack?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true&useAffectedRows=true
     driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/dim_stack?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true&useAffectedRows=true
     username: root
     password: ""
-    hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
+    type: com.alibaba.druid.pool.DruidDataSource
+
+    druid:
+      initial-size: 3
+      min-idle: 3
+      max-active: 20
+      max-wait: 60000
+      validation-query: SELECT 1
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+
 
   servlet:
     multipart:
@@ -248,7 +250,7 @@ server {
 ```
 
 ### 2.创建数据库并导入数据
-> dim_stack.sql这个文件导入创建的数据库
+> 系统会自动创建数据库以及初始化如果失败可以手动将dim_stack.sql这个文件导入创建的数据库
 >
 
 
