@@ -7,3 +7,5 @@ frontend/dist/
 .idea/
 upload/
 logs/
+systemconfig/target/
+.vscode/
