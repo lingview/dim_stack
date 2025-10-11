@@ -9,3 +9,5 @@ upload/
 logs/
 systemconfig/target/
 .vscode/
+application-setup.properties
+/systemconfig/dependency-reduced-pom.xml
