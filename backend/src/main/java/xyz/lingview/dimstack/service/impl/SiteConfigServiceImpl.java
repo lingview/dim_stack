@@ -1,6 +1,6 @@
-// xyz.lingview.dimstack.service.impl.SiteConfigServiceImpl
 package xyz.lingview.dimstack.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import xyz.lingview.dimstack.domain.SiteConfig;
 import xyz.lingview.dimstack.dto.request.HeroDTO;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class SiteConfigServiceImpl implements SiteConfigService {
 
     @Autowired

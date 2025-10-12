@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 28/09/2025 19:27:45
+ Date: 12/10/2025 13:15:53
 */
 
 SET NAMES utf8mb4;
@@ -369,6 +369,17 @@ CREATE TABLE `site_config`  (
                                 `site_icon` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '站点图标',
                                 `site_theme` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '站点主题',
                                 `expansion_server` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '扩展服务器',
+                                `enable_notification` tinyint(1) NULL DEFAULT 0 COMMENT '是否启用通知系统（1:启用, 0:禁用）',
+                                `smtp_host` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'SMTP服务器地址',
+                                `smtp_port` int NULL DEFAULT NULL COMMENT 'SMTP端口',
+                                `mail_sender_email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '发件人邮箱',
+                                `mail_sender_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT '系统通知' COMMENT '发件人名称',
+                                `mail_username` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '邮箱登录账号',
+                                `mail_password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '邮箱授权码（应加密存储）',
+                                `mail_protocol` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT 'smtp' COMMENT '协议类型：smtp/smtps',
+                                `mail_enable_tls` tinyint(1) NULL DEFAULT 1 COMMENT '是否启用TLS',
+                                `mail_enable_ssl` tinyint(1) NULL DEFAULT 0 COMMENT '是否启用SSL',
+                                `mail_default_encoding` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT 'UTF-8' COMMENT '编码格式',
                                 PRIMARY KEY (`id`) USING BTREE,
                                 INDEX `register_user_permission`(`register_user_permission` ASC) USING BTREE,
                                 CONSTRAINT `register_user_permission` FOREIGN KEY (`register_user_permission`) REFERENCES `role` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
@@ -377,7 +388,7 @@ CREATE TABLE `site_config`  (
 -- ----------------------------
 -- Records of site_config
 -- ----------------------------
-INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 2, '© 2025 次元栈 - Dim Stack. All rights reserved.', 3, 'https://pan.apilinks.cn/f/BLUN/a2c28b53fdc12fde51bf23928127066f.jpg', '欢迎来到瓦纳海姆星', '探索洛天依和Vsinger家族的音乐之旅', 'https://pan.apilinks.cn/f/POI1/Image_1721230292906.png', 'default', 'https://dimstackrepo.apilinks.cn/themes.json');
+INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 2, '© 2025 次元栈 - Dim Stack. All rights reserved.', 3, 'https://pan.apilinks.cn/f/BLUN/a2c28b53fdc12fde51bf23928127066f.jpg', '欢迎来到瓦纳海姆星', '探索洛天依和Vsinger家族的音乐之旅', 'https://pan.apilinks.cn/f/POI1/Image_1721230292906.png', 'default', 'https://dimstackrepo.apilinks.cn/themes.json', 0, NULL, NULL, NULL, '系统通知', NULL, NULL, 'smtp', 1, 0, 'UTF-8');
 
 -- ----------------------------
 -- Table structure for user_information

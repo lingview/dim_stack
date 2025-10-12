@@ -7,7 +7,6 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 @Repository
 public interface SiteConfigMapper {
-
     // 查询站点配置信息
     SiteConfig getSiteConfig();
 
@@ -22,9 +21,10 @@ public interface SiteConfigMapper {
 
     // 获取文章默认状态
     int getArticleStatus();
+
     // 获取站点图标
     String getSiteIcon();
+
     // 更新站点配置信息
     int updateSiteConfig(SiteConfig siteConfig);
-
 }

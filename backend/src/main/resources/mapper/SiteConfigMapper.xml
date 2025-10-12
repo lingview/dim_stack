@@ -17,7 +17,18 @@
             hero_subtitle as hero_subtitle,
             site_icon as site_icon,
             site_theme as site_theme,
-            expansion_server as expansion_server
+            expansion_server as expansion_server,
+            enable_notification as enable_notification,
+            smtp_host as smtp_host,
+            smtp_port as smtp_port,
+            mail_sender_email as mail_sender_email,
+            mail_sender_name as mail_sender_name,
+            mail_username as mail_username,
+            mail_password as mail_password,
+            mail_protocol as mail_protocol,
+            mail_enable_tls as mail_enable_tls,
+            mail_enable_ssl as mail_enable_ssl,
+            mail_default_encoding as mail_default_encoding
         FROM site_config
         WHERE id = 1
     </select>
@@ -69,7 +80,18 @@
             hero_subtitle = #{hero_subtitle},
             site_icon = #{site_icon},
             site_theme = #{site_theme},
-            expansion_server = #{expansion_server}
+            expansion_server = #{expansion_server},
+            enable_notification = #{enable_notification},
+            smtp_host = #{smtp_host},
+            smtp_port = #{smtp_port},
+            mail_sender_email = #{mail_sender_email},
+            mail_sender_name = #{mail_sender_name},
+            mail_username = #{mail_username},
+            mail_password = #{mail_password},
+            mail_protocol = #{mail_protocol},
+            mail_enable_tls = #{mail_enable_tls},
+            mail_enable_ssl = #{mail_enable_ssl},
+            mail_default_encoding = #{mail_default_encoding}
         WHERE id = 1
     </update>
 </mapper>

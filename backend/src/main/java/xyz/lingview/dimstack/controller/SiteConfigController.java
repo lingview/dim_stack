@@ -157,6 +157,51 @@ public class SiteConfigController {
                 currentConfig.setExpansion_server(siteConfig.getExpansion_server());
             }
 
+            if (siteConfig.getEnable_notification() != null) {
+                currentConfig.setEnable_notification(siteConfig.getEnable_notification());
+            }
+
+            if (siteConfig.getSmtp_host() != null) {
+                currentConfig.setSmtp_host(siteConfig.getSmtp_host());
+            }
+
+            if (siteConfig.getSmtp_port() != null) {
+                currentConfig.setSmtp_port(siteConfig.getSmtp_port());
+            }
+
+            if (siteConfig.getMail_sender_email() != null) {
+                currentConfig.setMail_sender_email(siteConfig.getMail_sender_email());
+            }
+
+            if (siteConfig.getMail_sender_name() != null) {
+                currentConfig.setMail_sender_name(siteConfig.getMail_sender_name());
+            }
+
+            if (siteConfig.getMail_username() != null) {
+                currentConfig.setMail_username(siteConfig.getMail_username());
+            }
+
+            if (siteConfig.getMail_password() != null) {
+                currentConfig.setMail_password(siteConfig.getMail_password());
+            }
+
+            if (siteConfig.getMail_protocol() != null) {
+                currentConfig.setMail_protocol(siteConfig.getMail_protocol());
+            }
+
+            if (siteConfig.getMail_enable_tls() != null) {
+                currentConfig.setMail_enable_tls(siteConfig.getMail_enable_tls());
+            }
+
+            if (siteConfig.getMail_enable_ssl() != null) {
+                currentConfig.setMail_enable_ssl(siteConfig.getMail_enable_ssl());
+            }
+
+            if (siteConfig.getMail_default_encoding() != null) {
+                currentConfig.setMail_default_encoding(siteConfig.getMail_default_encoding());
+            }
+
+
             int result = siteConfigMapper.updateSiteConfig(currentConfig);
 
             if (result > 0) {
