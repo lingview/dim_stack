@@ -201,10 +201,9 @@ public class SiteConfigController {
                 currentConfig.setMail_default_encoding(siteConfig.getMail_default_encoding());
             }
 
+            boolean result = siteConfigService.updateSiteConfig(currentConfig);
 
-            int result = siteConfigMapper.updateSiteConfig(currentConfig);
-
-            if (result > 0) {
+            if (result) {
                 return ResponseEntity.ok(Map.of(
                         "success", true,
                         "message", "站点配置更新成功"
@@ -226,9 +225,6 @@ public class SiteConfigController {
         }
     }
 
-
-
-
     @GetMapping("/roles")
     @RequiresPermission("system:edit")
     public ResponseEntity<Map<String, Object>> getAllRoles() {
@@ -249,7 +245,6 @@ public class SiteConfigController {
         }
     }
 
-
     @GetMapping("/article-status-options")
     @RequiresPermission("system:edit")
     public ResponseEntity<Map<String, Object>> getArticleStatusOptions() {
@@ -268,5 +263,4 @@ public class SiteConfigController {
                 "data", statusOptions
         ));
     }
-
 }

@@ -9,7 +9,7 @@ import java.util.Set;
 public class UserBlacklistService {
 
     private final StringRedisTemplate redisTemplate;
-    private static final String BLACKLIST_KEY = "user:blacklist";
+    private static final String BLACKLIST_KEY = "dimstack:user:blacklist";
 
     public UserBlacklistService(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
