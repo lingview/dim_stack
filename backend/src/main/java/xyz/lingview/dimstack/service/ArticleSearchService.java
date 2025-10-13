@@ -17,6 +17,17 @@ public class ArticleSearchService {
         if (keyword == null || keyword.trim().isEmpty()) {
             return articleSearchMapper.findAllArticles();
         }
-        return articleSearchMapper.searchArticlesByKeyword(keyword);
+        boolean isChinese = keyword.matches(".*[\\u4e00-\\u9fa5].*");
+
+        try {
+            if (isChinese) {
+                return articleSearchMapper.searchArticlesCn(keyword);
+            } else {
+                return articleSearchMapper.searchArticlesEn(keyword);
+            }
+        } catch (Exception e) {
+            return articleSearchMapper.findAllArticles();
+        }
     }
+
 }

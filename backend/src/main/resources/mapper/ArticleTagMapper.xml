@@ -106,14 +106,21 @@
             a.create_time AS date,
             u.username AS author,
             a.category,
-            GROUP_CONCAT(DISTINCT atr2.article_tag) AS tag,
+            tags.tag_list AS tag,
             a.alias
-        FROM article_tag_relation atr
-                 JOIN article a ON atr.article_id = a.article_id
-                 JOIN user_information u ON a.uuid = u.uuid
-                 LEFT JOIN article_tag_relation atr2 ON a.article_id = atr2.article_id
-        WHERE atr.article_tag = #{tagName} AND a.status = 1
-        GROUP BY a.id, a.article_id, a.article_name, a.excerpt, a.article_cover, a.create_time, u.username, a.category, a.alias
+        FROM (
+                 SELECT article_id
+                 FROM article_tag_relation
+                 WHERE article_tag = #{tagName}
+             ) atr
+                 INNER JOIN article a ON atr.article_id = a.article_id
+                 INNER JOIN user_information u ON a.uuid = u.uuid
+                 INNER JOIN (
+            SELECT article_id, GROUP_CONCAT(article_tag) AS tag_list
+            FROM article_tag_relation
+            GROUP BY article_id
+        ) tags ON a.article_id = tags.article_id
+        WHERE a.status = 1
         ORDER BY a.create_time DESC
         LIMIT #{offset}, #{size}
     </select>

@@ -44,16 +44,22 @@
             u.username AS author,
             a.category,
             a.alias,
-            GROUP_CONCAT(atr.article_tag) as tag
-        FROM article a
-                 LEFT JOIN user_information u ON a.uuid = u.uuid
-                 LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
-        WHERE a.category = #{category}
-          AND a.status = 1
-        GROUP BY a.id, a.article_id, a.article_name, a.excerpt,
-                 a.article_cover, a.create_time, u.username, a.category, a.alias
-        ORDER BY a.create_time DESC
-        LIMIT #{offset}, #{limit}
+            t.tag
+        FROM (
+                 SELECT id, uuid, article_id
+                 FROM article
+                 WHERE status = 1
+                   AND category = #{category}
+                 ORDER BY create_time DESC
+                 LIMIT #{offset}, #{limit}
+             ) page
+                 JOIN article a ON page.id = a.id
+                 JOIN user_information u ON page.uuid = u.uuid
+                 LEFT JOIN (
+            SELECT article_id, GROUP_CONCAT(article_tag) AS tag
+            FROM article_tag_relation
+            GROUP BY article_id
+        ) t ON page.article_id = t.article_id
     </select>
 
     <select id="countArticlesByCategory" resultType="int">

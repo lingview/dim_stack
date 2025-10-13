@@ -8,20 +8,20 @@
     <!-- 查询阅读量最高的10篇文章 -->
     <select id="selectHotArticles" resultType="xyz.lingview.dimstack.dto.request.HotArticleDTO">
         SELECT
-        a.id,
-        a.article_id,
-        a.article_name AS title,
-        a.excerpt,
-        a.create_time AS date,
-        u.username AS author,
-        a.category,
-        a.page_views,
-        a.alias
+            a.id,
+            a.article_id,
+            a.article_name AS title,
+            a.excerpt,
+            a.create_time AS date,
+            u.username AS author,
+            a.category,
+            a.page_views,
+            a.alias
         FROM article a
-        JOIN user_information u ON a.uuid = u.uuid
+                 INNER JOIN user_information u ON a.uuid = u.uuid
         WHERE a.status = 1
         ORDER BY a.page_views DESC
-        LIMIT 10
+        LIMIT 10;
     </select>
 
 </mapper>

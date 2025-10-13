@@ -23,12 +23,24 @@
         <result property="status" column="status"/>
     </resultMap>
 
-    <select id="searchArticlesByKeyword" parameterType="string" resultMap="articleMap">
-        SELECT * FROM article
+    <select id="searchArticlesCn" parameterType="string" resultMap="articleMap">
+        SELECT id, article_name, excerpt, article_cover, alias, create_time,
+               MATCH(article_name, excerpt) AGAINST (#{keyword} IN NATURAL LANGUAGE MODE) AS relevance
+        FROM article FORCE INDEX (idx_fulltext_cn)
         WHERE status = 1
-        AND (article_name LIKE CONCAT('%', #{keyword}, '%')
-             OR excerpt LIKE CONCAT('%', #{keyword}, '%'))
-        ORDER BY create_time DESC
+          AND MATCH(article_name, excerpt) AGAINST (#{keyword} IN NATURAL LANGUAGE MODE)
+        ORDER BY relevance DESC, create_time DESC
+        LIMIT 50
+    </select>
+
+    <select id="searchArticlesEn" parameterType="string" resultMap="articleMap">
+        SELECT id, article_name, excerpt, article_cover, alias, create_time,
+               MATCH(article_name, excerpt) AGAINST (#{keyword} IN NATURAL LANGUAGE MODE) AS relevance
+        FROM article FORCE INDEX (idx_fulltext_en)
+        WHERE status = 1
+          AND MATCH(article_name, excerpt) AGAINST (#{keyword} IN NATURAL LANGUAGE MODE)
+        ORDER BY relevance DESC, create_time DESC
+        LIMIT 50
     </select>
 
     <select id="findAllArticles" resultMap="articleMap">

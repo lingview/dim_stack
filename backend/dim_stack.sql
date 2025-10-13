@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 12/10/2025 13:15:53
+ Date: 13/10/2025 23:00:28
 */
 
 SET NAMES utf8mb4;
@@ -42,6 +42,11 @@ CREATE TABLE `article`  (
                             UNIQUE INDEX `alias`(`alias` ASC) USING BTREE,
                             INDEX `user_article_uuid`(`uuid` ASC) USING BTREE,
                             INDEX `categories`(`category` ASC) USING BTREE,
+                            INDEX `idx_article_status_ctime`(`status` ASC, `create_time` DESC) USING BTREE,
+                            INDEX `idx_article_status_category_ctime`(`status` ASC, `category` ASC, `create_time` DESC) USING BTREE,
+                            INDEX `idx_article_status_category_pageviews`(`status` ASC, `category` ASC, `page_views` DESC) USING BTREE,
+                            FULLTEXT INDEX `idx_fulltext_cn`(`article_name`, `excerpt`) WITH PARSER `ngram`,
+                            FULLTEXT INDEX `idx_fulltext_en`(`article_name`, `excerpt`),
                             CONSTRAINT `categories` FOREIGN KEY (`category`) REFERENCES `article_categories` (`article_categories`) ON DELETE RESTRICT ON UPDATE RESTRICT,
                             CONSTRAINT `fk_article_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '文章上传记录表' ROW_FORMAT = DYNAMIC;

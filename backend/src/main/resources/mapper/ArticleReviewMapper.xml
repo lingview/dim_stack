@@ -12,15 +12,22 @@
             a.uuid,
             a.excerpt,
             a.create_time,
-            GROUP_CONCAT(atr.article_tag) as tag,
+            t.tag,
             a.category,
             a.status
-        FROM article a
-                 LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
-        WHERE a.status = 3
-        GROUP BY a.article_id, a.article_name, a.uuid, a.excerpt, a.create_time, a.category, a.status
-        ORDER BY a.create_time DESC
-        LIMIT #{offset}, #{size}
+        FROM (
+                 SELECT article_id
+                 FROM article
+                 WHERE status = 3
+                 ORDER BY create_time DESC
+                 LIMIT #{offset}, #{size}
+             ) page
+                 JOIN article a ON page.article_id = a.article_id
+                 LEFT JOIN (
+            SELECT article_id, GROUP_CONCAT(article_tag) AS tag
+            FROM article_tag_relation
+            GROUP BY article_id
+        ) t ON a.article_id = t.article_id
     </select>
 
 
@@ -60,17 +67,23 @@
             a.uuid,
             a.excerpt,
             a.create_time,
-            GROUP_CONCAT(atr.article_tag) as tag,
+            t.tag,
             a.category,
             a.status
-        FROM article a
-                 LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
-        WHERE a.status IN (1, 2, 3, 4)
-        GROUP BY a.article_id, a.article_name, a.uuid, a.excerpt, a.create_time, a.category, a.status
-        ORDER BY a.create_time DESC
-        LIMIT #{offset}, #{size}
+        FROM (
+                 SELECT article_id
+                 FROM article
+                 WHERE status IN (1, 2, 3, 4)
+                 ORDER BY create_time DESC
+                 LIMIT #{offset}, #{size}
+             ) page
+                 JOIN article a ON page.article_id = a.article_id
+                 LEFT JOIN (
+            SELECT article_id, GROUP_CONCAT(article_tag) AS tag
+            FROM article_tag_relation
+            GROUP BY article_id
+        ) t ON a.article_id = t.article_id
     </select>
-
 
 
     <!-- 统计所有可审核文章数量 -->
