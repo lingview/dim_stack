@@ -104,7 +104,7 @@ public class ArticleReviewService {
             mailService.sendSimpleMail(
                     email,
                     siteName + " 审核结果通知",
-                    "您的文章：" + article_name + " 于 " + formattedDate + " 完成审核，审核结果为：" + statusDescription
+                    "您的文章：" + "《" + article_name + "》" +" 于 " + formattedDate + " 完成审核，审核结果为：" + statusDescription
             );
         }
         return result;

@@ -239,7 +239,7 @@ public class CommentServiceImpl implements CommentService {
             if (!comment.getUser_id().equals(article.getUuid())) {
                 UserInformation articleAuthor = userInformationMapper.selectUserByUUID(article.getUuid());
                 if (articleAuthor != null && articleAuthor.getEmail() != null) {
-                    String content = "用户 " + commenterName + " 评论了您的文章《" + article.getArticle_name() + "》：" + comment.getContent();
+                    String content = "用户：" + commenterName + " 评论了您的文章《" + article.getArticle_name() + "》：" + comment.getContent();
                     mailService.sendSimpleMail(articleAuthor.getEmail(), subject, content);
                 }
             }

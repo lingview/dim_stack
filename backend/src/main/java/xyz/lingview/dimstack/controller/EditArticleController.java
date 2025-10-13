@@ -220,7 +220,7 @@ public class EditArticleController {
                     String email = userInformationMapper.getEmailByUsername(username);
                     String siteName = siteConfigUtil.getSiteName();
                     String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
-                    mailService.sendSimpleMail(email, siteName + " 文章删除成功", "用户：" + username + " 于 " + formattedDate + " 成功删除文章：" + article_name);
+                    mailService.sendSimpleMail(email, siteName + " 文章删除成功", "用户：" + username + " 于 " + formattedDate + " 成功删除文章：" + "《" + article_name + "》");
                 }
             } else {
                 response.put("success", false);
