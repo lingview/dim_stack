@@ -19,6 +19,12 @@ public interface UserInformationMapper {
 
     String getUsernameByUuid(@Param("uuid") String uuid);
 
+    String getEmailByUsername(@Param("username") String username);
+
+    List<String> getEmailsByPermissionCode(@Param("permissionCode") String permissionCode);
+
+    String getUsernameByArticleId(@Param("articleId") String articleId);
+
     List<UserDTO> selectAllUsers();
 
     UserDTO selectUserById(@Param("id") Integer id);

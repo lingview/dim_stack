@@ -608,7 +608,7 @@ public class UploadController {
         try {
             int result = uploadMapper.insertUploadArticle(uploadArticle);
             if (result == 1) {
-                String[] tags = uploadArticle.getTag().split(","); // 假设标签以逗号分隔
+                String[] tags = uploadArticle.getTag().split(",");
                 for (String tag : tags) {
                     if (!tag.trim().isEmpty()) {
                         uploadMapper.insertArticleTagRelation(uploadArticle.getArticle_id(), tag.trim());

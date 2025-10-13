@@ -38,6 +38,13 @@
         WHERE article_id = #{article_id}
     </select>
 
+    <!-- 根据文章id获取文章名 -->
+    <select id="getArticleNameByArticleId" resultType="string">
+        SELECT article_name
+        FROM article
+        WHERE article_id = #{article_id}
+    </select>
+
     <!-- 更新文章状态 -->
     <update id="updateArticleStatus">
         UPDATE article

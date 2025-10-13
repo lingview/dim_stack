@@ -15,6 +15,8 @@ public interface ArticleReviewMapper {
 
     Article selectArticleById(@Param("article_id") String articleId);
 
+    String getArticleNameByArticleId(@Param("article_id") String articleId);
+
     void updateArticleStatus(@Param("article_id") String articleId, @Param("status") Byte status);
 
     // 审核已发布的文章

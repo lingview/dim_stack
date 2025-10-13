@@ -567,7 +567,7 @@ export default function SiteSettingsView() {
                                 name="smtp_host"
                                 value={unescapeHtml(formData.smtp_host)}
                                 onChange={handleInputChange}
-                                placeholder="例如: smtp.mxhichina.com"
+                                placeholder="例如: smtp.qq.com"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>

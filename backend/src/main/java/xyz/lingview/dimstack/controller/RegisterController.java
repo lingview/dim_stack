@@ -17,10 +17,15 @@ import xyz.lingview.dimstack.dto.request.RegisterDTO;
 import xyz.lingview.dimstack.dto.response.RegisterResponseDTO;
 import xyz.lingview.dimstack.mapper.RegisterMapper;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
+import xyz.lingview.dimstack.mapper.UserInformationMapper;
+import xyz.lingview.dimstack.service.MailService;
 import xyz.lingview.dimstack.util.PasswordUtil;
 import xyz.lingview.dimstack.util.RandomUtil;
 import xyz.lingview.dimstack.util.CaptchaUtil;
+import xyz.lingview.dimstack.util.SiteConfigUtil;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,6 +47,15 @@ public class RegisterController {
 
     @Autowired
     SiteConfigMapper siteConfigMapper;
+
+    @Autowired
+    SiteConfigUtil siteConfigUtil;
+
+    @Autowired
+    private MailService mailService;
+
+    @Autowired
+    private UserInformationMapper userInformationMapper;
 
     /**
      * 用户注册接口
@@ -112,6 +126,14 @@ public class RegisterController {
 
             int insertResult = registerMapper.insertUser(register);
             if (insertResult > 0) {
+                if (siteConfigUtil.isNotificationEnabled()) {
+                    Date date = new Date();
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    String formattedDate = formatter.format(date);
+                    String siteName = siteConfigUtil.getSiteName();
+                    mailService.sendSimpleMail(email, siteName + " 注册成功", "用户：" + username + " 于 " + formattedDate + " 注册成功");
+                }
+
                 RegisterResponseDTO data = new RegisterResponseDTO();
                 data.setSuccess(true);
                 data.setMessage("注册成功！");

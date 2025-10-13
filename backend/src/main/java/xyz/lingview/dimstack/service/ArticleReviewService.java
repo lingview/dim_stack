@@ -1,5 +1,6 @@
 package xyz.lingview.dimstack.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import xyz.lingview.dimstack.dto.response.ArticleReviewListResponseDTO;
 import xyz.lingview.dimstack.dto.response.ArticleReviewStatusResponseDTO;
 import xyz.lingview.dimstack.mapper.ArticleReviewMapper;
@@ -7,6 +8,10 @@ import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.domain.Article;
 import xyz.lingview.dimstack.dto.request.ArticleReviewDTO;
 import org.springframework.stereotype.Service;
+import xyz.lingview.dimstack.util.SiteConfigUtil;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +27,13 @@ public class ArticleReviewService {
         this.articleReviewMapper = articleReviewMapper;
         this.userInformationMapper = userInformationMapper;
     }
+
+    @Autowired
+    private SiteConfigUtil siteConfigUtil;
+
+
+    @Autowired
+    MailService mailService;
 
     public ArticleReviewListResponseDTO getUnreviewedArticles(Integer page, Integer size) {
         int offset = (page - 1) * size;
@@ -69,11 +81,32 @@ public class ArticleReviewService {
     }
 
 
+
     public ArticleReviewStatusResponseDTO updateArticleStatus(String articleId, Byte status) {
         articleReviewMapper.updateArticleStatus(articleId, status);
         ArticleReviewStatusResponseDTO result = new ArticleReviewStatusResponseDTO();
         result.setSuccess(true);
         result.setMessage("文章状态更新成功");
+        if (siteConfigUtil.isNotificationEnabled()) {
+            Date date = new Date();
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String formattedDate = formatter.format(date);
+            String username = userInformationMapper.getUsernameByArticleId(articleId);
+            String email = userInformationMapper.getEmailByUsername(username);
+            String siteName = siteConfigUtil.getSiteName();
+            String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
+            String statusDescription = switch (status) {
+                case 1 -> "通过审核";
+                case 3 -> "待审核";
+                case 4 -> "违规";
+                default -> "未知状态";
+            };
+            mailService.sendSimpleMail(
+                    email,
+                    siteName + " 审核结果通知",
+                    "您的文章：" + article_name + " 于 " + formattedDate + " 完成审核，审核结果为：" + statusDescription
+            );
+        }
         return result;
     }
 }

@@ -1,20 +1,30 @@
 package xyz.lingview.dimstack.controller;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
+import xyz.lingview.dimstack.StartServer;
 import xyz.lingview.dimstack.domain.Login;
 import xyz.lingview.dimstack.dto.request.LoginDTO;
 import xyz.lingview.dimstack.dto.response.LoginResponseDTO;
 import xyz.lingview.dimstack.dto.response.LogoutResponseDTO;
 import xyz.lingview.dimstack.mapper.LoginMapper;
+import xyz.lingview.dimstack.mapper.UserInformationMapper;
+import xyz.lingview.dimstack.service.MailService;
 import xyz.lingview.dimstack.util.CaptchaUtil;
+import xyz.lingview.dimstack.util.SiteConfigUtil;
 import xyz.lingview.dimstack.util.PasswordUtil;
 import xyz.lingview.dimstack.common.ApiResponse;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,8 +45,18 @@ public class LoginController {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
+    @Autowired
+    private MailService mailService;
+
+
+
     private static final String CAPTCHA_PREFIX = "captcha_";
     private static final String SESSION_CAPTCHA_KEY_ATTR = "captchaKey";
+    @Autowired
+    private UserInformationMapper userInformationMapper;
+
+    @Autowired
+    private SiteConfigUtil siteConfigUtil;
 
     /**
      * 用户登录接口
@@ -130,6 +150,16 @@ public class LoginController {
 
             log.info("用户 {} 登录成功，新 Session ID: {}", username, newSession.getId());
 
+            if (siteConfigUtil.isNotificationEnabled()) {
+                Date date = new Date();
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String formattedDate = formatter.format(date);
+                String email = userInformationMapper.getEmailByUsername(username);
+                String siteName = siteConfigUtil.getSiteName();
+                mailService.sendSimpleMail(email, siteName + " 登录成功", "用户：" + username + " 于 " + formattedDate + " 登录成功");
+            }
+
+
             LoginResponseDTO data = new LoginResponseDTO();
             data.setSuccess(true);
             data.setMessage("登录成功");
@@ -140,6 +170,8 @@ public class LoginController {
             return ApiResponse.error(500, "登录失败，请稍后再试");
         }
     }
+
+
 
     /**
      * 用户登出接口

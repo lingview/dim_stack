@@ -1,5 +1,6 @@
 package xyz.lingview.dimstack.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.Article;
@@ -13,11 +14,14 @@ import xyz.lingview.dimstack.mapper.CommentLikeMapper;
 import xyz.lingview.dimstack.mapper.CommentMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.CommentService;
+import xyz.lingview.dimstack.service.MailService;
+import xyz.lingview.dimstack.util.SiteConfigUtil;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@Slf4j
 public class CommentServiceImpl implements CommentService {
 
     @Autowired
@@ -31,6 +35,12 @@ public class CommentServiceImpl implements CommentService {
 
     @Autowired
     private CommentLikeMapper commentLikeMapper;
+    
+    @Autowired
+    private MailService mailService;
+    
+    @Autowired
+    private SiteConfigUtil siteConfigUtil;
 
     @Override
     public List<CommentDTO> getCommentsByArticleAlias(String articleAlias, String username) {
@@ -82,6 +92,8 @@ public class CommentServiceImpl implements CommentService {
         }
 
         commentMapper.insertComment(comment);
+
+        sendCommentNotification(comment, article, username);
     }
 
     @Override
@@ -108,6 +120,8 @@ public class CommentServiceImpl implements CommentService {
 
             Long newLikeCount = comment.getComment_like_count() + 1;
             commentMapper.updateCommentLikeCount(commentId, newLikeCount);
+
+            sendLikeNotification(comment, username);
         }
     }
 
@@ -204,5 +218,76 @@ public class CommentServiceImpl implements CommentService {
         dto.setChildren(new ArrayList<>());
 
         return dto;
+    }
+
+    /**
+     * 发送评论通知邮件
+     * @param comment 新增的评论
+     * @param article 评论所属文章
+     * @param commenterName 评论者用户名
+     */
+    private void sendCommentNotification(Comment comment, Article article, String commenterName) {
+        try {
+            if (!siteConfigUtil.isNotificationEnabled()) {
+                return;
+            }
+            
+            String siteName = siteConfigUtil.getSiteName();
+            String subject = siteName + " 评论通知";
+            
+            // 给文章作者发送邮件（如果不是自己评论自己的文章）
+            if (!comment.getUser_id().equals(article.getUuid())) {
+                UserInformation articleAuthor = userInformationMapper.selectUserByUUID(article.getUuid());
+                if (articleAuthor != null && articleAuthor.getEmail() != null) {
+                    String content = "用户 " + commenterName + " 评论了您的文章《" + article.getArticle_name() + "》：" + comment.getContent();
+                    mailService.sendSimpleMail(articleAuthor.getEmail(), subject, content);
+                }
+            }
+            
+            // 如果是回复评论，也给原评论作者发送邮件（如果不是回复自己的评论）
+            if (comment.getTo_comment_id() != null && !comment.getTo_comment_id().isEmpty()) {
+                Comment originalComment = commentMapper.selectCommentByCommentId(comment.getTo_comment_id());
+                if (originalComment != null && 
+                    !originalComment.getUser_id().equals(article.getUuid()) && 
+                    !originalComment.getUser_id().equals(comment.getUser_id())) {
+                    UserInformation originalCommentAuthor = userInformationMapper.selectUserByUUID(originalComment.getUser_id());
+                    if (originalCommentAuthor != null && originalCommentAuthor.getEmail() != null) {
+                        String content = "用户 " + commenterName + " 回复了您的评论：" + comment.getContent();
+                        mailService.sendSimpleMail(originalCommentAuthor.getEmail(), subject, content);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("评论通知邮件发送失败{}", String.valueOf(e));
+        }
+    }
+    
+    /**
+     * 发送点赞通知邮件
+     * @param comment 被点赞的评论
+     * @param likerUsername 点赞者用户名
+     */
+    private void sendLikeNotification(Comment comment, String likerUsername) {
+        try {
+            if (!siteConfigUtil.isNotificationEnabled()) {
+                return;
+            }
+            
+            // 获取被点赞评论的作者信息
+            UserInformation commentAuthor = userInformationMapper.selectUserByUUID(comment.getUser_id());
+            String likerUserId = userInformationMapper.selectUserUUID(likerUsername);
+            
+            // 不给自己点赞发通知
+            if (commentAuthor != null && commentAuthor.getEmail() != null &&
+                    likerUserId != null && !commentAuthor.getUuid().equals(likerUserId)) {
+                String siteName = siteConfigUtil.getSiteName();
+                String subject = siteName + " 点赞通知";
+                String content = "用户 " + likerUsername + " 点赞了您的评论：" + comment.getContent();
+                
+                mailService.sendSimpleMail(commentAuthor.getEmail(), subject, content);
+            }
+        } catch (Exception e) {
+            log.warn("点赞通知邮件发送失败{}", String.valueOf(e));
+        }
     }
 }

@@ -27,9 +27,6 @@ public class CommentController {
     @PostMapping
     public void addComment(@RequestBody AddCommentRequestDTO request, HttpSession session) {
         String username = (String) session.getAttribute("username");
-        if (username == null) {
-            throw new RuntimeException("用户未登录");
-        }
         commentService.addComment(username, request);
     }
 
@@ -37,9 +34,6 @@ public class CommentController {
     @PostMapping("/{commentId}/like")
     public void likeComment(@PathVariable String commentId, HttpSession session) {
         String username = (String) session.getAttribute("username");
-        if (username == null) {
-            throw new RuntimeException("用户未登录");
-        }
         commentService.likeComment(username, commentId);
     }
 
@@ -47,9 +41,6 @@ public class CommentController {
     @DeleteMapping("/{commentId}")
     public void deleteComment(@PathVariable String commentId, HttpSession session) {
         String username = (String) session.getAttribute("username");
-        if (username == null) {
-            throw new RuntimeException("用户未登录");
-        }
         commentService.deleteComment(username, commentId);
     }
 }

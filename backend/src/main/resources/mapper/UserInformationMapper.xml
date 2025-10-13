@@ -36,6 +36,32 @@
         WHERE uuid = #{uuid}
     </select>
 
+    <select id="getEmailByUsername" parameterType="string" resultType="string">
+        SELECT email
+        FROM user_information
+        WHERE username = #{username}
+    </select>
+
+    <!-- 根据权限码返回所有拥有该权限的用户邮箱 -->
+    <select id="getEmailsByPermissionCode" parameterType="string" resultType="string">
+        SELECT DISTINCT ui.email
+        FROM user_information ui
+                 INNER JOIN role r ON ui.role_id = r.id
+                 INNER JOIN role_permission rp ON r.id = rp.role_id
+                 INNER JOIN permission p ON rp.permission_id = p.id
+        WHERE p.code = #{permissionCode}
+          AND ui.status = 1
+          AND ui.email IS NOT NULL;
+    </select>
+
+    <!-- 根据文章id查询文章所述用户 -->
+    <select id="getUsernameByArticleId" resultType="string">
+        SELECT ui.username
+        FROM article a
+        INNER JOIN user_information ui ON a.uuid = ui.uuid
+        WHERE a.article_id = #{articleId}
+    </select>
+
     <!-- 用户管理 -->
     <resultMap id="UserDTOMap" type="xyz.lingview.dimstack.dto.request.UserDTO">
         <result column="id" property="id"/>

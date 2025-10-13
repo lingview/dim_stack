@@ -2,20 +2,29 @@ package xyz.lingview.dimstack.controller;
 
 import cn.hutool.crypto.digest.BCrypt;
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.dto.request.ArticleDetailDTO;
 import xyz.lingview.dimstack.dto.request.UpdateArticleDTO;
+import xyz.lingview.dimstack.mapper.ArticleReviewMapper;
 import xyz.lingview.dimstack.mapper.EditArticleMapper;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
+import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.EditArticleService;
+import xyz.lingview.dimstack.service.MailService;
+import xyz.lingview.dimstack.util.SiteConfigUtil;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
+@Slf4j
 @RequestMapping("/api")
 public class EditArticleController {
 
@@ -28,6 +37,14 @@ public class EditArticleController {
     @Autowired
     EditArticleMapper editArticleMapper;
 
+    @Autowired
+    private SiteConfigUtil siteConfigUtil;
+
+    @Autowired
+    UserInformationMapper userInformationMapper;
+
+    @Autowired
+    MailService mailService;
     @GetMapping("/getarticlelist")
     @RequiresPermission("post:create")
     public ResponseEntity<Map<String, Object>> getArticleList(
@@ -87,6 +104,34 @@ public class EditArticleController {
             boolean result = editArticleService.updateArticle(updateArticleDTO, username);
 
             if (result) {
+                if (siteConfigUtil.isNotificationEnabled()) {
+                    Date date = new Date();
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    String formattedDate = formatter.format(date);
+
+                    String siteName = siteConfigUtil.getSiteName();
+
+                    List<String> emails = userInformationMapper.getEmailsByPermissionCode("post:review");
+
+                    if (emails == null || emails.isEmpty()) {
+                        log.warn("未找到拥有 'post:review' 权限的用户，跳过发送审核通知邮件");
+                    } else {
+                        for (String email : emails) {
+                            try {
+                                String articleId = updateArticleDTO.getArticle_id();
+                                String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
+                                mailService.sendSimpleMail(
+                                        email,
+                                        siteName + " 文章审核",
+                                        "用户：" + username + " 于 " + formattedDate + " 更新了文章：" + article_name + "可能需要您审核"
+                                );
+                                log.info("已发送审核通知邮件至: {}", email);
+                            } catch (Exception e) {
+                                log.error("发送审核通知邮件失败，目标邮箱: {}", email, e);
+                            }
+                        }
+                    }
+                }
                 response.put("success", true);
                 response.put("message", "文章更新成功");
             } else {
@@ -168,6 +213,14 @@ public class EditArticleController {
             if (result) {
                 response.put("success", true);
                 response.put("message", "文章删除成功");
+                if (siteConfigUtil.isNotificationEnabled()) {
+                    Date date = new Date();
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    String formattedDate = formatter.format(date);
+                    String email = userInformationMapper.getEmailByUsername(username);
+                    String siteName = siteConfigUtil.getSiteName();
+                    mailService.sendSimpleMail(email, siteName + " 文章删除成功", "用户：" + username + " 于 " + formattedDate + " 成功删除文章");
+                }
             } else {
                 response.put("success", false);
                 response.put("message", "文章删除失败：权限不足或文章不存在");
@@ -224,6 +277,9 @@ public class EditArticleController {
         }
     }
 
+    @Autowired
+    ArticleReviewMapper articleReviewMapper;
+
     @PostMapping("/publisharticle")
     @RequiresPermission("post:create")
     public ResponseEntity<Map<String, Object>> publishArticle(
@@ -247,18 +303,42 @@ public class EditArticleController {
                 return ResponseEntity.ok(response);
             }
 
-            // 获取系统配置的默认文章状态
             int articleDefault = SiteConfigMapper.getArticleStatus();
 
-            // 创建一个Map来传递参数，包括要设置的状态
             Map<String, Object> params = new HashMap<>();
             params.put("article_id", articleId);
             params.put("uuid", editArticleService.getArticleUuid(articleId));
             params.put("status", articleDefault);
 
-            // 更新文章状态
             int result = editArticleMapper.publishArticle(params);
 
+            if (siteConfigUtil.isNotificationEnabled()) {
+                Date date = new Date();
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String formattedDate = formatter.format(date);
+
+                String siteName = siteConfigUtil.getSiteName();
+
+                List<String> emails = userInformationMapper.getEmailsByPermissionCode("post:review");
+
+                if (emails == null || emails.isEmpty()) {
+                    log.warn("未找到拥有 'post:review' 权限的用户，跳过发送审核通知邮件");
+                } else {
+                    for (String email : emails) {
+                        try {
+                            String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
+                            mailService.sendSimpleMail(
+                                    email,
+                                    siteName + " 文章审核",
+                                    "用户：" + username + " 于 " + formattedDate + " 发布了新文章：" + article_name + "可能需要您审核"
+                            );
+                            log.info("已发送审核通知邮件至: {}", email);
+                        } catch (Exception e) {
+                            log.error("发送审核通知邮件失败，目标邮箱: {}", email, e);
+                        }
+                    }
+                }
+            }
             if (result > 0) {
                 response.put("success", true);
                 response.put("message", "文章已发布");
