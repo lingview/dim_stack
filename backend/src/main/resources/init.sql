@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 13/10/2025 23:00:28
+ Date: 14/10/2025 17:11:00
 */
 
 SET NAMES utf8mb4;
@@ -67,6 +67,7 @@ CREATE TABLE `article_categories`  (
                                        `article_categories` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '分类名称',
                                        `categories_explain` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '分类说明',
                                        `founder` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '创建人',
+                                       `article_count` int NOT NULL DEFAULT 0 COMMENT '文章数量',
                                        `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '创建时间',
                                        `status` int NOT NULL COMMENT '分类状态：0=禁用, 1=启用',
                                        PRIMARY KEY (`id`) USING BTREE,
@@ -78,8 +79,8 @@ CREATE TABLE `article_categories`  (
 -- ----------------------------
 -- Records of article_categories
 -- ----------------------------
-INSERT INTO `article_categories` VALUES (1, '默认分类', '默认分类', '075eb86f721743e3940f35869154a140175689381296899805858', '2025-09-13 13:35:57', 1);
-INSERT INTO `article_categories` VALUES (2, '接口文档', '接口文档', '075eb86f721743e3940f35869154a140175689381296899805858', '2025-09-25 21:53:26', 1);
+INSERT INTO `article_categories` VALUES (1, '默认分类', '默认分类', '075eb86f721743e3940f35869154a140175689381296899805858', 2, '2025-09-13 13:35:57', 1);
+INSERT INTO `article_categories` VALUES (2, '接口文档', '接口文档', '075eb86f721743e3940f35869154a140175689381296899805858', 1, '2025-09-25 21:53:26', 1);
 
 -- ----------------------------
 -- Table structure for article_tag

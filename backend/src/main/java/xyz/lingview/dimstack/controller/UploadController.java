@@ -13,6 +13,7 @@ import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.domain.UploadArticle;
 import xyz.lingview.dimstack.domain.UploadAttachment;
 import xyz.lingview.dimstack.domain.UserInformation;
+import xyz.lingview.dimstack.mapper.ArticleCategoryMapper;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
 import xyz.lingview.dimstack.mapper.UploadMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
@@ -533,6 +534,9 @@ public class UploadController {
     }
 
 
+    @Autowired
+    ArticleCategoryMapper articleCategoryMapper;
+
     @PostMapping("/uploadarticle")
     @RequiresPermission("post:create")
     public ResponseEntity<Map<String, Object>> uploadArticle(HttpServletRequest request,
@@ -615,6 +619,7 @@ public class UploadController {
                     }
                 }
 
+                articleCategoryMapper.incrementCount(uploadArticle.getCategory());
                 log.info("文章上传成功，文章ID: {}", uploadArticle.getArticle_id());
                 return ResponseEntity.ok(Map.of(
                         "message", "文章保存成功",

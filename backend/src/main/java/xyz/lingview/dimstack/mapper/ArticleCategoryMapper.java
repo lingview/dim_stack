@@ -27,4 +27,10 @@ public interface ArticleCategoryMapper {
     int insert(ArticleCategory category);
     int update(ArticleCategory category);
     int updateStatus(@Param("id") Integer id, @Param("status") Integer status);
+    // 通过文章id查询文章所属分类
+    String getCategoryByArticleId(@Param("article_id") String article_id);
+    // 增加分类文章数量
+    void incrementCount(@Param("category") String category);
+    // 分类文章数量-1
+    void decrementCount(@Param("category") String category);
 }

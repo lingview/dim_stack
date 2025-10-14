@@ -5,4 +5,5 @@ import java.util.List;
 
 public interface HotArticleService {
     List<HotArticleDTO> getHotArticles();
+    void refreshHotArticlesCache();
 }

@@ -9,10 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.dto.request.ArticleDetailDTO;
 import xyz.lingview.dimstack.dto.request.UpdateArticleDTO;
-import xyz.lingview.dimstack.mapper.ArticleReviewMapper;
-import xyz.lingview.dimstack.mapper.EditArticleMapper;
-import xyz.lingview.dimstack.mapper.SiteConfigMapper;
-import xyz.lingview.dimstack.mapper.UserInformationMapper;
+import xyz.lingview.dimstack.mapper.*;
 import xyz.lingview.dimstack.service.EditArticleService;
 import xyz.lingview.dimstack.service.MailService;
 import xyz.lingview.dimstack.util.SiteConfigUtil;
@@ -185,6 +182,9 @@ public class EditArticleController {
         }
     }
 
+    @Autowired
+    ArticleCategoryMapper articleCategoryMapper;
+
     @PostMapping("/deletearticle")
     @RequiresPermission("post:create")
     public ResponseEntity<Map<String, Object>> deleteArticle(
@@ -213,6 +213,8 @@ public class EditArticleController {
             if (result) {
                 response.put("success", true);
                 response.put("message", "文章删除成功");
+                String articleCategory = articleCategoryMapper.getCategoryByArticleId(articleId);
+                articleCategoryMapper.decrementCount(articleCategory);
                 if (siteConfigUtil.isNotificationEnabled()) {
                     Date date = new Date();
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

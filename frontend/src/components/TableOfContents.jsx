@@ -121,7 +121,46 @@ export default function TableOfContents({ article }) {
         }
     };
 
-    if (!headings || headings.length === 0) return null;
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setActiveId('article-title');
+    };
+
+    if (!headings || headings.length === 0) {
+        return (
+            <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+                <div className="border-b border-gray-200 px-4 py-3">
+                    <div className="flex items-center">
+                        <List className="h-5 w-5 text-gray-600 mr-2" />
+                        <h3 className="text-lg font-semibold text-gray-800">文章目录</h3>
+                    </div>
+                </div>
+                <div className="p-4">
+                    <nav className="space-y-1 max-h-96 overflow-y-auto">
+                        <button
+                            onClick={scrollToTop}
+                            className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-start group text-sm ${
+                                activeId === 'article-title'
+                                    ? 'bg-blue-50 text-blue-700 font-medium'
+                                    : 'text-gray-600 hover:bg-gray-50 hover:text-blue-600'
+                            }`}
+                        >
+                            <ChevronRight
+                                className={`h-4 w-4 mt-0.5 mr-2 flex-shrink-0 transition-transform ${
+                                    activeId === 'article-title'
+                                        ? 'text-blue-600 transform rotate-90'
+                                        : 'text-gray-400 group-hover:text-blue-600'
+                                }`}
+                            />
+                            <span className="leading-5 break-words line-clamp-2">
+                                {article?.article_name || '文章名称'}
+                            </span>
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
@@ -134,6 +173,26 @@ export default function TableOfContents({ article }) {
 
             <div className="p-4">
                 <nav className="space-y-1 max-h-96 overflow-y-auto">
+                    <button
+                        onClick={scrollToTop}
+                        className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-start group text-sm ${
+                            activeId === 'article-title'
+                                ? 'bg-blue-50 text-blue-700 font-medium'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-blue-600'
+                        }`}
+                    >
+                        <ChevronRight
+                            className={`h-4 w-4 mt-0.5 mr-2 flex-shrink-0 transition-transform ${
+                                activeId === 'article-title'
+                                    ? 'text-blue-600 transform rotate-90'
+                                    : 'text-gray-400 group-hover:text-blue-600'
+                            }`}
+                        />
+                        <span className="leading-5 break-words line-clamp-2">
+                            {article?.article_name || '文章名称'}
+                        </span>
+                    </button>
+
                     {headings.map((heading, index) => {
                         const isActive = activeId === heading.id;
                         const indent = (heading.level - 1) * 12;

@@ -18,19 +18,16 @@
 
     <select id="findAllEnabledCategoriesAndCount" resultType="xyz.lingview.dimstack.domain.ArticleCategoryAndCount">
         SELECT
-            ac.id,
-            ac.article_categories AS article_categories,
-            ac.categories_explain AS categories_explain,
-            ac.founder,
-            ac.create_time AS create_time,
-            ac.status,
-            COUNT(a.id) AS articleCount
-        FROM article_categories ac
-        LEFT JOIN article a ON ac.article_categories = a.category
-            AND a.status = 1
-        WHERE ac.status = 1
-        GROUP BY ac.id, ac.article_categories, ac.categories_explain, ac.founder, ac.create_time, ac.status
-        ORDER BY ac.create_time DESC
+            id,
+            article_categories,
+            categories_explain,
+            founder,
+            create_time,
+            status,
+            article_count AS articleCount
+        FROM article_categories
+        WHERE status = 1
+        ORDER BY create_time DESC
     </select>
 
     <select id="findArticlesByCategory" resultType="xyz.lingview.dimstack.dto.request.ArticleDTO">
@@ -140,4 +137,28 @@
         SET status = #{status}
         WHERE id = #{id}
     </update>
+
+    <select id="getCategoryByArticleId" resultType="string">
+        SELECT category
+        FROM article
+        WHERE article_id = #{article_id}
+    </select>
+
+    <!-- 增加分类文章数量 -->
+    <update id="incrementCount" parameterType="string">
+        UPDATE article_categories
+        SET article_count = article_count + 1
+        WHERE article_categories = #{category} AND status = 1
+    </update>
+
+    <!-- 分类文章数量 -1 -->
+    <update id="decrementCount" parameterType="string">
+        UPDATE article_categories
+        SET article_count = article_count - 1
+        WHERE article_categories = #{category}
+        AND status = 1
+        AND article_count > 0
+    </update>
+
+
 </mapper>

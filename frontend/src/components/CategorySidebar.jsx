@@ -59,7 +59,7 @@ export default function CategorySidebar({selectedCategory }) {
     return (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6 transition-colors duration-200 border border-gray-200">
             <h3 className="text-lg font-bold text-gray-900 mb-4">文章分类</h3>
-            <ul className="space-y-2">
+            <ul className="space-y-2 max-h-60 overflow-y-auto pr-2">
                 {categories.map((category) => (
                     <li key={category.id}>
                         <button
@@ -72,12 +72,13 @@ export default function CategorySidebar({selectedCategory }) {
                         >
                             <span>{category.article_categories}</span>
                             <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded-full">
-                                {category.articleCount || 0}
-                            </span>
+                            {category.articleCount || 0}
+                        </span>
                         </button>
                     </li>
                 ))}
             </ul>
         </div>
     );
+
 }
