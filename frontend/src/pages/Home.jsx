@@ -123,7 +123,7 @@ export default function Home() {
                         <div className="lg:w-2/3">
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-2xl font-bold text-gray-900 transition-colors duration-200 dark:text-white">
+                                    <h2 className="text-2xl font-bold text-gray-900 transition-colors duration-200 ">
                                         {getCurrentFilterTitle()}
                                     </h2>
                                     <div className="flex items-center space-x-4">
@@ -148,8 +148,8 @@ export default function Home() {
                                 {loading ? (
                                     <div>加载中...</div>
                                 ) : articles.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {articles.map((article) => (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
+                                        {articles.map((article) => (
                                             <ArticleCard
                                                 key={article.id}
                                                 article={article}
@@ -191,7 +191,7 @@ export default function Home() {
                         </div>
 
                         {/* 侧边栏 */}
-                        <div className="lg:w-1/3">
+                        <div className="lg:w-1/4 xl:w-1/3">
                             <div className="sticky top-28">
                                 <CategorySidebar onCategorySelect={handleCategoryChange} selectedCategory={selectedCategory} />
                                 <TagSidebar selectedTag={selectedTag} />

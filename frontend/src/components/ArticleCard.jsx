@@ -116,7 +116,7 @@ export default function ArticleCard({ article, showImage = true, onTagClick, onC
 
     return (
         <article
-            className="relative group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col cursor-pointer"
+            className="relative group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col cursor-pointer h-full"
             onClick={handleCardClick}
         >
             {showImage && (
@@ -135,10 +135,10 @@ export default function ArticleCard({ article, showImage = true, onTagClick, onC
             <div className="p-6 flex flex-col flex-1">
                 {renderTags(safeArticle.tag, 3, handleTagClick)}
 
-                <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors duration-200">
+                <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors duration-200 line-clamp-2">
                     <Link
                         to={`/article/${safeArticle.alias}`}
-                        className="no-underline hover:underline"
+                        className="no-underline hover:underline block"
                         aria-label={`阅读：${safeArticle.title}`}
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -146,14 +146,14 @@ export default function ArticleCard({ article, showImage = true, onTagClick, onC
                     </Link>
                 </h2>
 
-                <p className="text-gray-600 mb-4 flex-1">
+                <p className="text-gray-600 mb-4 flex-1 line-clamp-3">
                     <Link
                         to={`/article/${safeArticle.alias}`}
                         className="no-underline hover:underline text-gray-600 hover:text-blue-500"
                         aria-label={`阅读：${safeArticle.title}`}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {safeTruncate(safeArticle.excerpt, 40)}
+                        {safeTruncate(safeArticle.excerpt, 80)}
                     </Link>
                 </p>
 
