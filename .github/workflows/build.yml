@@ -40,11 +40,13 @@ jobs:
 
       - name: Clean backend static directory
         run: |
+          mkdir -p backend/src/main/resources/static
           cd backend
           rm -rf src/main/resources/static/*
 
       - name: Copy frontend build to backend static
         run: |
+          mkdir -p backend/src/main/resources/static
           cp -r frontend/dist/* backend/src/main/resources/static/
 
       - name: Build backend with Maven
