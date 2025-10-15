@@ -121,6 +121,12 @@
             GROUP BY article_id
         ) tags ON a.article_id = tags.article_id
         WHERE a.status = 1
+          AND EXISTS (
+                SELECT 1
+                FROM article_tag at
+                WHERE at.tag_name = #{tagName}
+                  AND at.status = 1
+            )
         ORDER BY a.create_time DESC
         LIMIT #{offset}, #{size}
     </select>

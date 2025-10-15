@@ -43,11 +43,13 @@
             a.alias,
             t.tag
         FROM (
-                 SELECT id, uuid, article_id
-                 FROM article
-                 WHERE status = 1
-                   AND category = #{category}
-                 ORDER BY create_time DESC
+                 SELECT art.id, art.uuid, art.article_id, art.category
+                 FROM article art
+                          INNER JOIN article_categories ac ON art.category = ac.article_categories
+                 WHERE art.status = 1
+                   AND ac.status = 1
+                   AND art.category = #{category}
+                 ORDER BY art.create_time DESC
                  LIMIT #{offset}, #{limit}
              ) page
                  JOIN article a ON page.id = a.id
