@@ -9,11 +9,16 @@ const CommentSection = ({ articleAlias }) => {
   const [replyContent, setReplyContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [currentUsername, setCurrentUsername] = useState(null);
 
-  // 获取评论列表
   useEffect(() => {
     fetchComments();
   }, [articleAlias]);
+
+  useEffect(() => {
+    const username = localStorage.getItem('username');
+    setCurrentUsername(username);
+  }, []);
 
   const getFullImageUrl = (url) => {
     if (!url) return null;
@@ -79,7 +84,7 @@ const CommentSection = ({ articleAlias }) => {
 
       await apiClient.post('/comments', requestData);
       setNewComment('');
-      fetchComments(); // 重新获取评论列表
+      fetchComments();
       setError('');
     } catch (err) {
       setError('发表评论失败');
@@ -179,7 +184,7 @@ const CommentSection = ({ articleAlias }) => {
           </div>
 
           {/* 评论内容 */}
-          <div className="flex-1 min-w-0"> {/* 添加 min-w-0 防止 flex 项目溢出 */}
+          <div className="flex-1 min-w-0">
             <div className="bg-gray-100 rounded-lg p-3">
               <div className="flex items-center">
                 <span className="font-medium text-gray-900 text-sm">
@@ -222,13 +227,14 @@ const CommentSection = ({ articleAlias }) => {
                 回复
               </button>
 
-              {/* 删除按钮 */}
-              <button
-                onClick={() => handleDeleteComment(comment.comment_id)}
-                className="text-xs text-gray-500 hover:text-red-500"
-              >
-                删除
-              </button>
+              {currentUsername && comment.username === currentUsername && (
+                <button
+                  onClick={() => handleDeleteComment(comment.comment_id)}
+                  className="text-xs text-gray-500 hover:text-red-500"
+                >
+                  删除
+                </button>
+              )}
             </div>
 
             {/* 回复输入框 */}
@@ -333,13 +339,14 @@ const CommentSection = ({ articleAlias }) => {
                 回复
               </button>
 
-              {/* 删除按钮 */}
-              <button
-                onClick={() => handleDeleteComment(comment.comment_id)}
-                className="text-sm text-gray-500 hover:text-red-500"
-              >
-                删除
-              </button>
+              {currentUsername && comment.username === currentUsername && (
+                <button
+                  onClick={() => handleDeleteComment(comment.comment_id)}
+                  className="text-sm text-gray-500 hover:text-red-500"
+                >
+                  删除
+                </button>
+              )}
             </div>
 
             {/* 回复输入框 */}
