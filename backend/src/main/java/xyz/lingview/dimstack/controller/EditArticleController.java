@@ -333,7 +333,7 @@ public class EditArticleController {
                             mailService.sendSimpleMail(
                                     email,
                                     siteName + " 文章审核",
-                                    "用户：" + username + " 于 " + formattedDate + " 发布了新文章：" + article_name + "可能需要您审核"
+                                    "用户：" + username + " 于 " + formattedDate + " 发布了新文章：" + "《" + article_name + "》" + "可能需要您审核"
                             );
                             log.info("已发送审核通知邮件至: {}", email);
                         } catch (Exception e) {
