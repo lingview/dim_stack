@@ -73,7 +73,7 @@ public class UploadController {
             return null;
         }
         String username = (String) session.getAttribute("username");
-        if (username == null || !username.matches("^[a-zA-Z0-9_]+$")) {
+        if (username == null || !username.matches("^[\\p{L}\\p{N}_]+$")) {
             log.debug("会话中的用户名无效: {}", username);
             return null;
         }
