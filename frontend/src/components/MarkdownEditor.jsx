@@ -40,7 +40,6 @@ const SUPPORTED_FILE_TYPES = {
     audio: ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/aac', 'audio/flac']
 };
 
-
 const MARKDOWN_SNIPPETS = {
     bold: '**粗体**',
     italic: '*斜体*',
@@ -104,8 +103,39 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 if (item.kind === 'file') {
                     e.preventDefault();
                     const file = item.getAsFile();
-                    if (file) await handleFileUpload(file);
-                    break;
+                    if (file) {
+                        await processAndInsertFile(file);
+                    }
+                    return;
+                }
+            }
+        };
+
+        const handleDragOver = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        };
+
+        const handleDrop = async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const files = e.dataTransfer.files;
+            if (files && files.length > 0) {
+                let contentToInsert = '';
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (file) {
+                        const fileContent = await processFile(file);
+                        if (fileContent) {
+                            contentToInsert += fileContent;
+                        }
+                    }
+                }
+
+                if (contentToInsert) {
+                    insertAtCursor(contentToInsert);
                 }
             }
         };
@@ -118,13 +148,17 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
 
         const textarea = textareaRef.current;
         textarea?.addEventListener('paste', handlePaste);
+        textarea?.addEventListener('dragover', handleDragOver);
+        textarea?.addEventListener('drop', handleDrop);
         document.addEventListener('mousedown', handleClickOutside);
 
         return () => {
             textarea?.removeEventListener('paste', handlePaste);
+            textarea?.removeEventListener('dragover', handleDragOver);
+            textarea?.removeEventListener('drop', handleDrop);
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, []);
+    }, [content]);
 
     const handleSave = () => {
         if (!title.trim() || !content.trim()) {
@@ -146,7 +180,6 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         setShowArticleInfo(true);
     };
 
-
     const handleArticleInfoSave = async (info) => {
         setIsSaving(true);
         setShowArticleInfo(false);
@@ -165,17 +198,14 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 ...(info.id && { article_id: info.id })
             };
 
-
             const isUpdate = initialData && initialData.article_id;
 
             let response;
             if (isUpdate) {
-
                 response = await apiClient.post('/updatearticle', payload);
             } else {
                 response = await apiClient.post('/uploadarticle', payload);
             }
-
 
             if (response.success === true || response.message) {
                 onSave(info);
@@ -198,11 +228,130 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         }
     };
 
+    const insertAtCursor = (text) => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        const startPos = textarea.selectionStart;
+        const endPos = textarea.selectionEnd;
+        const newValue = content.substring(0, startPos) + text + content.substring(endPos);
+        
+        setContent(newValue);
+
+        setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(startPos + text.length, startPos + text.length);
+        }, 0);
+    };
+
+    const processFile = async (file) => {
+        if (!file || !isFileSupported(file.type)) {
+            if (!isFileSupported(file.type)) {
+                const errorMessage = `不支持的文件类型: ${file.type}\n\n仅支持: ${Object.values(SUPPORTED_FILE_TYPES).flat().join(', ')}`;
+                alert(errorMessage);
+            }
+            return null;
+        }
+
+        const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
+        if (uploadingFiles.current.has(fileKey)) return null;
+
+        uploadingFiles.current.add(fileKey);
+        setUploading(true);
+
+        try {
+            const fileUrl = file.size > 10 * 1024 * 1024
+                ? await multipartUpload(file)
+                : await normalUpload(file);
+
+            if (fileUrl) {
+                const fullUrl = getConfig().getFullUrl(fileUrl);
+                const mediaType = getMediaType(file.type);
+
+                const snippets = {
+                    image: `\n![${file.name}](${fullUrl})\n`,
+                    video: `\n<video src="${fullUrl}" controls style="width: 400px;"></video>\n`,
+                    audio: `\n<audio src="${fullUrl}" controls preload="metadata"></audio>\n`
+                };
+
+                return snippets[mediaType] || null;
+            }
+            return null;
+        } catch (error) {
+            alert('文件上传失败: ' + error.message);
+            return null;
+        } finally {
+            uploadingFiles.current.delete(fileKey);
+            setUploading(false);
+        }
+    };
+
+    const normalUpload = async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await apiClient.post('/uploadattachment', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            return response.data?.fileUrl || response.fileUrl;
+        } catch (error) {
+            throw new Error('普通上传失败: ' + (error.response?.data?.error || error.message));
+        }
+    };
+
+    const multipartUpload = async (file) => {
+        const CHUNK_SIZE = 5 * 1024 * 1024;
+        const chunks = Math.ceil(file.size / CHUNK_SIZE);
+
+        try {
+            const initResponse = await apiClient.post('/uploadattachment/init', {
+                filename: file.name
+            });
+            const uploadId = initResponse.data?.uploadId || initResponse.uploadId;
+
+            for (let i = 0; i < chunks; i++) {
+                const start = i * CHUNK_SIZE;
+                const chunk = file.slice(start, Math.min(start + CHUNK_SIZE, file.size));
+
+                await apiClient.post('/uploadattachment/part', chunk, {
+                    headers: {
+                        'Upload-Id': uploadId,
+                        'Chunk-Index': i,
+                        'Content-Type': 'application/octet-stream'
+                    }
+                });
+            }
+
+            const completeResponse = await apiClient.post('/uploadattachment/complete', {
+                uploadId,
+                filename: file.name
+            });
+            const fileUrl = completeResponse.data?.fileUrl || completeResponse.fileUrl;
+
+            return fileUrl;
+        } catch (error) {
+            throw new Error('分片上传失败: ' + (error.response?.data?.error || error.message));
+        }
+    };
+
+    const processAndInsertFile = async (file) => {
+        const contentToInsert = await processFile(file);
+        if (contentToInsert) {
+            insertAtCursor(contentToInsert);
+        }
+    };
+
+    const handleFileInputChange = (e) => {
+        const file = e.target.files?.[0];
+        if (file) processAndInsertFile(file);
+        e.target.value = '';
+    };
 
     const insertMarkdown = (type) => {
         const snippet = MARKDOWN_SNIPPETS[type];
         if (snippet) {
-            setContent(prev => prev + (prev.endsWith('\n') ? '' : '\n') + snippet);
+            insertAtCursor((content.endsWith('\n') || content === '' ? '' : '\n') + snippet);
         }
     };
 
@@ -226,100 +375,6 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
 
         fileInputRef.current.accept = acceptTypes;
         fileInputRef.current.click();
-    };
-
-    const handleFileInputChange = (e) => {
-        const file = e.target.files?.[0];
-        if (file) handleFileUpload(file);
-        e.target.value = '';
-    };
-
-    const handleFileUpload = async (file) => {
-        if (!file || !isFileSupported(file.type)) {
-            if (!isFileSupported(file.type)) {
-                alert(`不支持的文件类型: ${file.type}\n\n仅支持: ${Object.values(SUPPORTED_FILE_TYPES).flat().join(', ')}`);
-            }
-            return;
-        }
-
-        const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
-        if (uploadingFiles.current.has(fileKey)) return;
-
-        uploadingFiles.current.add(fileKey);
-        setUploading(true);
-
-        try {
-            const fileUrl = file.size > 10 * 1024 * 1024
-                ? await multipartUpload(file)
-                : await normalUpload(file);
-
-            if (fileUrl) {
-                const fullUrl = getConfig().getFullUrl(fileUrl);
-                const mediaType = getMediaType(file.type);
-
-                const snippets = {
-                    image: `\n![${file.name}](${fullUrl})\n`,
-                    video: `\n<video src="${fullUrl}" controls style="width: 400px;"></video>\n`,
-                    audio: `\n<audio src="${fullUrl}" controls preload="metadata"></audio>\n`
-                };
-
-                const snippet = snippets[mediaType];
-                if (snippet) setContent(prev => prev + snippet);
-            }
-        } catch (error) {
-            console.error('上传失败:', error);
-            alert('文件上传失败: ' + error.message);
-        } finally {
-            uploadingFiles.current.delete(fileKey);
-            setUploading(false);
-        }
-    };
-
-    const normalUpload = async (file) => {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            const response = await apiClient.post('/uploadattachment', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            return response.fileUrl;
-        } catch (error) {
-            throw new Error('普通上传失败: ' + (error.response?.data?.error || error.message));
-        }
-    };
-
-    const multipartUpload = async (file) => {
-        const CHUNK_SIZE = 5 * 1024 * 1024;
-        const chunks = Math.ceil(file.size / CHUNK_SIZE);
-
-        try {
-            const { uploadId } = await apiClient.post('/uploadattachment/init', {
-                filename: file.name
-            });
-
-            for (let i = 0; i < chunks; i++) {
-                const start = i * CHUNK_SIZE;
-                const chunk = file.slice(start, Math.min(start + CHUNK_SIZE, file.size));
-
-                await apiClient.post('/uploadattachment/part', chunk, {
-                    headers: {
-                        'Upload-Id': uploadId,
-                        'Chunk-Index': i,
-                        'Content-Type': 'application/octet-stream'
-                    }
-                });
-            }
-
-            const { fileUrl } = await apiClient.post('/uploadattachment/complete', {
-                uploadId,
-                filename: file.name
-            });
-
-            return fileUrl;
-        } catch (error) {
-            throw new Error('分片上传失败: ' + (error.response?.data?.error || error.message));
-        }
     };
 
     const renderMarkdownComponents = {
@@ -496,7 +551,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                                             <button
                                                 key={idx}
                                                 onClick={() => {
-                                                    setContent(prev => prev + '\n' + h + '\n');
+                                                    insertAtCursor('\n' + h + '\n');
                                                     setShowHeadingMenu(false);
                                                 }}
                                                 className="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
