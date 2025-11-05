@@ -57,6 +57,7 @@ public class SiteConfigController {
         try {
             SiteConfig config = siteConfigService.getSiteConfig();
             if (config != null) {
+                config.setMail_password(null);
                 return ResponseEntity.ok(Map.of(
                     "success", true,
                     "data", config
@@ -83,7 +84,6 @@ public class SiteConfigController {
     public ResponseEntity<Map<String, Object>> editsiteconfig(@RequestBody SiteConfig siteConfig) {
         log.info("更新站点配置信息");
         try {
-
             SiteConfig currentConfig = siteConfigService.getSiteConfig();
             if (currentConfig == null) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -181,7 +181,7 @@ public class SiteConfigController {
                 currentConfig.setMail_username(siteConfig.getMail_username());
             }
 
-            if (siteConfig.getMail_password() != null) {
+            if (siteConfig.getMail_password() != null && !siteConfig.getMail_password().isEmpty()) {
                 currentConfig.setMail_password(siteConfig.getMail_password());
             }
 

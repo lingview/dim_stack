@@ -105,7 +105,6 @@ export default function SiteSettingsView() {
                     mail_sender_email: escapeHtml(response.data.mail_sender_email) || '',
                     mail_sender_name: escapeHtml(response.data.mail_sender_name) || '系统通知',
                     mail_username: escapeHtml(response.data.mail_username) || '',
-                    mail_password: response.data.mail_password || '',
                     mail_protocol: escapeHtml(response.data.mail_protocol) || 'smtp',
                     smtp_port: response.data.smtp_port || '',
                     mail_enable_tls: response.data.mail_enable_tls !== undefined ? response.data.mail_enable_tls : true,
@@ -190,14 +189,21 @@ export default function SiteSettingsView() {
                 mail_sender_email: unescapeHtml(formData.mail_sender_email),
                 mail_sender_name: unescapeHtml(formData.mail_sender_name),
                 mail_username: unescapeHtml(formData.mail_username),
-                mail_password: formData.mail_password,
                 mail_protocol: unescapeHtml(formData.mail_protocol)
             };
+
+            if (formData.mail_password && formData.mail_password.trim() !== '') {
+                unescapedData.mail_password = formData.mail_password;
+            }
 
             const response = await apiClient.post('/site/editsiteconfig', unescapedData);
 
             if (response.success) {
                 showMessage('success', '站点配置保存成功');
+                setFormData(prev => ({
+                    ...prev,
+                    mail_password: ''
+                }));
             } else {
                 showMessage('error', response.message || '保存失败');
             }
@@ -285,7 +291,6 @@ export default function SiteSettingsView() {
         }
     };
 
-    // 触发站点图标文件选择
     const triggerIconFileInput = () => {
         if (iconFileInputRef.current) {
             iconFileInputRef.current.click();
@@ -612,10 +617,16 @@ export default function SiteSettingsView() {
                                 name="mail_password"
                                 value={formData.mail_password}
                                 onChange={handleInputChange}
-                                placeholder="邮箱密码或授权码"
+                                placeholder="邮箱密码或授权码（留空表示不修改）"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
+                            {formData.mail_password && (
+                                <p className="mt-1 text-xs text-gray-500">
+                                    注意：输入新密码将会覆盖现有密码
+                                </p>
+                            )}
                         </div>
+
 
                         <div>
                             <label htmlFor="mail_sender_email" className="block text-sm font-medium text-gray-700 mb-1">
