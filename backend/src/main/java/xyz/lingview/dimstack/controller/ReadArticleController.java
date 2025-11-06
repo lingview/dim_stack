@@ -44,6 +44,7 @@ public class ReadArticleController {
             ReadArticle article = readArticleService.getArticleByAlias(alias, password);
             log.info("Article data: {}", article);
             response.put("success", true);
+            article.setPassword("******");
             response.put("data", article);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
