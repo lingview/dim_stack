@@ -955,26 +955,26 @@ curl -X GET -i 'http://{{server}}/api/article/{alias}?password='
 ```
 **响应字段:**
 
-| 字段       | 类型    | 描述                    | 示例                 |
-|------------|---------|-------------------------|----------------------|
-| data       | 对象    | 数据对象                |                      |
-| └─ id      | 整数    | 文章 ID                 | `1`                  |
-| └─ uuid    | 字符串  | 文章 UUID               | `"075eb86f721743e3940f35869154a140175689381296899805858"` |
-| └─ article_id | 字符串 | 文章唯一标识符        | `"a1d3112d-fd8e-4484-9c3c-bad24a9e2019"` |
-| └─ article_name | 字符串 | 文章标题              | `"关于"`             |
-| └─ article_cover | 字符串 | 文章封面图          | `"https://pan.apilinks.cn/f/29um/Image_2756849649102.jpg"` |
-| └─ excerpt  | 字符串  | 文章摘要              | `"关于次元栈论坛"`   |
-| └─ article_content | 字符串 | 文章内容            | `"# 关于次元栈\n## \uD83C\uDF1F 项目简介\n\n**次元栈** 是一个面向多元兴趣群体的内容社区平台，致力于为 **Vsinger 爱好者**、**Minecraft 创作者** 与 **计算机技术爱好者** 提供一个自由表达、知识共享与创作沉淀的空间。\n\n平台核心功能：\n- \uD83D\uDCDD 文章发布与内容管理（CMS）\n- \uD83D\uDCAC 用户互动：评论、点赞、收藏\n- \uD83D\uDD16 标签分类：支持跨圈层内容组织（如 #洛天依、#乐正绫、#星尘、#红石电路、#Java）\n- \uD83D\uDC65 用户系统：注册、登录、个人主页\n- \uD83D\uDD0D 内容搜索与推荐\n- \uD83D\uDCF1 响应式前端，支持移动端浏览\n\n---\n\n## \uD83D\uDEE0 技术栈\n\n| 层级       | 技术选型                                                         |\n|------------|--------------------------------------------------------------|\n| **后端**   | Java 17, Spring Boot 3.5, Mybatis, MySQL, Redis, Cookie      |\n| **前端**   | React 19, JavaScript, Vite, Axios, Tailwind CSS              |\n| **构建**   | Maven (后端), npm/pnpm (前端)                                    |\n| **部署**   | Docker, Nginx, Linux, Windows                                |\n---\n\n"` |
-| └─ page_views  | 整数    | 阅读次数              | `48`                 |
-| └─ like_count  | 整数    | 点赞次数              | `0`                  |
-| └─ favorite_count | 整数    | 收藏次数            | `0`                  |
-| └─ password  | 字符串  | 文章密码              | `""`                 |
-| └─ tag  | 字符串  | 文章标签              | `"默认标签"`         |
-| └─ category  | 字符串  | 文章分类              | `"默认分类"`         |
-| └─ alias  | 字符串  | 文章别名              | `"about"`            |
-| └─ create_time | 字符串  | 创建时间              | `"2025-09-13 12:42:47"` |
-| └─ status  | 整数    | 文章状态              | `1`                  |
-| success    | 布尔值  | 请求是否成功          | `true`               |
+| 字段       | 类型    | 描述        | 示例                 |
+|------------|---------|-----------|----------------------|
+| data       | 对象    | 数据对象      |                      |
+| └─ id      | 整数    | 文章 ID     | `1`                  |
+| └─ uuid    | 字符串  | 文章作者 UUID | `"075eb86f721743e3940f35869154a140175689381296899805858"` |
+| └─ article_id | 字符串 | 文章唯一标识符   | `"a1d3112d-fd8e-4484-9c3c-bad24a9e2019"` |
+| └─ article_name | 字符串 | 文章标题      | `"关于"`             |
+| └─ article_cover | 字符串 | 文章封面图     | `"https://pan.apilinks.cn/f/29um/Image_2756849649102.jpg"` |
+| └─ excerpt  | 字符串  | 文章摘要      | `"关于次元栈论坛"`   |
+| └─ article_content | 字符串 | 文章内容      | `"# 关于次元栈\n## \uD83C\uDF1F 项目简介\n\n**次元栈** 是一个面向多元兴趣群体的内容社区平台，致力于为 **Vsinger 爱好者**、**Minecraft 创作者** 与 **计算机技术爱好者** 提供一个自由表达、知识共享与创作沉淀的空间。\n\n平台核心功能：\n- \uD83D\uDCDD 文章发布与内容管理（CMS）\n- \uD83D\uDCAC 用户互动：评论、点赞、收藏\n- \uD83D\uDD16 标签分类：支持跨圈层内容组织（如 #洛天依、#乐正绫、#星尘、#红石电路、#Java）\n- \uD83D\uDC65 用户系统：注册、登录、个人主页\n- \uD83D\uDD0D 内容搜索与推荐\n- \uD83D\uDCF1 响应式前端，支持移动端浏览\n\n---\n\n## \uD83D\uDEE0 技术栈\n\n| 层级       | 技术选型                                                         |\n|------------|--------------------------------------------------------------|\n| **后端**   | Java 17, Spring Boot 3.5, Mybatis, MySQL, Redis, Cookie      |\n| **前端**   | React 19, JavaScript, Vite, Axios, Tailwind CSS              |\n| **构建**   | Maven (后端), npm/pnpm (前端)                                    |\n| **部署**   | Docker, Nginx, Linux, Windows                                |\n---\n\n"` |
+| └─ page_views  | 整数    | 阅读次数      | `48`                 |
+| └─ like_count  | 整数    | 点赞次数      | `0`                  |
+| └─ favorite_count | 整数    | 收藏次数      | `0`                  |
+| └─ password  | 字符串  | 文章密码      | `""`                 |
+| └─ tag  | 字符串  | 文章标签      | `"默认标签"`         |
+| └─ category  | 字符串  | 文章分类      | `"默认分类"`         |
+| └─ alias  | 字符串  | 文章别名      | `"about"`            |
+| └─ create_time | 字符串  | 创建时间      | `"2025-09-13 12:42:47"` |
+| └─ status  | 整数    | 文章状态      | `1`                  |
+| success    | 布尔值  | 请求是否成功    | `true`               |
 
 **响应示例：**
 ```json
