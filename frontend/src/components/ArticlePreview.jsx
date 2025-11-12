@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Music } from 'lucide-react';
+import { Music,FileText } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -7,6 +7,7 @@ import rehypeSanitize from 'rehype-sanitize';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { getConfig } from '../utils/config';
+
 
 const rehypeSanitizeSchema = {
     tagNames: [
@@ -16,7 +17,8 @@ const rehypeSanitizeSchema = {
         'blockquote','pre','code',
         'table','thead','tbody','tr','th','td',
         'a','img','video','audio','source','track',
-        'hr','sup','sub'
+        'hr','sup','sub',
+        'archive'
     ],
     attributes: {
         '*': ['className', 'id'],
@@ -25,7 +27,8 @@ const rehypeSanitizeSchema = {
         'video': ['src', 'controls', 'autoplay', 'loop', 'muted', 'poster', 'width', 'height', 'preload'],
         'audio': ['src', 'controls', 'autoplay', 'loop', 'muted', 'preload'],
         'source': ['src', 'type', 'media'],
-        'track': ['src', 'kind', 'srclang', 'label', 'default']
+        'track': ['src', 'kind', 'srclang', 'label', 'default'],
+        'archive': ['src', 'fileName']
     },
     protocols: {
         'href': ['http', 'https', 'mailto'],
@@ -34,7 +37,6 @@ const rehypeSanitizeSchema = {
     clobberPrefix: 'user-content-',
     clobber: ['name', 'id']
 };
-
 const isSafeUrl = (url) => {
     if (!url) return false;
     return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
@@ -390,6 +392,36 @@ export default function ArticlePreview({ article }) {
             if (!isSafeUrl(src)) return null;
             const fullSrc = getFullImageUrl(src);
             return <source src={fullSrc} type={type} {...props} />;
+        },
+        archive: ({ src, fileName, ...props }) => {
+            if (!isSafeUrl(src)) return null;
+            const fullSrc = getFullImageUrl(src);
+            const displayName = fileName || src.split("/").pop()?.split("?")[0] || "压缩文件";
+
+            return (
+                <div className="my-4 p-4 bg-white border border-gray-200 rounded-xl shadow-sm max-w-lg">
+                    <div className="flex items-center mb-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-300 rounded-full flex items-center justify-center mr-3">
+                            <FileText className="h-4 w-4 text-dark" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-gray-700 truncate" title={displayName}>
+                                {displayName}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                                压缩文件
+                            </div>
+                        </div>
+                        <a
+                            href={fullSrc}
+                            download={displayName}
+                            className="ml-2 px-3 py-1 bg-blue-300 text-gray-800 text-xs rounded-md hover:bg-blue-400"
+                        >
+                            下载
+                        </a>
+                    </div>
+                </div>
+            );
         },
     }), [renderKey, syntaxStyle]);
 

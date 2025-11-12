@@ -21,7 +21,7 @@ const rehypeSanitizeSchema = {
         'blockquote','pre','code',
         'table','thead','tbody','tr','th','td',
         'a','img','video','audio','source','track',
-        'hr','sup','sub'
+        'hr','sup','sub','archive'
     ],
     attributes: {
         '*': ['className', 'id', 'style'],
@@ -30,15 +30,26 @@ const rehypeSanitizeSchema = {
         'video': ['src', 'controls', 'autoplay', 'loop', 'muted', 'poster', 'width', 'height', 'preload'],
         'audio': ['src', 'controls', 'autoplay', 'loop', 'muted', 'preload'],
         'source': ['src', 'type', 'media'],
-        'track': ['src', 'kind', 'srclang', 'label', 'default']
+        'track': ['src', 'kind', 'srclang', 'label', 'default'],
+        'archive': ['src', 'fileName']
     }
 };
 
 const SUPPORTED_FILE_TYPES = {
     image: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp'],
     video: ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov', 'video/mkv'],
-    audio: ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/aac', 'audio/flac']
+    audio: ['audio/mp3', 'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/m4a', 'audio/aac', 'audio/flac'],
+    archive: [
+        'application/zip', 'application/x-rar-compressed',
+        'application/x-tar', 'application/gzip',
+        'application/x-xz', 'application/x-7z-compressed',
+        'application/x-zip-compressed',
+        'application/x-compressed',
+        'application/x-gzip'
+    ]
 };
+
+
 
 const MARKDOWN_SNIPPETS = {
     bold: '**粗体**',
@@ -57,6 +68,7 @@ const TOOLBAR_BUTTONS = [
     { type: 'image', icon: Image, title: '插入图片', isFile: true },
     { type: 'video', icon: Video, title: '插入视频', isFile: true },
     { type: 'audio', icon: Music, title: '插入音频', isFile: true },
+    { type: 'archive', icon: FileText, title: '插入压缩包', isFile: true },
     { type: 'list', icon: List, title: '列表' },
     { type: 'code', icon: Code, title: '代码' }
 ];
@@ -271,7 +283,8 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 const snippets = {
                     image: `\n![${file.name}](${fullUrl})\n`,
                     video: `\n<video src="${fullUrl}" controls style="width: 400px;"></video>\n`,
-                    audio: `\n<audio src="${fullUrl}" controls preload="metadata"></audio>\n`
+                    audio: `\n<audio src="${fullUrl}" controls preload="metadata"></audio>\n`,
+                    archive: `<archive src="${fullUrl}" fileName="${file.name}"></archive>`
                 };
 
                 return snippets[mediaType] || null;
@@ -369,13 +382,17 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const handleFileSelect = (fileType) => {
         if (!fileInputRef.current) return;
 
-        const acceptTypes = fileType === 'image' || fileType === 'video' || fileType === 'audio'
-            ? SUPPORTED_FILE_TYPES[fileType].join(',')
-            : Object.values(SUPPORTED_FILE_TYPES).flat().join(',');
+        let acceptTypes;
+        if (fileType === 'image' || fileType === 'video' || fileType === 'audio' || fileType === 'archive') {
+            acceptTypes = SUPPORTED_FILE_TYPES[fileType].join(',');
+        } else {
+            acceptTypes = Object.values(SUPPORTED_FILE_TYPES).flat().join(',');
+        }
 
         fileInputRef.current.accept = acceptTypes;
         fileInputRef.current.click();
     };
+
 
     const renderMarkdownComponents = {
         h1: (props) => (
@@ -493,6 +510,36 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         source: ({ src, type, ...props }) => {
             if (!isSafeUrl(src)) return null;
             return <source src={src} type={type} {...props} />;
+        },
+
+        archive: ({ src, fileName, ...props }) => {
+            if (!isSafeUrl(src)) return null;
+            const displayName = fileName || src.split("/").pop()?.split("?")[0] || "压缩文件";
+
+            return (
+                <div className="my-4 p-4 bg-white border border-gray-200 rounded-xl shadow-sm max-w-lg">
+                    <div className="flex items-center mb-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-300 rounded-full flex items-center justify-center mr-3">
+                            <FileText className="h-4 w-4 text-gray-800" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-gray-700 truncate" title={displayName}>
+                                {displayName}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                                压缩文件
+                            </div>
+                        </div>
+                        <a
+                            href={src}
+                            download={displayName}
+                            className="ml-2 px-3 py-1 bg-blue-300 text-gray-800 text-xs rounded-md hover:bg-blue-400"
+                        >
+                            下载
+                        </a>
+                    </div>
+                </div>
+            );
         },
     };
 
