@@ -44,11 +44,11 @@ public class WebConfig implements WebMvcConfigurer {
         return registration;
     }
 
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/upload/**")
-                .addResourceLocations("file:upload/");
-    }
+//    @Override
+//    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+//        registry.addResourceHandler("/upload/**")
+//                .addResourceLocations("file:upload/");
+//    }
 
     // 注册权限拦截器
     @Autowired

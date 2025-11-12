@@ -130,20 +130,21 @@ INSERT INTO `article_tag_relation` VALUES ('a1d3112d-fd8e-4484-9c3c-bad24a9e2019
 -- Table structure for attachment
 -- ----------------------------
 DROP TABLE IF EXISTS `attachment`;
-CREATE TABLE `attachment`  (
-                               `id` int NOT NULL AUTO_INCREMENT COMMENT '上传顺序',
-                               `uuid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户唯一id',
-                               `attachment_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '附件唯一id',
-                               `attachment_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '附件路径',
-                               `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '上传时间',
-                               `status` tinyint NOT NULL COMMENT '附件状态：0=删除, 1=正常',
-                               PRIMARY KEY (`id`) USING BTREE,
-                               UNIQUE INDEX `attachment_id`(`attachment_id` ASC) USING BTREE,
-                               UNIQUE INDEX `attachment_path`(`attachment_path` ASC) USING BTREE,
-                               INDEX `idx_uuid`(`uuid` ASC) USING BTREE,
-                               CONSTRAINT `fk_attachment_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
+CREATE TABLE `attachment` (
+                              `id` int NOT NULL AUTO_INCREMENT COMMENT '上传顺序',
+                              `uuid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户唯一id',
+                              `attachment_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '附件唯一id',
+                              `attachment_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '附件路径',
+                              `access_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '文件访问键',
+                              `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '上传时间',
+                              `status` tinyint NOT NULL COMMENT '附件状态：0=删除, 1=正常',
+                              PRIMARY KEY (`id`) USING BTREE,
+                              UNIQUE INDEX `attachment_id`(`attachment_id` ASC) USING BTREE,
+                              UNIQUE INDEX `attachment_path`(`attachment_path` ASC) USING BTREE,
+                              UNIQUE INDEX `access_key`(`access_key` ASC) USING BTREE,
+                              INDEX `idx_uuid`(`uuid` ASC) USING BTREE,
+                              CONSTRAINT `fk_attachment_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '附件上传记录表' ROW_FORMAT = DYNAMIC;
-
 -- ----------------------------
 -- Records of attachment
 -- ----------------------------

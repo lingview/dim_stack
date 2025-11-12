@@ -8,11 +8,12 @@ import xyz.lingview.dimstack.domain.UploadAttachment;
 
 @Mapper
 @Repository
-public interface  UploadMapper {
+public interface UploadMapper {
     int insertUploadAttachment(UploadAttachment UploadAttachment);
     int insertUploadArticle(UploadArticle UploadArticle);
     int selectArticleCountByAliasAndUuid(String alias, String uuid);
     int insertArticleTagRelation(@Param("articleId") String articleId, @Param("tagName") String tagName);
     int deleteArticleTagRelations(@Param("articleId") String articleId);
 
+    UploadAttachment selectByAccessKey(@Param("accessKey") String accessKey);
 }

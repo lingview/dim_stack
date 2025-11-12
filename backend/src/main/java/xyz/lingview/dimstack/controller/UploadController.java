@@ -241,13 +241,15 @@ public class UploadController {
                 RandomUtil.generateRandomNumber(5, "1234567890qwertyuiopasdfghjklzxcvbnm");
         String fileName = fileUUID + extension;
 
+        String accessKey = UUID.randomUUID().toString().replace("-", "");
+
         Path filePath = uploadPath.resolve(fileName);
 
         UploadAttachment uploadFile = new UploadAttachment();
         uploadFile.setUuid(userUUID);
         uploadFile.setAttachment_id(fileUUID);
         uploadFile.setAttachment_path(filePath.toString());
-
+        uploadFile.setAccess_key(accessKey);
         int insertResult = uploadMapper.insertUploadAttachment(uploadFile);
         if (insertResult != 1) {
             log.error("插入附件记录到数据库失败。文件: {}", fileName);
@@ -264,7 +266,7 @@ public class UploadController {
                     .body(Map.of("error", "保存文件失败"));
         }
 
-        String fileUrl = "/upload/" + username + "/attachment/" + subFolder + "/" + fileName;
+        String fileUrl = "/file/" + accessKey;
         log.info("附件上传完成。URL: {}", fileUrl);
         return ResponseEntity.ok(Map.of("fileUrl", fileUrl));
     }
@@ -347,7 +349,7 @@ public class UploadController {
         return ResponseEntity.ok(Map.of("message", "分片上传成功"));
     }
 
-     @PostMapping("/uploadattachment/complete")
+    @PostMapping("/uploadattachment/complete")
     @RequiresPermission("post:create")
     public ResponseEntity<Map<String, String>> completeUpload(
             HttpServletRequest request,
@@ -506,10 +508,13 @@ public class UploadController {
                     .body(Map.of("error", "文件类型不被允许: " + detectedMimeType));
         }
 
+        String accessKey = UUID.randomUUID().toString().replace("-", "");
+
         UploadAttachment uploadFile = new UploadAttachment();
         uploadFile.setUuid(userUUID);
         uploadFile.setAttachment_id(fileUUID);
         uploadFile.setAttachment_path(finalFilePath.toString());
+        uploadFile.setAccess_key(accessKey);
 
         int insertResult = uploadMapper.insertUploadAttachment(uploadFile);
         if (insertResult != 1) {
@@ -523,10 +528,11 @@ public class UploadController {
                     .body(Map.of("error", "保存文件信息失败"));
         }
 
-        String fileUrl = "/upload/" + username + "/attachment/" + subFolder + "/" + newFileName;
+        String fileUrl = "/file/" + accessKey;
         log.info("分片上传完成。URL: {}", fileUrl);
         return ResponseEntity.ok(Map.of("fileUrl", fileUrl));
     }
+
 
 
     private boolean isAliasExists(String alias, String uuid) {
@@ -709,6 +715,8 @@ public class UploadController {
         String fileUUID = "avatar-" + uuid + "-" + timestamp;
         String fileName = fileUUID + extension;
 
+        String accessKey = UUID.randomUUID().toString().replace("-", "");
+
         Path filePath = uploadPath.resolve(fileName);
 
         try {
@@ -720,7 +728,19 @@ public class UploadController {
                     .body(Map.of("error", "保存头像文件失败"));
         }
 
-        String fileUrl = "/upload/" + username + "/avatar/" + fileName;
+        try {
+            UploadAttachment uploadFile = new UploadAttachment();
+            uploadFile.setUuid(userUUID);
+            uploadFile.setAttachment_id(fileUUID);
+            uploadFile.setAttachment_path(filePath.toString());
+            uploadFile.setAccess_key(accessKey);
+
+            uploadMapper.insertUploadAttachment(uploadFile);
+        } catch (Exception e) {
+            log.warn("保存头像访问键到数据库失败", e);
+        }
+
+        String fileUrl = "/file/" + accessKey;
         log.info("头像上传完成。URL: {}", fileUrl);
 
         try {

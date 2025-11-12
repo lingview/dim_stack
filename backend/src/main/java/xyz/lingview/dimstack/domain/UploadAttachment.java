@@ -7,5 +7,6 @@ public class UploadAttachment {
     private String uuid;
     private String attachment_id;
     private String attachment_path;
+    private String access_key;
     private int status;
 }

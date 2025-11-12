@@ -11,8 +11,12 @@
     </resultMap>
 
     <insert id="insertUploadAttachment" parameterType="xyz.lingview.dimstack.domain.UploadAttachment">
-        INSERT INTO attachment(uuid, attachment_id, attachment_path, status)
-        VALUES (#{uuid}, #{attachment_id}, #{attachment_path},1)
+        INSERT INTO attachment(uuid, attachment_id, attachment_path, access_key, status)
+        VALUES (#{uuid}, #{attachment_id}, #{attachment_path}, #{access_key}, 1)
     </insert>
+
+    <select id="selectByAccessKey" resultMap="UploadAttachment">
+        SELECT * FROM attachment WHERE access_key = #{accessKey} AND status = 1
+    </select>
 
 </mapper>
