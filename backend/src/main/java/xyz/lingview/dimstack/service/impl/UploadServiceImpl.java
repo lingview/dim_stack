@@ -242,10 +242,8 @@ public class UploadServiceImpl implements UploadService {
                     .body(Map.of("error", "创建目录失败"));
         }
 
-        String timestamp = String.valueOf(Instant.now().getEpochSecond());
-        UUID uuid = UUID.randomUUID();
-        String fileUUID = uuid + "-" + timestamp + "-" +
-                RandomUtil.generateRandomNumber(5, "1234567890qwertyuiopasdfghjklzxcvbnm");
+
+        String fileUUID = RandomUtil.generateUUID();
         String fileName = fileUUID + extension;
 
         String accessKey = UUID.randomUUID().toString().replace("-", "");
@@ -398,10 +396,7 @@ public class UploadServiceImpl implements UploadService {
                     .body(Map.of("error", "临时目录不存在"));
         }
 
-        String timestamp = String.valueOf(Instant.now().getEpochSecond());
-        UUID uuid = UUID.randomUUID();
-        String fileUUID = uuid + "-" + timestamp + "-" +
-                RandomUtil.generateRandomNumber(5, "1234567890qwertyuiopasdfghjklzxcvbnm");
+        String fileUUID = RandomUtil.generateUUID();
         String newFileName = fileUUID + extension;
 
         String mimeType = getMimeTypeByExtension(extension);
