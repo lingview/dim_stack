@@ -1,7 +1,5 @@
 # 次元栈论坛 · Dim Stack
-> 一个为虚拟歌手（Vsinger）、Minecraft 玩家与计算机爱好者打造的多元兴趣内容社区  
-基于 Spring Boot + React 的现代化论坛 CMS 系统
->
+>基于 Spring Boot + React 的现代化论坛 CMS 系统
 
 ![](https://img.shields.io/badge/Spring_Boot-3.5-green.svg)  
 ![](https://img.shields.io/badge/React-19.1.1-%2361DAFB.svg)  
