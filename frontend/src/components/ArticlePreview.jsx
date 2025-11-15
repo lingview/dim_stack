@@ -21,14 +21,14 @@ const rehypeSanitizeSchema = {
         'archive'
     ],
     attributes: {
-        '*': ['className', 'id'],
+        '*': ['className', 'id', 'data*'],
         'a': ['href', 'title', 'target', 'rel'],
         'img': ['src', 'alt', 'title', 'width', 'height'],
         'video': ['src', 'controls', 'autoplay', 'loop', 'muted', 'poster', 'width', 'height', 'preload'],
-        'audio': ['src', 'controls', 'autoplay', 'loop', 'muted', 'preload'],
+        'audio': ['src', 'controls', 'autoplay', 'loop', 'muted', 'preload', 'data*'],
         'source': ['src', 'type', 'media'],
         'track': ['src', 'kind', 'srclang', 'label', 'default'],
-        'archive': ['src', 'fileName']
+        'archive': ['src', 'data*']
     },
     protocols: {
         'href': ['http', 'https', 'mailto'],
@@ -208,14 +208,22 @@ export default function ArticlePreview({ article }) {
             return url;
         }
 
+        let urlPath = url;
+        let urlParams = '';
+        if (url.includes('?')) {
+            const parts = url.split('?');
+            urlPath = parts[0];
+            urlParams = '?' + parts[1];
+        }
+
         try {
             const config = getConfig();
-            return config.getFullUrl(url);
+            return config.getFullUrl(urlPath) + urlParams;
         } catch (error) {
-            if (url.startsWith('/')) {
-                return url;
+            if (urlPath.startsWith('/')) {
+                return urlPath + urlParams;
             }
-            return `/upload/${url}`;
+            return `/upload/${urlPath}` + urlParams;
         }
     };
 
@@ -357,8 +365,23 @@ export default function ArticlePreview({ article }) {
         },
         audio: ({ src, controls = true, preload = "metadata", ...props }) => {
             if (!isSafeUrl(src)) return null;
+
+            let fileName = props['data-filename'];
+
+            if (!fileName && src.includes('?filename=')) {
+                try {
+                    const url = new URL(src.startsWith('http') ? src : `http://dummy${src}`);
+                    fileName = decodeURIComponent(url.searchParams.get('filename') || '');
+                } catch (e) {
+                    console.error('解析 URL 失败:', e);
+                }
+            }
+
+            if (!fileName) {
+                fileName = src.split("/").pop()?.split("?")[0] || "音频文件";
+            }
+
             const fullSrc = getFullImageUrl(src);
-            const fileName = src.split("/").pop()?.split("?")[0] || "音频文件";
 
             return (
                 <div className="my-4 p-4 bg-gray-100 border border-gray-200 rounded-xl shadow-sm max-w-lg">
@@ -393,16 +416,31 @@ export default function ArticlePreview({ article }) {
             const fullSrc = getFullImageUrl(src);
             return <source src={fullSrc} type={type} {...props} />;
         },
-        archive: ({ src, fileName, ...props }) => {
+        archive: ({ src, ...props }) => {
             if (!isSafeUrl(src)) return null;
+
+            let displayName = props['data-filename'];
+
+            if (!displayName && src.includes('?filename=')) {
+                try {
+                    const url = new URL(src.startsWith('http') ? src : `http://dummy${src}`);
+                    displayName = decodeURIComponent(url.searchParams.get('filename') || '');
+                } catch (e) {
+                    console.error('解析 URL 失败:', e);
+                }
+            }
+
+            if (!displayName) {
+                displayName = src.split("/").pop()?.split("?")[0] || "压缩文件";
+            }
+
             const fullSrc = getFullImageUrl(src);
-            const displayName = fileName || src.split("/").pop()?.split("?")[0] || "压缩文件";
 
             return (
                 <div className="my-4 p-4 bg-white border border-gray-200 rounded-xl shadow-sm max-w-lg">
                     <div className="flex items-center mb-3">
                         <div className="flex-shrink-0 w-8 h-8 bg-blue-300 rounded-full flex items-center justify-center mr-3">
-                            <FileText className="h-4 w-4 text-dark" />
+                            <FileText className="h-4 w-4 text-gray-800" />
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium text-gray-700 truncate" title={displayName}>
@@ -439,6 +477,8 @@ export default function ArticlePreview({ article }) {
             /^\d+\.\s/m,            // 有序列表
             /```[\s\S]*```/,        // 代码块
             /`.*`/,                 // 内联代码
+            /<audio[^>]*>/i,        // 音频标签
+            /<archive[^>]*>/i,      // 压缩包标签
         ];
 
         return markdownPatterns.some(pattern => pattern.test(content));

@@ -24,14 +24,14 @@ const rehypeSanitizeSchema = {
         'hr','sup','sub','archive'
     ],
     attributes: {
-        '*': ['className', 'id', 'style'],
+        '*': ['className', 'id', 'style', 'data*'],
         'a': ['href', 'title', 'target', 'rel'],
         'img': ['src', 'alt', 'title', 'width', 'height'],
         'video': ['src', 'controls', 'autoplay', 'loop', 'muted', 'poster', 'width', 'height', 'preload'],
-        'audio': ['src', 'controls', 'autoplay', 'loop', 'muted', 'preload'],
+        'audio': ['src', 'controls', 'autoplay', 'loop', 'muted', 'preload', 'data*'],
         'source': ['src', 'type', 'media'],
         'track': ['src', 'kind', 'srclang', 'label', 'default'],
-        'archive': ['src', 'fileName']
+        'archive': ['src', 'data*']
     }
 };
 
@@ -131,7 +131,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         const handleDrop = async (e) => {
             e.preventDefault();
             e.stopPropagation();
-            
+
             const files = e.dataTransfer.files;
             if (files && files.length > 0) {
                 let contentToInsert = '';
@@ -247,7 +247,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         const startPos = textarea.selectionStart;
         const endPos = textarea.selectionEnd;
         const newValue = content.substring(0, startPos) + text + content.substring(endPos);
-        
+
         setContent(newValue);
 
         setTimeout(() => {
@@ -283,8 +283,8 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 const snippets = {
                     image: `\n![${file.name}](${fullUrl})\n`,
                     video: `\n<video src="${fullUrl}" controls style="width: 400px;"></video>\n`,
-                    audio: `\n<audio src="${fullUrl}" controls preload="metadata"></audio>\n`,
-                    archive: `<archive src="${fullUrl}" fileName="${file.name}"></archive>`
+                    audio: `\n<audio src="${fullUrl}?filename=${encodeURIComponent(file.name)}" controls preload="metadata" data-filename="${file.name}"></audio>\n`,
+                    archive: `\n<archive src="${fullUrl}?filename=${encodeURIComponent(file.name)}" data-filename="${file.name}"></archive>\n`
                 };
 
                 return snippets[mediaType] || null;
@@ -422,6 +422,26 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         blockquote: (props) => (
             <blockquote className="border-l-4 border-blue-500 pl-4 italic my-3 text-gray-600 " {...props} />
         ),
+        table: (props) => (
+            <div className="overflow-x-auto my-4">
+                <table className="min-w-full border-collapse border border-gray-300" {...props} />
+            </div>
+        ),
+        thead: (props) => (
+            <thead className="bg-gray-100" {...props} />
+        ),
+        tbody: (props) => (
+            <tbody {...props} />
+        ),
+        tr: (props) => (
+            <tr {...props} />
+        ),
+        th: (props) => (
+            <th className="border border-gray-300 px-4 py-2 text-left font-semibold text-gray-900" {...props} />
+        ),
+        td: (props) => (
+            <td className="border border-gray-300 px-4 py-2 text-gray-700" {...props} />
+        ),
         code({ className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || "");
             return match ? (
@@ -479,7 +499,21 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
 
         audio: ({ src, controls = true, preload = "metadata", ...props }) => {
             if (!isSafeUrl(src)) return null;
-            const fileName = src.split("/").pop()?.split("?")[0] || "音频文件";
+
+            let fileName = props['data-filename'];
+
+            if (!fileName && src.includes('?filename=')) {
+                try {
+                    const urlObj = new URL(src);
+                    fileName = decodeURIComponent(urlObj.searchParams.get('filename') || '');
+                } catch (e) {
+                    console.error('解析 URL 失败:', e);
+                }
+            }
+
+            if (!fileName) {
+                fileName = src.split("/").pop()?.split("?")[0] || "音频文件";
+            }
 
             return (
                 <div className="inline-block my-4 p-4 bg-gray-100  border border-gray-200 rounded-xl shadow-sm max-w-lg">
@@ -512,9 +546,23 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             return <source src={src} type={type} {...props} />;
         },
 
-        archive: ({ src, fileName, ...props }) => {
+        archive: ({ src, ...props }) => {
             if (!isSafeUrl(src)) return null;
-            const displayName = fileName || src.split("/").pop()?.split("?")[0] || "压缩文件";
+
+            let displayName = props['data-filename'];
+
+            if (!displayName && src.includes('?filename=')) {
+                try {
+                    const urlObj = new URL(src);
+                    displayName = decodeURIComponent(urlObj.searchParams.get('filename') || '');
+                } catch (e) {
+                    console.error('解析 URL 失败:', e);
+                }
+            }
+
+            if (!displayName) {
+                displayName = src.split("/").pop()?.split("?")[0] || "压缩文件";
+            }
 
             return (
                 <div className="my-4 p-4 bg-white border border-gray-200 rounded-xl shadow-sm max-w-lg">
