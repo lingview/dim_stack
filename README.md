@@ -263,6 +263,19 @@ server {
 java -jar dim_stack.jar
 ```
 
+## SEO相关
+> 文章内容页已支持SSR并且适配主流搜索引擎，使用动态生成的 robots.txt 以及 sitemap.xml
+### 1. 文章页 SSR
+
+- 针对搜索引擎 User-Agent 自动返回服务器渲染的 HTML。
+- SSR 页面包含：
+    - `<title>`：文章标题
+    - `<meta name="description">`：文章摘要
+    - `<meta name="keywords">`：文章标签
+    - 文章内容和发布时间
+- 普通用户访问则返回 SPA 首页，保持 React 的交互体验。
+- 支持主流搜索引擎爬虫：
+    - Googlebot、Bingbot、Baiduspider、DuckDuckBot、Sogou、360Spider 等
 
 
 ## 主要界面展示
