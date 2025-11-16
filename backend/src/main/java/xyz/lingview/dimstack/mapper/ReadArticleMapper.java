@@ -5,6 +5,8 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Mapper
 @Repository
 public interface ReadArticleMapper {
@@ -15,4 +17,9 @@ public interface ReadArticleMapper {
     boolean isArticleNeedPassword(@Param("alias") String alias);
 
     void updatePageViews(@Param("alias") String alias);
+
+    // seo优化用
+    List<ReadArticle> listAllArticles();
+    List<String> listAllCategories();
+    List<String> listAllTags();
 }

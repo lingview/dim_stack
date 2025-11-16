@@ -101,4 +101,26 @@
         WHERE alias = #{alias}
     </update>
 
+    <!--seo用-->
+    <!-- 获取所有文章列表（仅别名） -->
+    <select id="listAllArticles" resultMap="readArticleMap">
+        SELECT alias
+        FROM article
+        WHERE status = 1
+    </select>
+
+    <!-- 获取所有分类列表 -->
+    <select id="listAllCategories" resultType="string">
+        SELECT article_categories
+        FROM article_categories
+        WHERE status = 1
+    </select>
+
+    <!-- 获取所有标签列表 -->
+    <select id="listAllTags" resultType="string">
+        SELECT tag_name
+        FROM article_tag
+        WHERE status = 1
+    </select>
+
 </mapper>
