@@ -151,12 +151,7 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
             alias: formData.alias
         };
 
-        // 密码处理逻辑保持不变
-        if (articleData?.article_id) {
-            if (formData.password.trim() !== '') {
-                saveData.password = formData.password;
-            }
-        } else {
+        if (formData.password && formData.password.trim() !== '') {
             saveData.password = formData.password;
         }
 
@@ -177,7 +172,6 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-            {/* 稍稍模糊一些的遮罩 */}
             <div
                 className="absolute inset-0 bg-black/20 backdrop-blur-sm"
                 onClick={onCancel}
