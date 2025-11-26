@@ -94,9 +94,9 @@ public class EditArticleController {
                 String hashedPassword = BCrypt.hashpw(updateArticleDTO.getPassword(), BCrypt.gensalt());
                 updateArticleDTO.setPassword(hashedPassword);
             }
-            int articleDefault = SiteConfigMapper.getArticleStatus();
+//            int articleDefault = SiteConfigMapper.getArticleStatus();
 
-            updateArticleDTO.setStatus(articleDefault);
+            updateArticleDTO.setStatus(2);
 
             boolean result = editArticleService.updateArticle(updateArticleDTO, username);
 
