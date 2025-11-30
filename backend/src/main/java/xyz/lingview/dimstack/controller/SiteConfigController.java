@@ -201,6 +201,14 @@ public class SiteConfigController {
                 currentConfig.setMail_default_encoding(siteConfig.getMail_default_encoding());
             }
 
+            if (siteConfig.getIcp_record_number() != null) {
+                currentConfig.setIcp_record_number(siteConfig.getIcp_record_number());
+            }
+
+            if (siteConfig.getMps_record_number() != null) {
+                currentConfig.setMps_record_number(siteConfig.getMps_record_number());
+            }
+
             boolean result = siteConfigService.updateSiteConfig(currentConfig);
 
             if (result) {
@@ -262,5 +270,15 @@ public class SiteConfigController {
                 "success", true,
                 "data", statusOptions
         ));
+    }
+
+    @GetMapping("/icp-record")
+    public String getIcpRecordNumber() {
+        return siteConfigService.getIcpRecordNumber();
+    }
+
+    @GetMapping("/mps-record")
+    public String getMpsRecordNumber() {
+        return siteConfigService.getMpsRecordNumber();
     }
 }

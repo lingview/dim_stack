@@ -13,6 +13,8 @@ public interface SiteConfigService {
     String getExpansionServer();
     boolean updateSiteConfig(SiteConfig siteConfig);
     boolean updateSiteTheme(String themeName);
+    String getIcpRecordNumber();
+    String getMpsRecordNumber();
 
     default xyz.lingview.dimstack.domain.MailConfig getMailConfig() {
         SiteConfig siteConfig = getSiteConfig();

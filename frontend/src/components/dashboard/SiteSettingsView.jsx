@@ -72,7 +72,9 @@ export default function SiteSettingsView() {
         mail_password: '',
         mail_protocol: 'smtp',
         mail_enable_tls: true,
-        mail_enable_ssl: false
+        mail_enable_ssl: false,
+        icp_record_number: '',
+        mps_record_number: ''
     });
 
     const [message, setMessage] = useState({ type: '', content: '' });
@@ -108,7 +110,9 @@ export default function SiteSettingsView() {
                     mail_protocol: escapeHtml(response.data.mail_protocol) || 'smtp',
                     smtp_port: response.data.smtp_port || '',
                     mail_enable_tls: response.data.mail_enable_tls !== undefined ? response.data.mail_enable_tls : true,
-                    mail_enable_ssl: response.data.mail_enable_ssl !== undefined ? response.data.mail_enable_ssl : false
+                    mail_enable_ssl: response.data.mail_enable_ssl !== undefined ? response.data.mail_enable_ssl : false,
+                    icp_record_number: escapeHtml(response.data.icp_record_number) || '',
+                    mps_record_number: escapeHtml(response.data.mps_record_number) || ''
                 };
                 setFormData(escapedData);
             } else {
@@ -189,7 +193,9 @@ export default function SiteSettingsView() {
                 mail_sender_email: unescapeHtml(formData.mail_sender_email),
                 mail_sender_name: unescapeHtml(formData.mail_sender_name),
                 mail_username: unescapeHtml(formData.mail_username),
-                mail_protocol: unescapeHtml(formData.mail_protocol)
+                mail_protocol: unescapeHtml(formData.mail_protocol),
+                icp_record_number: unescapeHtml(formData.icp_record_number),
+                mps_record_number: unescapeHtml(formData.mps_record_number)
             };
 
             if (formData.mail_password && formData.mail_password.trim() !== '') {
@@ -492,6 +498,42 @@ export default function SiteSettingsView() {
                         </div>
                     </div>
                 </div>
+
+                <div className="border-b border-gray-200 pb-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">备案信息</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label htmlFor="icp_record_number" className="block text-sm font-medium text-gray-700 mb-1">
+                                ICP备案号
+                            </label>
+                            <input
+                                type="text"
+                                id="icp_record_number"
+                                name="icp_record_number"
+                                value={unescapeHtml(formData.icp_record_number)}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="请输入ICP备案号"
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="mps_record_number" className="block text-sm font-medium text-gray-700 mb-1">
+                                公安联网备案号
+                            </label>
+                            <input
+                                type="text"
+                                id="mps_record_number"
+                                name="mps_record_number"
+                                value={unescapeHtml(formData.mps_record_number)}
+                                onChange={handleInputChange}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="请输入公安联网备案号"
+                            />
+                        </div>
+                    </div>
+                </div>
+
 
                 {/* 用户与权限 */}
                 <div className="border-b border-gray-200 pb-6">

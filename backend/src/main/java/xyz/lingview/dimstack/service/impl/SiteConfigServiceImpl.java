@@ -95,6 +95,24 @@ public class SiteConfigServiceImpl implements SiteConfigService {
     }
 
     @Override
+    public String getIcpRecordNumber() {
+        SiteConfig config = getSiteConfig();
+        if (config != null) {
+            return config.getIcp_record_number();
+        }
+        return null;
+    }
+
+    @Override
+    public String getMpsRecordNumber() {
+        SiteConfig config = getSiteConfig();
+        if (config != null) {
+            return config.getMps_record_number();
+        }
+        return null;
+    }
+
+    @Override
     public boolean updateSiteTheme(String themeName) {
         try {
             SiteConfig config = getSiteConfig();

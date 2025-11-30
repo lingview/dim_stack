@@ -26,5 +26,7 @@ public class SiteConfig {
     private Boolean mail_enable_tls;
     private Boolean mail_enable_ssl;
     private String mail_default_encoding;
+    private String icp_record_number;
+    private String mps_record_number;
 
 }

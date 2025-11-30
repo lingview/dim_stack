@@ -15,6 +15,8 @@ export default function Home() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [copyright, setCopyright] = useState('© 2025 次元栈 - Dim Stack. All rights reserved.');
+    const [icpRecord, setIcpRecord] = useState('');
+    const [mpsRecord, setMpsRecord] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedTag, setSelectedTag] = useState(null);
     const [showImages, setShowImages] = useState(true);
@@ -37,6 +39,7 @@ export default function Home() {
     useEffect(() => {
         loadArticles();
         loadCopyright();
+        loadSiteRecords();
     }, [page, selectedCategory, selectedTag]);
 
     useEffect(() => {
@@ -73,6 +76,22 @@ export default function Home() {
             }
         } catch (error) {
             console.error('加载版权信息失败:', error);
+        }
+    };
+
+    const loadSiteRecords = async () => {
+        try {
+            const icpResponse = await apiClient.get('/site/icp-record');
+            if (icpResponse) {
+                setIcpRecord(icpResponse);
+            }
+
+            const mpsResponse = await apiClient.get('/site/mps-record');
+            if (mpsResponse) {
+                setMpsRecord(mpsResponse);
+            }
+        } catch (error) {
+            console.error('加载备案信息失败:', error);
         }
     };
 
@@ -206,6 +225,30 @@ export default function Home() {
                 <div className="container mx-auto px-4 py-8">
                     <div className="text-center text-gray-600 transition-colors duration-200">
                         <p>{copyright}</p>
+                        {icpRecord && (
+                            <p className="mt-2">
+                                <a
+                                    href="https://beian.miit.gov.cn"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-600 hover:text-blue-600 text-sm"
+                                >
+                                    {icpRecord}
+                                </a>
+                            </p>
+                        )}
+                        {mpsRecord && (
+                            <p className="mt-1">
+                                <a
+                                    href="http://www.beian.gov.cn"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-600 hover:text-blue-600 text-sm"
+                                >
+                                    {mpsRecord}
+                                </a>
+                            </p>
+                        )}
                     </div>
                 </div>
             </footer>

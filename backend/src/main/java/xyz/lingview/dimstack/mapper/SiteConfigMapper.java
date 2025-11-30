@@ -25,6 +25,12 @@ public interface SiteConfigMapper {
     // 获取站点图标
     String getSiteIcon();
 
+    // 获取ICP备案号
+    String getIcpRecordNumber();
+
+    // 获取公安联网备案号
+    String getMpsRecordNumber();
+
     // 更新站点配置信息
     int updateSiteConfig(SiteConfig siteConfig);
 }
