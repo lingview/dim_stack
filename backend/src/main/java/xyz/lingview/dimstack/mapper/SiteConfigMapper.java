@@ -33,4 +33,7 @@ public interface SiteConfigMapper {
 
     // 更新站点配置信息
     int updateSiteConfig(SiteConfig siteConfig);
+
+    // 获取是否允许用户注册
+    Integer getEnableRegister();
 }

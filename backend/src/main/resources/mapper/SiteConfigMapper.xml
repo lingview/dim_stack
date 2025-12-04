@@ -30,7 +30,8 @@
             mail_enable_ssl as mail_enable_ssl,
             mail_default_encoding as mail_default_encoding,
             icp_record_number as icp_record_number,
-            mps_record_number as mps_record_number
+            mps_record_number as mps_record_number,
+            enable_register as enable_register
 
         FROM site_config
         WHERE id = 1
@@ -96,7 +97,8 @@
             mail_enable_ssl = #{mail_enable_ssl},
             mail_default_encoding = #{mail_default_encoding},
             icp_record_number = #{icp_record_number},
-            mps_record_number = #{mps_record_number}
+            mps_record_number = #{mps_record_number},
+            enable_register = #{enable_register}
         WHERE id = 1
     </update>
 
@@ -111,6 +113,13 @@
     <!-- 查询公安联网备案号 -->
     <select id="getMpsRecordNumber" resultType="string">
         SELECT mps_record_number
+        FROM site_config
+        WHERE id = 1
+    </select>
+
+    <!-- 获取是否允许注册 -->
+    <select id="getEnableRegister" resultType="int">
+        SELECT enable_register
         FROM site_config
         WHERE id = 1
     </select>

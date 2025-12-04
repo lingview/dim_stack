@@ -74,7 +74,8 @@ export default function SiteSettingsView() {
         mail_enable_tls: true,
         mail_enable_ssl: false,
         icp_record_number: '',
-        mps_record_number: ''
+        mps_record_number: '',
+        enable_register: 1
     });
 
     const [message, setMessage] = useState({ type: '', content: '' });
@@ -112,7 +113,8 @@ export default function SiteSettingsView() {
                     mail_enable_tls: response.data.mail_enable_tls !== undefined ? response.data.mail_enable_tls : true,
                     mail_enable_ssl: response.data.mail_enable_ssl !== undefined ? response.data.mail_enable_ssl : false,
                     icp_record_number: escapeHtml(response.data.icp_record_number) || '',
-                    mps_record_number: escapeHtml(response.data.mps_record_number) || ''
+                    mps_record_number: escapeHtml(response.data.mps_record_number) || '',
+                    enable_register: response.data.enable_register !== undefined ? response.data.enable_register : 1  // 添加这一行
                 };
                 setFormData(escapedData);
             } else {
@@ -123,6 +125,7 @@ export default function SiteSettingsView() {
             showMessage('error', '获取站点配置时发生错误');
         }
     };
+
 
     const fetchRoles = async () => {
         try {
@@ -539,6 +542,30 @@ export default function SiteSettingsView() {
                 <div className="border-b border-gray-200 pb-6">
                     <h3 className="text-lg font-medium text-gray-900 mb-4">用户与权限</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label htmlFor="enable_register" className="block text-sm font-medium text-gray-700 mb-1">
+                                用户注册开关
+                            </label>
+                            <div className="flex items-center">
+                                <input
+                                    id="enable_register"
+                                    name="enable_register"
+                                    type="checkbox"
+                                    checked={formData.enable_register === 1}
+                                    onChange={(e) => {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            enable_register: e.target.checked ? 1 : 0
+                                        }));
+                                    }}
+                                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <label htmlFor="enable_register" className="ml-2 block text-sm text-gray-700">
+                                    启用用户注册功能
+                                </label>
+                            </div>
+                        </div>
+
                         <div>
                             <label htmlFor="register_user_permission" className="block text-sm font-medium text-gray-700 mb-1">
                                 注册用户默认角色

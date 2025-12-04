@@ -28,5 +28,6 @@ public class SiteConfig {
     private String mail_default_encoding;
     private String icp_record_number;
     private String mps_record_number;
+    private Integer enable_register;
 
 }

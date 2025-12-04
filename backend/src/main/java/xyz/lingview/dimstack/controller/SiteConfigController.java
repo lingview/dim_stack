@@ -209,6 +209,10 @@ public class SiteConfigController {
                 currentConfig.setMps_record_number(siteConfig.getMps_record_number());
             }
 
+            if (siteConfig.getEnable_register() != null) {
+                currentConfig.setEnable_register(siteConfig.getEnable_register());
+            }
+
             boolean result = siteConfigService.updateSiteConfig(currentConfig);
 
             if (result) {
@@ -281,4 +285,24 @@ public class SiteConfigController {
     public String getMpsRecordNumber() {
         return siteConfigService.getMpsRecordNumber();
     }
+
+
+    @GetMapping("/enable-register")
+    public ResponseEntity<Map<String, Object>> getEnableRegisterStatus() {
+        try {
+            Integer enableRegister = siteConfigService.getEnableRegister();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "data", Map.of("enableRegister", enableRegister != null && enableRegister == 1)
+            ));
+        } catch (Exception e) {
+            log.error("获取用户注册状态失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "获取用户注册状态失败: " + e.getMessage()
+                    ));
+        }
+    }
+
 }

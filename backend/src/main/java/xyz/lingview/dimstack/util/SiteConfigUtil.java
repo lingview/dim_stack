@@ -81,4 +81,26 @@ public class SiteConfigUtil {
         }
         return false;
     }
+
+
+    /**
+     * 从Redis中的dimstack:site_config获取是否启用用户注册
+     * @return boolean值，如果不存在或出错则返回true（默认启用）
+     */
+    public boolean isRegisterEnabled() {
+        try {
+            String siteConfigJson = redisTemplate.opsForValue().get("dimstack:site_config");
+            if (siteConfigJson != null) {
+                JsonObject jsonObject = JsonParser.parseString(siteConfigJson).getAsJsonObject();
+                JsonElement enableRegisterElement = jsonObject.get("enable_register");
+
+                if (enableRegisterElement != null && enableRegisterElement.isJsonPrimitive()) {
+                    return enableRegisterElement.getAsInt() == 1;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("检查注册设置时发生异常", e);
+        }
+        return true;
+    }
 }

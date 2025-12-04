@@ -15,6 +15,7 @@ public interface SiteConfigService {
     boolean updateSiteTheme(String themeName);
     String getIcpRecordNumber();
     String getMpsRecordNumber();
+    Integer getEnableRegister();
 
     default xyz.lingview.dimstack.domain.MailConfig getMailConfig() {
         SiteConfig siteConfig = getSiteConfig();

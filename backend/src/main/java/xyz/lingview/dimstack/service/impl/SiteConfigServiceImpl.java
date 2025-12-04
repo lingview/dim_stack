@@ -148,6 +148,16 @@ public class SiteConfigServiceImpl implements SiteConfigService {
         }
     }
 
+    @Override
+    public Integer getEnableRegister() {
+        SiteConfig config = getSiteConfig();
+        if (config != null) {
+            return config.getEnable_register();
+        }
+        return null;
+    }
+
+
     /**
      * 更新Redis缓存
      * @param siteConfig 站点配置

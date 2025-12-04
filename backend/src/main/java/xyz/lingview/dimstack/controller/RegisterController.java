@@ -81,6 +81,12 @@ public class RegisterController {
         }
 
         try {
+
+            Integer enableRegister = siteConfigMapper.getEnableRegister();
+            if (enableRegister == null || enableRegister != 1) {
+                return ApiResponse.error(400, "管理员未启用注册功能");
+            }
+
             String username = requestDTO.getUsername();
             String email = requestDTO.getEmail();
             String phone = requestDTO.getPhone();
