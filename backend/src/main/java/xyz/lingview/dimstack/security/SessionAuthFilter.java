@@ -48,6 +48,8 @@ public class SessionAuthFilter implements Filter {
             "/api/frontendgetmenus",
             "/api/site/**",
             "/api/article/**",
+            "/api/friend-links/apply",
+            "/api/friend-links/approved/page",
             "/v3/api-docs/**"
     ));
 

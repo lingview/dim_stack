@@ -8,9 +8,10 @@ import Dashboard from "./components/dashboard/Dashboard.jsx";
 import ArticleReader from './components/ArticleReader'
 import { fetchSiteName, fetchSiteIcon } from './Api.jsx'
 import { getConfig } from './utils/config.jsx'
+import FriendLinks from "./components/FriendLinks.jsx";
 
 function App() {
-    const [faviconUrl, setFaviconUrl] = useState('/favicon.ico') // 默认图标
+    const [faviconUrl, setFaviconUrl] = useState('/favicon.ico')
 
     useEffect(() => {
         const setDocumentTitle = async () => {
@@ -64,6 +65,7 @@ function App() {
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/dashboard/*" element={<Dashboard />} />
                 <Route path="/article/:articleId" element={<ArticleReader />} />
+                <Route path="/friend-links" element={<FriendLinks />}></Route>
             </Routes>
         </>
     )

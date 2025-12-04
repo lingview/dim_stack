@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xyz.lingview.dimstack.mapper.FriendLinksMapper">
+
+    <resultMap id="FriendLinksMap" type="xyz.lingview.dimstack.domain.FriendLinks">
+        <id property="id" column="id"/>
+        <result property="uuid" column="uuid"/>
+        <result property="siteName" column="site_name"/>
+        <result property="siteUrl" column="site_url"/>
+        <result property="siteIcon" column="site_icon"/>
+        <result property="siteDescription" column="site_description"/>
+        <result property="webmasterName" column="webmaster_name"/>
+        <result property="contact" column="contact"/>
+        <result property="createTime" column="create_time"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <!-- 添加友链 -->
+    <insert id="insert" parameterType="xyz.lingview.dimstack.domain.FriendLinks">
+        INSERT INTO friend_links (
+            uuid,
+            site_name,
+            site_url,
+            site_icon,
+            site_description,
+            webmaster_name,
+            contact,
+            status
+        ) VALUES (
+                     #{uuid},
+                     #{siteName},
+                     #{siteUrl},
+                     #{siteIcon},
+                     #{siteDescription},
+                     #{webmasterName},
+                     #{contact},
+                     #{status}
+                 )
+    </insert>
+
+    <!-- 根据ID更新友链状态 -->
+    <update id="updateStatusById">
+        UPDATE friend_links
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID更新友链信息 -->
+    <update id="updateById" parameterType="xyz.lingview.dimstack.domain.FriendLinks">
+        UPDATE friend_links
+        SET
+            site_name = #{siteName},
+            site_url = #{siteUrl},
+            site_icon = #{siteIcon},
+            site_description = #{siteDescription},
+            webmaster_name = #{webmasterName},
+            contact = #{contact}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除友链(逻辑删除) -->
+    <update id="deleteById">
+        UPDATE friend_links
+        SET status = 0
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID彻底删除友链 -->
+    <delete id="deleteByIdPermanent">
+        DELETE FROM friend_links
+        WHERE id = #{id}
+    </delete>
+
+    <!-- 根据ID查询友链 -->
+    <select id="selectById" resultMap="FriendLinksMap">
+        SELECT * FROM friend_links
+        WHERE id = #{id}
+    </select>
+
+    <!-- 分页查询友链列表 -->
+    <select id="selectByPage" resultMap="FriendLinksMap">
+        SELECT * FROM friend_links
+        <where>
+            <if test="status != null">
+                status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <!-- 查询友链总数 -->
+    <select id="count" resultType="int">
+        SELECT COUNT(*) FROM friend_links
+        <where>
+            <if test="status != null">
+                status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <!-- 根据状态查询所有友链 -->
+    <select id="selectByStatus" resultMap="FriendLinksMap">
+        SELECT * FROM friend_links
+        WHERE status = #{status}
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 查询所有有效的友链 -->
+    <select id="selectActiveLinks" resultMap="FriendLinksMap">
+        SELECT * FROM friend_links
+        WHERE status = 1
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

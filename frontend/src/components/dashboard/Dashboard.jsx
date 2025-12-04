@@ -19,6 +19,7 @@ const SiteSettingsView = lazy(() => import('./SiteSettingsView'));
 const TagsView = lazy(() => import('./TagsView'));
 const CategoriesView = lazy(() => import('./CategoriesView'));
 const ThemesStoreView = lazy(() => import('./ThemesStoreView'));
+const FriendLinksManager = lazy(() => import('./FriendLinksManager'));
 
 export default function Dashboard() {
     const navigate = useNavigate()
@@ -296,7 +297,6 @@ export default function Dashboard() {
                     </Suspense>
 
                     <main className="flex-1 overflow-y-auto p-6">
-                        {/* 仪表盘视图 */}
                         {activeTab === 'dashboard' && (
                             <Suspense fallback={<div>加载中...</div>}>
                                 <DashboardView
@@ -339,6 +339,12 @@ export default function Dashboard() {
                             </Suspense>
                         )}
 
+                        {activeTab === 'friendlinks' && (
+                            <Suspense fallback={<div>加载中...</div>}>
+                                <FriendLinksManager />
+                            </Suspense>
+                        )}
+
                         {activeTab === 'menus' && (
                             <Suspense fallback={<div>加载中...</div>}>
                                 <MenusView />
@@ -373,6 +379,7 @@ export default function Dashboard() {
                                 <ThemesStoreView />
                             </Suspense>
                         )}
+
                     </main>
                 </div>
             </div>
