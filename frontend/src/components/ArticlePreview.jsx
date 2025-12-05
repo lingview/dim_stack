@@ -42,6 +42,17 @@ const isSafeUrl = (url) => {
     return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
 };
 
+const processLineBreaks = (text) => {
+    return text
+        .replace(/\n(\s*\n){2,}/g, (match) => {
+            const newlines = match.match(/\n/g)?.length || 0;
+            return '\n' + '&nbsp;\n'.repeat(newlines - 1);
+        })
+        .replace(/\n\s*\n/g, '\n\n&nbsp;\n')
+        .replace(/\n/g, '  \n');
+};
+
+
 const sanitizeHtmlContent = (content) => {
     if (!content) return '';
 
@@ -491,7 +502,7 @@ export default function ArticlePreview({ article }) {
             return (
                 <div className="markdown-content" key={`markdown-${renderKey}`}>
                     <ReactMarkdown
-                        children={content}
+                        children={processLineBreaks(content)}
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeRaw, [rehypeSanitize, rehypeSanitizeSchema]]}
                         components={renderMarkdownComponents}

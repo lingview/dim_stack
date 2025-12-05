@@ -49,8 +49,6 @@ const SUPPORTED_FILE_TYPES = {
     ]
 };
 
-
-
 const MARKDOWN_SNIPPETS = {
     bold: '**粗体**',
     italic: '*斜体*',
@@ -98,6 +96,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const textareaRef = useRef(null);
     const fileInputRef = useRef(null);
     const uploadingFiles = useRef(new Set());
+    const savedSelectionRef = useRef({ start: 0, end: 0 });
 
     useEffect(() => {
         if (initialData) {
@@ -240,7 +239,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         }
     };
 
-    const insertAtCursor = (text) => {
+    const insertAtCursor = (text, selectedText = '') => {
         const textarea = textareaRef.current;
         if (!textarea) return;
 
@@ -252,7 +251,11 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
 
         setTimeout(() => {
             textarea.focus();
-            textarea.setSelectionRange(startPos + text.length, startPos + text.length);
+            if (selectedText) {
+                textarea.setSelectionRange(startPos, startPos + text.length);
+            } else {
+                textarea.setSelectionRange(startPos + text.length, startPos + text.length);
+            }
         }, 0);
     };
 
@@ -362,21 +365,140 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     };
 
     const insertMarkdown = (type) => {
-        const snippet = MARKDOWN_SNIPPETS[type];
-        if (snippet) {
-            insertAtCursor((content.endsWith('\n') || content === '' ? '' : '\n') + snippet);
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        const startPos = textarea.selectionStart;
+        const endPos = textarea.selectionEnd;
+        const selectedText = content.substring(startPos, endPos);
+
+        let newText = '';
+
+        switch(type) {
+            case 'bold':
+                newText = selectedText ? `**${selectedText}**` : '**粗体**';
+                break;
+            case 'italic':
+                newText = selectedText ? `*${selectedText}*` : '*斜体*';
+                break;
+            case 'link':
+                newText = selectedText ? `[${selectedText}](https://)` : '[描述](https://)';
+                break;
+            case 'image':
+                newText = selectedText ? `![${selectedText}](https://)` : '![alt](https://)';
+                break;
+            case 'list':
+                if (selectedText) {
+                    const lines = selectedText.split('\n');
+                    newText = lines.map(line => line.trim() ? `- ${line}` : '').join('\n');
+                } else {
+                    newText = '- 列表项';
+                }
+                break;
+            case 'code':
+                if (selectedText) {
+                    if (selectedText.includes('\n')) {
+                        newText = '\n```\n' + selectedText + '\n```\n';
+                    } else {
+                        newText = '`' + selectedText + '`';
+                    }
+                } else {
+                    newText = '\n```js\nconsole.log("Hello World");\n```\n';
+                }
+                break;
+            default:
+                const snippet = MARKDOWN_SNIPPETS[type];
+                if (snippet) {
+                    newText = (content.endsWith('\n') || content === '' ? '' : '\n') + snippet;
+                }
         }
+
+        if (newText) {
+            const beforeText = content.substring(0, startPos);
+            const afterText = content.substring(endPos);
+            const finalText = beforeText + newText + afterText;
+
+            setContent(finalText);
+
+            setTimeout(() => {
+                textarea.focus();
+                if (selectedText) {
+                    if (type === 'bold') {
+                        textarea.setSelectionRange(startPos + 2, startPos + 2 + selectedText.length);
+                    } else if (type === 'italic' || type === 'code') {
+                        textarea.setSelectionRange(startPos + 1, startPos + 1 + selectedText.length);
+                    } else if (type === 'link') {
+                        textarea.setSelectionRange(startPos + selectedText.length + 3, startPos + newText.length - 1);
+                    } else {
+                        textarea.setSelectionRange(startPos + newText.length, startPos + newText.length);
+                    }
+                } else {
+                    if (type === 'bold') {
+                        textarea.setSelectionRange(startPos + 2, startPos + 4);
+                    } else if (type === 'italic') {
+                        textarea.setSelectionRange(startPos + 1, startPos + 3);
+                    } else {
+                        textarea.setSelectionRange(startPos + newText.length, startPos + newText.length);
+                    }
+                }
+            }, 0);
+        }
+    };
+
+    const insertHeading = (headingText) => {
+        const textarea = textareaRef.current;
+        if (!textarea) return;
+
+        const startPos = savedSelectionRef.current.start;
+        const endPos = savedSelectionRef.current.end;
+        const selectedText = content.substring(startPos, endPos);
+
+        const headingMark = headingText.match(/^#+/)?.[0] || '#';
+
+        let newText;
+        if (selectedText) {
+            newText = '\n' + headingMark + ' ' + selectedText + '\n';
+        } else {
+            newText = '\n' + headingText + '\n';
+        }
+
+        const beforeText = content.substring(0, startPos);
+        const afterText = content.substring(endPos);
+        const finalText = beforeText + newText + afterText;
+
+        setContent(finalText);
+        setShowHeadingMenu(false);
+
+        setTimeout(() => {
+            textarea.focus();
+            const hashCount = headingMark.length;
+            const textStart = startPos + 1 + hashCount + 1;
+            const textEnd = textStart + (selectedText || headingText.replace(/^#+\s+/, '')).length;
+            textarea.setSelectionRange(textStart, textEnd);
+        }, 0);
     };
 
     const handleToolbarClick = (buttonType) => {
         const button = TOOLBAR_BUTTONS.find(b => b.type === buttonType);
+
         if (button?.isFile) {
             handleFileSelect(buttonType);
-        } else if (buttonType === 'heading') {
-            setShowHeadingMenu(prev => !prev);
-        } else {
-            insertMarkdown(buttonType);
+            return;
         }
+
+        if (buttonType === 'heading') {
+            const textarea = textareaRef.current;
+            if (textarea) {
+                savedSelectionRef.current = {
+                    start: textarea.selectionStart,
+                    end: textarea.selectionEnd
+                };
+            }
+            setShowHeadingMenu(prev => !prev);
+            return;
+        }
+
+        insertMarkdown(buttonType);
     };
 
     const handleFileSelect = (fileType) => {
@@ -393,6 +515,15 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         fileInputRef.current.click();
     };
 
+    const processLineBreaks = (text) => {
+        return text
+            .replace(/\n(\s*\n){2,}/g, (match) => {
+                const newlines = match.match(/\n/g)?.length || 0;
+                return '\n' + '&nbsp;\n'.repeat(newlines - 1);
+            })
+            .replace(/\n\s*\n/g, '\n\n&nbsp;\n')
+            .replace(/\n/g, '  \n');
+    };
 
     const renderMarkdownComponents = {
         h1: (props) => (
@@ -496,7 +627,6 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 />
             );
         },
-
         audio: ({ src, controls = true, preload = "metadata", ...props }) => {
             if (!isSafeUrl(src)) return null;
 
@@ -545,7 +675,6 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             if (!isSafeUrl(src)) return null;
             return <source src={src} type={type} {...props} />;
         },
-
         archive: ({ src, ...props }) => {
             if (!isSafeUrl(src)) return null;
 
@@ -645,10 +774,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                                         {['# 一级标题', '## 二级标题', '### 三级标题'].map((h, idx) => (
                                             <button
                                                 key={idx}
-                                                onClick={() => {
-                                                    insertAtCursor('\n' + h + '\n');
-                                                    setShowHeadingMenu(false);
-                                                }}
+                                                onClick={() => insertHeading(h)}
                                                 className="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
                                             >
                                                 {h}
@@ -671,7 +797,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
 
                 <div className="w-1/2 p-4 overflow-y-auto bg-white text-gray-900">
                     <ReactMarkdown
-                        children={content}
+                        children={processLineBreaks(content)}
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeRaw, [rehypeSanitize, rehypeSanitizeSchema]]}
                         components={renderMarkdownComponents}
