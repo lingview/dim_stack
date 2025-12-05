@@ -1,21 +1,9 @@
 import { getConfig } from '../utils/config';
 import { Link, useNavigate } from 'react-router-dom';
 
-const escapeHtml = (unsafe) => {
-    if (!unsafe) return unsafe;
-
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-};
-
 const safeTruncate = (text, maxLength) => {
     if (!text) return '';
-    const escapedText = escapeHtml(text);
-    return escapedText.length > maxLength ? escapedText.slice(0, maxLength) + "..." : escapedText;
+    return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
 };
 
 const renderTags = (tagsString, maxTags = 3, onTagClick) => {
@@ -40,7 +28,7 @@ const renderTags = (tagsString, maxTags = 3, onTagClick) => {
                     }}
                     className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded hover:bg-gray-200 transition-colors"
                 >
-                    #{escapeHtml(tag)}
+                    #{tag}
                 </button>
             ))}
             {remainingCount > 0 && (
@@ -56,11 +44,11 @@ export default function ArticleCard({ article, showImage = true, onTagClick, onC
     const navigate = useNavigate();
     const safeArticle = {
         ...article,
-        title: escapeHtml(article.title) || '',
-        excerpt: escapeHtml(article.excerpt) || '',
-        author: escapeHtml(article.author) || '',
-        category: escapeHtml(article.category) || '',
-        alias: escapeHtml(article.alias) || '',
+        title: article.title || '',
+        excerpt: article.excerpt || '',
+        author: article.author || '',
+        category: article.category || '',
+        alias: article.alias || '',
         tag: article.tag || ''
     };
 
