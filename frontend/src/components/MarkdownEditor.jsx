@@ -586,7 +586,11 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 </SyntaxHighlighter>
             ) : (
                 <code
-                    className="bg-gray-100  px-1 py-0.5 rounded text-sm font-mono text-gray-800 dark:text-white"
+                    className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono text-gray-800 dark:text-white inline-block align-text-bottom max-w-full overflow-x-auto"
+                    style={{
+                        whiteSpace: 'pre',
+                        scrollbarWidth: 'thin'
+                    }}
                     {...props}
                 >
                     {children}

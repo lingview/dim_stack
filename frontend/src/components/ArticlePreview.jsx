@@ -305,7 +305,11 @@ export default function ArticlePreview({ article }) {
                 </div>
             ) : (
                 <code
-                    className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-gray-800"
+                    className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-gray-800 inline-block align-text-bottom max-w-full overflow-x-auto"
+                    style={{
+                        whiteSpace: 'pre',
+                        scrollbarWidth: 'thin'
+                    }}
                     {...props}
                 >
                     {children}
