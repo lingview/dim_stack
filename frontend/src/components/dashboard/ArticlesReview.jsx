@@ -17,48 +17,7 @@ export default function ArticlesReview() {
         fetchArticles(currentPage, pageSize);
     }, [currentPage, pageSize, reviewMode]);
 
-    const htmlToSafeText = (html) => {
-        if (!html) return '';
-
-        try {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
-
-            const blockElements = ['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'br', 'hr', 'li', 'blockquote'];
-            blockElements.forEach(tag => {
-                const elements = tempDiv.querySelectorAll(tag);
-                elements.forEach(el => {
-                    if (tag === 'br') {
-                        el.replaceWith('\n');
-                    } else if (tag === 'hr') {
-                        el.replaceWith('\n---\n');
-                    } else if (tag === 'li') {
-                        const text = el.textContent || '';
-                        el.replaceWith(`• ${text}\n`);
-                    } else {
-                        const text = el.textContent || '';
-                        if (text.trim()) {
-                            el.replaceWith(`${text}\n\n`);
-                        }
-                    }
-                });
-            });
-
-            let textContent = tempDiv.textContent || tempDiv.innerText || '';
-
-            textContent = textContent
-                .replace(/\n\s*\n\s*\n/g, '\n\n')
-                .replace(/^\s+|\s+$/g, '')
-                .replace(/[ \t]+/g, ' ');
-
-            return textContent;
-        } catch (error) {
-            console.warn('HTML to text conversion failed:', error);
-            return html.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, ' ');
-        }
-    };
-
-     const fetchArticles = async (page, size) => {
+    const fetchArticles = async (page, size) => {
         setLoading(true);
         try {
             const endpoint = reviewMode === 'pending'
@@ -104,8 +63,7 @@ export default function ArticlesReview() {
             const response = res;
 
             if (response && response.code === 200 && response.data) {
-                const safeTextContent = htmlToSafeText(response.data.article_content || '');
-                setArticleDetail({ ...response.data, article_content: safeTextContent });
+                setArticleDetail(response.data);
             } else {
                 setArticleDetail(null);
             }
@@ -116,7 +74,6 @@ export default function ArticlesReview() {
             setDetailLoading(false);
         }
     };
-
 
     const handleStatusChange = async (articleId, status) => {
         try {
@@ -153,7 +110,6 @@ export default function ArticlesReview() {
             alert('更新文章状态失败');
         }
     };
-
 
     const handleCloseDetail = () => {
         setShowDetail(false);
@@ -485,14 +441,8 @@ export default function ArticlesReview() {
                                     <div className="mb-6">
                                         <h4 className="text-sm font-semibold text-gray-900 mb-3">文章正文</h4>
                                         <div className="bg-white border border-gray-200 rounded-lg p-6 max-h-96 overflow-y-auto">
-                                            <div
-                                                className="text-gray-800 leading-relaxed text-sm whitespace-pre-wrap font-mono break-words"
-                                                style={{
-                                                    fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-                                                    fontSize: '14px',
-                                                    lineHeight: '1.6'
-                                                }}
-                                            >
+                                            {/* React 会自动转义内容，防止 XSS */}
+                                            <div className="text-gray-800 leading-relaxed text-sm whitespace-pre-wrap break-words">
                                                 {articleDetail.article_content || '无内容'}
                                             </div>
                                         </div>
@@ -503,29 +453,28 @@ export default function ArticlesReview() {
                                 </div>
 
                                 <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end space-x-3">
-
-                                {articleDetail.status === 3 && (
-                                    <>
-                                        <button
-                                            onClick={() => handleStatusChange(articleDetail.article_id, 1)}
-                                            className="px-6 py-2 bg-green-100 text-green-700 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors flex items-center border border-green-300"
-                                        >
-                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                            通过审核
-                                        </button>
-                                        <button
-                                            onClick={() => handleStatusChange(articleDetail.article_id, 4)}
-                                            className="px-6 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors flex items-center border border-red-300"
-                                        >
-                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                            标记违规
-                                        </button>
-                                    </>
-                                )}
+                                    {articleDetail.status === 3 && (
+                                        <>
+                                            <button
+                                                onClick={() => handleStatusChange(articleDetail.article_id, 1)}
+                                                className="px-6 py-2 bg-green-100 text-green-700 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors flex items-center border border-green-300"
+                                            >
+                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                通过审核
+                                            </button>
+                                            <button
+                                                onClick={() => handleStatusChange(articleDetail.article_id, 4)}
+                                                className="px-6 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors flex items-center border border-red-300"
+                                            >
+                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                                标记违规
+                                            </button>
+                                        </>
+                                    )}
 
                                     <button
                                         onClick={handleCloseDetail}
