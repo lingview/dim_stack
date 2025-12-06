@@ -177,11 +177,25 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             return;
         }
 
+        // 检测内容中的第一张图片作为默认封面
+        let defaultCover = initialData?.article_cover || '';
+
+        if (!initialData?.article_id && !defaultCover) {
+            const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/;
+            const match = content.match(imageRegex);
+            if (match && match[2]) {
+                const imageUrl = match[2];
+                if (isSafeUrl(imageUrl)) {
+                    defaultCover = imageUrl;
+                }
+            }
+        }
+
         setArticleInfo({
             title,
             content,
             id: initialData?.article_id,
-            cover: initialData?.article_cover || '',
+            cover: defaultCover,
             excerpt: initialData?.excerpt || '',
             tags: initialData?.tag || initialData?.tags || [],
             category: initialData?.category || '',
@@ -190,6 +204,8 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         });
         setShowArticleInfo(true);
     };
+
+
 
     const handleArticleInfoSave = async (info) => {
         setIsSaving(true);
