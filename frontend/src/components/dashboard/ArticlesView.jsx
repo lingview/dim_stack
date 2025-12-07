@@ -1,14 +1,15 @@
-import { Plus, Edit, Trash2, EyeOff, Send } from 'lucide-react';
+import { Plus, Edit, Trash2, EyeOff, Send, Upload } from 'lucide-react';
 import apiClient from "../../utils/axios.jsx";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-export default function ArticlesView({ onNewArticle, onEditArticle, articles: externalArticles, shouldRefresh, setShouldRefresh }) {
+export default function ArticlesView({ onNewArticle, onEditArticle, onImportArticle, articles: externalArticles, shouldRefresh, setShouldRefresh }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10);
     const [totalArticles, setTotalArticles] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
     const [localArticles, setLocalArticles] = useState([]);
     const [loading, setLoading] = useState(true);
+    const importFileInputRef = useRef(null);
 
     useEffect(() => {
         fetchArticles(currentPage, pageSize);
@@ -53,6 +54,64 @@ export default function ArticlesView({ onNewArticle, onEditArticle, articles: ex
             setTotalPages(0);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleImportClick = () => {
+        importFileInputRef.current?.click();
+    };
+
+    const handleImportFile = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.name.endsWith('.md') && !file.name.endsWith('.markdown')) {
+            alert('请选择 Markdown 文件（.md 或 .markdown）');
+            e.target.value = '';
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert('文件大小不能超过 5MB');
+            e.target.value = '';
+            return;
+        }
+
+        try {
+            const content = await file.text();
+
+            const lines = content.split('\n');
+            let title = '';
+            let articleContent = content;
+
+            if (lines.length > 0) {
+                const firstLine = lines[0].trim();
+
+                if (firstLine.startsWith('#')) {
+                    title = firstLine.replace(/^#+\s*/, '').trim();
+                    articleContent = lines.slice(1).join('\n').trim();
+                } else if (firstLine) {
+                    title = firstLine;
+                    articleContent = lines.slice(1).join('\n').trim();
+                }
+            }
+
+            if (!title) {
+                title = file.name.replace(/\.(md|markdown)$/i, '');
+            }
+
+            if (onImportArticle) {
+                onImportArticle({
+                    article_name: title,
+                    article_content: articleContent
+                });
+            }
+
+        } catch (error) {
+            console.error('导入文件失败:', error);
+            alert('导入文件失败: ' + error.message);
+        } finally {
+            e.target.value = '';
         }
     };
 
@@ -206,13 +265,15 @@ export default function ArticlesView({ onNewArticle, onEditArticle, articles: ex
             <div className="bg-white rounded-lg shadow-sm p-6">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-semibold text-gray-900">文章管理</h2>
-                    <button
-                        onClick={onNewArticle}
-                        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
-                    >
-                        <Plus className="h-4 w-4 mr-1" />
-                        新建文章
-                    </button>
+                    <div className="flex items-center space-x-2">
+                        <button
+                            onClick={onNewArticle}
+                            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                        >
+                            <Plus className="h-4 w-4 mr-1" />
+                            新建文章
+                        </button>
+                    </div>
                 </div>
                 <div className="flex justify-center items-center h-64">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
@@ -225,14 +286,31 @@ export default function ArticlesView({ onNewArticle, onEditArticle, articles: ex
         <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">文章管理</h2>
-                <button
-                    onClick={onNewArticle}
-                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
-                >
-                    <Plus className="h-4 w-4 mr-1" />
-                    新建文章
-                </button>
+                <div className="flex items-center space-x-2">
+                    <button
+                        onClick={handleImportClick}
+                        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                    >
+                        <Upload className="h-4 w-4 mr-1" />
+                        导入文章
+                    </button>
+                    <button
+                        onClick={onNewArticle}
+                        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                    >
+                        <Plus className="h-4 w-4 mr-1" />
+                        新建文章
+                    </button>
+                </div>
             </div>
+
+            <input
+                ref={importFileInputRef}
+                type="file"
+                accept=".md,.markdown"
+                onChange={handleImportFile}
+                className="hidden"
+            />
 
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -359,7 +437,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, articles: ex
                     <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                         <div>
                             <p className="text-sm text-gray-700">
-                                显示第 <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> 到 <span className="font-medium">{Math.min(currentPage * pageSize, totalArticles)}</span> 条结果，共 <span className="font-medium">{totalArticles}</span> 条
+                                显示第 <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> 到 <span className="font-medium">{Math.min(currentPage * pageSize, totalArticles)}</span> 条结果,共 <span className="font-medium">{totalArticles}</span> 条
                             </p>
                         </div>
                         <div>

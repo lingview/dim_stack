@@ -16,7 +16,7 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
     const [tags, setTags] = useState([]);
     const [categories, setCategories] = useState([]);
     const [coverUploading, setCoverUploading] = useState(false);
-    const [hasOriginalPassword, setHasOriginalPassword] = useState(false); // 标记是否有原始密码
+    const [hasOriginalPassword, setHasOriginalPassword] = useState(false);
     const fileInputRef = useRef(null);
 
     useEffect(() => {
@@ -28,10 +28,8 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
             const hasPassword = articleData.password && articleData.password.trim() !== '';
             setHasOriginalPassword(hasPassword);
 
-            // 处理标签数据，确保是数组格式
             let tagsData = articleData.tag || articleData.tags || [];
             if (typeof tagsData === 'string') {
-                // 如果是字符串，转换为数组
                 tagsData = tagsData ? tagsData.split(',').map(tag => tag.trim()) : [];
             }
 

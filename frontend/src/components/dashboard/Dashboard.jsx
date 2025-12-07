@@ -241,6 +241,12 @@ export default function Dashboard() {
         }
     };
 
+    const handleImportArticle = (articleData) => {
+        console.log('父组件收到导入数据:', articleData);
+        setEditingArticle(articleData);
+        setShowEditor(true);
+    };
+
     const handleEditorSave = (articleData) => {
         console.log('保存文章:', articleData);
         setShowEditor(false);
@@ -312,8 +318,12 @@ export default function Dashboard() {
                         {activeTab === 'articles' && (
                             <Suspense fallback={<div>加载中...</div>}>
                                 <ArticlesView
-                                    onNewArticle={() => setShowEditor(true)}
+                                    onNewArticle={() => {
+                                        setEditingArticle(null);
+                                        setShowEditor(true);
+                                    }}
                                     onEditArticle={handleEditArticle}
+                                    onImportArticle={handleImportArticle}
                                     articles={articles}
                                     shouldRefresh={shouldRefresh}
                                     setShouldRefresh={setShouldRefresh}
