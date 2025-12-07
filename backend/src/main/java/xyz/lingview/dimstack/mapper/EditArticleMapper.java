@@ -34,4 +34,5 @@ public interface EditArticleMapper {
     int deleteArticleTagRelations(@Param("articleId") String articleId);
     int insertArticleTagRelation(@Param("articleId") String articleId, @Param("tagName") String tagName);
 
+    String getCategoryByArticleId(@Param("article_id") String article_id);
 }

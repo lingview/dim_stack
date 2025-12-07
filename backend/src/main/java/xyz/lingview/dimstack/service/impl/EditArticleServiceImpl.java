@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.dto.request.ArticleDetailDTO;
 import xyz.lingview.dimstack.dto.request.UpdateArticleDTO;
 import xyz.lingview.dimstack.dto.request.EditArticleDTO;
+import xyz.lingview.dimstack.mapper.ArticleCategoryMapper;
 import xyz.lingview.dimstack.mapper.EditArticleMapper;
 import xyz.lingview.dimstack.service.EditArticleService;
 
@@ -17,6 +18,9 @@ public class EditArticleServiceImpl implements EditArticleService {
 
     @Autowired
     private EditArticleMapper editArticleMapper;
+
+    @Autowired
+    private ArticleCategoryMapper articleCategoryMapper;
 
     @Override
     public Map<String, Object> getArticleListByUsername(String username, Integer page, Integer size) {
@@ -96,6 +100,9 @@ public class EditArticleServiceImpl implements EditArticleService {
                 return false;
             }
 
+            // 获取更新前的文章分类
+            String oldCategory = editArticleMapper.getCategoryByArticleId(updateArticleDTO.getArticle_id());
+
             editArticleMapper.deleteArticleTagRelations(updateArticleDTO.getArticle_id());
 
             String tagsString = updateArticleDTO.getTag();
@@ -109,6 +116,18 @@ public class EditArticleServiceImpl implements EditArticleService {
             }
 
             int result = editArticleMapper.updateArticle(updateArticleDTO);
+
+            // 更新分类计数
+            if (result > 0) {
+                String newCategory = updateArticleDTO.getCategory();
+                if (oldCategory != null && !oldCategory.equals(newCategory)) {
+                    articleCategoryMapper.decrementCount(oldCategory);
+                    if (newCategory != null) {
+                        articleCategoryMapper.incrementCount(newCategory);
+                    }
+                }
+            }
+
             return result > 0;
 
         } catch (Exception e) {
@@ -116,6 +135,7 @@ public class EditArticleServiceImpl implements EditArticleService {
             return false;
         }
     }
+
 
 
     @Override

@@ -123,4 +123,10 @@
         VALUES (#{articleId}, #{tagName})
     </insert>
 
+    <select id="getCategoryByArticleId" parameterType="string" resultType="string">
+        SELECT category
+        FROM article
+        WHERE article_id = #{article_id}
+    </select>
+
 </mapper>
