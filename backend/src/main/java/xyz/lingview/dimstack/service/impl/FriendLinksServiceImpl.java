@@ -2,12 +2,16 @@ package xyz.lingview.dimstack.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.FriendLinks;
 import xyz.lingview.dimstack.dto.request.FriendLinksRequestDTO;
 import xyz.lingview.dimstack.mapper.FriendLinksMapper;
+import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.FriendLinksService;
+import xyz.lingview.dimstack.service.MailService;
 import xyz.lingview.dimstack.util.RandomUtil;
+import xyz.lingview.dimstack.util.SiteConfigUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +30,15 @@ public class FriendLinksServiceImpl implements FriendLinksService {
     @Autowired
     private FriendLinksMapper friendLinksMapper;
 
+    @Autowired
+    private MailService mailService;
+
+    @Autowired
+    private SiteConfigUtil siteConfigUtil;
+
+    @Autowired
+    private UserInformationMapper userInformationMapper;
+
     @Override
     public boolean applyFriendLink(FriendLinksRequestDTO requestDTO) {
         try {
@@ -40,12 +53,53 @@ public class FriendLinksServiceImpl implements FriendLinksService {
             friendLink.setStatus(2);
 
             int result = friendLinksMapper.insert(friendLink);
+
+            if (result > 0) {
+                sendFriendLinkNotification(requestDTO);
+            } else {
+                log.warn("友链申请保存到数据库失败");
+            }
+
             return result > 0;
         } catch (Exception e) {
             log.error("申请友链失败", e);
             return false;
         }
     }
+
+    @Async
+    public void sendFriendLinkNotification(FriendLinksRequestDTO requestDTO) {
+        try {
+            String siteName = siteConfigUtil.getSiteName();
+            List<String> emails = userInformationMapper.getEmailsByPermissionCode("post:review");
+
+            if (emails == null || emails.isEmpty()) {
+                log.warn("未找到拥有 'post:review' 权限的用户，跳过发送审核通知邮件");
+                return;
+            }
+
+            String emailContent = "站点名称：" + requestDTO.getSiteName() + "\n" +
+                    "站点地址：" + requestDTO.getSiteUrl() + "\n" +
+                    "站长姓名：" + requestDTO.getWebmasterName() + "\n" +
+                    "联系方式：" + requestDTO.getContact() + "\n" +
+                    "站点描述：" + requestDTO.getSiteDescription() + "\n\n" +
+                    "请尽快审核该友链申请";
+
+            for (String email : emails) {
+                try {
+                    mailService.sendSimpleMail(email, siteName + " 友链申请", emailContent);
+                    log.info("已发送审核通知邮件至: {}", email);
+                } catch (Exception e) {
+                    log.error("发送审核通知邮件失败，目标邮箱: {}", email, e);
+                }
+            }
+        } catch (Exception e) {
+            log.error("发送友链申请通知邮件时发生异常", e);
+        }
+    }
+
+
+
 
     @Override
     public List<FriendLinks> getApprovedFriendLinks() {
