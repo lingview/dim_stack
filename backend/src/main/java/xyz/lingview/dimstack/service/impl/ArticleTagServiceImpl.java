@@ -44,7 +44,9 @@ public class ArticleTagServiceImpl implements ArticleTagService {
     @Override
     public boolean createTag(ArticleTagDTO tagDTO, String founderUsername) {
         try {
-            ArticleTag existingTag = articleTagMapper.findByName(tagDTO.getTag_name());
+            String tagName = tagDTO.getTag_name().trim();
+
+            ArticleTag existingTag = articleTagMapper.findByName(tagName);
             if (existingTag != null) {
                 throw new RuntimeException("标签名称已存在");
             }
@@ -55,7 +57,7 @@ public class ArticleTagServiceImpl implements ArticleTagService {
             }
 
             ArticleTag tag = new ArticleTag();
-            tag.setTag_name(tagDTO.getTag_name());
+            tag.setTag_name(tagName);
             tag.setTag_explain(tagDTO.getTag_explain());
             tag.setFounder(founderUUID);
             tag.setStatus(1);
@@ -76,12 +78,14 @@ public class ArticleTagServiceImpl implements ArticleTagService {
                 throw new RuntimeException("标签不存在");
             }
 
-            ArticleTag existingTag = articleTagMapper.findByName(tagDTO.getTag_name());
+            String tagName = tagDTO.getTag_name().trim();
+
+            ArticleTag existingTag = articleTagMapper.findByName(tagName);
             if (existingTag != null && !existingTag.getId().equals(tagDTO.getId())) {
                 throw new RuntimeException("标签名称已存在");
             }
 
-            tag.setTag_name(tagDTO.getTag_name());
+            tag.setTag_name(tagName);
             tag.setTag_explain(tagDTO.getTag_explain());
 
             int result = articleTagMapper.update(tag);

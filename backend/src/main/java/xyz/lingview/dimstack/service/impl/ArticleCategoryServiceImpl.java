@@ -44,8 +44,11 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
     @Override
     public boolean createCategory(ArticleCategoryDTO categoryDTO, String founderUsername) {
         try {
+            // 过滤分类名称首尾空格
+            String categoryName = categoryDTO.getCategory_name().trim();
+
             // 检查分类名称是否已存在
-            ArticleCategory existingCategory = articleCategoryMapper.findByName(categoryDTO.getCategory_name());
+            ArticleCategory existingCategory = articleCategoryMapper.findByName(categoryName);
             if (existingCategory != null) {
                 throw new RuntimeException("分类名称已存在");
             }
@@ -56,7 +59,7 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
             }
 
             ArticleCategory category = new ArticleCategory();
-            category.setArticle_categories(categoryDTO.getCategory_name());
+            category.setArticle_categories(categoryName);
             category.setCategories_explain(categoryDTO.getCategory_explain());
             category.setFounder(founderUUID);
             category.setStatus(1);
@@ -68,7 +71,6 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
             return false;
         }
     }
-
     @Override
     public boolean updateCategory(ArticleCategoryDTO categoryDTO) {
         try {
@@ -77,12 +79,14 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
                 throw new RuntimeException("分类不存在");
             }
 
-            ArticleCategory existingCategory = articleCategoryMapper.findByName(categoryDTO.getCategory_name());
+            String categoryName = categoryDTO.getCategory_name().trim();
+
+            ArticleCategory existingCategory = articleCategoryMapper.findByName(categoryName);
             if (existingCategory != null && !existingCategory.getId().equals(categoryDTO.getId())) {
                 throw new RuntimeException("分类名称已存在");
             }
 
-            category.setArticle_categories(categoryDTO.getCategory_name());
+            category.setArticle_categories(categoryName);
             category.setCategories_explain(categoryDTO.getCategory_explain());
 
             int result = articleCategoryMapper.update(category);
