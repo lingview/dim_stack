@@ -323,7 +323,7 @@ export default function ArticlePreview({ article }) {
             return (
                 <a
                     href={href}
-                    className="text-blue-600 hover:underline hover:text-blue-500 transition-colors"
+                    className="text-blue-600 hover:underline hover:text-blue-500 transition-colors break-words"
                     target="_blank"
                     rel="noopener noreferrer"
                     {...props}
@@ -526,6 +526,7 @@ export default function ArticlePreview({ article }) {
                         prose-strong:text-gray-900
                         prose-code:bg-gray-100
                         prose-pre:bg-gray-800
+                        [&_a]:break-words
                         [&_video]:my-4 [&_video]:max-w-full [&_video]:h-auto
                         [&_img]:my-4 [&_img]:max-w-full [&_img]:h-auto
                         [&_.justify-center]:justify-start"
