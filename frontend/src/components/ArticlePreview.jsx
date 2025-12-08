@@ -566,8 +566,8 @@ export default function ArticlePreview({ article }) {
 
 
 
-            <div className="article-content">
-                {renderArticleContent(article.article_content)}
+            <div className="article-content break-words break-all whitespace-normal">
+            {renderArticleContent(article.article_content)}
             </div>
         </article>
     );
