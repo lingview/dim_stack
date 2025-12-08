@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import Hero from '../components/Hero';
 import ArticleCard from '../components/ArticleCard';
@@ -22,6 +22,7 @@ export default function Home() {
     const [showImages, setShowImages] = useState(true);
     const { categoryName, tagName } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         const savedShowImages = localStorage.getItem('showImages');
@@ -31,32 +32,32 @@ export default function Home() {
     }, []);
 
     useEffect(() => {
-        setSelectedCategory(categoryName || null);
-        setSelectedTag(tagName || null);
-        setPage(1);
-    }, [categoryName, tagName]);
-
-    useEffect(() => {
-        loadArticles();
+        loadArticlesFromUrl();
         loadCopyright();
         loadSiteRecords();
-    }, [page, selectedCategory, selectedTag]);
+    }, [location.pathname, page]);
 
     useEffect(() => {
         localStorage.setItem('showImages', JSON.stringify(showImages));
     }, [showImages]);
 
-    const loadArticles = async () => {
+    const loadArticlesFromUrl = async () => {
         try {
             setLoading(true);
             let result;
 
-            if (selectedCategory) {
-                result = await fetchArticlesByCategory(selectedCategory, page, 6);
-            } else if (selectedTag) {
-                result = await apiClient.get(`/tags/${selectedTag}/articles?page=${page}&size=6`);
+            if (categoryName) {
+                result = await fetchArticlesByCategory(categoryName, page, 6);
+                setSelectedCategory(categoryName);
+                setSelectedTag(null);
+            } else if (tagName) {
+                result = await apiClient.get(`/tags/${tagName}/articles?page=${page}&size=6`);
+                setSelectedTag(tagName);
+                setSelectedCategory(null);
             } else {
                 result = await fetchArticles(page, 6);
+                setSelectedCategory(null);
+                setSelectedTag(null);
             }
 
             setArticles(result.data);
@@ -121,10 +122,10 @@ export default function Home() {
     };
 
     const getCurrentFilterTitle = () => {
-        if (selectedCategory) {
-            return `${selectedCategory} 分类文章`;
-        } else if (selectedTag) {
-            return `${selectedTag} 标签文章`;
+        if (categoryName) {
+            return `${categoryName} 分类文章`;
+        } else if (tagName) {
+            return `${tagName} 标签文章`;
         } else {
             return '最新文章';
         }
@@ -153,7 +154,7 @@ export default function Home() {
                                             {showImages ? '隐藏图片' : '显示图片'}
                                         </button>
 
-                                        {(selectedCategory || selectedTag) && (
+                                        {(categoryName || tagName) && (
                                             <button
                                                 onClick={handleClearFilter}
                                                 className="text-sm text-blue-600 hover:text-blue-800"
@@ -212,8 +213,8 @@ export default function Home() {
                         {/* 侧边栏 */}
                         <div className="lg:w-1/4 xl:w-1/3">
                             <div className="sticky top-28">
-                                <CategorySidebar onCategorySelect={handleCategoryChange} selectedCategory={selectedCategory} />
-                                <TagSidebar selectedTag={selectedTag} />
+                                <CategorySidebar onCategorySelect={handleCategoryChange} selectedCategory={categoryName} />
+                                <TagSidebar selectedTag={tagName} />
                                 <RecommendedArticles />
                             </div>
                         </div>
