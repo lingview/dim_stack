@@ -90,17 +90,35 @@ public class EditArticleController {
                 return ResponseEntity.ok(response);
             }
 
-            if (updateArticleDTO.getPassword() != null && !updateArticleDTO.getPassword().isEmpty()) {
-                String hashedPassword = BCrypt.hashpw(updateArticleDTO.getPassword(), BCrypt.gensalt());
-                updateArticleDTO.setPassword(hashedPassword);
+            ArticleDetailDTO originalArticle = editArticleService.getArticleDetailById(
+                    updateArticleDTO.getArticle_id(), username);
+
+            if (originalArticle == null) {
+                response.put("success", false);
+                response.put("message", "文章不存在或无权限访问");
+                return ResponseEntity.ok(response);
             }
-//            int articleDefault = SiteConfigMapper.getArticleStatus();
+
+            log.info("原文章密码: {}", originalArticle.getPassword() != null ? "存在(长度:" + originalArticle.getPassword().length() + ")" : "null");
+            log.info("前端传入密码: '{}'", updateArticleDTO.getPassword());
+
+            String incomingPassword = updateArticleDTO.getPassword();
+            if (incomingPassword != null && !incomingPassword.trim().isEmpty()) {
+                log.info("用户设置新密码，进行加密");
+                String hashedPassword = BCrypt.hashpw(incomingPassword.trim(), BCrypt.gensalt());
+                updateArticleDTO.setPassword(hashedPassword);
+            } else {
+                log.info("保持原密码不变");
+                updateArticleDTO.setPassword(originalArticle.getPassword());
+            }
 
             updateArticleDTO.setStatus(2);
 
             boolean result = editArticleService.updateArticle(updateArticleDTO, username);
 
             if (result) {
+                log.info("文章更新成功，article_id: {}", updateArticleDTO.getArticle_id());
+
                 if (siteConfigUtil.isNotificationEnabled()) {
                     Date date = new Date();
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -139,6 +157,7 @@ public class EditArticleController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
+            log.error("文章更新失败", e);
             response.put("success", false);
             response.put("message", "文章更新失败: " + e.getMessage());
             return ResponseEntity.ok(response);

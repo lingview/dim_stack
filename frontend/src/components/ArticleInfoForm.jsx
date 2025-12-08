@@ -149,8 +149,11 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
             alias: formData.alias
         };
 
+
         if (formData.password && formData.password.trim() !== '') {
             saveData.password = formData.password;
+        } else {
+            delete saveData.password;
         }
 
         onSave(saveData);
