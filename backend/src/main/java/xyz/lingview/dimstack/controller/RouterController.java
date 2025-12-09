@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class RouterController {
 
     @GetMapping({
-        "/",
+//        "/",
         "/login",
         "/register",
         "/dashboard",
