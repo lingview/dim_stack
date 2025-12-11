@@ -126,6 +126,7 @@ logging:
     org.springframework.web: debug
 
 file:
+  data-root: .
   upload-dir: upload
 
 app:

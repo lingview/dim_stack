@@ -3,6 +3,7 @@ package xyz.lingview.dimstack.service.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,13 @@ public class UploadServiceImpl implements UploadService {
 
     @Autowired
     private ArticleCategoryMapper articleCategoryMapper;
+
+    // 注入配置属性
+    @Value("${file.data-root:.}")
+    private String dataRoot;
+
+    @Value("${file.upload-dir:upload}")
+    private String uploadDir;
 
     private static final long MAX_FILE_SIZE = 100 * 1024 * 1024;
 
@@ -179,6 +187,20 @@ public class UploadServiceImpl implements UploadService {
         }
     }
 
+    private Path getBasePath() {
+        return Paths.get(dataRoot).toAbsolutePath().normalize().resolve(uploadDir);
+    }
+
+    private Path buildFileSystemPath(String... paths) {
+        Path basePath = getBasePath();
+        Path relativePath = Paths.get(paths[0], Arrays.copyOfRange(paths, 1, paths.length));
+        return basePath.resolve(relativePath).normalize();
+    }
+
+    private String buildDatabasePath(String... paths) {
+        return Paths.get(uploadDir, paths).toString();
+    }
+
     @Override
     public ResponseEntity<Map<String, String>> uploadAttachment(HttpServletRequest request, MultipartFile file) {
         log.info("开始附件上传流程");
@@ -224,10 +246,10 @@ public class UploadServiceImpl implements UploadService {
         }
 
         String subFolder = getFolderByMime(contentType);
-        Path uploadPath = Paths.get("upload", username, "attachment", subFolder).normalize();
-        Path allowedRoot = Paths.get("upload").toAbsolutePath().normalize();
+        Path uploadPath = buildFileSystemPath(username, "attachment", subFolder);
+        Path allowedRoot = getBasePath();
 
-        if (!uploadPath.toAbsolutePath().startsWith(allowedRoot)) {
+        if (!uploadPath.startsWith(allowedRoot)) {
             log.error("检测到无效的上传路径: {}", uploadPath);
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "上传路径无效"));
@@ -253,7 +275,7 @@ public class UploadServiceImpl implements UploadService {
         UploadAttachment uploadFile = new UploadAttachment();
         uploadFile.setUuid(userUUID);
         uploadFile.setAttachment_id(fileUUID);
-        uploadFile.setAttachment_path(filePath.toString());
+        uploadFile.setAttachment_path(buildDatabasePath(username, "attachment", subFolder, fileName));
         uploadFile.setAccess_key(accessKey);
         int insertResult = uploadMapper.insertUploadAttachment(uploadFile);
         if (insertResult != 1) {
@@ -321,10 +343,10 @@ public class UploadServiceImpl implements UploadService {
                     .body(Map.of("error", "用户未登录或用户名无效"));
         }
 
-        Path uploadPath = Paths.get("upload", username, "temp", uploadId).normalize();
-        Path allowedRoot = Paths.get("upload").toAbsolutePath().normalize();
+        Path uploadPath = buildFileSystemPath(username, "temp", uploadId);
+        Path allowedRoot = getBasePath();
 
-        if (!uploadPath.toAbsolutePath().startsWith(allowedRoot)) {
+        if (!uploadPath.startsWith(allowedRoot)) {
             log.error("分片的上传路径无效: {}", uploadPath);
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "上传路径无效"));
@@ -382,9 +404,9 @@ public class UploadServiceImpl implements UploadService {
                     .body(Map.of("error", "文件扩展名不被允许"));
         }
 
-        Path tempDir = Paths.get("upload", username, "temp", uploadId).normalize();
-        Path allowedRoot = Paths.get("upload").toAbsolutePath().normalize();
-        if (!tempDir.toAbsolutePath().startsWith(allowedRoot)) {
+        Path tempDir = buildFileSystemPath(username, "temp", uploadId);
+        Path allowedRoot = getBasePath();
+        if (!tempDir.startsWith(allowedRoot)) {
             log.error("完成操作的上传路径无效: {}", tempDir);
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "上传路径无效"));
@@ -402,7 +424,7 @@ public class UploadServiceImpl implements UploadService {
         String mimeType = getMimeTypeByExtension(extension);
         String subFolder = getFolderByMime(mimeType);
 
-        Path finalDir = Paths.get("upload", username, "attachment", subFolder).normalize();
+        Path finalDir = buildFileSystemPath(username, "attachment", subFolder);
         Path finalFilePath = finalDir.resolve(newFileName);
 
         try {
@@ -501,7 +523,7 @@ public class UploadServiceImpl implements UploadService {
         UploadAttachment uploadFile = new UploadAttachment();
         uploadFile.setUuid(userUUID);
         uploadFile.setAttachment_id(fileUUID);
-        uploadFile.setAttachment_path(finalFilePath.toString());
+        uploadFile.setAttachment_path(buildDatabasePath(username, "attachment", subFolder, newFileName));
         uploadFile.setAccess_key(accessKey);
 
         int insertResult = uploadMapper.insertUploadAttachment(uploadFile);
@@ -670,10 +692,10 @@ public class UploadServiceImpl implements UploadService {
                     .body(Map.of("error", "头像文件必须是图片格式"));
         }
 
-        Path uploadPath = Paths.get("upload", username, "avatar").normalize();
-        Path allowedRoot = Paths.get("upload").toAbsolutePath().normalize();
+        Path uploadPath = buildFileSystemPath(username, "avatar");
+        Path allowedRoot = getBasePath();
 
-        if (!uploadPath.toAbsolutePath().startsWith(allowedRoot)) {
+        if (!uploadPath.startsWith(allowedRoot)) {
             log.error("检测到无效的头像上传路径: {}", uploadPath);
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("error", "上传路径无效"));
@@ -710,7 +732,7 @@ public class UploadServiceImpl implements UploadService {
             UploadAttachment uploadFile = new UploadAttachment();
             uploadFile.setUuid(userUUID);
             uploadFile.setAttachment_id(fileUUID);
-            uploadFile.setAttachment_path(filePath.toString());
+            uploadFile.setAttachment_path(buildDatabasePath(username, "avatar", fileName));
             uploadFile.setAccess_key(accessKey);
 
             uploadMapper.insertUploadAttachment(uploadFile);

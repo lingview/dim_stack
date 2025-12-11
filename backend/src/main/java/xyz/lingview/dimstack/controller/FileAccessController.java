@@ -2,6 +2,7 @@ package xyz.lingview.dimstack.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
@@ -32,6 +33,12 @@ public class FileAccessController {
     @Autowired
     private UploadMapper uploadMapper;
 
+    @Value("${file.data-root:.}")
+    private String dataRoot;
+
+    @Value("${file.upload-dir:upload}")
+    private String uploadDir;
+
     @GetMapping("/{accessKey}")
     public ResponseEntity<Resource> getFile(@PathVariable String accessKey) {
         try {
@@ -43,7 +50,8 @@ public class FileAccessController {
                 return ResponseEntity.notFound().build();
             }
 
-            Path filePath = Paths.get(attachment.getAttachment_path());
+            Path basePath = Paths.get(dataRoot).toAbsolutePath().normalize();
+            Path filePath = basePath.resolve(attachment.getAttachment_path()).normalize();
 
             if (!Files.exists(filePath)) {
                 log.warn("文件不存在: {}", filePath);
