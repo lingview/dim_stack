@@ -13,7 +13,7 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, user
             if (name) {
                 setSiteName(name);
             } else {
-                setSiteName("次元栈");
+                setSiteName("");
             }
         };
 

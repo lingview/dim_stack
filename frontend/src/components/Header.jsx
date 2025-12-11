@@ -21,7 +21,7 @@ export default function Header() {
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [username, setUsername] = useState('')
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-    const [siteName, setSiteName] = useState('次元栈 - Dim Stack')
+    const [siteName, setSiteName] = useState('')
     const [menus, setMenus] = useState([])
 
     // 检查登录状态
@@ -60,7 +60,7 @@ export default function Header() {
             try {
                 const response = await apiClient.get('/site/name')
                 if (response) {
-                    setSiteName(escapeHtml(response) || '次元栈 - Dim Stack')
+                    setSiteName(escapeHtml(response) || '')
                 }
             } catch (error) {
                 console.error('获取站点名称失败:', error)

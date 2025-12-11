@@ -19,10 +19,10 @@ function App() {
             try {
                 const siteName = await fetchSiteName();
                 console.log('获取站点名称:', siteName);
-                document.title = siteName || 'DimStack';
+                document.title = siteName || '';
             } catch (error) {
                 console.error('设置站点标题失败:', error);
-                document.title = 'DimStack';
+                document.title = '';
             }
         };
 

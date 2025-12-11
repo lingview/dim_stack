@@ -14,7 +14,7 @@ export default function Home() {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
-    const [copyright, setCopyright] = useState('© 2025 次元栈 - Dim Stack. All rights reserved.');
+    const [copyright, setCopyright] = useState('');
     const [icpRecord, setIcpRecord] = useState('');
     const [mpsRecord, setMpsRecord] = useState('');
     const [selectedCategory, setSelectedCategory] = useState(null);
