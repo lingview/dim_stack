@@ -1,4 +1,8 @@
 <configuration scan="true" scanPeriod="30 seconds">
+    <springProperty scope="context" name="LOG_ROOT" source="file.log-root" defaultValue="."/>
+
+    <property name="LOG_DIR" value="${LOG_ROOT}/logs" />
+
     <contextName>dim-stack</contextName>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -9,13 +13,13 @@
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/dim_stack.log</file>
+        <file>${LOG_DIR}/dim_stack.log</file>
         <encoder>
             <charset>UTF-8</charset>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40} - %msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>logs/dim_stack-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>${LOG_DIR}/dim_stack-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <maxFileSize>100MB</maxFileSize>
             <maxHistory>30</maxHistory>
             <totalSizeCap>10GB</totalSizeCap>

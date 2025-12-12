@@ -126,8 +126,11 @@ logging:
     org.springframework.web: debug
 
 file:
+  # 文件存储目录
   data-root: .
   upload-dir: upload
+  # 日志存储目录
+  log-root: .
 
 app:
   theme:
