@@ -44,13 +44,44 @@ const isSafeUrl = (url) => {
 };
 
 const processLineBreaks = (text) => {
-    return text
+    const codeBlocks = [];
+    const placeholder = '___CODE_BLOCK___';
+
+    let processedText = text.replace(/```[\s\S]*?```/g, (match) => {
+        codeBlocks.push(match);
+        return `${placeholder}${codeBlocks.length - 1}${placeholder}`;
+    });
+
+    const inlineCodes = [];
+    processedText = processedText.replace(/`[^`\n]+`/g, (match) => {
+        inlineCodes.push(match);
+        return `___INLINE_CODE___${inlineCodes.length - 1}___INLINE_CODE___`;
+    });
+
+    processedText = processedText
         .replace(/\n(\s*\n){2,}/g, (match) => {
             const newlines = match.match(/\n/g)?.length || 0;
             return '\n' + '&nbsp;\n'.repeat(newlines - 1);
         })
         .replace(/\n\s*\n/g, '\n\n&nbsp;\n')
         .replace(/\n/g, '  \n');
+
+
+    inlineCodes.forEach((code, index) => {
+        processedText = processedText.replace(
+            `___INLINE_CODE___${index}___INLINE_CODE___`,
+            code
+        );
+    });
+
+    codeBlocks.forEach((block, index) => {
+        processedText = processedText.replace(
+            `${placeholder}${index}${placeholder}`,
+            block
+        );
+    });
+
+    return processedText;
 };
 
 

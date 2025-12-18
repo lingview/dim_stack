@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import {
     FileText, Save, X, Bold, Italic, Heading,
-    Link as LinkIcon, Image, List, Code, Video, Music
+    Link as LinkIcon, Image, List, Code, Video, Music, Copy, Check
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -89,14 +89,15 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const [uploading, setUploading] = useState(false);
     const [showArticleInfo, setShowArticleInfo] = useState(false);
     const [articleInfo, setArticleInfo] = useState(null);
-
     const [showHeadingMenu, setShowHeadingMenu] = useState(false);
-    const headingMenuRef = useRef(null);
+    const [copiedCode, setCopiedCode] = useState(null);
 
     const textareaRef = useRef(null);
     const fileInputRef = useRef(null);
     const uploadingFiles = useRef(new Set());
     const savedSelectionRef = useRef({ start: 0, end: 0 });
+    const uploadPositionsRef = useRef(new Map());
+    const headingMenuRef = useRef(null);
 
     useEffect(() => {
         if (initialData) {
@@ -110,14 +111,28 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             const items = e.clipboardData?.items;
             if (!items) return;
 
+            const files = [];
             for (const item of items) {
                 if (item.kind === 'file') {
-                    e.preventDefault();
                     const file = item.getAsFile();
                     if (file) {
-                        await processAndInsertFile(file);
+                        files.push(file);
                     }
-                    return;
+                }
+            }
+
+            if (files.length > 0) {
+                e.preventDefault();
+
+                const textarea = textareaRef.current;
+                const initialPosition = textarea ? textarea.selectionStart : 0;
+
+                let currentOffset = 0;
+                for (const file of files) {
+                    const result = await processFileWithOffset(file, initialPosition + currentOffset);
+                    if (result && result.content) {
+                        currentOffset += result.content.length;
+                    }
                 }
             }
         };
@@ -133,20 +148,18 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
 
             const files = e.dataTransfer.files;
             if (files && files.length > 0) {
-                let contentToInsert = '';
+                const textarea = textareaRef.current;
+                const initialPosition = textarea ? textarea.selectionStart : 0;
 
+                let currentOffset = 0;
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
                     if (file) {
-                        const fileContent = await processFile(file);
-                        if (fileContent) {
-                            contentToInsert += fileContent;
+                        const result = await processFileWithOffset(file, initialPosition + currentOffset);
+                        if (result && result.content) {
+                            currentOffset += result.content.length;
                         }
                     }
-                }
-
-                if (contentToInsert) {
-                    insertAtCursor(contentToInsert);
                 }
             }
         };
@@ -177,7 +190,6 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             return;
         }
 
-        // 检测内容中的第一张图片作为默认封面
         let defaultCover = initialData?.article_cover || '';
 
         if (!initialData?.article_id && !defaultCover) {
@@ -204,8 +216,6 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         });
         setShowArticleInfo(true);
     };
-
-
 
     const handleArticleInfoSave = async (info) => {
         setIsSaving(true);
@@ -255,29 +265,34 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         }
     };
 
-    const insertAtCursor = (text, selectedText = '') => {
+    const insertAtCursor = (text, selectedText = '', insertPosition = null) => {
         const textarea = textareaRef.current;
         if (!textarea) return;
 
-        const startPos = textarea.selectionStart;
-        const endPos = textarea.selectionEnd;
-        const newValue = content.substring(0, startPos) + text + content.substring(endPos);
+        setContent(prevContent => {
+            const startPos = insertPosition !== null ? insertPosition : textarea.selectionStart;
+            const endPos = insertPosition !== null ? insertPosition : textarea.selectionEnd;
 
-        setContent(newValue);
+            const newValue = prevContent.substring(0, startPos) + text + prevContent.substring(endPos);
+            return newValue;
+        });
 
-        setTimeout(() => {
-            textarea.focus();
-            if (selectedText) {
-                textarea.setSelectionRange(startPos, startPos + text.length);
-            } else {
-                textarea.setSelectionRange(startPos + text.length, startPos + text.length);
-            }
-        }, 0);
+        if (insertPosition === null) {
+            setTimeout(() => {
+                textarea.focus();
+                const startPos = textarea.selectionStart;
+                if (selectedText) {
+                    textarea.setSelectionRange(startPos, startPos + text.length);
+                } else {
+                    textarea.setSelectionRange(startPos + text.length, startPos + text.length);
+                }
+            }, 0);
+        }
     };
 
     const processFile = async (file) => {
         if (!file || !isFileSupported(file.type)) {
-            if (!isFileSupported(file.type)) {
+            if (file && !isFileSupported(file.type)) {
                 const errorMessage = `不支持的文件类型: ${file.type}\n\n仅支持: ${Object.values(SUPPORTED_FILE_TYPES).flat().join(', ')}`;
                 alert(errorMessage);
             }
@@ -287,7 +302,11 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
         if (uploadingFiles.current.has(fileKey)) return null;
 
+        const textarea = textareaRef.current;
+        const insertPosition = textarea ? textarea.selectionStart : 0;
+
         uploadingFiles.current.add(fileKey);
+        uploadPositionsRef.current.set(fileKey, insertPosition);
         setUploading(true);
 
         try {
@@ -306,7 +325,11 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                     archive: `\n<archive src="${fullUrl}?filename=${encodeURIComponent(file.name)}" data-filename="${file.name}"></archive>\n`
                 };
 
-                return snippets[mediaType] || null;
+
+                return {
+                    content: snippets[mediaType] || null,
+                    position: uploadPositionsRef.current.get(fileKey)
+                };
             }
             return null;
         } catch (error) {
@@ -314,7 +337,77 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             return null;
         } finally {
             uploadingFiles.current.delete(fileKey);
-            setUploading(false);
+            uploadPositionsRef.current.delete(fileKey);
+
+            if (uploadingFiles.current.size === 0) {
+                setUploading(false);
+            }
+        }
+    };
+
+    const processFileWithOffset = async (file, insertPosition) => {
+        if (!file || !isFileSupported(file.type)) {
+            if (file && !isFileSupported(file.type)) {
+                const errorMessage = `不支持的文件类型: ${file.type}\n\n仅支持: ${Object.values(SUPPORTED_FILE_TYPES).flat().join(', ')}`;
+                alert(errorMessage);
+            }
+            return null;
+        }
+
+        const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
+        if (uploadingFiles.current.has(fileKey)) {
+            console.log('文件正在上传中，跳过:', file.name);
+            return null;
+        }
+
+        uploadingFiles.current.add(fileKey);
+        uploadPositionsRef.current.set(fileKey, insertPosition);
+        setUploading(true);
+
+        try {
+            const fileUrl = file.size > 10 * 1024 * 1024
+                ? await multipartUpload(file)
+                : await normalUpload(file);
+
+            if (fileUrl) {
+                const fullUrl = getConfig().getFullUrl(fileUrl);
+                const mediaType = getMediaType(file.type);
+
+                const snippets = {
+                    image: `\n![${file.name}](${fullUrl})\n`,
+                    video: `\n<video src="${fullUrl}" controls style="width: 400px;"></video>\n`,
+                    audio: `\n<audio src="${fullUrl}?filename=${encodeURIComponent(file.name)}" controls preload="metadata" data-filename="${file.name}"></audio>\n`,
+                    archive: `\n<archive src="${fullUrl}?filename=${encodeURIComponent(file.name)}" data-filename="${file.name}"></archive>\n`
+                };
+
+                const contentToInsert = snippets[mediaType] || null;
+
+                if (contentToInsert) {
+                    console.log('插入文件:', file.name, '位置:', insertPosition, '内容长度:', contentToInsert.length);
+                    insertAtCursor(contentToInsert, '', insertPosition);
+
+                    return {
+                        content: contentToInsert,
+                        position: insertPosition
+                    };
+                } else {
+                    console.warn('无法生成内容片段，mediaType:', mediaType);
+                }
+            } else {
+                console.warn('文件上传返回空 URL:', file.name);
+            }
+            return null;
+        } catch (error) {
+            console.error('文件上传失败:', file.name, error);
+            alert('文件上传失败: ' + error.message);
+            return null;
+        } finally {
+            uploadingFiles.current.delete(fileKey);
+            uploadPositionsRef.current.delete(fileKey);
+
+            if (uploadingFiles.current.size === 0) {
+                setUploading(false);
+            }
         }
     };
 
@@ -368,9 +461,9 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     };
 
     const processAndInsertFile = async (file) => {
-        const contentToInsert = await processFile(file);
-        if (contentToInsert) {
-            insertAtCursor(contentToInsert);
+        const result = await processFile(file);
+        if (result && result.content) {
+            insertAtCursor(result.content, '', result.position);
         }
     };
 
@@ -531,14 +624,54 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         fileInputRef.current.click();
     };
 
+    const handleCopyCode = async (code, index) => {
+        try {
+            await navigator.clipboard.writeText(code);
+            setCopiedCode(index);
+            setTimeout(() => setCopiedCode(null), 2000);
+        } catch (err) {
+            console.error('复制失败:', err);
+        }
+    };
+
     const processLineBreaks = (text) => {
-        return text
+        const codeBlocks = [];
+        const placeholder = '___CODE_BLOCK___';
+
+        let processedText = text.replace(/```[\s\S]*?```/g, (match) => {
+            codeBlocks.push(match);
+            return `${placeholder}${codeBlocks.length - 1}${placeholder}`;
+        });
+
+        const inlineCodes = [];
+        processedText = processedText.replace(/`[^`\n]+`/g, (match) => {
+            inlineCodes.push(match);
+            return `___INLINE_CODE___${inlineCodes.length - 1}___INLINE_CODE___`;
+        });
+
+        processedText = processedText
             .replace(/\n(\s*\n){2,}/g, (match) => {
                 const newlines = match.match(/\n/g)?.length || 0;
                 return '\n' + '&nbsp;\n'.repeat(newlines - 1);
             })
             .replace(/\n\s*\n/g, '\n\n&nbsp;\n')
             .replace(/\n/g, '  \n');
+
+        inlineCodes.forEach((code, index) => {
+            processedText = processedText.replace(
+                `___INLINE_CODE___${index}___INLINE_CODE___`,
+                code
+            );
+        });
+
+        codeBlocks.forEach((block, index) => {
+            processedText = processedText.replace(
+                `${placeholder}${index}${placeholder}`,
+                block
+            );
+        });
+
+        return processedText;
     };
 
     const renderMarkdownComponents = {
@@ -591,15 +724,31 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         ),
         code({ className, children, ...props }) {
             const match = /language-(\w+)/.exec(className || "");
+            const codeString = String(children).replace(/\n$/, "");
+            const codeIndex = `${codeString.substring(0, 20)}-${codeString.length}`;
+
             return match ? (
-                <SyntaxHighlighter
-                    style={oneDark}
-                    language={match[1]}
-                    PreTag="div"
-                    {...props}
-                >
-                    {String(children).replace(/\n$/, "")}
-                </SyntaxHighlighter>
+                <div className="relative group my-4">
+                    <button
+                        onClick={() => handleCopyCode(codeString, codeIndex)}
+                        className="absolute right-2 top-2 p-2 bg-gray-700 hover:bg-gray-600 rounded-md opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                        title="复制代码"
+                    >
+                        {copiedCode === codeIndex ? (
+                            <Check className="h-4 w-4 text-green-400" />
+                        ) : (
+                            <Copy className="h-4 w-4 text-gray-300" />
+                        )}
+                    </button>
+                    <SyntaxHighlighter
+                        style={oneDark}
+                        language={match[1]}
+                        PreTag="div"
+                        {...props}
+                    >
+                        {codeString}
+                    </SyntaxHighlighter>
+                </div>
             ) : (
                 <code
                     className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono text-gray-800 dark:text-white inline-block align-text-bottom max-w-full overflow-x-auto"
@@ -666,7 +815,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             }
 
             return (
-                <div className="inline-block my-4 p-4 bg-gray-100  border border-gray-200 rounded-xl shadow-sm max-w-lg">
+                <div className="my-4 p-4 bg-gray-100  border border-gray-200 rounded-xl shadow-sm max-w-lg">
                     <div className="flex items-center mb-3">
                         <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
                             <Music className="h-4 w-4 text-white" />
