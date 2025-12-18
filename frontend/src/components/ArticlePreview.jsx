@@ -8,7 +8,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { getConfig } from '../utils/config';
 import ImageLightbox from './ImageLightbox';
-
+import { Copy, Check } from 'lucide-react';
 
 const rehypeSanitizeSchema = {
     tagNames: [
@@ -184,7 +184,7 @@ const sanitizeHtmlContent = (content) => {
                 </div>
                 <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>${escapedCode}</code></pre>
                 <div class="mt-2 text-xs text-red-600">
-                    此内容可能存在安全风险，已被安全地显示为代码块
+                    此内容可能存在安全风险,已被安全地显示为代码块
                 </div>
             </div>`;
 
@@ -238,6 +238,71 @@ export default function ArticlePreview({ article }) {
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [articleImages, setArticleImages] = useState([]);
+    const CodeBlock = ({ className, children, ...props }) => {
+        const match = /language-(\w+)/.exec(className || "");
+        const codeString = String(children).replace(/\n$/, "");
+        const [localCopied, setLocalCopied] = useState(false);
+
+        const handleCopyCode = async () => {
+            try {
+                await navigator.clipboard.writeText(codeString);
+                setLocalCopied(true);
+                setTimeout(() => {
+                    setLocalCopied(false);
+                }, 2000);
+            } catch (err) {
+                console.error('复制失败:', err);
+            }
+        };
+
+        return match ? (
+            <div className="my-4 react-syntax-highlighter relative group" key={`code-${renderKey}`}>
+                <button
+                    onClick={handleCopyCode}
+                    className="absolute right-2 top-2 p-2 bg-gray-200 hover:bg-gray-100 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200 z-10"
+                    title="复制代码"
+                >
+                    <div className="relative w-4 h-4">
+                        <Copy
+                            className={`h-4 w-4 text-gray-600 absolute inset-0 transition-all duration-300 ${
+                                localCopied
+                                    ? 'opacity-0 scale-0 rotate-90'
+                                    : 'opacity-100 scale-100 rotate-0'
+                            }`}
+                        />
+                        <Check
+                            className={`h-4 w-4 text-green-600 absolute inset-0 transition-all duration-300 ${
+                                localCopied
+                                    ? 'opacity-100 scale-100 rotate-0'
+                                    : 'opacity-0 scale-0 -rotate-90'
+                            }`}
+                        />
+                    </div>
+                </button>
+                <SyntaxHighlighter
+                    style={syntaxStyle}
+                    language={match[1]}
+                    PreTag="div"
+                    className="rounded-lg shadow-sm"
+                    {...props}
+                >
+                    {codeString}
+                </SyntaxHighlighter>
+            </div>
+        ) : (
+            <code
+                className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-gray-800 inline-block align-text-bottom max-w-full overflow-x-auto"
+                style={{
+                    whiteSpace: 'pre',
+                    scrollbarWidth: 'thin'
+                }}
+                {...props}
+            >
+                {children}
+            </code>
+        );
+    };
+
 
     useEffect(() => {
         setRenderKey(prev => prev + 1);
@@ -344,33 +409,8 @@ export default function ArticlePreview({ article }) {
         hr: (props) => (
             <hr className="my-6 border-gray-300" {...props} />
         ),
-        code({ className, children, ...props }) {
-            const match = /language-(\w+)/.exec(className || "");
-            return match ? (
-                <div className="my-4 react-syntax-highlighter" key={`code-${renderKey}`}>
-                    <SyntaxHighlighter
-                        style={syntaxStyle}
-                        language={match[1]}
-                        PreTag="div"
-                        className="rounded-lg shadow-sm"
-                        {...props}
-                    >
-                        {String(children).replace(/\n$/, "")}
-                    </SyntaxHighlighter>
-                </div>
-            ) : (
-                <code
-                    className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-gray-800 inline-block align-text-bottom max-w-full overflow-x-auto"
-                    style={{
-                        whiteSpace: 'pre',
-                        scrollbarWidth: 'thin'
-                    }}
-                    {...props}
-                >
-                    {children}
-                </code>
-            );
-        },
+
+        code: CodeBlock,
         a: ({ href, children, ...props }) => {
             if (!isSafeUrl(href)) {
                 return <span className="text-gray-500" {...props}>{children}</span>;
@@ -539,7 +579,7 @@ export default function ArticlePreview({ article }) {
                 </div>
             );
         },
-    }), [renderKey, syntaxStyle, articleImages]);
+    }), [renderKey, syntaxStyle, articleImages, CodeBlock]);
 
     const isMarkdownContent = (content) => {
         if (!content) return false;
@@ -630,7 +670,7 @@ export default function ArticlePreview({ article }) {
 
 
             <div className="article-content break-words break-all whitespace-normal">
-            {renderArticleContent(article.article_content)}
+                {renderArticleContent(article.article_content)}
             </div>
             {lightboxOpen && (
                 <ImageLightbox
