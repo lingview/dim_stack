@@ -7,6 +7,7 @@ import rehypeSanitize from 'rehype-sanitize';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { getConfig } from '../utils/config';
+import ImageLightbox from './ImageLightbox';
 
 
 const rehypeSanitizeSchema = {
@@ -203,10 +204,33 @@ function useTheme() {
 export default function ArticlePreview({ article }) {
     const isDark = useTheme();
     const [renderKey, setRenderKey] = useState(0);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [articleImages, setArticleImages] = useState([]);
 
     useEffect(() => {
         setRenderKey(prev => prev + 1);
     }, [isDark]);
+
+    useEffect(() => {
+        if (article?.article_content) {
+            const imageRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>|!\[[^\]]*\]\(([^)]+)\)/g;
+            const images = [];
+            let match;
+
+            while ((match = imageRegex.exec(article.article_content)) !== null) {
+                const src = match[1] || match[2];
+                if (src) {
+                    images.push({
+                        src: getFullImageUrl(src),
+                        alt: ''
+                    });
+                }
+            }
+
+            setArticleImages(images);
+        }
+    }, [article?.article_content]);
 
     const syntaxStyle = useMemo(() => {
         return isDark ? oneDark : oneLight;
@@ -336,8 +360,11 @@ export default function ArticlePreview({ article }) {
             if (!isSafeUrl(src)) return null;
             const fullSrc = getFullImageUrl(src);
 
+            // 找到这张图片在文章图片数组中的索引
+            const imageIndex = articleImages.findIndex(img => img.src === fullSrc);
+
             return (
-                <div className="my-4 flex">
+                <span className="inline-block my-4">
                     <img
                         src={fullSrc}
                         alt={alt || '图片'}
@@ -349,7 +376,12 @@ export default function ArticlePreview({ article }) {
                             width: "auto",
                             objectFit: "contain",
                         }}
-                        onClick={() => window.open(fullSrc, "_blank")}
+                        onClick={() => {
+                            if (imageIndex >= 0) {
+                                setCurrentImageIndex(imageIndex);
+                            }
+                            setLightboxOpen(true);
+                        }}
                         title="点击查看大图"
                         onError={(e) => {
                             e.target.src = '/image_error.svg';
@@ -357,7 +389,7 @@ export default function ArticlePreview({ article }) {
                         }}
                         {...props}
                     />
-                </div>
+                </span>
             );
         },
         video: ({ src, controls = true, ...props }) => {
@@ -476,7 +508,7 @@ export default function ArticlePreview({ article }) {
                 </div>
             );
         },
-    }), [renderKey, syntaxStyle]);
+    }), [renderKey, syntaxStyle, articleImages]);
 
     const isMarkdownContent = (content) => {
         if (!content) return false;
@@ -569,6 +601,21 @@ export default function ArticlePreview({ article }) {
             <div className="article-content break-words break-all whitespace-normal">
             {renderArticleContent(article.article_content)}
             </div>
+            {lightboxOpen && (
+                <ImageLightbox
+                    images={articleImages}
+                    currentIndex={currentImageIndex}
+                    onClose={() => setLightboxOpen(false)}
+                    onNavigate={(direction) => {
+                        setCurrentImageIndex(prev => {
+                            const newIndex = prev + direction;
+                            if (newIndex < 0) return articleImages.length - 1;
+                            if (newIndex >= articleImages.length) return 0;
+                            return newIndex;
+                        });
+                    }}
+                />
+            )}
         </article>
     );
 }
