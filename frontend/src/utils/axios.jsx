@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const apiClient = axios.create({
   baseURL: '/api',
-  timeout: 10000,
+  timeout: 0,
   withCredentials: true // 允许携带cookies
 });
 

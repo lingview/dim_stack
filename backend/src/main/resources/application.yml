@@ -30,8 +30,8 @@ spring:
   servlet:
     multipart:
       enabled: true
-      max-file-size: 1000000MB
-      max-request-size: 200000MB
+      max-file-size: 100MB
+      max-request-size: 100MB
 
   data:
     redis:
