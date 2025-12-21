@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Music,FileText } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Music, FileText, Copy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -8,7 +8,6 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { getConfig } from '../utils/config';
 import ImageLightbox from './ImageLightbox';
-import { Copy, Check } from 'lucide-react';
 
 const rehypeSanitizeSchema = {
     tagNames: [
@@ -22,14 +21,15 @@ const rehypeSanitizeSchema = {
         'archive'
     ],
     attributes: {
-        '*': ['className', 'id', 'data*'],
+        '*': ['className', 'id', 'data*', 'style'],
         'a': ['href', 'title', 'target', 'rel'],
         'img': ['src', 'alt', 'title', 'width', 'height'],
         'video': ['src', 'controls', 'autoplay', 'loop', 'muted', 'poster', 'width', 'height', 'preload'],
         'audio': ['src', 'controls', 'autoplay', 'loop', 'muted', 'preload', 'data*'],
         'source': ['src', 'type', 'media'],
         'track': ['src', 'kind', 'srclang', 'label', 'default'],
-        'archive': ['src', 'data*']
+        'archive': ['src', 'data*'],
+        'span': ['data-toc-id', 'style', 'className']
     },
     protocols: {
         'href': ['http', 'https', 'mailto'],
@@ -38,50 +38,10 @@ const rehypeSanitizeSchema = {
     clobberPrefix: 'user-content-',
     clobber: ['name', 'id']
 };
+
 const isSafeUrl = (url) => {
     if (!url) return false;
     return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
-};
-
-const processLineBreaks = (text) => {
-    const codeBlocks = [];
-    const placeholder = '___CODE_BLOCK___';
-
-    let processedText = text.replace(/```[\s\S]*?```/g, (match) => {
-        codeBlocks.push(match);
-        return `${placeholder}${codeBlocks.length - 1}${placeholder}`;
-    });
-
-    const inlineCodes = [];
-    processedText = processedText.replace(/`[^`\n]+`/g, (match) => {
-        inlineCodes.push(match);
-        return `___INLINE_CODE___${inlineCodes.length - 1}___INLINE_CODE___`;
-    });
-
-    processedText = processedText
-        .replace(/\n(\s*\n){2,}/g, (match) => {
-            const newlines = match.match(/\n/g)?.length || 0;
-            return '\n' + '&nbsp;\n'.repeat(newlines - 1);
-        })
-        .replace(/\n\s*\n/g, '\n\n&nbsp;\n')
-        .replace(/\n/g, '  \n');
-
-
-    inlineCodes.forEach((code, index) => {
-        processedText = processedText.replace(
-            `___INLINE_CODE___${index}___INLINE_CODE___`,
-            code
-        );
-    });
-
-    codeBlocks.forEach((block, index) => {
-        processedText = processedText.replace(
-            `${placeholder}${index}${placeholder}`,
-            block
-        );
-    });
-
-    return processedText;
 };
 
 
@@ -92,30 +52,20 @@ const sanitizeHtmlContent = (content) => {
     const dangerousBlocks = [];
 
     const dangerousPatterns = [
-        // meta标签
         { pattern: /<meta[^>]*>/gi, label: 'Meta标签' },
-        // script标签及其内容
         { pattern: /<script[^>]*>[\s\S]*?<\/script>/gi, label: 'JavaScript代码' },
-        // iframe标签
         { pattern: /<iframe[^>]*>[\s\S]*?<\/iframe>/gi, label: 'IFrame嵌入' },
-        // object和embed 标签
         { pattern: /<(object|embed)[^>]*>[\s\S]*?<\/\1>/gi, label: '嵌入对象' },
-        // link标签
         { pattern: /<link[^>]*>/gi, label: 'Link标签' },
-        // style标签及其内容
         { pattern: /<style[^>]*>[\s\S]*?<\/style>/gi, label: 'CSS样式' },
-        // form标签
         { pattern: /<\/?form[^>]*>/gi, label: '表单标签' },
-        // 表单元素
         { pattern: /<(input|button|textarea|select|option)[^>]*>/gi, label: '表单元素' },
-        // base标签
         { pattern: /<base[^>]*>/gi, label: 'Base标签' }
     ];
 
     dangerousPatterns.forEach(({ pattern, label }) => {
         const matches = [];
         let match;
-
         pattern.lastIndex = 0;
 
         while ((match = pattern.exec(processedContent)) !== null) {
@@ -128,13 +78,11 @@ const sanitizeHtmlContent = (content) => {
 
         matches.reverse().forEach(({ code, index, length }) => {
             const placeholder = `__DANGEROUS_BLOCK_${dangerousBlocks.length}__`;
-
             dangerousBlocks.push({
                 code: code,
                 label: label,
                 placeholder: placeholder
             });
-
             processedContent = processedContent.substring(0, index) +
                 placeholder +
                 processedContent.substring(index + length);
@@ -142,7 +90,6 @@ const sanitizeHtmlContent = (content) => {
     });
 
     processedContent = processedContent
-        // 处理危险协议
         .replace(/javascript:/gi, 'about:blank#')
         .replace(/vbscript:/gi, 'about:blank#')
         .replace(/data:(?!image\/(png|jpg|jpeg|gif|svg\+xml|webp))[^"']*/gi, 'about:blank#')
@@ -206,7 +153,6 @@ function useTheme() {
             const saved = localStorage.getItem('theme');
             const shouldBeDark = saved === 'dark';
             const currentIsDark = document.documentElement.classList.contains('dark');
-
             setIsDark(currentIsDark);
         };
 
@@ -238,71 +184,6 @@ export default function ArticlePreview({ article }) {
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [articleImages, setArticleImages] = useState([]);
-    const CodeBlock = ({ className, children, ...props }) => {
-        const match = /language-(\w+)/.exec(className || "");
-        const codeString = String(children).replace(/\n$/, "");
-        const [localCopied, setLocalCopied] = useState(false);
-
-        const handleCopyCode = async () => {
-            try {
-                await navigator.clipboard.writeText(codeString);
-                setLocalCopied(true);
-                setTimeout(() => {
-                    setLocalCopied(false);
-                }, 2000);
-            } catch (err) {
-                console.error('复制失败:', err);
-            }
-        };
-
-        return match ? (
-            <div className="my-4 react-syntax-highlighter relative group" key={`code-${renderKey}`}>
-                <button
-                    onClick={handleCopyCode}
-                    className="absolute right-2 top-2 p-2 bg-gray-200 hover:bg-gray-100 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200 z-10"
-                    title="复制代码"
-                >
-                    <div className="relative w-4 h-4">
-                        <Copy
-                            className={`h-4 w-4 text-gray-600 absolute inset-0 transition-all duration-300 ${
-                                localCopied
-                                    ? 'opacity-0 scale-0 rotate-90'
-                                    : 'opacity-100 scale-100 rotate-0'
-                            }`}
-                        />
-                        <Check
-                            className={`h-4 w-4 text-green-600 absolute inset-0 transition-all duration-300 ${
-                                localCopied
-                                    ? 'opacity-100 scale-100 rotate-0'
-                                    : 'opacity-0 scale-0 -rotate-90'
-                            }`}
-                        />
-                    </div>
-                </button>
-                <SyntaxHighlighter
-                    style={syntaxStyle}
-                    language={match[1]}
-                    PreTag="div"
-                    className="rounded-lg shadow-sm"
-                    {...props}
-                >
-                    {codeString}
-                </SyntaxHighlighter>
-            </div>
-        ) : (
-            <code
-                className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-gray-800 inline-block align-text-bottom max-w-full overflow-x-auto"
-                style={{
-                    whiteSpace: 'pre',
-                    scrollbarWidth: 'thin'
-                }}
-                {...props}
-            >
-                {children}
-            </code>
-        );
-    };
-
 
     useEffect(() => {
         setRenderKey(prev => prev + 1);
@@ -358,6 +239,107 @@ export default function ArticlePreview({ article }) {
         }
     };
 
+    const CodeBlock = ({ className, children, ...props }) => {
+        const match = /language-(\w+)/.exec(className || "");
+        const codeString = String(children).replace(/\n$/, "");
+        const [localCopied, setLocalCopied] = useState(false);
+
+        const handleCopyCode = async () => {
+            try {
+                await navigator.clipboard.writeText(codeString);
+                setLocalCopied(true);
+                setTimeout(() => {
+                    setLocalCopied(false);
+                }, 2000);
+            } catch (err) {
+                console.error('复制失败:', err);
+            }
+        };
+
+        return match ? (
+            <div className="my-4 react-syntax-highlighter relative group">
+                <button
+                    onClick={handleCopyCode}
+                    className="absolute right-2 top-2 p-2 bg-gray-200 hover:bg-gray-100 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200 z-10"
+                    title="复制代码"
+                >
+                    <div className="relative w-4 h-4">
+                        <Copy
+                            className={`h-4 w-4 text-gray-600 absolute inset-0 transition-all duration-300 ${
+                                localCopied
+                                    ? 'opacity-0 scale-0 rotate-90'
+                                    : 'opacity-100 scale-100 rotate-0'
+                            }`}
+                        />
+                        <Check
+                            className={`h-4 w-4 text-green-600 absolute inset-0 transition-all duration-300 ${
+                                localCopied
+                                    ? 'opacity-100 scale-100 rotate-0'
+                                    : 'opacity-0 scale-0 -rotate-90'
+                            }`}
+                        />
+                    </div>
+                </button>
+                <SyntaxHighlighter
+                    style={syntaxStyle}
+                    language={match[1]}
+                    PreTag="div"
+                    className="rounded-lg shadow-sm"
+                    {...props}
+                >
+                    {codeString}
+                </SyntaxHighlighter>
+            </div>
+        ) : (
+            <code
+                className="bg-gray-100 px-2 py-1 rounded text-sm font-mono text-gray-800 inline-block align-text-bottom max-w-full overflow-x-auto"
+                style={{
+                    whiteSpace: 'pre',
+                    scrollbarWidth: 'thin'
+                }}
+                {...props}
+            >
+                {children}
+            </code>
+        );
+    };
+
+    useEffect(() => {
+        const setHeadingIds = () => {
+            const articleContent = document.querySelector('.article-content');
+            if (!articleContent) {
+                setTimeout(setHeadingIds, 100);
+                return;
+            }
+
+            const markers = articleContent.querySelectorAll('span[data-toc-id]');
+            console.log('Found markers:', markers.length);
+
+            if (markers.length === 0) {
+                setTimeout(setHeadingIds, 100);
+                return;
+            }
+
+            markers.forEach(marker => {
+                const id = marker.getAttribute('data-toc-id');
+                const heading = marker.closest('h1, h2, h3, h4, h5, h6');
+                if (heading && id) {
+                    heading.id = id;
+                    console.log('Set ID:', id, 'to', heading.tagName);
+                }
+            });
+
+            const allHeadings = articleContent.querySelectorAll('h1, h2, h3, h4, h5, h6');
+            console.log('All heading IDs:', Array.from(allHeadings).map(h => h.id).filter(id => id));
+
+            window.dispatchEvent(new Event('article-headings-ready'));
+        };
+
+        setTimeout(setHeadingIds, 50);
+        setTimeout(setHeadingIds, 200);
+        setTimeout(setHeadingIds, 500);
+    }, [article?.article_content, renderKey]);
+
     const renderMarkdownComponents = useMemo(() => ({
         h1: (props) => (
             <h1 className="text-3xl font-bold mt-6 mb-4 text-gray-900" {...props} />
@@ -409,7 +391,6 @@ export default function ArticlePreview({ article }) {
         hr: (props) => (
             <hr className="my-6 border-gray-300" {...props} />
         ),
-
         code: CodeBlock,
         a: ({ href, children, ...props }) => {
             if (!isSafeUrl(href)) {
@@ -430,8 +411,6 @@ export default function ArticlePreview({ article }) {
         img: ({ src, alt, ...props }) => {
             if (!isSafeUrl(src)) return null;
             const fullSrc = getFullImageUrl(src);
-
-            // 找到这张图片在文章图片数组中的索引
             const imageIndex = articleImages.findIndex(img => img.src === fullSrc);
 
             return (
@@ -579,37 +558,81 @@ export default function ArticlePreview({ article }) {
                 </div>
             );
         },
-    }), [renderKey, syntaxStyle, articleImages, CodeBlock]);
+    }), [syntaxStyle, articleImages, CodeBlock]);
 
     const isMarkdownContent = (content) => {
         if (!content) return false;
 
         const markdownPatterns = [
-            /^#{1,6}\s/m,           // 标题
-            /\*\*.*\*\*/,           // 粗体
-            /\*.*\*/,               // 斜体
-            /\[.*\]\(.*\)/,         // 链接
-            /!\[.*\]\(.*\)/,        // 图片
-            /^>\s/m,                // 引用
-            /^[-*+]\s/m,            // 无序列表
-            /^\d+\.\s/m,            // 有序列表
-            /```[\s\S]*```/,        // 代码块
-            /`.*`/,                 // 内联代码
-            /<audio[^>]*>/i,        // 音频标签
-            /<archive[^>]*>/i,      // 压缩包标签
+            /^#{1,6}\s/m,
+            /\*\*.*\*\*/,
+            /\*.*\*/,
+            /\[.*\]\(.*\)/,
+            /!\[.*\]\(.*\)/,
+            /^>\s/m,
+            /^[-*+]\s/m,
+            /^\d+\.\s/m,
+            /```[\s\S]*```/,
+            /`.*`/,
+            /<audio[^>]*>/i,
+            /<archive[^>]*>/i,
         ];
 
         return markdownPatterns.some(pattern => pattern.test(content));
+    };
+
+    const preprocessMarkdown = (text) => {
+        if (!text) return '';
+
+        const codeBlockRegex = /(```[\s\S]*?```|`[^`\n]+`)/g;
+        const parts = [];
+        let lastIndex = 0;
+        let match;
+
+        while ((match = codeBlockRegex.exec(text)) !== null) {
+            if (match.index > lastIndex) {
+                const normalText = text.substring(lastIndex, match.index);
+                parts.push({ type: 'text', content: normalText });
+            }
+
+            parts.push({ type: 'code', content: match[0] });
+            lastIndex = match.index + match[0].length;
+        }
+
+        if (lastIndex < text.length) {
+            const normalText = text.substring(lastIndex);
+            parts.push({ type: 'text', content: normalText });
+        }
+
+        return parts.map(part => {
+            if (part.type === 'text') {
+
+                return part.content.replace(/([^\n])\n(?!\n)/g, '$1  \n');
+            }
+            return part.content;
+        }).join('');
     };
 
     const renderArticleContent = (content) => {
         if (!content) return null;
 
         if (isMarkdownContent(content)) {
+            let processedContent = content;
+            const counters = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+
+            processedContent = processedContent.replace(/^(#{1,6})\s+(.+)$/gm, (match, hashes, title) => {
+                const level = hashes.length;
+                const id = `toc-${level}-${counters[level]}`;
+                counters[level]++;
+                return `${hashes} <span data-toc-id="${id}" style="display:none;"></span>${title}`;
+            });
+
+            processedContent = preprocessMarkdown(processedContent);
+
             return (
                 <div className="markdown-content" key={`markdown-${renderKey}`}>
                     <ReactMarkdown
-                        children={processLineBreaks(content)}
+                        children={processedContent}
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeRaw, [rehypeSanitize, rehypeSanitizeSchema]]}
                         components={renderMarkdownComponents}
@@ -666,8 +689,6 @@ export default function ArticlePreview({ article }) {
                     </>
                 )}
             </div>
-
-
 
             <div className="article-content break-words break-all whitespace-normal">
                 {renderArticleContent(article.article_content)}

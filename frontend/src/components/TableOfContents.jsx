@@ -38,13 +38,16 @@ export default function TableOfContents({ article }) {
         const parseHeadings = (content) => {
             const headingRegex = /^(#{1,6})\s+(.+)$/gm;
             const parsed = [];
+            const counters = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
             let match;
 
             while ((match = headingRegex.exec(content)) !== null) {
                 const level = match[1].length;
                 const rawText = match[2].trim();
                 const cleanText = cleanHeadingText(rawText);
-                const id = `toc-${level}-${parsed.length}-${Math.random().toString(36).substring(2, 8)}`;
+
+                const id = `toc-${level}-${counters[level]}`;
+                counters[level]++;
 
                 parsed.push({
                     id,
@@ -63,26 +66,43 @@ export default function TableOfContents({ article }) {
 
         const updateHeadingElements = () => {
             const articleContent = document.querySelector('.article-content');
-            if (!articleContent) return;
+            if (!articleContent) {
+                setTimeout(updateHeadingElements, 100);
+                return;
+            }
 
             const allHeadings = Array.from(articleContent.querySelectorAll('h1, h2, h3, h4, h5, h6'));
-            newHeadings.forEach((heading, i) => {
-                if (allHeadings[i]) {
-                    allHeadings[i].id = heading.id;
-                }
-            });
+            headingElementsRef.current = allHeadings.filter(h => h.id && h.id.startsWith('toc-'));
 
-            headingElementsRef.current = allHeadings;
+            console.log('Found headings:', headingElementsRef.current.length);
+            console.log('Heading IDs:', headingElementsRef.current.map(h => h.id));
         };
 
-        const timer = setTimeout(updateHeadingElements, 500);
+        setTimeout(updateHeadingElements, 100);
+        setTimeout(updateHeadingElements, 300);
+        setTimeout(updateHeadingElements, 500);
 
-        const handleThemeChange = () => setTimeout(updateHeadingElements, 100);
+        const handleThemeChange = () => {
+            setTimeout(() => {
+                const articleContent = document.querySelector('.article-content');
+                if (articleContent) {
+                    const allHeadings = Array.from(articleContent.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+                    headingElementsRef.current = allHeadings.filter(h => h.id && h.id.startsWith('toc-'));
+                }
+            }, 100);
+        };
+
+        const handleArticleReady = () => {
+            console.log('Article headings ready event received');
+            setTimeout(updateHeadingElements, 100);
+        };
+
         window.addEventListener('theme-change', handleThemeChange);
+        window.addEventListener('article-headings-ready', handleArticleReady);
 
         return () => {
-            clearTimeout(timer);
             window.removeEventListener('theme-change', handleThemeChange);
+            window.removeEventListener('article-headings-ready', handleArticleReady);
         };
     }, [article]);
 
@@ -91,10 +111,6 @@ export default function TableOfContents({ article }) {
 
         const handleScroll = () => {
             if (isScrollingRef.current) {
-                clearTimeout(isScrollingRef.current);
-                isScrollingRef.current = setTimeout(() => {
-                    isScrollingRef.current = false;
-                }, 100);
                 return;
             }
 
@@ -109,30 +125,44 @@ export default function TableOfContents({ article }) {
                 }
             }
 
-            setActiveId(current);
+            if (current !== activeId) {
+                setActiveId(current);
+            }
         };
 
         window.addEventListener('scroll', handleScroll);
         handleScroll();
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [headings]);
+    }, [headings, activeId]);
 
     const scrollToHeading = (index) => {
         const heading = headings[index];
-        if (!heading) return;
-
-        const element = document.getElementById(heading.id);
-        if (element) {
-            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-            const offsetPosition = elementPosition - 120;
-
-            isScrollingRef.current = true;
-            window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+        if (!heading) {
+            console.log('Heading not found at index:', index);
+            return;
         }
 
+        console.log('Trying to scroll to:', heading.id);
+        const element = document.getElementById(heading.id);
+
+        if (!element) {
+            console.log('Element not found for ID:', heading.id);
+            console.log('Available elements:', headingElementsRef.current.map(h => h.id));
+            return;
+        }
+
+        console.log('Found element, scrolling...');
+        const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+        const offsetPosition = elementPosition - 120;
+
+        isScrollingRef.current = true;
+        window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+
+        setActiveId(heading.id);
+
         setTimeout(() => {
-            setActiveId(heading.id);
-        }, 100);
+            isScrollingRef.current = false;
+        }, 1000);
     };
 
     const toggleCollapse = () => {
@@ -150,7 +180,6 @@ export default function TableOfContents({ article }) {
                 </div>
                 <div className="p-4">
                     <nav className="space-y-1 max-h-96 overflow-y-auto">
-
                         <button
                             onClick={toggleCollapse}
                             className="w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-center justify-between text-sm text-gray-800 font-medium hover:bg-gray-50"
@@ -192,7 +221,6 @@ export default function TableOfContents({ article }) {
                         </span>
                         {isCollapsed ? <ChevronDown className="h-4 w-4 text-gray-500" /> : <ChevronUp className="h-4 w-4 text-gray-500" />}
                     </button>
-
 
                     {isCollapsed ? (
                         <div className="text-center text-gray-500 py-4 text-sm">

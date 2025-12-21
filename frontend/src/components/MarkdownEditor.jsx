@@ -634,44 +634,37 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         }
     };
 
-    const processLineBreaks = (text) => {
-        const codeBlocks = [];
-        const placeholder = '___CODE_BLOCK___';
+    const preprocessMarkdown = (text) => {
+        if (!text) return '';
 
-        let processedText = text.replace(/```[\s\S]*?```/g, (match) => {
-            codeBlocks.push(match);
-            return `${placeholder}${codeBlocks.length - 1}${placeholder}`;
-        });
+        const codeBlockRegex = /(```[\s\S]*?```|`[^`\n]+`)/g;
+        const parts = [];
+        let lastIndex = 0;
+        let match;
 
-        const inlineCodes = [];
-        processedText = processedText.replace(/`[^`\n]+`/g, (match) => {
-            inlineCodes.push(match);
-            return `___INLINE_CODE___${inlineCodes.length - 1}___INLINE_CODE___`;
-        });
+        while ((match = codeBlockRegex.exec(text)) !== null) {
 
-        processedText = processedText
-            .replace(/\n(\s*\n){2,}/g, (match) => {
-                const newlines = match.match(/\n/g)?.length || 0;
-                return '\n' + '&nbsp;\n'.repeat(newlines - 1);
-            })
-            .replace(/\n\s*\n/g, '\n\n&nbsp;\n')
-            .replace(/\n/g, '  \n');
+            if (match.index > lastIndex) {
+                const normalText = text.substring(lastIndex, match.index);
+                parts.push({ type: 'text', content: normalText });
+            }
 
-        inlineCodes.forEach((code, index) => {
-            processedText = processedText.replace(
-                `___INLINE_CODE___${index}___INLINE_CODE___`,
-                code
-            );
-        });
+            parts.push({ type: 'code', content: match[0] });
+            lastIndex = match.index + match[0].length;
+        }
 
-        codeBlocks.forEach((block, index) => {
-            processedText = processedText.replace(
-                `${placeholder}${index}${placeholder}`,
-                block
-            );
-        });
+        if (lastIndex < text.length) {
+            const normalText = text.substring(lastIndex);
+            parts.push({ type: 'text', content: normalText });
+        }
 
-        return processedText;
+        return parts.map(part => {
+            if (part.type === 'text') {
+
+                return part.content.replace(/([^\n])\n(?!\n)/g, '$1  \n');
+            }
+            return part.content;
+        }).join('');
     };
 
     const renderMarkdownComponents = {
@@ -966,7 +959,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
 
                 <div className="w-1/2 p-4 overflow-y-auto bg-white text-gray-900">
                     <ReactMarkdown
-                        children={processLineBreaks(content)}
+                        children={preprocessMarkdown(content)}
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeRaw, [rehypeSanitize, rehypeSanitizeSchema]]}
                         components={renderMarkdownComponents}
