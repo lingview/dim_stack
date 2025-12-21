@@ -29,6 +29,7 @@ export default function TableOfContents({ article }) {
         return text.trim();
     };
 
+
     useEffect(() => {
         if (!article?.article_content) {
             setHeadings([]);
@@ -66,48 +67,47 @@ export default function TableOfContents({ article }) {
 
         const updateHeadingElements = () => {
             const articleContent = document.querySelector('.article-content');
-            if (!articleContent) {
-                setTimeout(updateHeadingElements, 100);
-                return;
-            }
+            if (!articleContent) return;
 
-            const allHeadings = Array.from(articleContent.querySelectorAll('h1, h2, h3, h4, h5, h6'));
-            headingElementsRef.current = allHeadings.filter(h => h.id && h.id.startsWith('toc-'));
+            const headingElements = newHeadings.map(heading =>
+                document.getElementById(heading.id)
+            ).filter(Boolean);
 
-            console.log('Found headings:', headingElementsRef.current.length);
-            console.log('Heading IDs:', headingElementsRef.current.map(h => h.id));
+            headingElementsRef.current = headingElements;
         };
+
+        const observer = new MutationObserver(() => {
+            updateHeadingElements();
+        });
+
+        const articleContentContainer = document.querySelector('.article-content');
+        if (articleContentContainer) {
+            observer.observe(articleContentContainer, {
+                childList: true,
+                subtree: true
+            });
+        }
 
         setTimeout(updateHeadingElements, 100);
-        setTimeout(updateHeadingElements, 300);
         setTimeout(updateHeadingElements, 500);
 
-        const handleThemeChange = () => {
-            setTimeout(() => {
-                const articleContent = document.querySelector('.article-content');
-                if (articleContent) {
-                    const allHeadings = Array.from(articleContent.querySelectorAll('h1, h2, h3, h4, h5, h6'));
-                    headingElementsRef.current = allHeadings.filter(h => h.id && h.id.startsWith('toc-'));
-                }
-            }, 100);
-        };
-
-        const handleArticleReady = () => {
-            console.log('Article headings ready event received');
-            setTimeout(updateHeadingElements, 100);
-        };
-
-        window.addEventListener('theme-change', handleThemeChange);
-        window.addEventListener('article-headings-ready', handleArticleReady);
-
         return () => {
-            window.removeEventListener('theme-change', handleThemeChange);
-            window.removeEventListener('article-headings-ready', handleArticleReady);
+            observer.disconnect();
         };
     }, [article]);
 
     useEffect(() => {
         if (headings.length === 0) return;
+
+        const updateHeadingElements = () => {
+            const headingElements = headings.map(heading =>
+                document.getElementById(heading.id)
+            ).filter(Boolean);
+
+            headingElementsRef.current = headingElements;
+        };
+
+        updateHeadingElements();
 
         const handleScroll = () => {
             if (isScrollingRef.current) {
@@ -130,9 +130,16 @@ export default function TableOfContents({ article }) {
             }
         };
 
-        window.addEventListener('scroll', handleScroll);
-        handleScroll();
-        return () => window.removeEventListener('scroll', handleScroll);
+        const scrollTimeout = setTimeout(() => {
+            updateHeadingElements();
+            window.addEventListener('scroll', handleScroll);
+            handleScroll();
+        }, 100);
+
+        return () => {
+            clearTimeout(scrollTimeout);
+            window.removeEventListener('scroll', handleScroll);
+        };
     }, [headings, activeId]);
 
     const scrollToHeading = (index) => {

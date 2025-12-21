@@ -342,38 +342,65 @@ export default function ArticlePreview({ article }) {
         return () => clearTimeout(timer);
     }, [article?.article_content, renderKey]);
 
-    const headingCountersRef = useRef({ h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0 });
-    const renderIdRef = useRef(0);
+    const headingIdsRef = useRef(new Map());
+
+    useEffect(() => {
+        if (article?.article_content) {
+            const counters = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+            const idsMap = new Map();
+
+            const headingRegex = /^(#{1,6})\s+(.+)$/gm;
+            let match;
+            let index = 0;
+
+            while ((match = headingRegex.exec(article.article_content)) !== null) {
+                const level = match[1].length;
+                const id = `toc-${level}-${counters[level]}`;
+                counters[level]++;
+                idsMap.set(index, id);
+                index++;
+            }
+
+            headingIdsRef.current = idsMap;
+        }
+    }, [article?.article_content]);
+
+    const currentHeadingIndexRef = useRef({ h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0 });
+    const totalHeadingIndexRef = useRef(0);
 
     const renderMarkdownComponents = useMemo(() => {
-
-        const currentRenderId = ++renderIdRef.current;
-
-        headingCountersRef.current = { h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0 };
+        currentHeadingIndexRef.current = { h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0 };
+        totalHeadingIndexRef.current = 0;
 
         return {
             h1: (props) => {
-                const id = `toc-1-${headingCountersRef.current.h1++}`;
+                const id = `toc-1-${currentHeadingIndexRef.current.h1++}`;
+                totalHeadingIndexRef.current++;
                 return <h1 id={id} className="text-3xl font-bold mt-6 mb-4 text-gray-900" {...props} />;
             },
             h2: (props) => {
-                const id = `toc-2-${headingCountersRef.current.h2++}`;
+                const id = `toc-2-${currentHeadingIndexRef.current.h2++}`;
+                totalHeadingIndexRef.current++;
                 return <h2 id={id} className="text-2xl font-bold mt-5 mb-3 text-gray-900" {...props} />;
             },
             h3: (props) => {
-                const id = `toc-3-${headingCountersRef.current.h3++}`;
+                const id = `toc-3-${currentHeadingIndexRef.current.h3++}`;
+                totalHeadingIndexRef.current++;
                 return <h3 id={id} className="text-xl font-semibold mt-4 mb-2 text-gray-900" {...props} />;
             },
             h4: (props) => {
-                const id = `toc-4-${headingCountersRef.current.h4++}`;
+                const id = `toc-4-${currentHeadingIndexRef.current.h4++}`;
+                totalHeadingIndexRef.current++;
                 return <h4 id={id} className="text-lg font-semibold mt-3 mb-2 text-gray-900" {...props} />;
             },
             h5: (props) => {
-                const id = `toc-5-${headingCountersRef.current.h5++}`;
+                const id = `toc-5-${currentHeadingIndexRef.current.h5++}`;
+                totalHeadingIndexRef.current++;
                 return <h5 id={id} className="text-base font-semibold mt-3 mb-2 text-gray-900" {...props} />;
             },
             h6: (props) => {
-                const id = `toc-6-${headingCountersRef.current.h6++}`;
+                const id = `toc-6-${currentHeadingIndexRef.current.h6++}`;
+                totalHeadingIndexRef.current++;
                 return <h6 id={id} className="text-sm font-semibold mt-3 mb-2 text-gray-900" {...props} />;
             },
             p: (props) => (
@@ -576,7 +603,7 @@ export default function ArticlePreview({ article }) {
                 );
             }
         };
-    }, [syntaxStyle, articleImages, CodeBlock, article?.article_content, renderKey]);
+    }, [syntaxStyle, articleImages, CodeBlock, article?.article_content]);
 
     const isMarkdownContent = (content) => {
         if (!content) return false;
@@ -601,6 +628,9 @@ export default function ArticlePreview({ article }) {
 
     const renderArticleContent = (content) => {
         if (!content) return null;
+
+        currentHeadingIndexRef.current = { h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0 };
+        totalHeadingIndexRef.current = 0;
 
         if (isMarkdownContent(content)) {
             const processedContent = preprocessMarkdown(content);
