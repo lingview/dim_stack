@@ -44,7 +44,6 @@ const isSafeUrl = (url) => {
     return url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/');
 };
 
-
 const sanitizeHtmlContent = (content) => {
     if (!content) return '';
 
@@ -178,6 +177,37 @@ function useTheme() {
     return isDark;
 }
 
+const preprocessMarkdown = (text) => {
+    if (!text) return '';
+
+    const codeBlockRegex = /(```[\s\S]*?```|`[^`\n]+`)/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = codeBlockRegex.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+            const normalText = text.substring(lastIndex, match.index);
+            parts.push({ type: 'text', content: normalText });
+        }
+
+        parts.push({ type: 'code', content: match[0] });
+        lastIndex = match.index + match[0].length;
+    }
+
+    if (lastIndex < text.length) {
+        const normalText = text.substring(lastIndex);
+        parts.push({ type: 'text', content: normalText });
+    }
+
+    return parts.map(part => {
+        if (part.type === 'text') {
+            return part.content.replace(/([^\n])\n(?!\n)/g, '$1  \n');
+        }
+        return part.content;
+    }).join('');
+};
+
 export default function ArticlePreview({ article }) {
     const isDark = useTheme();
     const [renderKey, setRenderKey] = useState(0);
@@ -305,260 +335,248 @@ export default function ArticlePreview({ article }) {
     };
 
     useEffect(() => {
-        const setHeadingIds = () => {
-            const articleContent = document.querySelector('.article-content');
-            if (!articleContent) {
-                setTimeout(setHeadingIds, 100);
-                return;
-            }
-
-            const markers = articleContent.querySelectorAll('span[data-toc-id]');
-            console.log('Found markers:', markers.length);
-
-            if (markers.length === 0) {
-                setTimeout(setHeadingIds, 100);
-                return;
-            }
-
-            markers.forEach(marker => {
-                const id = marker.getAttribute('data-toc-id');
-                const heading = marker.closest('h1, h2, h3, h4, h5, h6');
-                if (heading && id) {
-                    heading.id = id;
-                    console.log('Set ID:', id, 'to', heading.tagName);
-                }
-            });
-
-            const allHeadings = articleContent.querySelectorAll('h1, h2, h3, h4, h5, h6');
-            console.log('All heading IDs:', Array.from(allHeadings).map(h => h.id).filter(id => id));
-
+        const timer = setTimeout(() => {
             window.dispatchEvent(new Event('article-headings-ready'));
-        };
+        }, 300);
 
-        setTimeout(setHeadingIds, 50);
-        setTimeout(setHeadingIds, 200);
-        setTimeout(setHeadingIds, 500);
+        return () => clearTimeout(timer);
     }, [article?.article_content, renderKey]);
 
-    const renderMarkdownComponents = useMemo(() => ({
-        h1: (props) => (
-            <h1 className="text-3xl font-bold mt-6 mb-4 text-gray-900" {...props} />
-        ),
-        h2: (props) => (
-            <h2 className="text-2xl font-bold mt-5 mb-3 text-gray-900" {...props} />
-        ),
-        h3: (props) => (
-            <h3 className="text-xl font-semibold mt-4 mb-2 text-gray-900" {...props} />
-        ),
-        h4: (props) => (
-            <h4 className="text-lg font-semibold mt-3 mb-2 text-gray-900" {...props} />
-        ),
-        h5: (props) => (
-            <h5 className="text-base font-semibold mt-3 mb-2 text-gray-900" {...props} />
-        ),
-        h6: (props) => (
-            <h6 className="text-sm font-semibold mt-3 mb-2 text-gray-900" {...props} />
-        ),
-        p: (props) => (
-            <p className="mb-3 leading-relaxed text-gray-700" {...props} />
-        ),
-        ul: (props) => (
-            <ul className="list-disc list-inside mb-4 space-y-1 text-gray-700" {...props} />
-        ),
-        ol: (props) => (
-            <ol className="list-decimal list-inside mb-4 space-y-1 text-gray-700" {...props} />
-        ),
-        li: (props) => (
-            <li className="mb-1 text-gray-700 leading-relaxed" {...props} />
-        ),
-        blockquote: (props) => (
-            <blockquote className="border-l-4 border-blue-500 pl-4 italic my-4 text-gray-600 bg-gray-50 py-2 rounded-r" {...props} />
-        ),
-        table: (props) => (
-            <div className="overflow-x-auto my-4">
-                <table className="min-w-full border-collapse border border-gray-300" {...props} />
-            </div>
-        ),
-        thead: (props) => (
-            <thead className="bg-gray-100" {...props} />
-        ),
-        th: (props) => (
-            <th className="border border-gray-300 px-4 py-2 text-left font-semibold text-gray-900" {...props} />
-        ),
-        td: (props) => (
-            <td className="border border-gray-300 px-4 py-2 text-gray-700" {...props} />
-        ),
-        hr: (props) => (
-            <hr className="my-6 border-gray-300" {...props} />
-        ),
-        code: CodeBlock,
-        a: ({ href, children, ...props }) => {
-            if (!isSafeUrl(href)) {
-                return <span className="text-gray-500" {...props}>{children}</span>;
-            }
-            return (
-                <a
-                    href={href}
-                    className="text-blue-600 hover:underline hover:text-blue-500 transition-colors break-words"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    {...props}
-                >
-                    {children}
-                </a>
-            );
-        },
-        img: ({ src, alt, ...props }) => {
-            if (!isSafeUrl(src)) return null;
-            const fullSrc = getFullImageUrl(src);
-            const imageIndex = articleImages.findIndex(img => img.src === fullSrc);
+    const headingCountersRef = useRef({ h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0 });
+    const renderIdRef = useRef(0);
 
-            return (
-                <span className="inline-block my-4">
-                    <img
-                        src={fullSrc}
-                        alt={alt || '图片'}
-                        className="rounded-lg shadow-sm cursor-pointer border border-gray-200 hover:shadow-md transition-shadow"
-                        style={{
-                            maxHeight: "400px",
-                            maxWidth: "100%",
-                            height: "auto",
-                            width: "auto",
-                            objectFit: "contain",
-                        }}
-                        onClick={() => {
-                            if (imageIndex >= 0) {
-                                setCurrentImageIndex(imageIndex);
-                            }
-                            setLightboxOpen(true);
-                        }}
-                        title="点击查看大图"
-                        onError={(e) => {
-                            e.target.src = '/image_error.svg';
-                            e.target.alt = '图片加载失败';
-                        }}
-                        {...props}
-                    />
-                </span>
-            );
-        },
-        video: ({ src, controls = true, ...props }) => {
-            if (!isSafeUrl(src)) return null;
-            const fullSrc = getFullImageUrl(src);
+    const renderMarkdownComponents = useMemo(() => {
 
-            return (
-                <div className="my-4 flex">
-                    <video
-                        src={fullSrc}
-                        controls={controls}
-                        className="rounded-lg shadow-sm border border-gray-200"
-                        style={{ maxWidth: "100%", maxHeight: "400px" }}
+        const currentRenderId = ++renderIdRef.current;
+
+        headingCountersRef.current = { h1: 0, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0 };
+
+        return {
+            h1: (props) => {
+                const id = `toc-1-${headingCountersRef.current.h1++}`;
+                return <h1 id={id} className="text-3xl font-bold mt-6 mb-4 text-gray-900" {...props} />;
+            },
+            h2: (props) => {
+                const id = `toc-2-${headingCountersRef.current.h2++}`;
+                return <h2 id={id} className="text-2xl font-bold mt-5 mb-3 text-gray-900" {...props} />;
+            },
+            h3: (props) => {
+                const id = `toc-3-${headingCountersRef.current.h3++}`;
+                return <h3 id={id} className="text-xl font-semibold mt-4 mb-2 text-gray-900" {...props} />;
+            },
+            h4: (props) => {
+                const id = `toc-4-${headingCountersRef.current.h4++}`;
+                return <h4 id={id} className="text-lg font-semibold mt-3 mb-2 text-gray-900" {...props} />;
+            },
+            h5: (props) => {
+                const id = `toc-5-${headingCountersRef.current.h5++}`;
+                return <h5 id={id} className="text-base font-semibold mt-3 mb-2 text-gray-900" {...props} />;
+            },
+            h6: (props) => {
+                const id = `toc-6-${headingCountersRef.current.h6++}`;
+                return <h6 id={id} className="text-sm font-semibold mt-3 mb-2 text-gray-900" {...props} />;
+            },
+            p: (props) => (
+                <p className="mb-3 leading-relaxed text-gray-700" {...props} />
+            ),
+            ul: (props) => (
+                <ul className="list-disc list-inside mb-4 space-y-1 text-gray-700" {...props} />
+            ),
+            ol: (props) => (
+                <ol className="list-decimal list-inside mb-4 space-y-1 text-gray-700" {...props} />
+            ),
+            li: (props) => (
+                <li className="mb-1 text-gray-700 leading-relaxed" {...props} />
+            ),
+            blockquote: (props) => (
+                <blockquote className="border-l-4 border-blue-500 pl-4 italic my-4 text-gray-600 bg-gray-50 py-2 rounded-r" {...props} />
+            ),
+            table: (props) => (
+                <div className="overflow-x-auto my-4">
+                    <table className="min-w-full border-collapse border border-gray-300" {...props} />
+                </div>
+            ),
+            thead: (props) => (
+                <thead className="bg-gray-100" {...props} />
+            ),
+            th: (props) => (
+                <th className="border border-gray-300 px-4 py-2 text-left font-semibold text-gray-900" {...props} />
+            ),
+            td: (props) => (
+                <td className="border border-gray-300 px-4 py-2 text-gray-700" {...props} />
+            ),
+            hr: (props) => (
+                <hr className="my-6 border-gray-300" {...props} />
+            ),
+            code: CodeBlock,
+            a: ({ href, children, ...props }) => {
+                if (!isSafeUrl(href)) {
+                    return <span className="text-gray-500" {...props}>{children}</span>;
+                }
+                return (
+                    <a
+                        href={href}
+                        className="text-blue-600 hover:underline hover:text-blue-500 transition-colors break-words"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         {...props}
                     >
-                        您的浏览器不支持视频播放。
-                    </video>
-                </div>
-            );
-        },
-        audio: ({ src, controls = true, preload = "metadata", ...props }) => {
-            if (!isSafeUrl(src)) return null;
+                        {children}
+                    </a>
+                );
+            },
+            img: ({ src, alt, ...props }) => {
+                if (!isSafeUrl(src)) return null;
+                const fullSrc = getFullImageUrl(src);
+                const imageIndex = articleImages.findIndex(img => img.src === fullSrc);
 
-            let fileName = props['data-filename'];
+                return (
+                    <span className="inline-block my-4">
+                        <img
+                            src={fullSrc}
+                            alt={alt || '图片'}
+                            className="rounded-lg shadow-sm cursor-pointer border border-gray-200 hover:shadow-md transition-shadow"
+                            style={{
+                                maxHeight: "400px",
+                                maxWidth: "100%",
+                                height: "auto",
+                                width: "auto",
+                                objectFit: "contain",
+                            }}
+                            onClick={() => {
+                                if (imageIndex >= 0) {
+                                    setCurrentImageIndex(imageIndex);
+                                }
+                                setLightboxOpen(true);
+                            }}
+                            title="点击查看大图"
+                            onError={(e) => {
+                                e.target.src = '/image_error.svg';
+                                e.target.alt = '图片加载失败';
+                            }}
+                            {...props}
+                        />
+                    </span>
+                );
+            },
+            video: ({ src, controls = true, ...props }) => {
+                if (!isSafeUrl(src)) return null;
+                const fullSrc = getFullImageUrl(src);
 
-            if (!fileName && src.includes('?filename=')) {
-                try {
-                    const url = new URL(src.startsWith('http') ? src : `http://dummy${src}`);
-                    fileName = decodeURIComponent(url.searchParams.get('filename') || '');
-                } catch (e) {
-                    console.error('解析 URL 失败:', e);
-                }
-            }
-
-            if (!fileName) {
-                fileName = src.split("/").pop()?.split("?")[0] || "音频文件";
-            }
-
-            const fullSrc = getFullImageUrl(src);
-
-            return (
-                <div className="my-4 p-4 bg-gray-100 border border-gray-200 rounded-xl shadow-sm max-w-lg">
-                    <div className="flex items-center mb-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
-                            <Music className="h-4 w-4 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-gray-900 truncate" title={fileName}>
-                                {fileName}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                                音频文件
-                            </div>
-                        </div>
-                    </div>
-                    <audio
-                        src={fullSrc}
-                        controls={controls}
-                        preload={preload}
-                        className="w-full rounded-md"
-                        style={{ height: "40px", outline: "none" }}
-                        {...props}
-                    >
-                        您的浏览器不支持音频播放。
-                    </audio>
-                </div>
-            );
-        },
-        source: ({ src, type, ...props }) => {
-            if (!isSafeUrl(src)) return null;
-            const fullSrc = getFullImageUrl(src);
-            return <source src={fullSrc} type={type} {...props} />;
-        },
-        archive: ({ src, ...props }) => {
-            if (!isSafeUrl(src)) return null;
-
-            let displayName = props['data-filename'];
-
-            if (!displayName && src.includes('?filename=')) {
-                try {
-                    const url = new URL(src.startsWith('http') ? src : `http://dummy${src}`);
-                    displayName = decodeURIComponent(url.searchParams.get('filename') || '');
-                } catch (e) {
-                    console.error('解析 URL 失败:', e);
-                }
-            }
-
-            if (!displayName) {
-                displayName = src.split("/").pop()?.split("?")[0] || "压缩文件";
-            }
-
-            const fullSrc = getFullImageUrl(src);
-
-            return (
-                <div className="my-4 p-4 bg-white border border-gray-200 rounded-xl shadow-sm max-w-lg">
-                    <div className="flex items-center mb-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-blue-300 rounded-full flex items-center justify-center mr-3">
-                            <FileText className="h-4 w-4 text-gray-800" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-gray-700 truncate" title={displayName}>
-                                {displayName}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                                压缩文件
-                            </div>
-                        </div>
-                        <a
-                            href={fullSrc}
-                            download={displayName}
-                            className="ml-2 px-3 py-1 bg-blue-300 text-gray-800 text-xs rounded-md hover:bg-blue-400"
+                return (
+                    <div className="my-4 flex">
+                        <video
+                            src={fullSrc}
+                            controls={controls}
+                            className="rounded-lg shadow-sm border border-gray-200"
+                            style={{ maxWidth: "100%", maxHeight: "400px" }}
+                            {...props}
                         >
-                            下载
-                        </a>
+                            您的浏览器不支持视频播放。
+                        </video>
                     </div>
-                </div>
-            );
-        },
-    }), [syntaxStyle, articleImages, CodeBlock]);
+                );
+            },
+            audio: ({ src, controls = true, preload = "metadata", ...props }) => {
+                if (!isSafeUrl(src)) return null;
+
+                let fileName = props['data-filename'];
+
+                if (!fileName && src.includes('?filename=')) {
+                    try {
+                        const url = new URL(src.startsWith('http') ? src : `http://dummy${src}`);
+                        fileName = decodeURIComponent(url.searchParams.get('filename') || '');
+                    } catch (e) {
+                        console.error('解析 URL 失败:', e);
+                    }
+                }
+
+                if (!fileName) {
+                    fileName = src.split("/").pop()?.split("?")[0] || "音频文件";
+                }
+
+                const fullSrc = getFullImageUrl(src);
+
+                return (
+                    <div className="my-4 p-4 bg-gray-100 border border-gray-200 rounded-xl shadow-sm max-w-lg">
+                        <div className="flex items-center mb-3">
+                            <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
+                                <Music className="h-4 w-4 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-gray-900 truncate" title={fileName}>
+                                    {fileName}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                    音频文件
+                                </div>
+                            </div>
+                        </div>
+                        <audio
+                            src={fullSrc}
+                            controls={controls}
+                            preload={preload}
+                            className="w-full rounded-md"
+                            style={{ height: "40px", outline: "none" }}
+                            {...props}
+                        >
+                            您的浏览器不支持音频播放。
+                        </audio>
+                    </div>
+                );
+            },
+            source: ({ src, type, ...props }) => {
+                if (!isSafeUrl(src)) return null;
+                const fullSrc = getFullImageUrl(src);
+                return <source src={fullSrc} type={type} {...props} />;
+            },
+            archive: ({ src, ...props }) => {
+                if (!isSafeUrl(src)) return null;
+
+                let displayName = props['data-filename'];
+
+                if (!displayName && src.includes('?filename=')) {
+                    try {
+                        const url = new URL(src.startsWith('http') ? src : `http://dummy${src}`);
+                        displayName = decodeURIComponent(url.searchParams.get('filename') || '');
+                    } catch (e) {
+                        console.error('解析 URL 失败:', e);
+                    }
+                }
+
+                if (!displayName) {
+                    displayName = src.split("/").pop()?.split("?")[0] || "压缩文件";
+                }
+
+                const fullSrc = getFullImageUrl(src);
+
+                return (
+                    <div className="my-4 p-4 bg-white border border-gray-200 rounded-xl shadow-sm max-w-lg">
+                        <div className="flex items-center mb-3">
+                            <div className="flex-shrink-0 w-8 h-8 bg-blue-300 rounded-full flex items-center justify-center mr-3">
+                                <FileText className="h-4 w-4 text-gray-800" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-gray-700 truncate" title={displayName}>
+                                    {displayName}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                    压缩文件
+                                </div>
+                            </div>
+                            <a
+                                href={fullSrc}
+                                download={displayName}
+                                className="ml-2 px-3 py-1 bg-blue-300 text-gray-800 text-xs rounded-md hover:bg-blue-400"
+                            >
+                                下载
+                            </a>
+                        </div>
+                    </div>
+                );
+            }
+        };
+    }, [syntaxStyle, articleImages, CodeBlock, article?.article_content, renderKey]);
 
     const isMarkdownContent = (content) => {
         if (!content) return false;
@@ -581,53 +599,11 @@ export default function ArticlePreview({ article }) {
         return markdownPatterns.some(pattern => pattern.test(content));
     };
 
-    const preprocessMarkdown = (text) => {
-        if (!text) return '';
-
-        const codeBlockRegex = /(```[\s\S]*?```|`[^`\n]+`)/g;
-        const parts = [];
-        let lastIndex = 0;
-        let match;
-
-        while ((match = codeBlockRegex.exec(text)) !== null) {
-            if (match.index > lastIndex) {
-                const normalText = text.substring(lastIndex, match.index);
-                parts.push({ type: 'text', content: normalText });
-            }
-
-            parts.push({ type: 'code', content: match[0] });
-            lastIndex = match.index + match[0].length;
-        }
-
-        if (lastIndex < text.length) {
-            const normalText = text.substring(lastIndex);
-            parts.push({ type: 'text', content: normalText });
-        }
-
-        return parts.map(part => {
-            if (part.type === 'text') {
-
-                return part.content.replace(/([^\n])\n(?!\n)/g, '$1  \n');
-            }
-            return part.content;
-        }).join('');
-    };
-
     const renderArticleContent = (content) => {
         if (!content) return null;
 
         if (isMarkdownContent(content)) {
-            let processedContent = content;
-            const counters = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
-
-            processedContent = processedContent.replace(/^(#{1,6})\s+(.+)$/gm, (match, hashes, title) => {
-                const level = hashes.length;
-                const id = `toc-${level}-${counters[level]}`;
-                counters[level]++;
-                return `${hashes} <span data-toc-id="${id}" style="display:none;"></span>${title}`;
-            });
-
-            processedContent = preprocessMarkdown(processedContent);
+            const processedContent = preprocessMarkdown(content);
 
             return (
                 <div className="markdown-content" key={`markdown-${renderKey}`}>
