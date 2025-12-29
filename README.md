@@ -77,7 +77,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/dim_stack?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true&useAffectedRows=true
     username: root
-    password: ""
+    password: "ling060318"
     type: com.alibaba.druid.pool.DruidDataSource
 
     druid:
@@ -94,8 +94,8 @@ spring:
   servlet:
     multipart:
       enabled: true
-      max-file-size: 1000000MB
-      max-request-size: 200000MB
+      max-file-size: 100MB
+      max-request-size: 100MB
 
   data:
     redis:
@@ -117,6 +117,8 @@ spring:
       enabled: false
 
 
+
+
   thymeleaf:
     cache: true
     enabled: true
@@ -131,13 +133,13 @@ spring:
 
 springdoc:
   api-docs:
-    enabled: false
+    enabled: true
     path: /v3/api-docs
   swagger-ui:
-    enabled: false
+    enabled: true
     path: /swagger-ui/index.html
     cors:
-      enabled: false
+      enabled: true
 
 project:
   version: ${project.version}
@@ -152,7 +154,7 @@ management:
   endpoint:
     health:
       enabled: true
-      show-details: when-authorized
+      show-details: always
     info:
       enabled: true
     metrics:
@@ -181,14 +183,24 @@ server:
 
 logging:
   level:
-    xyz.lingview.dimstack: debug
+    xyz.lingview.dimstack: info
     org.springframework: warn
     org.springframework.security: info
-    org.springframework.session: debug
-    org.springframework.web: debug
+    org.springframework.session: info
+    org.springframework.web: info
 
 file:
+  # 文件存储目录
+  data-root: .
   upload-dir: upload
+  # 日志存储目录
+  log-root: .
+
+app:
+  theme:
+    active-theme: default
+    themes-path: themes
+
 ```
 
 ### 2.Nginx反向代理配置文件
