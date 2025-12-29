@@ -137,7 +137,6 @@ export default function Header() {
                         </h1>
                     </div>
 
-                    {/* 桌面端导航 */}
                     <nav className="hidden md:block">
                         <ul className="flex space-x-8">
                             {menus.map((menu, index) => (
@@ -153,12 +152,10 @@ export default function Header() {
                         </ul>
                     </nav>
 
-                    {/* 右侧操作区 */}
                     <div className="flex items-center space-x-2 sm:space-x-4">
                         <Search />
                         <ThemeToggle />
 
-                        {/* 移动端菜单按钮 - 始终显示 */}
                         <button
                             className="md:hidden relative z-50 p-2 rounded hover:bg-gray-100 transition-colors duration-200"
                             onClick={toggleMobileMenu}
@@ -179,7 +176,6 @@ export default function Header() {
                             </svg>
                         </button>
 
-                        {/* 桌面端登录/用户信息 */}
                         {isLoggedIn ? (
                             <div className="relative group hidden md:flex items-center space-x-4">
                                 <span className="text-gray-700 cursor-pointer truncate max-w-[120px]" title={username}>
@@ -217,7 +213,6 @@ export default function Header() {
                     </div>
                 </div>
 
-                {/* 移动端下拉菜单 - 始终可以显示 */}
                 <div
                     className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out absolute top-full left-0 w-full bg-white shadow-lg border-t border-gray-200 ${
                         isMobileMenuOpen ? 'max-h-[80vh] opacity-100 visible' : 'max-h-0 opacity-0 invisible'
@@ -225,7 +220,6 @@ export default function Header() {
                     style={{ zIndex: 40 }}
                 >
                     <nav className="px-4 py-3">
-                        {/* 已登录用户信息 */}
                         {isLoggedIn && (
                             <div className="mb-4 pb-3 border-b border-gray-200">
                                 <div className="flex items-center justify-between">
@@ -236,7 +230,6 @@ export default function Header() {
                             </div>
                         )}
 
-                        {/* 导航菜单 - 无论登录状态都显示 */}
                         {menus.length > 0 && (
                             <ul className="space-y-1 mb-4">
                                 {menus.map((menu, index) => (
@@ -253,7 +246,6 @@ export default function Header() {
                             </ul>
                         )}
 
-                        {/* 用户操作按钮 */}
                         <div className="space-y-2 pt-3 border-t border-gray-200">
                             {!isLoggedIn ? (
                                 <button
@@ -289,7 +281,6 @@ export default function Header() {
                 </div>
             </div>
 
-            {/* 移动端菜单背景遮罩 */}
             {isMobileMenuOpen && (
                 <div
                     className="md:hidden fixed inset-0 bg-black/20 backdrop-blur-sm"

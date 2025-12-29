@@ -11,4 +11,5 @@ public interface MenusMapper {
     void insertMenus(Menus menus);
     void updateMenus(Menus menus);
     void deleteMenus(String menusId);
+    void updateSortOrder(Menus menu);
 }

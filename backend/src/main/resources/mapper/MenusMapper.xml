@@ -10,19 +10,21 @@
         <result column="username" property="username"/>
         <result column="menus_name" property="menus_name"/>
         <result column="menus_url" property="menus_url"/>
+        <result column="sort_order" property="sort_order"/>
         <result column="status" property="status"/>
     </resultMap>
 
     <select id="selectAllMenus" resultMap="MenusDTOMap">
-        SELECT m.menus_id, m.user_id, u.username, m.menus_name, m.menus_url, m.status
+        SELECT m.menus_id, m.user_id, u.username, m.menus_name, m.menus_url, m.sort_order, m.status
         FROM menus m
-        LEFT JOIN user_information u ON m.user_id = u.uuid
+                 LEFT JOIN user_information u ON m.user_id = u.uuid
         WHERE m.status = 1
+        ORDER BY m.sort_order
     </select>
 
     <insert id="insertMenus" parameterType="xyz.lingview.dimstack.domain.Menus">
-        INSERT INTO menus (menus_id, user_id, menus_name, menus_url, status)
-        VALUES (#{menus_id}, #{user_id}, #{menus_name}, #{menus_url}, #{status})
+        INSERT INTO menus (menus_id, user_id, menus_name, menus_url, sort_order, status)
+        VALUES (#{menus_id}, #{user_id}, #{menus_name}, #{menus_url}, #{sort_order}, #{status})
     </insert>
 
     <update id="updateMenus" parameterType="xyz.lingview.dimstack.domain.Menus">
@@ -35,6 +37,12 @@
 
     <update id="deleteMenus" parameterType="string">
         UPDATE menus SET status = 0 WHERE menus_id = #{menusId}
+    </update>
+
+    <update id="updateSortOrder" parameterType="xyz.lingview.dimstack.domain.Menus">
+        UPDATE menus
+        SET sort_order = #{sort_order}
+        WHERE menus_id = #{menus_id}
     </update>
 
 </mapper>

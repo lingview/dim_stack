@@ -61,4 +61,11 @@ public class MenusController {
         menusService.deleteMenus(menus_id);
         return "success";
     }
+
+    @PostMapping("/updatesortorder")
+    @RequiresPermission("system:edit")
+    public String updateSortOrder(@RequestBody List<Menus> menusList) {
+        menusService.updateSortOrder(menusList);
+        return "success";
+    }
 }

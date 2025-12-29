@@ -8,7 +8,8 @@ export default function MenusView() {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     menus_name: '',
-    menus_url: ''
+    menus_url: '',
+    sort_order: 0
   });
   const [error, setError] = useState('');
 
@@ -66,7 +67,8 @@ export default function MenusView() {
     setEditingMenu(null);
     setFormData({
       menus_name: '',
-      menus_url: ''
+      menus_url: '',
+      sort_order: menus.length
     });
     setShowForm(true);
   };
@@ -75,7 +77,8 @@ export default function MenusView() {
     setEditingMenu(menu);
     setFormData({
       menus_name: unescapeHtml(menu.menus_name) || '',
-      menus_url: unescapeHtml(menu.menus_url) || ''
+      menus_url: unescapeHtml(menu.menus_url) || '',
+      sort_order: menu.sort_order || 0
     });
     setShowForm(true);
   };
@@ -98,7 +101,7 @@ export default function MenusView() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: name === 'sort_order' ? parseInt(value) : value
     }));
   };
 
@@ -107,19 +110,22 @@ export default function MenusView() {
     try {
       const escapedData = {
         menus_name: escapeHtml(formData.menus_name),
-        menus_url: escapeHtml(formData.menus_url)
+        menus_url: escapeHtml(formData.menus_url),
+        sort_order: formData.sort_order
       };
 
       if (editingMenu) {
         await apiClient.post('/editmenus', {
           menus_id: editingMenu.menus_id,
           menus_name: escapedData.menus_name,
-          menus_url: escapedData.menus_url
+          menus_url: escapedData.menus_url,
+          sort_order: escapedData.sort_order
         });
       } else {
         await apiClient.post('/addmenus', {
           menus_name: escapedData.menus_name,
-          menus_url: escapedData.menus_url
+          menus_url: escapedData.menus_url,
+          sort_order: escapedData.sort_order
         });
       }
       setShowForm(false);
@@ -133,6 +139,48 @@ export default function MenusView() {
   const handleCancel = () => {
     setShowForm(false);
     setEditingMenu(null);
+  };
+
+  const handleDragStart = (e, index) => {
+    e.dataTransfer.setData('text/plain', index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, targetIndex) => {
+    e.preventDefault();
+    const sourceIndex = parseInt(e.dataTransfer.getData('text/plain'));
+
+    if (sourceIndex !== targetIndex) {
+      const newMenus = [...menus];
+      const movedItem = newMenus[sourceIndex];
+
+      newMenus.splice(sourceIndex, 1);
+      newMenus.splice(targetIndex, 0, movedItem);
+
+      const updatedMenus = newMenus.map((menu, index) => ({
+        ...menu,
+        sort_order: index
+      }));
+
+      setMenus(updatedMenus);
+
+      syncSortOrder(updatedMenus);
+    }
+  };
+
+  const syncSortOrder = async (sortedMenus) => {
+    try {
+      await apiClient.post('/updatesortorder', sortedMenus);
+    } catch (error) {
+      console.error('更新排序失败:', error);
+      setError('更新排序失败');
+      fetchMenus();
+    }
   };
 
   if (loading) {
@@ -202,6 +250,20 @@ export default function MenusView() {
                   required
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  排序序号 *
+                </label>
+                <input
+                  type="number"
+                  name="sort_order"
+                  value={formData.sort_order}
+                  onChange={handleFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                  min="0"
+                />
+              </div>
             </div>
             <div className="flex justify-end space-x-3">
               <button
@@ -227,6 +289,12 @@ export default function MenusView() {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                拖拽
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                排序
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 菜单ID
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -244,8 +312,33 @@ export default function MenusView() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {menus.map((menu) => (
-              <tr key={menu.menus_id} className="hover:bg-gray-50">
+            {menus.map((menu, index) => (
+              <tr
+                key={menu.menus_id}
+                className="hover:bg-gray-50"
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={handleDragOver}
+                onDrop={(e) => handleDrop(e, index)}
+              >
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <svg
+                    className="w-5 h-5 text-gray-400 cursor-move"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 8h16M4 16h16"
+                    />
+                  </svg>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  {menu.sort_order !== undefined ? menu.sort_order : index}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {menu.menus_id}
                 </td>

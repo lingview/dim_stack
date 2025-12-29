@@ -10,6 +10,7 @@ public class Menus {
     private String user_id;
     private String menus_name;
     private String menus_url;
+    private Integer sort_order;
     private Integer status;
 
     public static String generateMenusId() {

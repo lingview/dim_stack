@@ -9,5 +9,6 @@ public class MenusDTO {
     private String username;
     private String menus_name;
     private String menus_url;
+    private Integer sort_order;
     private Integer status;
 }

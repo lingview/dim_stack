@@ -9,4 +9,6 @@ public interface MenusService {
     void addMenus(Menus menus, String username);
     void updateMenus(Menus menus, String username);
     void deleteMenus(String menusId);
+    void updateSortOrder(List<Menus> menusList);
+
 }

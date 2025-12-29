@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 04/12/2025 21:47:40
+ Date: 29/12/2025 09:56:10
 */
 
 SET NAMES utf8mb4;
@@ -296,6 +296,7 @@ CREATE TABLE `menus`  (
                           `user_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '创建该目录的用户',
                           `menus_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '目录名称',
                           `menus_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '目录url',
+                          `sort_order` int NOT NULL COMMENT '菜单的显示顺序',
                           `status` int NOT NULL COMMENT '0为删除、1为正常',
                           PRIMARY KEY (`id`) USING BTREE,
                           UNIQUE INDEX `menus_id`(`menus_id` ASC) USING BTREE,
@@ -306,12 +307,12 @@ CREATE TABLE `menus`  (
 -- ----------------------------
 -- Records of menus
 -- ----------------------------
-INSERT INTO `menus` VALUES (1, 'menu_f7f08e6b511848c680c98749cc89b073', '075eb86f721743e3940f35869154a140175689381296899805858', '首页', '/', 1);
-INSERT INTO `menus` VALUES (2, 'menu_096205a759934193952aef85dfe382fa', '075eb86f721743e3940f35869154a140175689381296899805858', '作者主页', 'https://github.com/lingview', 1);
-INSERT INTO `menus` VALUES (3, 'menu_d7f2c129f1df45c4a606bcd69cf02b51', '075eb86f721743e3940f35869154a140175689381296899805858', '项目地址', 'https://github.com/lingview/dim_stack', 1);
-INSERT INTO `menus` VALUES (4, 'menu_16404a4412c0463f9d04e5dea10c19bc', '075eb86f721743e3940f35869154a140175689381296899805858', '致谢', '/article/thanks', 1);
-INSERT INTO `menus` VALUES (5, 'menu_8d1022c01adf4b8f87bc9debd86f33a5', '075eb86f721743e3940f35869154a140175689381296899805858', '友链', '/friend-links', 1);
-INSERT INTO `menus` VALUES (6, 'menu_f71584ff8f574978bf0e66e52bccf2ac', '075eb86f721743e3940f35869154a140175689381296899805858', '关于', '/article/about', 1);
+INSERT INTO `menus` VALUES (1, 'menu_f7f08e6b511848c680c98749cc89b073', '075eb86f721743e3940f35869154a140175689381296899805858', '首页', '/', 0, 1);
+INSERT INTO `menus` VALUES (2, 'menu_096205a759934193952aef85dfe382fa', '075eb86f721743e3940f35869154a140175689381296899805858', '作者主页', 'https://github.com/lingview', 1, 1);
+INSERT INTO `menus` VALUES (3, 'menu_d7f2c129f1df45c4a606bcd69cf02b51', '075eb86f721743e3940f35869154a140175689381296899805858', '项目地址', 'https://github.com/lingview/dim_stack', 2, 1);
+INSERT INTO `menus` VALUES (4, 'menu_16404a4412c0463f9d04e5dea10c19bc', '075eb86f721743e3940f35869154a140175689381296899805858', '致谢', '/article/thanks', 3, 1);
+INSERT INTO `menus` VALUES (5, 'menu_8d1022c01adf4b8f87bc9debd86f33a5', '075eb86f721743e3940f35869154a140175689381296899805858', '友链', '/friend-links', 4, 1);
+INSERT INTO `menus` VALUES (6, 'menu_f71584ff8f574978bf0e66e52bccf2ac', '075eb86f721743e3940f35869154a140175689381296899805858', '关于', '/article/about', 5, 1);
 
 -- ----------------------------
 -- Table structure for permission
