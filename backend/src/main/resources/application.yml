@@ -119,11 +119,11 @@ server:
 
 logging:
   level:
-    xyz.lingview.dimstack: debug
+    xyz.lingview.dimstack: info
     org.springframework: warn
     org.springframework.security: info
-    org.springframework.session: debug
-    org.springframework.web: debug
+    org.springframework.session: info
+    org.springframework.web: info
 
 file:
   # 文件存储目录

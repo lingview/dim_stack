@@ -42,7 +42,7 @@ public class ReadArticleController {
         Map<String, Object> response = new HashMap<>();
         try {
             ReadArticle article = readArticleService.getArticleByAlias(alias, password);
-            log.info("Article data: {}", article);
+            log.debug("Article data: {}", article);
             response.put("success", true);
             article.setPassword("******");
             response.put("data", article);
