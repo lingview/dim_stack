@@ -960,7 +960,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                     />
                 </div>
 
-                <div className="w-1/2 p-4 overflow-y-auto bg-white text-gray-900">
+                <div className="w-1/2 p-4 overflow-y-auto bg-white text-gray-900" style={{ overflowAnchor: 'none' }}>
                     <ReactMarkdown
                         children={preprocessMarkdown(content)}
                         remarkPlugins={[remarkGfm]}
