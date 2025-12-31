@@ -202,7 +202,12 @@ const preprocessMarkdown = (text) => {
 
     return parts.map(part => {
         if (part.type === 'text') {
-            return part.content.replace(/([^\n])\n(?!\n)/g, '$1  \n');
+            let result = part.content.replace(/\n{3,}/g, (match) => {
+                const extraLines = match.length - 2;
+                return '\n\n' + '<br>\n\n'.repeat(extraLines);
+            });
+            result = result.replace(/([^\n])\n(?!\n)/g, '$1  \n');
+            return result;
         }
         return part.content;
     }).join('');
