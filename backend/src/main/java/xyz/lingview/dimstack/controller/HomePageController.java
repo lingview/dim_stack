@@ -14,6 +14,7 @@ import xyz.lingview.dimstack.dto.request.PageResult;
 import xyz.lingview.dimstack.service.ArticleService;
 import xyz.lingview.dimstack.service.SiteConfigService;
 import xyz.lingview.dimstack.util.DomainUtil;
+import xyz.lingview.dimstack.util.UrlUtil;
 
 import java.util.List;
 
@@ -71,6 +72,7 @@ public class HomePageController {
                 mv.addObject("articles", articles);
                 mv.addObject("siteName", siteConfig.getSite_name());
                 mv.addObject("siteDescription", siteConfig.getCopyright());
+                mv.addObject("siteIcon", UrlUtil.getFullUrl(domain, siteConfig.getSite_icon()));
                 mv.addObject("url", url);
                 mv.addObject("domain", domain);
 
