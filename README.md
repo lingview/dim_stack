@@ -78,6 +78,8 @@ java -jar dimstack-1.0-SNAPSHOT.jar
 <!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1768055855648-4337108c-4ef7-41cc-981a-f7c7675f1d3e.png)
 
+[部署视频](./video/部署教程.mp4)
+
 ## 全手动部署
 > 环境要求（给出版本为可用版本，其他版本请自行测试）
 >
