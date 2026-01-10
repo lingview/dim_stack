@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>配置结果</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+            Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 520px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #ebeef5;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #ebeef5;
+            text-align: center;
+        }
+
+        .header-success {
+            background-color: #f0f9eb;
+        }
+
+        .header-error {
+            background-color: #fef0f0;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #303133;
+        }
+
+        .card-body {
+            padding: 24px;
+            text-align: center;
+        }
+
+        .message {
+            font-size: 14px;
+            color: #606266;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .alert-info {
+            background-color: #f5f7fa;
+            border: 1px solid #ebeef5;
+            color: #606266;
+            padding: 14px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #ffffff;
+            background-color: #409eff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #337ecc;
+        }
+
+        .btn-secondary {
+            background-color: #909399;
+        }
+
+        .btn-secondary:hover {
+            background-color: #73767a;
+        }
+
+        @media (max-width: 640px) {
+            .btn {
+                display: block;
+                width: 100%;
+                margin: 8px 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="card">
+
+        <div class="card-header"
+             th:classappend="${success} ? 'header-success' : 'header-error'">
+            <h3 class="card-title"
+                th:text="${success} ? '配置生成成功' : '配置生成失败'">
+            </h3>
+        </div>
+
+        <div class="card-body">
+            <p class="message" th:text="${message}"></p>
+
+            <div th:if="${success}">
+                <div class="alert-info">
+                    <strong>提示：</strong>请重启应用以使新配置生效。
+                </div>
+                <a href="/init/setup" class="btn btn-secondary">
+                    重新配置
+                </a>
+            </div>
+
+            <div th:unless="${success}">
+                <a href="/init/setup" class="btn">
+                    返回重新配置
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>次元栈 - 初始化配置</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+            Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f5f7fa;
+            min-height: 100vh;
+            padding: 40px 16px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #ebeef5;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px 28px;
+            border-bottom: 1px solid #ebeef5;
+        }
+
+        .card-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #303133;
+        }
+
+        .card-body {
+            padding: 28px;
+        }
+
+        .form-section {
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #ebeef5;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-section h5 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #303133;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #606266;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 14px;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #409eff;
+        }
+
+        .row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .col {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .row {
+                flex-direction: column;
+            }
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            background: #f5f7fa;
+            border: 1px dashed #dcdfe6;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .form-check-input {
+            width: 16px;
+            height: 16px;
+        }
+
+        .form-check-label {
+            font-size: 14px;
+            color: #606266;
+            cursor: pointer;
+        }
+
+        .advanced-section {
+            display: none;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #ffffff;
+            background-color: #409eff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #337ecc;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h3>DimStack 论坛系统初始化向导</h3>
+        </div>
+
+        <div class="card-body">
+            <form id="initForm" action="/init/generate-config" method="post">
+
+                <div class="form-section">
+                    <h5>服务器配置</h5>
+                    <div class="form-group">
+                        <label class="form-label">服务器端口</label>
+                        <input type="number" class="form-control"
+                               name="serverPort" value="2222" required>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h5>管理员账户设置</h5>
+                    <div class="form-group">
+                        <label class="form-label">管理员用户名</label>
+                        <input type="text" class="form-control"
+                               name="adminUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">管理员密码</label>
+                        <input type="password" class="form-control"
+                               name="adminPassword" required>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h5>MySQL 数据库配置</h5>
+
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label class="form-label">主机地址</label>
+                                <input type="text" class="form-control"
+                                       name="mysqlHost" value="localhost">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label class="form-label">端口号</label>
+                                <input type="number" class="form-control"
+                                       name="mysqlPort" value="3306">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label class="form-label">数据库名</label>
+                                <input type="text" class="form-control"
+                                       name="mysqlDatabase" value="dim_stack">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label class="form-label">用户名</label>
+                                <input type="text" class="form-control"
+                                       name="mysqlUser" value="root">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">密码</label>
+                        <input type="password" class="form-control"
+                               name="mysqlPassword">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h5>Redis 配置</h5>
+
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label class="form-label">主机地址</label>
+                                <input type="text" class="form-control"
+                                       name="redisHost" value="127.0.0.1">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label class="form-label">端口号</label>
+                                <input type="number" class="form-control"
+                                       name="redisPort" value="6379">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label class="form-label">密码（可选）</label>
+                                <input type="password" class="form-control"
+                                       name="redisPassword">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label class="form-label">数据库编号</label>
+                                <input type="number" class="form-control"
+                                       name="redisDatabase" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="hasAdvanced">
+                    <label class="form-check-label" for="hasAdvanced">
+                        启用高级配置
+                    </label>
+                </div>
+
+                <div id="advancedSection" class="advanced-section">
+                    <div class="form-section">
+                        <h5>高级配置</h5>
+
+                        <div class="form-group">
+                            <label class="form-label">日志级别</label>
+                            <select class="form-control" name="logLevel">
+                                <option value="debug">DEBUG</option>
+                                <option value="info" selected>INFO</option>
+                                <option value="warn">WARN</option>
+                                <option value="error">ERROR</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">确认（如果数据库存在则会清空）</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('hasAdvanced').addEventListener('change', function () {
+        document.getElementById('advancedSection').style.display =
+            this.checked ? 'block' : 'none';
+    });
+</script>
+</body>
+</html>

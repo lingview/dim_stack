@@ -1,0 +1,18 @@
+server:
+  port: 8080
+
+spring:
+  redis:
+    enabled: false
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+app:
+  mode: init
+logging:
+  level:
+    root: INFO
+    xyz.lingview.dimstack: DEBUG

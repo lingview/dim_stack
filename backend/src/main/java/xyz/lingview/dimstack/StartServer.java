@@ -1,5 +1,6 @@
 package xyz.lingview.dimstack;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationListener;
@@ -9,25 +10,49 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.stereotype.Component;
+import xyz.lingview.dimstack.config.ConfigInfo;
 
-import java.awt.*;
-import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 
+@Slf4j
 @SpringBootApplication
 @EnableAsync
 @EnableScheduling
 @EnableRedisHttpSession(maxInactiveIntervalInSeconds = 604800, redisNamespace = "dimstack:session")
 public class StartServer {
     public static void main(String[] args) {
-        SpringApplication.run(StartServer.class, args);
+        if (needsInitialization()) {
+            startInitMode();
+        } else {
+            SpringApplication.run(StartServer.class, args);
+        }
     }
+
+    private static boolean needsInitialization() {
+        return !ConfigInfo.isConfigComplete();
+    }
+
+    private static void startInitMode() {
+        log.info("系统初始化模块加载成功");
+        log.info("检测到首次运行或配置不完整，启动初始化模式...");
+        log.info("配置文件目录: " + ConfigInfo.CONFIG_DIR.toAbsolutePath());
+
+        SpringApplication initApp = new SpringApplication(xyz.lingview.dimstack.init.InitApplication.class);
+        initApp.run(
+                "--server.port=0",
+                "--spring.config.location=classpath:/",
+                "--spring.config.name=application-init",
+                "--spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration"
+        );
+    }
+
     @Component
-    public static class BrowserLauncher implements ApplicationListener<ContextRefreshedEvent> {
+    public static class ServerInfoPrinter implements ApplicationListener<ContextRefreshedEvent> {
 
         private final Environment environment;
-        public BrowserLauncher(Environment environment) {
+
+        public ServerInfoPrinter(Environment environment) {
             this.environment = environment;
         }
 
@@ -35,20 +60,18 @@ public class StartServer {
             return environment.getProperty("local.server.port");
         }
 
-        private boolean launched = false;
+        private boolean printed = false;
 
         @Override
         public void onApplicationEvent(ContextRefreshedEvent event) {
-            if (!launched && event.getApplicationContext().getParent() == null) {
-                launched = true;
+            if (!printed && event.getApplicationContext().getParent() == null) {
+                printed = true;
 
-                boolean autoOpenBrowser = Boolean.parseBoolean(event.getApplicationContext().getEnvironment().getProperty("auto.open.browser", "true"));
+                // 检查是否是初始化模式
+                String appMode = event.getApplicationContext().getEnvironment().getProperty("app.mode");
+                boolean isInitMode = "init".equals(appMode);
 
-                if (autoOpenBrowser) {
-                    if (GraphicsEnvironment.isHeadless()) {
-                        System.out.println("尝试通过命令行方式打开浏览器QAQ...");
-                    }
-
+                if (!isInitMode) {
                     String hostAddress = null;
                     try {
                         hostAddress = Inet4Address.getLocalHost().getHostAddress();
@@ -58,45 +81,8 @@ public class StartServer {
 
                     String localHost = hostAddress + ":" + getPort();
                     String url = "http://" + localHost;
-                    System.out.println("当前服务器地址为：" + url);
-
-                    try {
-                        openBrowserByCommand(url);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        System.err.println("无法通过命令行启动浏览器：" + e.getMessage());
-                    }
+                    log.info("当前服务器地址为：" + url);
                 }
-            }
-        }
-
-        private void openBrowserByCommand(String url) throws IOException {
-            String osName = System.getProperty("os.name").toLowerCase();
-            ProcessBuilder processBuilder = null;
-
-            if (osName.contains("win")) {
-//                processBuilder = new ProcessBuilder("cmd", "/c", "start", url);
-            } else if (osName.contains("mac")) {
-                processBuilder = new ProcessBuilder("open", url);
-            } else {
-//                processBuilder = new ProcessBuilder("xdg-open", url);
-                System.out.println("当前为linux/unix系统运行请手动打开浏览器");
-            }
-
-            if (processBuilder != null) {
-                processBuilder.inheritIO();
-                Process process = processBuilder.start();
-                try {
-                    int exitCode = process.waitFor();
-                    if (exitCode != 0) {
-                        System.err.println("命令行启动浏览器失败，退出码：" + exitCode);
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw new IOException("命令行启动浏览器过程中被中断", e);
-                }
-            } else {
-                System.out.println("未知的操作系统，无法启动浏览器");
             }
         }
     }
