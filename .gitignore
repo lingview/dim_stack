@@ -1,5 +1,6 @@
 backend/target/
 backend/docs/
+backend/src/main/resources/static/
 dimstack_expansion_server/target/
 dimstack_expansion_server/docs/
 frontend/node_modules/
