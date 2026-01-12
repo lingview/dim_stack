@@ -4,12 +4,16 @@
 
 <!-- 这是一张图片，ocr 内容为： -->
 ![](https://img.shields.io/badge/Spring_Boot-3.5-green.svg)
+
 <!-- 这是一张图片，ocr 内容为： -->
 ![](https://img.shields.io/badge/React-19.1.1-%2361DAFB.svg)
+
 <!-- 这是一张图片，ocr 内容为： -->
 ![](https://img.shields.io/badge/Node.js-22.16.0-43853D.svg)
+
 <!-- 这是一张图片，ocr 内容为： -->
 ![](https://img.shields.io/badge/Database-MySQL-4479A1.svg)
+
 <!-- 这是一张图片，ocr 内容为： -->
 ![](https://img.shields.io/badge/Database-Redis-DC382D.svg)
 
@@ -28,7 +32,7 @@
 + 👥 用户系统：注册、登录、个人主页、权限管理、文章发布管理系统、RBAC权限管理......
 + 🔍 内容搜索与推荐
 + 📱 响应式前端，支持移动端浏览
-+ 📦 支持文章页服务端渲染
++ 📦 支持首页、文章页服务端渲染
 
 ---
 
@@ -65,7 +69,8 @@ java -jar dimstack-1.0-SNAPSHOT.jar
 运行后找到终端输出的地址（端口号是随机的）在浏览器打开
 
 <!-- 这是一张图片，ocr 内容为： -->
-![](img.png)<!-- 这是一张图片，ocr 内容为： -->
+![](img.png)
+<!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1768055648141-0931e9ce-f844-400a-acf7-500930bb5ecf.png)
 
 按照向导的提示填写信息（默认信息不懂的话不要动）
@@ -242,62 +247,7 @@ app:
 
 ```
 
-### 2.Nginx反向代理配置文件
-```bash
-server {
-    listen 80;
-    listen 443 ssl;
-    listen 443 quic;
-    http2 on;
-    server_name www.apilinks.cn apilinks.cn;
 
-    include /www/server/panel/vhost/nginx/well-known/dimstack.conf;
-
-    set $isRedcert 1;
-    if ($server_port != 443) {
-        set $isRedcert 2;
-    }
-    if ( $uri ~ /\.well-known/ ) {
-        set $isRedcert 1;
-    }
-    if ($isRedcert != 1) {
-        return 301 https://$host$request_uri;
-    }
-
-    ssl_certificate    /www/server/panel/vhost/cert/dimstack/fullchain.pem;
-    ssl_certificate_key    /www/server/panel/vhost/cert/dimstack/privkey.pem;
-    ssl_protocols TLSv1.1 TLSv1.2 TLSv1.3;
-    ssl_ciphers EECDH+CHACHA20:EECDH+CHACHA20-draft:EECDH+AES128:RSA+AES128:EECDH+AES256:RSA+AES256:EECDH+3DES:RSA+3DES:!MD5;
-    ssl_prefer_server_ciphers on;
-    ssl_session_tickets on;
-    ssl_session_cache shared:SSL:10m;
-    ssl_session_timeout 10m;
-    add_header Strict-Transport-Security "max-age=31536000" always;
-    add_header Alt-Svc 'quic=":443"; h3=":443"; h3-29=":443"; h3-27=":443";h3-25=":443"; h3-T050=":443"; h3-Q050=":443";h3-Q049=":443";h3-Q048=":443"; h3-Q046=":443"; h3-Q043=":443"' always;
-    error_page 497  https://$host$request_uri;
-
-
-    location / {
-        proxy_pass http://127.0.0.1:2222;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Port $server_port;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-
-        proxy_connect_timeout 30s;
-        proxy_read_timeout 86400s;
-        proxy_send_timeout 30s;
-    }
-
-    access_log  /www/wwwlogs/dimstack.log;
-    error_log   /www/wwwlogs/dimstack.error.log;
-}
-```
 
 ### 2.创建数据库并导入数据
 > 需要手动将dim_stack.sql这个文件导入创建的数据库
@@ -320,13 +270,14 @@ java -jar dim_stack.jar
 > 文章内容页已支持SSR并且适配主流搜索引擎，使用动态生成的 robots.txt 以及 sitemap.xml
 >
 
-### 1. 文章页 SSR
+### 1. 首页、文章页 SSR
 + 针对搜索引擎 User-Agent 自动返回服务器渲染的 HTML。
 + SSR 页面包含：
   - `<title>`：文章标题
   - `<meta name="description">`：文章摘要
   - `<meta name="keywords">`：文章标签
   - 文章内容和发布时间
+  - ......
 + 普通用户访问则返回 SPA 首页，保持 React 的交互体验。
 + 支持主流搜索引擎爬虫：
   - Googlebot、Bingbot、Baiduspider、DuckDuckBot、Sogou、360Spider 等
@@ -336,37 +287,52 @@ java -jar dim_stack.jar
 ## 主要界面展示
 ### 前台
 > 白天模式
-<!-- 这是一张图片，ocr 内容为： -->
-![](./images/index_light.png)<!-- 这是一张图片，ocr 内容为： -->
-![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1759940349525-80d15679-510f-43b8-b493-48e2a0fe572c.png)
 >
+
+<!-- 这是一张图片，ocr 内容为： -->
+![](./images/index_light.png)
+<!-- 这是一张图片，ocr 内容为： -->
+![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1759940349525-80d15679-510f-43b8-b493-48e2a0fe572c.png)
+
 
 > 夜晚模式
-<!-- 这是一张图片，ocr 内容为： -->
-![](./images/index_dark.png)<!-- 这是一张图片，ocr 内容为： -->
-![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1759940370887-4cd7478c-47db-4b31-b606-c6bc978c12c8.png)
 >
+
+<!-- 这是一张图片，ocr 内容为： -->
+![](./images/index_dark.png)
+<!-- 这是一张图片，ocr 内容为： -->
+![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1759940370887-4cd7478c-47db-4b31-b606-c6bc978c12c8.png)
+
 
 > 密码文章
-<!-- 这是一张图片，ocr 内容为： -->
-![](./images/passwordarticle.png)<!-- 这是一张图片，ocr 内容为： -->
-![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1757822301247-6ed5148f-11da-40bc-b886-208a72906399.png)
 >
+
+<!-- 这是一张图片，ocr 内容为： -->
+![](./images/passwordarticle.png)
+<!-- 这是一张图片，ocr 内容为： -->
+![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1757822301247-6ed5148f-11da-40bc-b886-208a72906399.png)
+
 
 > 文章阅读器
-<!-- 这是一张图片，ocr 内容为： -->
-![](./images/articleread.png)<!-- 这是一张图片，ocr 内容为： -->
-![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1759940413055-e4cecb63-e558-427e-b125-a2c137e0886a.png)
 >
+
+<!-- 这是一张图片，ocr 内容为： -->
+![](./images/articleread.png)
+<!-- 这是一张图片，ocr 内容为： -->
+![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1759940413055-e4cecb63-e558-427e-b125-a2c137e0886a.png)
+
 
 > 评论区
-<!-- 这是一张图片，ocr 内容为： -->
-![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1759940440917-ad75c96e-1b4e-4c66-a1eb-90ed60732c98.png)
 >
 
+<!-- 这是一张图片，ocr 内容为： -->
+![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1759940440917-ad75c96e-1b4e-4c66-a1eb-90ed60732c98.png)
 
 
-> 文章搜索<!-- 这是一张图片，ocr 内容为： -->
+
+
+> 文章搜索
+<!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1757822460232-b2215a76-2642-4f14-ad76-8e6b440c9eb9.png)
 >
 
@@ -385,9 +351,11 @@ java -jar dim_stack.jar
 
 > 用户管理  
 用户权限使用RBAC，可以在此功能区切换用户角色
+>
+
 <!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1757822596285-e4396bad-c0ef-4a85-ace3-ac0ea02e12b4.png)
->
+
 > <!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2025/png/53238627/1757822744044-2fb46712-3c84-41cc-a0d2-c989e114f000.png)
 >
@@ -462,246 +430,11 @@ java -jar dim_stack.jar
 
 ---
 
-> 感谢以下框架、库和工具对本项目的支持 🙏
->
-
-### 后端依赖（Java / Spring Boot）
-#### 🌱 Spring 生态
-+ [Spring Boot Starter](https://spring.io/projects/spring-boot)
-+ Spring Boot Starter Web
-+ Spring Boot Starter AOP
-+ Spring Boot Starter Mail
-+ Spring Boot Starter WebSocket
-+ Spring Boot Starter Data Redis
-+ Spring Boot Starter Actuator
-+ [Spring Session Data Redis](https://spring.io/projects/spring-session)
-+ Spring Context Support
-+ Spring Web
-
-#### 💾 数据库与持久化
-+ [MyBatis Spring Boot Starter](https://github.com/mybatis/spring-boot-starter)
-+ [MySQL Connector/J](https://dev.mysql.com/downloads/connector/j/)
-+ [Druid](https://github.com/alibaba/druid)
-
-#### 🛠 工具类库
-+ [Apache Commons IO](https://commons.apache.org/proper/commons-io/)
-+ [Apache Commons Lang3](https://commons.apache.org/proper/commons-lang/)
-+ [Lombok](https://projectlombok.org/)
-+ [Hutool](https://hutool.cn/)
-
-#### 📄 文档与格式解析
-+ [Jsoup](https://jsoup.org/)
-+ [Apache POI](https://poi.apache.org/)
-+ [Flexmark](https://github.com/vsch/flexmark-java)
-
-#### 🔐 安全与加密
-+ [jBCrypt](https://www.mindrot.org/projects/jBCrypt/)
-
-#### 🔍 JSON 处理
-+ [Jackson Databind](https://github.com/FasterXML/jackson-databind)
-+ [Fastjson](https://github.com/alibaba/fastjson)
-+ [Gson](https://github.com/google/gson)
-
-#### ⚙️ 系统与代码分析
-+ [OSHI](https://github.com/oshi/oshi)
-+ [JavaParser](https://javaparser.org/)
-+ [CFR Decompiler](https://www.benf.org/other/cfr/)
-
-#### 🌐 其他
-+ [juniversalchardet](https://code.google.com/archive/p/juniversalchardet/)
-+ Spring Boot Starter Test
-
----
-
-### 前端依赖（React / Vite）
-#### ⚛️ 核心框架
-+ [React](https://react.dev/)
-+ [React DOM](https://react.dev/)
-+ [React Router DOM](https://reactrouter.com/)
-
-#### 🎨 UI 与动画
-+ [Framer Motion](https://www.framer.com/motion/)
-+ [Lucide React](https://lucide.dev/)
-+ [React Favicon](https://github.com/oflisback/react-favicon)
-
-#### 📝 Markdown 与富文本
-+ [React Markdown](https://github.com/remarkjs/react-markdown)
-+ [React Syntax Highlighter](https://github.com/react-syntax-highlighter/react-syntax-highlighter)
-+ [Remark GFM](https://github.com/remarkjs/remark-gfm)
-+ [Remark Parse](https://github.com/remarkjs/remark/tree/main/packages/remark-parse)
-+ [Remark Rehype](https://github.com/remarkjs/remark-rehype)
-+ [Rehype Highlight](https://github.com/rehypejs/rehype-highlight)
-+ [Rehype Raw](https://github.com/rehypejs/rehype-raw)
-+ [Rehype Sanitize](https://github.com/rehypejs/rehype-sanitize)
-+ [Rehype Stringify](https://github.com/rehypejs/rehype/blob/main/packages/rehype-stringify)
-+ [Unified](https://unifiedjs.com/)
-
-#### 🌐 网络请求与安全
-+ [Axios](https://axios-http.com/)
-+ [DOMPurify](https://github.com/cure53/DOMPurify)
-
-#### 🛠 构建与样式
-+ [Vite](https://vitejs.dev/)
-+ [Tailwind CSS](https://tailwindcss.com/)
-+ [PostCSS](https://postcss.org/)
-+ [Autoprefixer](https://github.com/postcss/autoprefixer)
-+ @tailwindcss/vite
-+ @tailwindcss/postcss
-
----
-
-## 功能详细列表
-### 2025-12-04
-+ 添加友链模块
-+ 允许管理员控制是否开放用户注册
-
-### 2025-11-30
-+ 增加ICP备案号以及公安联网备案的配置和显示
-
-### 2025-11-16
-+ 增加文章点赞记录表
-+ 加入测试阶段的SSR以优化系统的SEO
-
-### 2025-11-12
-+ 允许在文章中添加压缩文件
-+ 增加文件访问控制器
-
-### 2025-10-13
-+ 登录、注册、文章信息变更、评论区变更接入通知系统
-
-### 2025-10-12
-+ 设置站点基本信息缓存到Redis降低MySQL压力
-+ 初步增加邮件发送组件
-
-### 2025-10-10
-+ 增加系统交互式配置工具
-
-### 2025-10-09
-+ 增加数据库自动初始化组件
-+ 完善自动构建配置
-+ 文章阅读器增加文章分类显示，并且优化标签显示
-
-### 2025-10-08
-+ 文章阅读器增加返回顶部功能
-+ 文章阅读器增加文章目录组件
-
-### 2025-09-28
-+ 文章阅读器增加标签侧边栏
-+ 增加文章卡片点击面积
-+ 允许根据文章标签筛选文章
-+ 允许更改系统扩展服务地址
-+ 首页文章卡片加入文章标签展示
-
-### 2025-09-25
-+ 允许文章选择多个标签
-
-### 2025-09-24
-+ 评论区支持显示是否已点赞
-+ 扩展服务增加权限系统
-
-### 2025-09-23
-+ 实现主题功能
-+ 初步增加扩展服务器组件
-
-### 2025-09-16
-+ 允许用户关闭首页文章卡片的图片，并且加入文章卡片鼠标悬浮动画
-
-### 2025-09-14
-+ 增加全部文章审核功能
-+ 允许用户关闭文章密码，允许后台修改自己密码
-+ 增加站点图标设置
-
-### 2025-09-13
-+ 增加文章搜索以及热门文章详细信息展示
-+ 增加标签和分类管理
-+ 支持后台快捷卡片跳转到指定功能点
-+ 后台菜单从后端获取
-+ 增加默认数据
-
-### 2025-09-12
-+ 添加站点数据统计
-
-### 2025-09-11
-+ 增加站点信息修改功能
-+ 增加用户管理功能
-+ 增加目录编辑功能，并增加系统修改权限
-+ 实现文章分类选择
-
-### 2025-09-10
-+ 增加文章审核功能
-+ 增加评论管理组件
-
-### 2025-09-09
-+ 增加个人信息编辑功能
-+ 增加用户头像功能
-
-### 2025-09-08
-+ 初步实现评论区功能
-
-### 2025-09-07
-+ 完成评论区表结构设计
-+ 增加文章管理功能
-
-### 2025-09-06
-+ 首页站点名称从后端获取
-+ 首页版权信息从后端获取
-+ 实现热门文章功能
-+ 实现文章阅读量更新
-+ 增加文章别名唯一检测
-
-### 2025-09-05
-+ 优化文章编辑器在暗色模式下工具栏显示效果
-
-### 2025-09-04
-+ 增加登录状态检测
-+ 增加cookie持久化配置
-+ 实现文章阅读功能
-+ 实现密码文章功能
-
-### 2025-09-03
-+ 实现创建文章时文章摘要设置
-+ 文章表增加摘要字段
-+ 前后端均加入密码文章支持
-+ 系统配置表增加文章默认状态字段
-
-### 2025-09-01
-+ 文章上传功能完成
-+ 增加文章标签表以及文章分类表
-+ 增加文章分类和文章标签获取
-
-### 2025-08-31
-+ 完成附件上传组件
-+ 完善数据库表结构
-
-### 2025-08-28
-+ 完成管理后台基本前端界面
-+ 添加文章编辑器组件
-
-### 2025-08-27
-+ 基本完成系统权限框架
-+ 完成文件上传方法后端（支持分片上传）
-+ 增加markdown转docx工具
-+ 增加文件扩展名获取工具
-
-### 2025-08-26
-+ 实现登录注册接口以及界面
-+ 添加简单的XSS、SQL过滤器
-
-### 2025-08-25
-+ 初始化后端SpringBoot模板
-
-### 2025-08-24
-+ 系统首页基本完成
-+ 加入暗色模式适配
-+ 适配移动端
-
----
-
 ### 💡 特别感谢
 + 感谢所有为本项目贡献代码、提出问题和提供反馈的开发者。
 + 感谢开源社区持续的支持与贡献。
 
 ---
 
-💡 如果你在本项目中做出了贡献，请提交 PR 将你的名字加入到致谢名单中！
+如果你在本项目中做出了贡献，请提交 PR 将你的名字加入到致谢名单中！
 
