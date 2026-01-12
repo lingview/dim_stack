@@ -40,10 +40,8 @@ public class StartServer {
 
         SpringApplication initApp = new SpringApplication(xyz.lingview.dimstack.init.InitApplication.class);
         initApp.run(
-                "--server.port=0",
                 "--spring.config.location=classpath:/",
-                "--spring.config.name=application-init",
-                "--spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration"
+                "--spring.config.name=application-init"
         );
     }
 
@@ -76,7 +74,8 @@ public class StartServer {
                     try {
                         hostAddress = Inet4Address.getLocalHost().getHostAddress();
                     } catch (UnknownHostException e) {
-                        e.printStackTrace();
+                        log.warn("无法获取本机IP地址", e);
+                        hostAddress = "localhost";
                     }
 
                     String localHost = hostAddress + ":" + getPort();
