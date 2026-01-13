@@ -50,7 +50,10 @@ public class SessionAuthFilter implements Filter {
             "/api/article/**",
             "/api/friend-links/apply",
             "/api/friend-links/approved/page",
-            "/v3/api-docs/**"
+            "/v3/api-docs/**",
+            "/api/forgot-password/send-captcha",
+            "/api/forgot-password/reset",
+            "/api/forgot-password/verify"
     ));
 
     @Override

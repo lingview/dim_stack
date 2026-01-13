@@ -16,6 +16,7 @@ public class RouterController {
         "/category/**",
         "/tag/**",
         "/friend-links",
+        "/forgot-password",
     })
     public String frontendRoutes() {
         return "forward:/index.html";

@@ -10,6 +10,7 @@ import { fetchSiteName, fetchSiteIcon } from './Api.jsx'
 import { getConfig } from './utils/config.jsx'
 import FriendLinks from "./components/FriendLinks.jsx";
 import PageNotFound from "./components/PageNotFound.jsx";
+import ForgotPassword from "./components/ForgotPassword.jsx";
 
 function App() {
     const [faviconUrl, setFaviconUrl] = useState('/favicon.ico')
@@ -58,6 +59,7 @@ function App() {
         <>
             <Favicon url={faviconUrl} animated={false} />
             <Routes>
+                <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/" element={<Home />} />
                 <Route path="/category/:categoryName" element={<Home />} />
                 <Route path="/tag/:tagName" element={<Home />} />

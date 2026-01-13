@@ -237,8 +237,10 @@ export default function Login() {
           </form>
 
           <p className="mt-2 text-center text-sm text-gray-600">
-            没有账户? <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">注册</Link>
+            没有账户? <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">注册</Link> •
+            <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500 ml-1">忘记密码?</Link>
           </p>
+
         </div>
       </div>
     </div>

@@ -37,4 +37,8 @@ public interface UserInformationMapper {
 
     List<String> selectPermissionsByUserId(@Param("userId") Integer userId);
 
+    UserInformation getUserByUsernameAndEmail(@Param("username") String username, @Param("email") String email);
+
+    int updatePasswordByUsername(@Param("username") String username, @Param("password") String password);
+
 }

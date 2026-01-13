@@ -626,7 +626,7 @@ export default function SiteSettingsView() {
                                     className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                 />
                                 <label htmlFor="enable_notification" className="ml-2 block text-sm font-medium text-gray-700">
-                                    启用邮件通知功能
+                                    启用邮件通知功能（该选项不影响安全模块的邮件通知功能，如：忘记密码）
                                 </label>
                             </div>
                         </div>

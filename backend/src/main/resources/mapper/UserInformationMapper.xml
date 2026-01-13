@@ -148,4 +148,19 @@
         WHERE u.id = #{userId}
     </select>
 
+    <select id="getUserByUsernameAndEmail" parameterType="map" resultType="xyz.lingview.dimstack.domain.UserInformation">
+        SELECT id, uuid, username, email, status
+        FROM user_information
+        WHERE username = #{username}
+          AND email = #{email}
+          AND status = 1
+    </select>
+
+
+    <update id="updatePasswordByUsername" parameterType="map">
+        UPDATE user_information
+        SET password = #{password}
+        WHERE username = #{username}
+    </update>
+
 </mapper>
