@@ -29,6 +29,8 @@ export default function UsersView() {
   const [editingUser, setEditingUser] = useState(null);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [newRoleId, setNewRoleId] = useState('');
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -77,6 +79,8 @@ export default function UsersView() {
         params: { userId, status }
       });
       fetchUsers();
+      setShowConfirmModal(false);
+      setConfirmAction(null);
     } catch (error) {
       console.error('更新用户状态失败:', error);
       setError('更新用户状态失败');
@@ -87,6 +91,23 @@ export default function UsersView() {
     setEditingUser(user);
     setNewRoleId(user.role_id);
     setShowRoleModal(true);
+  };
+
+  const openConfirmModal = (action, title, message) => {
+    setConfirmAction({
+      action,
+      title,
+      message
+    });
+    setShowConfirmModal(true);
+  };
+
+  const executeConfirmAction = () => {
+    if (confirmAction && confirmAction.action) {
+      confirmAction.action();
+    }
+    setShowConfirmModal(false);
+    setConfirmAction(null);
   };
 
   const getStatusText = (status) => {
@@ -195,7 +216,11 @@ export default function UsersView() {
                   </button>
                   {user.status === 1 && (
                     <button
-                      onClick={() => handleUpdateStatus(user.id, 2)}
+                      onClick={() => openConfirmModal(
+                        () => handleUpdateStatus(user.id, 2),
+                        "确认封禁",
+                        `确定要封禁用户 "${user.username}" 吗？此操作将限制其账户访问权限。`
+                      )}
                       className="text-yellow-600 hover:text-yellow-900 mr-4"
                     >
                       封禁
@@ -211,7 +236,11 @@ export default function UsersView() {
                   )}
                   {user.status !== 0 && (
                     <button
-                      onClick={() => handleUpdateStatus(user.id, 0)}
+                      onClick={() => openConfirmModal(
+                        () => handleUpdateStatus(user.id, 0),
+                        "确认删除",
+                        `确定要删除用户 "${user.username}" 吗？此操作将永久删除用户数据，无法恢复！`
+                      )}
                       className="text-red-600 hover:text-red-900"
                     >
                       删除
@@ -280,6 +309,44 @@ export default function UsersView() {
                   className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
                 >
                   确认更改
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {showConfirmModal && confirmAction && (
+        <>
+          <div
+            className="fixed inset-0 backdrop-blur-sm bg-transparent z-40"
+            onClick={() => {
+              setShowConfirmModal(false);
+              setConfirmAction(null);
+            }}
+          ></div>
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div
+              className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{confirmAction.title}</h3>
+              <p className="text-sm text-gray-600 mb-6">{confirmAction.message}</p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowConfirmModal(false);
+                    setConfirmAction(null);
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={executeConfirmAction}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                >
+                  确认
                 </button>
               </div>
             </div>
