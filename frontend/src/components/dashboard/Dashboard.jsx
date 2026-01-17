@@ -4,6 +4,7 @@ import { lazy, Suspense } from 'react';
 import apiClient from '../../utils/axios.jsx';
 
 import { fetchStatistics, fetchDashboardData } from '../../Api.jsx';
+import CustomPageManager from "./CustomPageManager.jsx";
 
 const Sidebar = lazy(() => import('./Sidebar'));
 const DashboardHeader = lazy(() => import('./DashboardHeader'));
@@ -387,6 +388,12 @@ export default function Dashboard() {
                         {activeTab === 'themes' && (
                             <Suspense fallback={<div>加载中...</div>}>
                                 <ThemesStoreView />
+                            </Suspense>
+                        )}
+
+                        {activeTab === 'custom-pages' && (
+                            <Suspense fallback={<div>加载中...</div>}>
+                                <CustomPageManager />
                             </Suspense>
                         )}
 

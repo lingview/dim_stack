@@ -11,6 +11,7 @@ import { getConfig } from './utils/config.jsx'
 import FriendLinks from "./components/FriendLinks.jsx";
 import PageNotFound from "./components/PageNotFound.jsx";
 import ForgotPassword from "./components/ForgotPassword.jsx";
+import CustomHtmlPage from "./components/CustomHtmlPage.jsx";
 
 function App() {
     const [faviconUrl, setFaviconUrl] = useState('/favicon.ico')
@@ -70,7 +71,7 @@ function App() {
                 <Route path="/article/:articleId" element={<ArticleReader />} />
                 <Route path="/friend-links" element={<FriendLinks />}></Route>
                 <Route path="*" element={<PageNotFound />} />
-
+                <Route path="/custom-page/:alias" element={<CustomHtmlPage />} />
             </Routes>
         </>
     )

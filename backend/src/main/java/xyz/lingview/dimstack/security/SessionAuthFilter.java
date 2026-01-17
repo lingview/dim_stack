@@ -53,7 +53,8 @@ public class SessionAuthFilter implements Filter {
             "/v3/api-docs/**",
             "/api/forgot-password/send-captcha",
             "/api/forgot-password/reset",
-            "/api/forgot-password/verify"
+            "/api/forgot-password/verify",
+            "/api/custom-pages/**"
     ));
 
     @Override

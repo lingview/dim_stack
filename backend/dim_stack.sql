@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 01/01/2026 11:38:24
+ Date: 17/01/2026 20:00:00
 */
 
 SET NAMES utf8mb4;
@@ -219,6 +219,28 @@ CREATE TABLE `comment_like`  (
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for custom_page
+-- ----------------------------
+DROP TABLE IF EXISTS `custom_page`;
+CREATE TABLE `custom_page`  (
+                                `id` int NOT NULL AUTO_INCREMENT,
+                                `uuid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+                                `page_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '页面名',
+                                `page_code` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '页面代码',
+                                `alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '访问地址',
+                                `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '页面创建时间',
+                                `status` int NOT NULL COMMENT '页面状态0为删除1为正常',
+                                PRIMARY KEY (`id`) USING BTREE,
+                                UNIQUE INDEX `alias`(`alias` ASC) USING BTREE COMMENT '页面访问地址',
+                                INDEX `uuid`(`uuid` ASC) USING BTREE,
+                                CONSTRAINT `fk_custom_page_user_uuid` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of custom_page
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for dashboard_menu
 -- ----------------------------
 DROP TABLE IF EXISTS `dashboard_menu`;
@@ -255,6 +277,7 @@ INSERT INTO `dashboard_menu` VALUES (25, '菜单', 'menus', '/dashboard/menus', 
 INSERT INTO `dashboard_menu` VALUES (42, '用户', 'users', '/dashboard/users', 3, 'user:management', 10, '2025-09-13 11:12:42', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (43, '站点信息', 'info', '/dashboard/settings', 5, 'system:edit', 10, '2025-09-13 11:12:42', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (44, '主题管理', 'theme', '/dashboard/themes', 5, 'system:edit', 20, '2025-09-24 16:52:43', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (45, '自定义页面', 'page', '/dashboard/custom-pages', 3, 'system:edit', 20, '2025-12-04 21:42:15', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (101, '个人中心', 'user', '/dashboard/profile', NULL, NULL, 10, '2025-09-13 11:12:42', 'quick_action');
 INSERT INTO `dashboard_menu` VALUES (103, '创建文章', 'edit', '/dashboard/articles/create', NULL, 'post:create', 20, '2025-09-13 11:12:42', 'quick_action');
 INSERT INTO `dashboard_menu` VALUES (104, '用户', 'users', '/dashboard/users', NULL, 'system:edit', 30, '2025-09-13 11:12:42', 'quick_action');

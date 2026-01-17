@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.lingview.dimstack.mapper.CustomPageMapper">
+
+    <resultMap id="BaseResultMap" type="xyz.lingview.dimstack.domain.CustomPage">
+        <id column="id" property="id"/>
+        <result column="uuid" property="uuid"/>
+        <result column="page_name" property="pageName"/>
+        <result column="page_code" property="pageCode"/>
+        <result column="alias" property="alias"/>
+        <result column="create_time" property="createTime"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, uuid, page_name, page_code, alias, create_time, status
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM custom_page
+        WHERE id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectByAlias" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM custom_page
+        WHERE alias = #{alias,jdbcType=VARCHAR} AND status = 1
+    </select>
+
+    <select id="selectByUserId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM custom_page
+        WHERE uuid = #{uuid,jdbcType=VARCHAR} AND status = 1
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM custom_page
+        WHERE status = 1
+        ORDER BY create_time DESC
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        UPDATE custom_page
+        SET status = 0
+        WHERE id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="xyz.lingview.dimstack.domain.CustomPage" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO custom_page
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="uuid != null">
+                uuid,
+            </if>
+            <if test="pageName != null">
+                page_name,
+            </if>
+            <if test="pageCode != null">
+                page_code,
+            </if>
+            <if test="alias != null">
+                alias,
+            </if>
+            <if test="status != null">
+                status,
+            </if>
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="uuid != null">
+                #{uuid,jdbcType=VARCHAR},
+            </if>
+            <if test="pageName != null">
+                #{pageName,jdbcType=VARCHAR},
+            </if>
+            <if test="pageCode != null">
+                #{pageCode,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="alias != null">
+                #{alias,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKey" parameterType="xyz.lingview.dimstack.domain.CustomPage">
+        UPDATE custom_page
+        <set>
+            <if test="pageName != null">
+                page_name = #{pageName,jdbcType=VARCHAR},
+            </if>
+            <if test="pageCode != null">
+                page_code = #{pageCode,jdbcType=LONGVARCHAR},
+            </if>
+            <if test="alias != null">
+                alias = #{alias,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                status = #{status,jdbcType=INTEGER},
+            </if>
+        </set>
+        WHERE id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE custom_page
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
+
+</mapper>
