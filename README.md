@@ -67,23 +67,50 @@ java -jar dimstack-1.0-SNAPSHOT.jar
 ```
 
 运行后找到终端输出的地址（端口号是随机的）在浏览器打开
+进入站点初始化界面，格式如下（域名端口改为自己的，在终端或日志中查看）
+```bash
+http://localhost:8080/init/setup
+```
 
 <!-- 这是一张图片，ocr 内容为： -->
 ![](img.png)
 <!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1768055648141-0931e9ce-f844-400a-acf7-500930bb5ecf.png)
 
-按照向导的提示填写信息（默认信息不懂的话不要动）
+按照初始化向导的提示填写：管理员用户名、密码、站点运行端口、日志级别、mysql信息以及redis信息等（默认信息不懂的话不要动）
 
 <!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1768055710347-c57a1d17-5a52-4b33-b435-50096b9dcb98.png)
 
-填写完后点击确认，出现下面界面即为成功，重启即可
+填写完后点击确认（系统会自动按照填写的信息完成初始化，导入sql、配置文件生成等），出现下面界面即为成功，重启即可
 
 <!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1768055855648-4337108c-4ef7-41cc-981a-f7c7675f1d3e.png)
 
 [部署视频](./video/部署教程.mp4)
+
+注：如果是新安装会自动带入自定义页面功能，如果是要升级获取自定义页面请执行下面sql，并且使用新版jar替换现有jar
+```sql
+USE dim_stack;
+
+
+INSERT INTO `dashboard_menu` VALUES (45, '自定义页面', 'page', '/dashboard/custom-pages', 3, 'system:edit', 20, '2025-12-04 21:42:15', 'sidebar');
+
+
+CREATE TABLE `custom_page`  (
+                                `id` int NOT NULL AUTO_INCREMENT,
+                                `uuid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
+                                `page_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '页面名',
+                                `page_code` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '页面代码',
+                                `alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '访问地址',
+                                `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '页面创建时间',
+                                `status` int NOT NULL COMMENT '页面状态0为删除1为正常',
+                                PRIMARY KEY (`id`) USING BTREE,
+                                UNIQUE INDEX `alias`(`alias` ASC) USING BTREE COMMENT '页面访问地址',
+                                INDEX `uuid`(`uuid` ASC) USING BTREE,
+                                CONSTRAINT `fk_custom_page_user_uuid` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+```
 
 ## 全手动部署
 > 环境要求（给出版本为可用版本，其他版本请自行测试）
@@ -121,7 +148,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/dim_stack?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true&useAffectedRows=true
     username: root
-    password: "ling060318"
+    password: ""
     type: com.alibaba.druid.pool.DruidDataSource
 
     druid:
