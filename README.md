@@ -89,7 +89,7 @@ http://localhost:8080/init/setup
 
 [部署视频](./video/部署教程.mp4)
 
-注：如果是新安装会自动带入自定义页面功能，如果是要升级获取自定义页面请执行下面sql，并且使用新版jar替换现有jar
+注：如果是v54升级至v55，请执行以下sql
 ```sql
 USE dim_stack;
 
