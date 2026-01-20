@@ -19,5 +19,6 @@ public interface FriendLinksService {
     boolean updateFriendLinkStatus(Integer id, Integer status);
     boolean deleteFriendLink(Integer id);
     boolean deleteFriendLinkPermanent(Integer id);
+    boolean updateFriendLink(Integer id, FriendLinksRequestDTO requestDTO);
 
 }

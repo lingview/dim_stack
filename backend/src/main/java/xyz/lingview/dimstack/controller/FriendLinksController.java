@@ -204,4 +204,33 @@ public class FriendLinksController {
                     ));
         }
     }
+
+    // 友链后台编辑
+    @PutMapping("/{id}")
+    @RequiresPermission("system:edit")
+    public ResponseEntity<Map<String, Object>> updateFriendLink(@PathVariable Integer id, @RequestBody @Valid FriendLinksRequestDTO requestDTO) {
+        try {
+            boolean result = friendLinkService.updateFriendLink(id, requestDTO);
+            if (result) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "友链信息更新成功"
+                ));
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of(
+                                "success", false,
+                                "message", "未找到该友链"
+                        ));
+            }
+        } catch (Exception e) {
+            log.error("更新友链失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "更新友链失败: " + e.getMessage()
+                    ));
+        }
+    }
+
 }

@@ -9,6 +9,16 @@ export default function FriendLinksManager() {
     const [filterStatus, setFilterStatus] = useState(null);
     const [message, setMessage] = useState({ type: '', content: '' });
 
+    const [editingLink, setEditingLink] = useState(null);
+    const [editForm, setEditForm] = useState({
+        siteName: '',
+        siteUrl: '',
+        siteIcon: '',
+        siteDescription: '',
+        webmasterName: '',
+        contact: ''
+    });
+
     useEffect(() => {
         loadFriendLinks();
     }, [currentPage, filterStatus]);
@@ -95,6 +105,47 @@ export default function FriendLinksManager() {
         } catch (error) {
             console.error('彻底删除友链失败:', error);
             showMessage('error', '彻底删除友链时发生错误');
+        }
+    };
+
+    const startEdit = (link) => {
+        setEditingLink(link.id);
+        setEditForm({
+            siteName: link.siteName || '',
+            siteUrl: link.siteUrl || '',
+            siteIcon: link.siteIcon || '',
+            siteDescription: link.siteDescription || '',
+            webmasterName: link.webmasterName || '',
+            contact: link.contact || ''
+        });
+    };
+
+    const cancelEdit = () => {
+        setEditingLink(null);
+        setEditForm({
+            siteName: '',
+            siteUrl: '',
+            siteIcon: '',
+            siteDescription: '',
+            webmasterName: '',
+            contact: ''
+        });
+    };
+
+    const saveEdit = async (id) => {
+        try {
+            const response = await apiClient.put(`/friend-links/${id}`, editForm);
+
+            if (response.success) {
+                showMessage('success', response.message || '友链信息更新成功');
+                setEditingLink(null);
+                loadFriendLinks();
+            } else {
+                showMessage('error', response.message || '更新失败');
+            }
+        } catch (error) {
+            console.error('更新友链失败:', error);
+            showMessage('error', '更新友链时发生错误');
         }
     };
 
@@ -192,83 +243,165 @@ export default function FriendLinksManager() {
                             {friendLinks.map((link) => (
                                 <tr key={link.id}>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center">
-                                            <img
-                                                src={getFullImageUrl(link.siteIcon)}
-                                                alt={link.siteName}
-                                                className="h-10 w-10 rounded-md object-contain mr-3"
-                                                onError={(e) => { e.target.src = '/default-icon.png'; }}
-                                            />
-                                            <div>
-                                                <div className="text-sm font-medium text-gray-900">{link.siteName}</div>
-                                                <div className="text-sm text-gray-500 truncate max-w-xs">
-                                                    <a href={link.siteUrl} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">
-                                                        {link.siteUrl}
-                                                    </a>
-                                                </div>
-                                                <div className="text-xs text-gray-400 mt-1">{link.siteDescription}</div>
+                                        {editingLink === link.id ? (
+                                            <div className="space-y-2">
+                                                <input
+                                                    type="text"
+                                                    value={editForm.siteName}
+                                                    onChange={(e) => setEditForm({...editForm, siteName: e.target.value})}
+                                                    className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                                    placeholder="站点名称"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={editForm.siteUrl}
+                                                    onChange={(e) => setEditForm({...editForm, siteUrl: e.target.value})}
+                                                    className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                                    placeholder="站点URL"
+                                                />
+                                                <textarea
+                                                    value={editForm.siteDescription}
+                                                    onChange={(e) => setEditForm({...editForm, siteDescription: e.target.value})}
+                                                    className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                                    placeholder="站点描述"
+                                                    rows="2"
+                                                />
                                             </div>
-                                        </div>
+                                        ) : (
+                                            <div className="flex items-center">
+                                                <img
+                                                    src={getFullImageUrl(link.siteIcon)}
+                                                    alt={link.siteName}
+                                                    className="h-10 w-10 rounded-md object-contain mr-3"
+                                                    onError={(e) => { e.target.src = '/default-icon.png'; }}
+                                                />
+                                                <div>
+                                                    <div className="text-sm font-medium text-gray-900">{link.siteName}</div>
+                                                    <div className="text-sm text-gray-500 truncate max-w-xs">
+                                                        <a href={link.siteUrl} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">
+                                                            {link.siteUrl}
+                                                        </a>
+                                                    </div>
+                                                    <div className="text-xs text-gray-400 mt-1">{link.siteDescription}</div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-900">{link.webmasterName}</div>
-                                        <div className="text-sm text-gray-500">{link.contact}</div>
+                                        {editingLink === link.id ? (
+                                            <div className="space-y-2">
+                                                <input
+                                                    type="text"
+                                                    value={editForm.webmasterName}
+                                                    onChange={(e) => setEditForm({...editForm, webmasterName: e.target.value})}
+                                                    className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                                    placeholder="站长名称"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={editForm.contact}
+                                                    onChange={(e) => setEditForm({...editForm, contact: e.target.value})}
+                                                    className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                                    placeholder="联系方式"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={editForm.siteIcon}
+                                                    onChange={(e) => setEditForm({...editForm, siteIcon: e.target.value})}
+                                                    className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                                    placeholder="图标URL"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <div className="text-sm text-gray-900">{link.webmasterName}</div>
+                                                <div className="text-sm text-gray-500">{link.contact}</div>
+                                                {link.siteIcon && (
+                                                    <div className="mt-1 text-xs text-gray-500">图标: {link.siteIcon}</div>
+                                                )}
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(link.status)}`}>
-                                                {getStatusText(link.status)}
-                                            </span>
+                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(link.status)}`}>
+                                            {getStatusText(link.status)}
+                                        </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {new Date(link.createTime).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        {link.status === 2 && (
+                                        {editingLink === link.id ? (
+                                            <div className="space-x-2">
+                                                <button
+                                                    onClick={() => saveEdit(link.id)}
+                                                    className="text-green-600 hover:text-green-900"
+                                                >
+                                                    保存
+                                                </button>
+                                                <button
+                                                    onClick={cancelEdit}
+                                                    className="text-gray-600 hover:text-gray-900"
+                                                >
+                                                    取消
+                                                </button>
+                                            </div>
+                                        ) : (
                                             <>
                                                 <button
-                                                    onClick={() => handleStatusChange(link.id, 1)}
-                                                    className="text-green-600 hover:text-green-900 mr-3"
+                                                    onClick={() => startEdit(link)}
+                                                    className="text-blue-600 hover:text-blue-900 mr-3"
                                                 >
-                                                    通过
+                                                    编辑
                                                 </button>
-                                                <button
-                                                    onClick={() => handleStatusChange(link.id, 0)}
-                                                    className="text-red-600 hover:text-red-900"
-                                                >
-                                                    删除
-                                                </button>
-                                            </>
-                                        )}
-                                        {link.status === 1 && (
-                                            <>
-                                                <button
-                                                    onClick={() => handleStatusChange(link.id, 2)}
-                                                    className="text-yellow-600 hover:text-yellow-900 mr-3"
-                                                >
-                                                    待审核
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(link.id)}
-                                                    className="text-red-600 hover:text-red-900"
-                                                >
-                                                    删除
-                                                </button>
-                                            </>
-                                        )}
-                                        {link.status === 0 && (
-                                            <>
-                                                <button
-                                                    onClick={() => handleStatusChange(link.id, 1)}
-                                                    className="text-green-600 hover:text-green-900 mr-3"
-                                                >
-                                                    恢复
-                                                </button>
-                                                <button
-                                                    onClick={() => handlePermanentDelete(link.id)}
-                                                    className="text-red-600 hover:text-red-900"
-                                                >
-                                                    彻底删除
-                                                </button>
+                                                {link.status === 2 && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleStatusChange(link.id, 1)}
+                                                            className="text-green-600 hover:text-green-900 mr-3"
+                                                        >
+                                                            通过
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleStatusChange(link.id, 0)}
+                                                            className="text-red-600 hover:text-red-900"
+                                                        >
+                                                            删除
+                                                        </button>
+                                                    </>
+                                                )}
+                                                {link.status === 1 && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleStatusChange(link.id, 2)}
+                                                            className="text-yellow-600 hover:text-yellow-900 mr-3"
+                                                        >
+                                                            待审核
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(link.id)}
+                                                            className="text-red-600 hover:text-red-900"
+                                                        >
+                                                            删除
+                                                        </button>
+                                                    </>
+                                                )}
+                                                {link.status === 0 && (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleStatusChange(link.id, 1)}
+                                                            className="text-green-600 hover:text-green-900 mr-3"
+                                                        >
+                                                            恢复
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handlePermanentDelete(link.id)}
+                                                            className="text-red-600 hover:text-red-900"
+                                                        >
+                                                            彻底删除
+                                                        </button>
+                                                    </>
+                                                )}
                                             </>
                                         )}
                                     </td>

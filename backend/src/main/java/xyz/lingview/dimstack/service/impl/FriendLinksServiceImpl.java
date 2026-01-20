@@ -167,4 +167,29 @@ public class FriendLinksServiceImpl implements FriendLinksService {
             return false;
         }
     }
+
+
+    @Override
+    public boolean updateFriendLink(Integer id, FriendLinksRequestDTO requestDTO) {
+        try {
+            FriendLinks existingLink = friendLinksMapper.selectById(id);
+            if (existingLink == null) {
+                log.warn("尝试更新不存在的友链，ID: {}", id);
+                return false;
+            }
+
+            existingLink.setSiteName(requestDTO.getSiteName());
+            existingLink.setSiteUrl(requestDTO.getSiteUrl());
+            existingLink.setSiteIcon(requestDTO.getSiteIcon() != null ? requestDTO.getSiteIcon() : "");
+            existingLink.setSiteDescription(requestDTO.getSiteDescription());
+            existingLink.setWebmasterName(requestDTO.getWebmasterName());
+            existingLink.setContact(requestDTO.getContact());
+
+            int result = friendLinksMapper.updateById(existingLink);
+            return result > 0;
+        } catch (Exception e) {
+            log.error("更新友链失败", e);
+            return false;
+        }
+    }
 }
