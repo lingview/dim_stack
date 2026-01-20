@@ -188,6 +188,22 @@ export default function FriendLinksManager() {
         return `/upload/${url}`;
     };
 
+    const truncateText = (text, maxLength = 30) => {
+        if (!text) return '';
+        return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
+    };
+
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                showMessage('success', '已复制到剪贴板');
+            })
+            .catch(err => {
+                console.error('复制失败:', err);
+                showMessage('error', '复制失败');
+            });
+    };
+
     return (
         <div className="bg-white rounded-lg shadow-sm p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">友链管理</h2>
@@ -244,80 +260,127 @@ export default function FriendLinksManager() {
                                 <tr key={link.id}>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         {editingLink === link.id ? (
-                                            <div className="space-y-2">
-                                                <input
-                                                    type="text"
-                                                    value={editForm.siteName}
-                                                    onChange={(e) => setEditForm({...editForm, siteName: e.target.value})}
-                                                    className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
-                                                    placeholder="站点名称"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    value={editForm.siteUrl}
-                                                    onChange={(e) => setEditForm({...editForm, siteUrl: e.target.value})}
-                                                    className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
-                                                    placeholder="站点URL"
-                                                />
-                                                <textarea
-                                                    value={editForm.siteDescription}
-                                                    onChange={(e) => setEditForm({...editForm, siteDescription: e.target.value})}
-                                                    className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
-                                                    placeholder="站点描述"
-                                                    rows="2"
-                                                />
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">站点名称</label>
+                                                    <input
+                                                        type="text"
+                                                        value={editForm.siteName}
+                                                        onChange={(e) => setEditForm({...editForm, siteName: e.target.value})}
+                                                        className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                                        placeholder="站点名称"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">站点URL</label>
+                                                    <input
+                                                        type="text"
+                                                        value={editForm.siteUrl}
+                                                        onChange={(e) => setEditForm({...editForm, siteUrl: e.target.value})}
+                                                        className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                                        placeholder="站点URL"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">站点描述</label>
+                                                    <textarea
+                                                        value={editForm.siteDescription}
+                                                        onChange={(e) => setEditForm({...editForm, siteDescription: e.target.value})}
+                                                        className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                                        placeholder="站点描述"
+                                                        rows="2"
+                                                    />
+                                                </div>
                                             </div>
                                         ) : (
-                                            <div className="flex items-center">
-                                                <img
-                                                    src={getFullImageUrl(link.siteIcon)}
-                                                    alt={link.siteName}
-                                                    className="h-10 w-10 rounded-md object-contain mr-3"
-                                                    onError={(e) => { e.target.src = '/default-icon.png'; }}
-                                                />
+                                            <div className="flex items-start space-x-3">
                                                 <div>
-                                                    <div className="text-sm font-medium text-gray-900">{link.siteName}</div>
-                                                    <div className="text-sm text-gray-500 truncate max-w-xs">
-                                                        <a href={link.siteUrl} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">
-                                                            {link.siteUrl}
+                                                    <img
+                                                        src={getFullImageUrl(link.siteIcon)}
+                                                        alt={link.siteName}
+                                                        className="h-10 w-10 rounded-md object-contain"
+                                                        onError={(e) => { e.target.src = '/default-icon.png'; }}
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col space-y-1">
+                                                    <div className="flex items-start">
+                                                        <span className="text-xs font-medium text-gray-500 w-16 min-w-[4rem]">站点名称:</span>
+                                                        <span className="text-sm font-medium text-gray-900">{link.siteName}</span>
+                                                    </div>
+                                                    <div className="flex items-start">
+                                                        <span className="text-xs font-medium text-gray-500 w-16 min-w-[4rem]">站点URL:</span>
+                                                        <a
+                                                            href={link.siteUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-sm text-blue-600 hover:text-blue-800 break-all"
+                                                        >
+                                                            {truncateText(link.siteUrl, 30)}
                                                         </a>
                                                     </div>
-                                                    <div className="text-xs text-gray-400 mt-1">{link.siteDescription}</div>
+                                                    <div className="flex items-start">
+                                                        <span className="text-xs font-medium text-gray-500 w-16 min-w-[4rem]">站点描述:</span>
+                                                        <span className="text-xs text-gray-400">{truncateText(link.siteDescription, 40)}</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         {editingLink === link.id ? (
-                                            <div className="space-y-2">
-                                                <input
-                                                    type="text"
-                                                    value={editForm.webmasterName}
-                                                    onChange={(e) => setEditForm({...editForm, webmasterName: e.target.value})}
-                                                    className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
-                                                    placeholder="站长名称"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    value={editForm.contact}
-                                                    onChange={(e) => setEditForm({...editForm, contact: e.target.value})}
-                                                    className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
-                                                    placeholder="联系方式"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    value={editForm.siteIcon}
-                                                    onChange={(e) => setEditForm({...editForm, siteIcon: e.target.value})}
-                                                    className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
-                                                    placeholder="图标URL"
-                                                />
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">站长名称</label>
+                                                    <input
+                                                        type="text"
+                                                        value={editForm.webmasterName}
+                                                        onChange={(e) => setEditForm({...editForm, webmasterName: e.target.value})}
+                                                        className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                                        placeholder="站长名称"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">联系方式</label>
+                                                    <input
+                                                        type="text"
+                                                        value={editForm.contact}
+                                                        onChange={(e) => setEditForm({...editForm, contact: e.target.value})}
+                                                        className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                                        placeholder="联系方式"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-medium text-gray-700 mb-1">图标URL</label>
+                                                    <input
+                                                        type="text"
+                                                        value={editForm.siteIcon}
+                                                        onChange={(e) => setEditForm({...editForm, siteIcon: e.target.value})}
+                                                        className="block w-full px-2 py-1 text-sm border border-gray-300 rounded-md"
+                                                        placeholder="图标URL"
+                                                    />
+                                                </div>
                                             </div>
                                         ) : (
-                                            <div>
-                                                <div className="text-sm text-gray-900">{link.webmasterName}</div>
-                                                <div className="text-sm text-gray-500">{link.contact}</div>
+                                            <div className="flex flex-col space-y-1">
+                                                <div className="flex items-start">
+                                                    <span className="text-xs font-medium text-gray-500 w-16 min-w-[4rem]">站长名称:</span>
+                                                    <span className="text-sm text-gray-900">{link.webmasterName}</span>
+                                                </div>
+                                                <div className="flex items-start">
+                                                    <span className="text-xs font-medium text-gray-500 w-16 min-w-[4rem]">联系方式:</span>
+                                                    <span className="text-sm text-gray-500">{link.contact}</span>
+                                                </div>
                                                 {link.siteIcon && (
-                                                    <div className="mt-1 text-xs text-gray-500">图标: {link.siteIcon}</div>
+                                                    <div className="flex items-start">
+                                                        <span className="text-xs font-medium text-gray-500 w-16 min-w-[4rem]">图标URL:</span>
+                                                        <span
+                                                            className="text-xs text-gray-500 cursor-pointer hover:text-blue-600 break-all"
+                                                            title={link.siteIcon}
+                                                            onClick={() => copyToClipboard(link.siteIcon)}
+                                                        >
+                                                            {truncateText(link.siteIcon, 40)}
+                                                        </span>
+                                                    </div>
                                                 )}
                                             </div>
                                         )}
