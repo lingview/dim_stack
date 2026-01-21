@@ -138,18 +138,18 @@ export default function Home() {
                 <Hero />
 
                 <main className="container mx-auto px-4 py-8">
-                    <div className="flex flex-col lg:flex-row gap-8">
+                    <div className="flex flex-col lg:flex-row gap-6">
                         {/* 主内容区 */}
-                        <div className="lg:w-2/3">
+                        <div className="lg:w-3/4">
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-2xl font-bold text-gray-900 transition-colors duration-200 ">
+                                    <h2 className="text-2xl font-bold text-gray-900 transition-colors duration-200">
                                         {getCurrentFilterTitle()}
                                     </h2>
-                                    <div className="flex items-center space-x-4">
+                                    <div className="flex items-center space-x-3">
                                         <button
                                             onClick={toggleImageDisplay}
-                                            className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                                            className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
                                         >
                                             {showImages ? '隐藏图片' : '显示图片'}
                                         </button>
@@ -166,9 +166,9 @@ export default function Home() {
                                 </div>
 
                                 {loading ? (
-                                    <div>加载中...</div>
+                                    <div className="text-center py-12 text-gray-500">加载中...</div>
                                 ) : articles.length > 0 ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                    <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
                                         {articles.map((article) => (
                                             <ArticleCard
                                                 key={article.id}
@@ -180,29 +180,29 @@ export default function Home() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-center py-8 text-gray-500">
+                                    <div className="text-center py-12 text-gray-500">
                                         暂无文章
                                     </div>
                                 )}
 
                                 {/* 分页控件 */}
-                                <div className="flex justify-center mt-8 pagination-container">
+                                <div className="flex justify-center items-center mt-8 gap-2">
                                     <button
                                         onClick={() => setPage(p => Math.max(1, p - 1))}
                                         disabled={page === 1}
-                                        className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button pagination-prev-next"
+                                        className="px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                                     >
                                         上一页
                                     </button>
 
-                                    <span className="px-4 py-2 mx-1 pagination-info">
-                                        {page} / {totalPages}
+                                    <span className="px-4 py-2 text-sm text-gray-700">
+                                        第 {page} / {totalPages} 页
                                     </span>
 
                                     <button
                                         onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                         disabled={page === totalPages}
-                                        className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button pagination-prev-next"
+                                        className="px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                                     >
                                         下一页
                                     </button>
@@ -211,8 +211,8 @@ export default function Home() {
                         </div>
 
                         {/* 侧边栏 */}
-                        <div className="lg:w-1/4 xl:w-1/3">
-                            <div className="sticky top-28">
+                        <div className="lg:w-1/4">
+                            <div className="sticky top-28 space-y-4">
                                 <CategorySidebar onCategorySelect={handleCategoryChange} selectedCategory={categoryName} />
                                 <TagSidebar selectedTag={tagName} />
                                 <RecommendedArticles />
@@ -222,9 +222,9 @@ export default function Home() {
                 </main>
             </div>
 
-            <footer className="bg-white mt-auto transition-colors duration-200">
-                <div className="container mx-auto px-4 py-8">
-                    <div className="text-center text-gray-600 transition-colors duration-200">
+            <footer className="bg-white mt-auto transition-colors duration-200 border-t border-gray-200">
+                <div className="container mx-auto px-4 py-6">
+                    <div className="text-center text-gray-600 transition-colors duration-200 text-sm">
                         <p>{copyright}</p>
                         {icpRecord && (
                             <p className="mt-2">
@@ -232,7 +232,7 @@ export default function Home() {
                                     href="https://beian.miit.gov.cn"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-gray-600 hover:text-blue-600 text-sm"
+                                    className="text-gray-600 hover:text-blue-600"
                                 >
                                     {icpRecord}
                                 </a>
@@ -244,7 +244,7 @@ export default function Home() {
                                     href="http://www.beian.gov.cn"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-gray-600 hover:text-blue-600 text-sm"
+                                    className="text-gray-600 hover:text-blue-600"
                                 >
                                     {mpsRecord}
                                 </a>

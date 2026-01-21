@@ -6,7 +6,7 @@ const safeTruncate = (text, maxLength) => {
     return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
 };
 
-const renderTags = (tagsString, maxTags = 3, onTagClick) => {
+const renderTags = (tagsString, maxTags = 2, onTagClick) => {
     if (!tagsString) return null;
 
     const tags = tagsString.split(',').map(tag => tag.trim()).filter(tag => tag);
@@ -17,7 +17,7 @@ const renderTags = (tagsString, maxTags = 3, onTagClick) => {
     const remainingCount = tags.length - maxTags;
 
     return (
-        <div className="flex flex-wrap gap-2 mb-2">
+        <div className="flex flex-wrap gap-1.5 mb-2">
             {displayTags.map((tag, index) => (
                 <button
                     key={index}
@@ -26,14 +26,14 @@ const renderTags = (tagsString, maxTags = 3, onTagClick) => {
                         e.stopPropagation();
                         onTagClick && onTagClick(tag);
                     }}
-                    className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded hover:bg-gray-200 transition-colors"
+                    className="inline-block bg-gray-100 text-gray-700 text-xs px-2 py-0.5 rounded hover:bg-gray-200 transition-colors"
                 >
                     #{tag}
                 </button>
             ))}
             {remainingCount > 0 && (
-                <span className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                    ...
+                <span className="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded">
+                    +{remainingCount}
                 </span>
             )}
         </div>
@@ -104,11 +104,11 @@ export default function ArticleCard({ article, showImage = true, onTagClick, onC
 
     return (
         <article
-            className="relative group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col cursor-pointer h-full"
+            className="relative group bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 border border-gray-200 flex flex-col cursor-pointer h-full"
             onClick={handleCardClick}
         >
             {showImage && (
-                <div className="block overflow-hidden h-48 w-full">
+                <div className="block overflow-hidden h-44 w-full flex-shrink-0">
                     <img
                         className="w-full h-full object-cover transform transition-transform duration-500 ease-in-out group-hover:scale-105"
                         src={imageUrl || '/image_error.svg'}
@@ -120,21 +120,21 @@ export default function ArticleCard({ article, showImage = true, onTagClick, onC
                 </div>
             )}
 
-            <div className="p-6 flex flex-col flex-1">
-                {renderTags(safeArticle.tag, 3, handleTagClick)}
+            <div className="p-3 flex flex-col flex-1">
+                {renderTags(safeArticle.tag, 2, handleTagClick)}
 
-                <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors duration-200 line-clamp-2">
+                <h2 className="text-xl font-bold text-gray-900 mb-2 hover:text-blue-600 transition-colors duration-200 line-clamp-2">
                     <Link
                         to={`/article/${safeArticle.alias}`}
                         className="no-underline hover:underline block"
                         aria-label={`阅读：${safeArticle.title}`}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {safeTruncate(safeArticle.title, 30)}
+                        {safeTruncate(safeArticle.title, 40)}
                     </Link>
                 </h2>
 
-                <p className="text-gray-600 mb-4 flex-1 line-clamp-3">
+                <p className="text-gray-600 mb-3 flex-1 line-clamp-2">
                     <Link
                         to={`/article/${safeArticle.alias}`}
                         className="no-underline hover:underline text-gray-600 hover:text-blue-500"
@@ -145,14 +145,15 @@ export default function ArticleCard({ article, showImage = true, onTagClick, onC
                     </Link>
                 </p>
 
-                <div className="flex flex-wrap items-center justify-between gap-2 mt-auto">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm text-gray-500">作者: {safeArticle.author}</span>
-                        <span className="text-sm text-gray-500">发布于: {formatDate(safeArticle.date)}</span>
+                <div className="flex flex-col gap-2 mt-auto">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <span>{safeArticle.author}</span>
+                        <span>·</span>
+                        <span>{formatDate(safeArticle.date)}</span>
                     </div>
                     <button
                         onClick={handleCategoryClick}
-                        className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-200 transition-colors"
+                        className="self-start inline-block bg-blue-50 text-blue-700 text-sm px-2.5 py-1 rounded hover:bg-blue-100 transition-colors"
                     >
                         {safeArticle.category}
                     </button>
