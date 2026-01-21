@@ -186,23 +186,23 @@ export default function Home() {
                                 )}
 
                                 {/* 分页控件 */}
-                                <div className="flex justify-center items-center mt-8 gap-2">
+                                <div className="flex justify-center mt-8 pagination-container">
                                     <button
                                         onClick={() => setPage(p => Math.max(1, p - 1))}
                                         disabled={page === 1}
-                                        className="px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                                        className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button pagination-prev-next"
                                     >
                                         上一页
                                     </button>
 
-                                    <span className="px-4 py-2 text-sm text-gray-700">
-                                        第 {page} / {totalPages} 页
+                                    <span className="px-4 py-2 mx-1 pagination-info">
+                                        {page} / {totalPages}
                                     </span>
 
                                     <button
                                         onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                         disabled={page === totalPages}
-                                        className="px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                                        className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button pagination-prev-next"
                                     >
                                         下一页
                                     </button>
@@ -222,9 +222,9 @@ export default function Home() {
                 </main>
             </div>
 
-            <footer className="bg-white mt-auto transition-colors duration-200 border-t border-gray-200">
-                <div className="container mx-auto px-4 py-6">
-                    <div className="text-center text-gray-600 transition-colors duration-200 text-sm">
+            <footer className="bg-white mt-auto transition-colors duration-200">
+                <div className="container mx-auto px-4 py-8">
+                    <div className="text-center text-gray-600 transition-colors duration-200">
                         <p>{copyright}</p>
                         {icpRecord && (
                             <p className="mt-2">
@@ -232,7 +232,7 @@ export default function Home() {
                                     href="https://beian.miit.gov.cn"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-gray-600 hover:text-blue-600"
+                                    className="text-gray-600 hover:text-blue-600 text-sm"
                                 >
                                     {icpRecord}
                                 </a>
@@ -244,7 +244,7 @@ export default function Home() {
                                     href="http://www.beian.gov.cn"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-gray-600 hover:text-blue-600"
+                                    className="text-gray-600 hover:text-blue-600 text-sm"
                                 >
                                     {mpsRecord}
                                 </a>
