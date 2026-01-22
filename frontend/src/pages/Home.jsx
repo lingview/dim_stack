@@ -140,7 +140,7 @@ export default function Home() {
                 <main className="container mx-auto px-4 py-8">
                     <div className="flex flex-col lg:flex-row gap-6">
                         {/* 主内容区 */}
-                        <div className="lg:w-3/4">
+                        <div className="lg:w-7/10">
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-2xl font-bold text-gray-900 transition-colors duration-200">
@@ -211,7 +211,7 @@ export default function Home() {
                         </div>
 
                         {/* 侧边栏 */}
-                        <div className="lg:w-1/4">
+                        <div className="lg:w-3/10">
                             <div className="sticky top-28 space-y-4">
                                 <CategorySidebar onCategorySelect={handleCategoryChange} selectedCategory={categoryName} />
                                 <TagSidebar selectedTag={tagName} />

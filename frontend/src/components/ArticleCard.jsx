@@ -134,16 +134,23 @@ export default function ArticleCard({ article, showImage = true, onTagClick, onC
                     </Link>
                 </h2>
 
-                <p className="text-gray-600 mb-4 flex-1 line-clamp-3">
+                <div className="mb-4 flex-1 relative">
                     <Link
                         to={`/article/${safeArticle.alias}`}
-                        className="no-underline hover:underline text-gray-600 hover:text-blue-500"
+                        className="no-underline hover:underline text-gray-600 hover:text-blue-500 block overflow-hidden"
+                        style={{
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
+                        }}
                         aria-label={`阅读：${safeArticle.title}`}
                         onClick={(e) => e.stopPropagation()}
+                        title={safeArticle.excerpt}
                     >
-                        {safeTruncate(safeArticle.excerpt, 80)}
+                        {safeArticle.excerpt}
                     </Link>
-                </p>
+                </div>
 
                 <div className="flex flex-wrap items-center justify-between gap-2 mt-auto">
                     <div className="flex items-center gap-2 flex-wrap">
