@@ -39,4 +39,10 @@ public interface UserService {
     // 密码验证方法
     boolean checkPassword(String plaintextPassword, String hashedPassword);
 
+    // 用户管理模块修改用户信息
+    boolean updateUserByAdmin(UserUpdateDTO userUpdateDTO);
+
+    // 后台添加新用户
+    boolean addUser(UserUpdateDTO userUpdateDTO);
+
 }

@@ -15,6 +15,8 @@ public interface UserInformationMapper {
 
     UserInformation selectUserByUUID(@Param("uuid") String uuid);
 
+    String selectUsernameByUUID(@Param("uuid") String uuid);
+
     int updateUserByUUID(UserInformation userInformation);
 
     String getUsernameByUuid(@Param("uuid") String uuid);
@@ -41,4 +43,6 @@ public interface UserInformationMapper {
 
     int updatePasswordByUsername(@Param("username") String username, @Param("password") String password);
 
+    // 后台添加新用户
+    int insertUser(UserInformation user);
 }

@@ -1,32 +1,16 @@
 package xyz.lingview.dimstack.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
-import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
+import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.domain.UploadArticle;
-import xyz.lingview.dimstack.domain.UploadAttachment;
-import xyz.lingview.dimstack.domain.UserInformation;
-import xyz.lingview.dimstack.mapper.ArticleCategoryMapper;
-import xyz.lingview.dimstack.mapper.SiteConfigMapper;
-import xyz.lingview.dimstack.mapper.UploadMapper;
-import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.UploadService;
-import xyz.lingview.dimstack.util.RandomUtil;
 
-import java.io.IOException;
-import java.nio.channels.FileChannel;
-import java.nio.file.*;
-import java.time.Instant;
-import java.util.*;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -81,6 +65,31 @@ public class UploadController {
                                                             @RequestParam("file") MultipartFile file) {
         return uploadService.uploadAvatar(request, file);
     }
+
+    // 用户管理模块修改头像用
+    @PostMapping("/admin/uploadavatar")
+    @RequiresPermission("user:management")
+    public ResponseEntity<ApiResponse<Map<String, String>>> adminUploadAvatar(
+            HttpServletRequest request,
+            @RequestParam("file") MultipartFile file) {
+
+        ResponseEntity<Map<String, String>> result = uploadService.adminUploadAvatar(request, file);
+
+        if (result.getStatusCode().is2xxSuccessful()) {
+            Map<String, String> body = result.getBody();
+            ApiResponse<Map<String, String>> response = ApiResponse.success(body);
+            return ResponseEntity.ok(response);
+        } else {
+            Map<String, String> body = result.getBody();
+            String errorMessage = body != null ? body.get("error") : "上传失败";
+            ApiResponse<Map<String, String>> response = ApiResponse.error(
+                    result.getStatusCode().value(),
+                    errorMessage
+            );
+            return ResponseEntity.status(result.getStatusCode()).body(response);
+        }
+    }
+
 
 
 }

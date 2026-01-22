@@ -7,9 +7,11 @@ import xyz.lingview.dimstack.domain.Role;
 import xyz.lingview.dimstack.domain.UserInformation;
 import xyz.lingview.dimstack.dto.request.UserDTO;
 import xyz.lingview.dimstack.dto.request.UserUpdateDTO;
+import xyz.lingview.dimstack.mapper.SiteConfigMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.UserService;
 import xyz.lingview.dimstack.service.UserBlacklistService;
+import xyz.lingview.dimstack.util.RandomUtil;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -24,6 +26,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserBlacklistService userBlacklistService;
+
+    @Autowired
+    private SiteConfigMapper siteConfigMapper;
 
     @Override
     public UserInformation getUserByUUID(String uuid) {
@@ -146,4 +151,76 @@ public class UserServiceImpl implements UserService {
         }
         return BCrypt.checkpw(plaintextPassword, hashedPassword);
     }
+
+
+    @Override
+    public boolean updateUserByAdmin(UserUpdateDTO userUpdateDTO) {
+        UserInformation user = userInformationMapper.selectUserByUUID(userUpdateDTO.getUuid());
+        if (user == null) {
+            return false;
+        }
+
+        if (userUpdateDTO.getUsername() != null && !userUpdateDTO.getUsername().isEmpty()) {
+            String existingUserUUID = userInformationMapper.selectUserUUID(userUpdateDTO.getUsername());
+            if (existingUserUUID != null && !existingUserUUID.equals(userUpdateDTO.getUuid())) {
+                return false;
+            }
+            user.setUsername(userUpdateDTO.getUsername());
+        }
+
+        if (userUpdateDTO.getEmail() != null && !userUpdateDTO.getEmail().isEmpty()) {
+            user.setEmail(userUpdateDTO.getEmail());
+        }
+        if (userUpdateDTO.getPhone() != null && !userUpdateDTO.getPhone().isEmpty()) {
+            user.setPhone(userUpdateDTO.getPhone());
+        }
+        if (userUpdateDTO.getPassword() != null && !userUpdateDTO.getPassword().isEmpty()) {
+            String hashedPassword = BCrypt.hashpw(userUpdateDTO.getPassword(), BCrypt.gensalt());
+            user.setPassword(hashedPassword);
+        }
+
+        int result = userInformationMapper.updateUserByUUID(user);
+        return result > 0;
+    }
+
+    @Override
+    public boolean addUser(UserUpdateDTO userUpdateDTO) {
+        // 检查用户名是否已存在
+        String existingUserUUID = userInformationMapper.selectUserUUID(userUpdateDTO.getUsername());
+        if (existingUserUUID != null) {
+            return false;
+        }
+
+        UserInformation newUser = new UserInformation();
+        newUser.setUuid(RandomUtil.generateUUID());
+        newUser.setUsername(userUpdateDTO.getUsername());
+        newUser.setEmail(userUpdateDTO.getEmail());
+        newUser.setPhone(userUpdateDTO.getPhone());
+        newUser.setGender(userUpdateDTO.getGender());
+
+        int defaultRoleId = siteConfigMapper.getRegisterUserPermission();
+        newUser.setRole_id(defaultRoleId);
+
+        newUser.setStatus((byte) 1);
+
+
+        String hashedPassword = BCrypt.hashpw(userUpdateDTO.getPassword(), BCrypt.gensalt());
+        newUser.setPassword(hashedPassword);
+
+        if (userUpdateDTO.getBirthday() != null && !userUpdateDTO.getBirthday().isEmpty()) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                Date birthday = sdf.parse(userUpdateDTO.getBirthday());
+                newUser.setBirthday(birthday);
+            } catch (ParseException e) {
+                newUser.setBirthday(null);
+            }
+        } else {
+            newUser.setBirthday(null);
+        }
+
+        int result = userInformationMapper.insertUser(newUser);
+        return result > 0;
+    }
+
 }

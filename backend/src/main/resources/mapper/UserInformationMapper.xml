@@ -16,6 +16,10 @@
         WHERE uuid = #{uuid} AND status = 1
     </select>
 
+    <select id="selectUsernameByUUID" resultType="java.lang.String">
+        SELECT username FROM user_information WHERE uuid = #{uuid}
+    </select>
+
     <update id="updateUserByUUID" parameterType="xyz.lingview.dimstack.domain.UserInformation">
         UPDATE user_information
         <set>
@@ -162,5 +166,16 @@
         SET password = #{password}
         WHERE username = #{username}
     </update>
+
+    <!--后台添加用户-->
+    <insert id="insertUser" parameterType="xyz.lingview.dimstack.domain.UserInformation">
+        INSERT INTO user_information (
+            uuid, username, email, phone, gender, password,
+            birthday, role_id, status, avatar
+        ) VALUES (
+                     #{uuid}, #{username}, #{email}, #{phone}, #{gender},
+                     #{password}, #{birthday}, #{role_id}, #{status}, #{avatar}
+                 )
+    </insert>
 
 </mapper>

@@ -14,7 +14,6 @@ import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.UserService;
 import xyz.lingview.dimstack.service.UserBlacklistService;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -126,4 +125,26 @@ public class UserController {
         return userService.getUserPermissions(userId);
     }
 
+
+    @PostMapping("/add")
+    @RequiresPermission("user:management")
+    public ApiResponse<Void> addUser(@RequestBody UserUpdateDTO userUpdateDTO) {
+        boolean result = userService.addUser(userUpdateDTO);
+        if (result) {
+            return ApiResponse.success("用户添加成功");
+        } else {
+            return ApiResponse.error(400, "添加用户失败，用户名可能已存在");
+        }
+    }
+
+    @PostMapping("/admin/update")
+    @RequiresPermission("user:management")
+    public ApiResponse<Void> updateUserByAdmin(@RequestBody UserUpdateDTO userUpdateDTO) {
+        boolean result = userService.updateUserByAdmin(userUpdateDTO);
+        if (result) {
+            return ApiResponse.success("用户信息更新成功");
+        } else {
+            return ApiResponse.error(400, "更新失败，可能是用户名已存在");
+        }
+    }
 }

@@ -19,4 +19,5 @@ public interface UploadService {
     ResponseEntity<Map<String, String>> completeUpload(HttpServletRequest request, Map<String, String> payload);
     ResponseEntity<Map<String, Object>> uploadArticle(HttpServletRequest request, xyz.lingview.dimstack.domain.UploadArticle uploadArticle);
     ResponseEntity<Map<String, String>> uploadAvatar(HttpServletRequest request, MultipartFile file);
+    ResponseEntity<Map<String, String>> adminUploadAvatar(HttpServletRequest request, MultipartFile file);
 }

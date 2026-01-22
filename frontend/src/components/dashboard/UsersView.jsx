@@ -31,6 +31,27 @@ export default function UsersView() {
   const [newRoleId, setNewRoleId] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingUserData, setEditingUserData] = useState({
+    id: '',
+    uuid: '',
+    username: '',
+    email: '',
+    phone: '',
+    password: ''
+  });
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newUser, setNewUser] = useState({
+    username: '',
+    email: '',
+    phone: '',
+    password: '',
+    gender: '',
+    birthday: ''
+  });
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -110,6 +131,158 @@ export default function UsersView() {
     setConfirmAction(null);
   };
 
+  const openEditModal = (user) => {
+    setEditingUserData({
+      id: user.id,
+      uuid: user.uuid,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      password: ''
+    });
+    setShowEditModal(true);
+  };
+
+  const saveUserInfo = async () => {
+    try {
+      const payload = {
+        uuid: editingUserData.uuid,
+        username: editingUserData.username,
+        email: editingUserData.email,
+        phone: editingUserData.phone
+      };
+
+      if (editingUserData.password) {
+        payload.password = editingUserData.password;
+      }
+
+      const response = await apiClient.post('/user/admin/update', payload);
+
+      if (response && response.code === 200) {
+        fetchUsers();
+        setShowEditModal(false);
+        setEditingUserData({
+          id: '',
+          uuid: '',
+          username: '',
+          email: '',
+          phone: '',
+          password: ''
+        });
+        setError('');
+      } else {
+        setError(response.message || '更新用户信息失败');
+      }
+    } catch (error) {
+      console.error('更新用户信息失败:', error);
+      if (error.response && error.response.data) {
+        setError(error.response.data.message || '更新用户信息失败');
+      } else {
+        setError('更新用户信息失败');
+      }
+    }
+  };
+
+  const openAddModal = () => {
+    setNewUser({
+      username: '',
+      email: '',
+      phone: '',
+      password: '',
+      gender: '',
+      birthday: ''
+    });
+    setShowAddModal(true);
+  };
+
+  const addNewUser = async () => {
+    try {
+      const payload = {
+        username: newUser.username,
+        email: newUser.email,
+        phone: newUser.phone,
+        password: newUser.password,
+        gender: newUser.gender,
+        birthday: newUser.birthday
+      };
+
+      const response = await apiClient.post('/user/add', payload);
+
+      if (response && response.code === 200) {
+        fetchUsers();
+        setShowAddModal(false);
+        setNewUser({
+          username: '',
+          email: '',
+          phone: '',
+          password: '',
+          gender: '',
+          birthday: ''
+        });
+        setError('');
+      } else {
+        setError(response.message || '添加用户失败');
+      }
+    } catch (error) {
+      console.error('添加用户失败:', error);
+      if (error.response && error.response.data) {
+        setError(error.response.data.message || '添加用户失败');
+      } else {
+        setError('添加用户失败');
+      }
+    }
+  };
+
+  const openAvatarModal = (user) => {
+    setEditingUser(user);
+    setShowAvatarModal(true);
+  };
+
+  const handleAvatarChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedAvatar(file);
+    }
+  };
+
+  const uploadAvatar = async () => {
+    if (!selectedAvatar) {
+      setError('请选择头像文件');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', selectedAvatar);
+    formData.append('targetUserUUID', editingUser.uuid);
+
+    try {
+      setUploading(true);
+      const response = await apiClient.post('/admin/uploadavatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response && response.code === 200) {
+        fetchUsers();
+        setShowAvatarModal(false);
+        setSelectedAvatar(null);
+        setError('');  // 清除错误状态
+      } else {
+        setError(response.message || '头像上传失败');
+      }
+    } catch (error) {
+      console.error('头像上传失败:', error);
+      if (error.response && error.response.data) {
+        setError(error.response.data.message || '头像上传失败');
+      } else {
+        setError('头像上传失败');
+      }
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const getStatusText = (status) => {
     switch (status) {
       case 0: return '已删除';
@@ -133,6 +306,12 @@ export default function UsersView() {
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-900">用户管理</h2>
+          <button
+            onClick={openAddModal}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          >
+            添加用户
+          </button>
         </div>
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
@@ -145,13 +324,20 @@ export default function UsersView() {
     <div className="bg-white rounded-lg shadow-sm p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-900">用户管理</h2>
+        <button
+          onClick={openAddModal}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+        >
+          添加用户
+        </button>
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6">
-          {error}
-        </div>
+          <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6">
+            {error}
+          </div>
       )}
+
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
@@ -181,9 +367,10 @@ export default function UsersView() {
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
                       <img
-                        className="h-10 w-10 rounded-full object-cover"
+                        className="h-10 w-10 rounded-full object-cover cursor-pointer"
                         src={getFullImageUrl(user.avatar)}
                         alt={user.username}
+                        onClick={() => openAvatarModal(user)}
                         onError={(e) => {
                           e.target.src = '/image_error.svg';
                         }}
@@ -191,7 +378,8 @@ export default function UsersView() {
                     </div>
                     <div className="ml-4">
                       <div className="text-sm font-medium text-gray-900">{user.username}</div>
-                      <div className="text-sm text-gray-500">{user.email || user.phone || '未提供联系方式'}</div>
+                      <div className="text-sm text-gray-500">{"邮箱:" + user.email || '未提供邮箱'}</div>
+                      <div className="text-sm text-gray-500">{"手机:" + user.phone || '未提供手机号'}</div>
                     </div>
                   </div>
                 </td>
@@ -208,6 +396,12 @@ export default function UsersView() {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <button
+                    onClick={() => openEditModal(user)}
+                    className="text-blue-600 hover:text-blue-900 mr-4"
+                  >
+                    编辑
+                  </button>
                   <button
                     onClick={() => openRoleModal(user)}
                     className="text-blue-600 hover:text-blue-900 mr-4"
@@ -262,6 +456,252 @@ export default function UsersView() {
           </div>
         )}
       </div>
+
+      {/* 头像上传 */}
+      {showAvatarModal && (
+        <>
+          <div
+            className="fixed inset-0 backdrop-blur-sm bg-transparent z-40"
+            onClick={() => setShowAvatarModal(false)}
+          ></div>
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div
+              className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                上传头像 - {editingUser?.username}
+              </h3>
+              <div className="space-y-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                    id="avatar-upload"
+                  />
+                  <label htmlFor="avatar-upload" className="cursor-pointer">
+                    {selectedAvatar ? (
+                      <div>
+                        <img
+                          src={URL.createObjectURL(selectedAvatar)}
+                          alt="预览"
+                          className="mx-auto h-24 w-24 rounded-full object-cover"
+                        />
+                        <p className="mt-2 text-sm text-gray-600">{selectedAvatar.name}</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <svg
+                          className="mx-auto h-12 w-12 text-gray-400"
+                          stroke="currentColor"
+                          fill="none"
+                          viewBox="0 0 48 48"
+                        >
+                          <path
+                            d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                            strokeWidth={2}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                        <p className="mt-2 text-sm text-gray-600">
+                          点击选择头像文件
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          支持 JPG, PNG, GIF 格式，最大 5MB
+                        </p>
+                      </div>
+                    )}
+                  </label>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowAvatarModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  disabled={uploading}
+                >
+                  取消
+                </button>
+                <button
+                  onClick={uploadAvatar}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
+                  disabled={!selectedAvatar || uploading}
+                >
+                  {uploading ? '上传中...' : '上传头像'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 添加用户 */}
+      {showAddModal && (
+        <>
+          <div
+            className="fixed inset-0 backdrop-blur-sm bg-transparent z-40"
+            onClick={() => setShowAddModal(false)}
+          ></div>
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div
+              className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-medium text-gray-900 mb-4">添加新用户</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">用户名 *</label>
+                  <input
+                    type="text"
+                    value={newUser.username}
+                    onChange={(e) => setNewUser({...newUser, username: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">邮箱 *</label>
+                  <input
+                    type="email"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">手机号</label>
+                  <input
+                    type="text"
+                    value={newUser.phone}
+                    onChange={(e) => setNewUser({...newUser, phone: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">密码 *</label>
+                  <input
+                    type="password"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">性别</label>
+                  <select
+                    value={newUser.gender}
+                    onChange={(e) => setNewUser({...newUser, gender: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">请选择</option>
+                    <option value="male">男</option>
+                    <option value="female">女</option>
+                    <option value="other">其他</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">生日</label>
+                  <input
+                    type="date"
+                    value={newUser.birthday}
+                    onChange={(e) => setNewUser({...newUser, birthday: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={addNewUser}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                >
+                  添加用户
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 编辑用户信息 */}
+      {showEditModal && (
+        <>
+          <div
+            className="fixed inset-0 backdrop-blur-sm bg-transparent z-40"
+            onClick={() => setShowEditModal(false)}
+          ></div>
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div
+              className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-lg font-medium text-gray-900 mb-4">编辑用户信息</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                  <input
+                    type="text"
+                    value={editingUserData.username}
+                    onChange={(e) => setEditingUserData({...editingUserData, username: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">邮箱</label>
+                  <input
+                    type="email"
+                    value={editingUserData.email}
+                    onChange={(e) => setEditingUserData({...editingUserData, email: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">手机号</label>
+                  <input
+                    type="text"
+                    value={editingUserData.phone}
+                    onChange={(e) => setEditingUserData({...editingUserData, phone: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">新密码 (留空则不修改)</label>
+                  <input
+                    type="password"
+                    value={editingUserData.password}
+                    onChange={(e) => setEditingUserData({...editingUserData, password: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={saveUserInfo}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                >
+                  保存
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {showRoleModal && editingUser && (
         <>
