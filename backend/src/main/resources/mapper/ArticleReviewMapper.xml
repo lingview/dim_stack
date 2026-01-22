@@ -9,6 +9,7 @@
         SELECT
             a.article_id,
             a.article_name,
+            a.article_cover,
             a.uuid,
             a.excerpt,
             a.create_time,
@@ -64,6 +65,7 @@
         SELECT
             a.article_id,
             a.article_name,
+            a.article_cover,
             a.uuid,
             a.excerpt,
             a.create_time,

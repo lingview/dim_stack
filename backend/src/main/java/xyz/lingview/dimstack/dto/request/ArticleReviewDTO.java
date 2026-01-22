@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 public class ArticleReviewDTO {
     private String article_id;
     private String article_name;
+    private String article_cover;
     private String uuid;
     private String author_name;
     private String excerpt;
