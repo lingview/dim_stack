@@ -55,6 +55,8 @@ export default function ProfileView() {
         password: ''
     });
 
+    const [originalUsername, setOriginalUsername] = useState('');
+
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState('');
@@ -82,8 +84,8 @@ export default function ProfileView() {
                             ? getFullImageUrl(profileResponse.avatar)
                             : '/image_error.svg';
 
-                        // 对从服务器获取的用户数据进行转义处理
-                        setUser({
+                        // 用户信息转义避免潜在的xss
+                        const userData = {
                             uuid: profileResponse.uuid || '',
                             username: escapeHtml(profileResponse.username) || '',
                             avatar: profileResponse.avatar || '',
@@ -91,8 +93,10 @@ export default function ProfileView() {
                             email: escapeHtml(profileResponse.email) || '',
                             gender: escapeHtml(profileResponse.gender) || '',
                             birthday: birthdayFormatted,
-                        });
+                        };
 
+                        setUser(userData);
+                        setOriginalUsername(userData.username);
                         setPreviewAvatar(processedAvatar || '/image_error.svg');
                     }
                 }
@@ -108,7 +112,6 @@ export default function ProfileView() {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        // 密码字段不需要转义
         if (name === 'password') {
             setUser(prev => ({
                 ...prev,
@@ -188,13 +191,30 @@ export default function ProfileView() {
         }
     };
 
+    const logoutAndRedirect = async () => {
+        try {
+            await apiClient.post('/logout');
+        } catch (logoutError) {
+            console.error('登出时出现错误:', logoutError);
+        } finally {
+            localStorage.clear();
+            sessionStorage.clear();
+
+            window.location.href = '/login';
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             setSaving(true);
+
+            const currentUsername = unescapeHtml(user.username);
+            const originalUnescapedUsername = unescapeHtml(originalUsername);
+
             const updateData = {
                 uuid: user.uuid,
-                username: unescapeHtml(user.username),
+                username: currentUsername,
                 avatar: user.avatar,
                 phone: unescapeHtml(user.phone),
                 email: unescapeHtml(user.email),
@@ -206,11 +226,24 @@ export default function ProfileView() {
             const response = await apiClient.put('/user/update', updateData);
 
             if (response) {
-                showMessage('个人信息更新成功', 'success');
-                setUser(prev => ({
-                    ...prev,
-                    password: ''
-                }));
+                const isUsernameChanged = originalUnescapedUsername !== currentUsername;
+
+                if (isUsernameChanged) {
+                    showMessage('用户名已更改，请重新登录...', 'success');
+
+                    setTimeout(() => {
+                        logoutAndRedirect();
+                    }, 1500);
+
+                    setOriginalUsername(escapeHtml(currentUsername));
+                } else {
+                    showMessage('个人信息更新成功', 'success');
+                    setUser(prev => ({
+                        ...prev,
+                        password: ''
+                    }));
+                    setOriginalUsername(escapeHtml(currentUsername));
+                }
             } else {
                 showMessage('更新失败', 'error');
             }
