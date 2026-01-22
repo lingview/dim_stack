@@ -1,5 +1,6 @@
 package xyz.lingview.dimstack.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
@@ -16,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/theme")
 public class ThemeController {
@@ -45,9 +47,9 @@ public class ThemeController {
 
         String currentTheme = themeProperties.getActiveTheme();
         if (currentTheme.equals(themeName)) {
-            return "Theme successfully switched to: " + themeName;
+            return "主题以切换至: " + themeName;
         } else {
-            return "Error: Failed to switch theme to: " + themeName;
+            return "Error: 主题切换失败: " + themeName;
         }
     }
 
@@ -79,7 +81,8 @@ public class ThemeController {
 
             return result.toString();
         } catch (Exception e) {
-            return "Error listing themes: " + e.getMessage();
+            log.error("主题读取失败", e);
+            return "主题读取失败";
         }
     }
 
@@ -105,7 +108,8 @@ public class ThemeController {
                 return "Theme '" + themeName + "' is valid but does not have index.html";
             }
         } catch (Exception e) {
-            return "Error validating theme: " + e.getMessage();
+            log.error("主题验证出错", e);
+            return "Error 验证主题出错";
         }
     }
 
@@ -136,10 +140,11 @@ public class ThemeController {
                     "data", themes
             ));
         } catch (Exception e) {
+            log.error("获取主题列表失败", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of(
                             "success", false,
-                            "message", "Error listing themes: " + e.getMessage()
+                            "message", "Error listing themes"
                     ));
         }
     }
