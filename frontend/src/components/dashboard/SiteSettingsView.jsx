@@ -58,6 +58,7 @@ export default function SiteSettingsView() {
 
     // 添加编辑音乐状态
     const [editingMusic, setEditingMusic] = useState(null);
+    const [audioUploading, setAudioUploading] = useState(false);
 
     const [formData, setFormData] = useState({
         site_name: '',
@@ -276,13 +277,13 @@ export default function SiteSettingsView() {
 
     // 触发音频文件选择
     const triggerAudioFileSelect = () => {
-        if (audioFileInputRef.current) {
+        if (audioFileInputRef.current && !audioUploading) {
             audioFileInputRef.current.click();
         }
     };
 
-    // 上传音频文件
-    const uploadAudioFile = async (file) => {
+    // 普通上传（小文件）
+    const normalAudioUpload = async (file) => {
         const formData = new FormData();
         formData.append('file', file);
 
@@ -293,8 +294,8 @@ export default function SiteSettingsView() {
                 }
             });
 
-            if (response.fileUrl) {
-                return response.fileUrl;
+            if (response.fileUrl || response.data?.fileUrl) {
+                return response.fileUrl || response.data?.fileUrl;
             } else {
                 throw new Error(response.error || '上传失败');
             }
@@ -304,7 +305,52 @@ export default function SiteSettingsView() {
         }
     };
 
-    // 上传音频文件并更新表单
+    // 分片上传
+    const multipartAudioUpload = async (file) => {
+        const CHUNK_SIZE = 5 * 1024 * 1024;
+        const chunks = Math.ceil(file.size / CHUNK_SIZE);
+
+        try {
+            const initResponse = await apiClient.post('/uploadattachment/init', {
+                filename: file.name
+            });
+            const uploadId = initResponse.data?.uploadId || initResponse.uploadId;
+
+            for (let i = 0; i < chunks; i++) {
+                const start = i * CHUNK_SIZE;
+                const chunk = file.slice(start, Math.min(start + CHUNK_SIZE, file.size));
+
+                await apiClient.post('/uploadattachment/part', chunk, {
+                    headers: {
+                        'Upload-Id': uploadId,
+                        'Chunk-Index': i,
+                        'Content-Type': 'application/octet-stream'
+                    }
+                });
+            }
+
+            const completeResponse = await apiClient.post('/uploadattachment/complete', {
+                uploadId,
+                filename: file.name
+            });
+
+            return completeResponse.data?.fileUrl || completeResponse.fileUrl;
+        } catch (error) {
+            console.error('分片上传失败:', error);
+            throw new Error('分片上传失败: ' + (error.response?.data?.error || error.message));
+        }
+    };
+
+    // 上传音频文件
+    const uploadAudioFile = async (file) => {
+        const FILE_SIZE_THRESHOLD = 10 * 1024 * 1024; // 10MB
+
+        if (file.size > FILE_SIZE_THRESHOLD) {
+            return await multipartAudioUpload(file);
+        } else {
+            return await normalAudioUpload(file);
+        }
+    };
     const handleAudioUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -313,9 +359,13 @@ export default function SiteSettingsView() {
             showMessage('error', '请选择音频文件');
             return;
         }
+        setAudioUploading(true);
+
+        const fileSize = (file.size / (1024 * 1024)).toFixed(2);
+        const uploadMethod = file.size > 10 * 1024 * 1024 ? '（大文件，使用分片上传）' : '（小文件，使用普通上传）';
 
         try {
-            showMessage('info', '正在上传音频...');
+            showMessage('info', `正在上传音频 ${uploadMethod}... (${fileSize}MB)`);
             const fileUrl = await uploadAudioFile(file);
 
             setNewMusic(prev => ({
@@ -323,11 +373,12 @@ export default function SiteSettingsView() {
                 musicUrl: fileUrl
             }));
 
-            showMessage('success', '音频上传成功');
+            showMessage('success', `音频上传成功 (${fileSize}MB)`);
         } catch (error) {
             console.error('上传音频失败:', error);
             showMessage('error', '音频上传失败: ' + error.message);
         } finally {
+            setAudioUploading(false);
             if (audioFileInputRef.current) {
                 audioFileInputRef.current.value = '';
             }
@@ -813,10 +864,26 @@ export default function SiteSettingsView() {
                                         <button
                                             type="button"
                                             onClick={triggerAudioFileSelect}
-                                            className="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-r-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            className={`px-3 py-2 text-sm font-medium text-white border border-transparent rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                                                audioUploading
+                                                    ? 'bg-gray-400 cursor-not-allowed'
+                                                    : 'bg-blue-600 hover:bg-blue-700'
+                                            }`}
+                                            disabled={audioUploading}
                                         >
-                                            上传音频
+                                            {audioUploading ? (
+                                                <span className="flex items-center">
+            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            上传中...
+        </span>
+                                            ) : (
+                                                '上传音频'
+                                            )}
                                         </button>
+
                                     </div>
                                     <input
                                         type="file"
@@ -831,7 +898,7 @@ export default function SiteSettingsView() {
                                 <button
                                     type="button"
                                     onClick={addMusic}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                                 >
                                     添加音乐
                                 </button>
