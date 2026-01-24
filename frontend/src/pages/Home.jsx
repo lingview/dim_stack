@@ -6,6 +6,7 @@ import ArticleCard from '../components/ArticleCard';
 import CategorySidebar from '../components/CategorySidebar';
 import TagSidebar from '../components/TagSidebar';
 import RecommendedArticles from '../components/RecommendedArticles';
+import MusicPlayer from '../components/MusicPlayer';
 import { fetchArticles, fetchArticlesByCategory } from '../Api.jsx';
 import apiClient from '../utils/axios';
 
@@ -222,6 +223,7 @@ export default function Home() {
                 </main>
             </div>
 
+            <MusicPlayer />
             <footer className="bg-white mt-auto transition-colors duration-200">
                 <div className="container mx-auto px-4 py-8">
                     <div className="text-center text-gray-600 transition-colors duration-200">

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.lingview.dimstack.mapper.MusicMapper">
+
+    <!-- 添加音乐 -->
+    <insert id="insertMusic" parameterType="xyz.lingview.dimstack.domain.Music" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO music (uuid, music_name, music_author, music_url, create_time, status)
+        VALUES (#{uuid}, #{musicName}, #{musicAuthor}, #{musicUrl}, NOW(), 1)
+    </insert>
+
+    <!-- 更新音乐 -->
+    <update id="updateMusicById" parameterType="xyz.lingview.dimstack.domain.Music">
+        UPDATE music
+        <set>
+            <if test="musicName != null and musicName != ''">
+                music_name = #{musicName},
+            </if>
+            <if test="musicAuthor != null and musicAuthor != ''">
+                music_author = #{musicAuthor},
+            </if>
+            <if test="musicUrl != null and musicUrl != ''">
+                music_url = #{musicUrl},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 软删除音乐 -->
+    <update id="deleteMusicById" parameterType="integer">
+        UPDATE music
+        SET status = 0
+        WHERE id = #{id}
+    </update>
+
+    <!-- 获取所有启用的音乐 -->
+    <select id="selectAllEnabledMusics" resultType="xyz.lingview.dimstack.domain.Music">
+        SELECT id, uuid, music_name as musicName, music_author as musicAuthor,
+               music_url as musicUrl, DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as createTime, status
+        FROM music
+        WHERE status = 1
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据ID获取音乐 -->
+    <select id="selectMusicById" parameterType="integer" resultType="xyz.lingview.dimstack.domain.Music">
+        SELECT id, uuid, music_name as musicName, music_author as musicAuthor,
+               music_url as musicUrl, DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as createTime, status
+        FROM music
+        WHERE id = #{id}
+    </select>
+
+    <!-- 获取所有音乐（包括已删除的） -->
+    <select id="selectAllMusics" resultType="xyz.lingview.dimstack.domain.Music">
+        SELECT id, uuid, music_name as musicName, music_author as musicAuthor,
+               music_url as musicUrl, DATE_FORMAT(create_time, '%Y-%m-%d %H:%i:%s') as createTime, status
+        FROM music
+        ORDER BY create_time DESC
+    </select>
+
+</mapper>

@@ -103,4 +103,26 @@ public class SiteConfigUtil {
         }
         return true;
     }
+
+
+    /**
+     * 从Redis中的dimstack:site_config获取是否启用音乐播放器
+     * @return boolean值，如果不存在或出错则返回false（默认不启用）
+     */
+    public boolean isMusicEnabled() {
+        try {
+            String siteConfigJson = redisTemplate.opsForValue().get("dimstack:site_config");
+            if (siteConfigJson != null) {
+                JsonObject jsonObject = JsonParser.parseString(siteConfigJson).getAsJsonObject();
+                JsonElement enableMusicElement = jsonObject.get("enable_music");
+
+                if (enableMusicElement != null && enableMusicElement.isJsonPrimitive()) {
+                    return enableMusicElement.getAsInt() == 1;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("检查音乐设置时发生异常", e);
+        }
+        return false;
+    }
 }

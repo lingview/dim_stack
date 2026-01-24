@@ -465,3 +465,106 @@
 .dark .search-overlay {
   background-color: rgba(0, 0, 0, 0.3) !important;
 }
+/* 音乐播放器暗色模式适配 */
+.dark .music-player-container {
+  background-color: rgba(31, 41, 55, 0.8) !important;
+  border-color: rgba(75, 85, 99, 0.5) !important;
+}
+
+.dark .music-player-header {
+  border-color: #374151 !important;
+}
+
+.dark .music-player-title {
+  color: #e5e7eb !important;
+}
+
+.dark .music-player-list-btn {
+  color: #9ca3af !important;
+  background-color: rgba(55, 65, 81, 0.6) !important;
+  border-color: rgba(107, 114, 128, 0.3) !important;
+}
+
+.dark .music-player-list-btn:hover {
+  color: #60a5fa !important;
+  background-color: rgba(75, 85, 99, 0.6) !important;
+}
+
+.dark .music-info-card {
+  background-color: rgba(55, 65, 81, 0.6) !important;
+  border-color: rgba(107, 114, 128, 0.3) !important;
+}
+
+.dark .music-name {
+  color: #e5e7eb !important;
+}
+
+.dark .music-author {
+  color: #9ca3af !important;
+}
+
+.dark .music-playlist {
+  background-color: rgba(55, 65, 81, 0.6) !important;
+  border-color: rgba(107, 114, 128, 0.3) !important;
+}
+
+.dark .music-playlist-item {
+  background-color: rgba(75, 85, 99, 0.7) !important;
+  color: #e5e7eb !important;
+}
+
+.dark .music-playlist-item:hover {
+  background-color: rgba(107, 114, 128, 0.8) !important;
+}
+
+.dark .music-progress-track {
+  background-color: #374151 !important;
+}
+
+.dark .music-progress-bar {
+  background-color: #60a5fa !important;
+}
+
+.dark .music-progress-handle {
+  background-color: #60a5fa !important;
+}
+
+.dark .music-time {
+  color: #9ca3af !important;
+}
+
+.dark .music-control-btn {
+  color: #9ca3af !important;
+}
+
+.dark .music-control-btn:hover {
+  color: #60a5fa !important;
+}
+
+.dark .music-volume-icon {
+  color: #9ca3af !important;
+}
+
+.dark .music-volume-track {
+  background-color: #374151 !important;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: #374151 !important;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #6b7280 !important;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af !important;
+}
+
+.dark .slider::-webkit-slider-thumb {
+  background: #60a5fa !important;
+}
+
+.dark .slider::-moz-range-thumb {
+  background: #60a5fa !important;
+}

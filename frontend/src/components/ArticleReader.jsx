@@ -9,6 +9,7 @@ import ArticlePreview from './ArticlePreview.jsx';
 import CommentSection from './CommentSection.jsx';
 import TagSidebar from "./TagSidebar.jsx";
 import TableOfContents from './TableOfContents.jsx';
+import MusicPlayer from './MusicPlayer';
 
 export default function ArticleReader() {
     const { articleId } = useParams();
@@ -123,6 +124,7 @@ export default function ArticleReader() {
                         <span className="ml-3 text-gray-600">加载中...</span>
                     </div>
                 </div>
+                <MusicPlayer/>
             </div>
         );
     }
@@ -136,6 +138,7 @@ export default function ArticleReader() {
                         {error}
                     </div>
                 </div>
+                <MusicPlayer/>
             </div>
         );
     }
@@ -225,12 +228,13 @@ export default function ArticleReader() {
                     className="fixed bottom-8 right-8 bg-white hover:bg-gray-100 text-black rounded-full p-3 shadow-lg transition-all duration-300 z-50"
                     aria-label="返回顶部"
                 >
-                    <svg xmlns="http://www.w.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                     </svg>
                 </button>
             )}
 
+            <MusicPlayer/>
         </div>
     );
 }

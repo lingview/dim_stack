@@ -31,8 +31,8 @@
             mail_default_encoding as mail_default_encoding,
             icp_record_number as icp_record_number,
             mps_record_number as mps_record_number,
-            enable_register as enable_register
-
+            enable_register as enable_register,
+            enable_music as enable_music
         FROM site_config
         WHERE id = 1
     </select>
@@ -98,10 +98,10 @@
             mail_default_encoding = #{mail_default_encoding},
             icp_record_number = #{icp_record_number},
             mps_record_number = #{mps_record_number},
-            enable_register = #{enable_register}
+            enable_register = #{enable_register},
+            enable_music = #{enable_music}
         WHERE id = 1
     </update>
-
 
     <!-- 查询ICP备案号 -->
     <select id="getIcpRecordNumber" resultType="string">

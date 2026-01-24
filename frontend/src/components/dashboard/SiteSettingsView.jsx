@@ -50,8 +50,14 @@ export default function SiteSettingsView() {
     const [iconUploading, setIconUploading] = useState(false);
     const [roles, setRoles] = useState([]);
     const [articleStatusOptions, setArticleStatusOptions] = useState([]);
+    const [musics, setMusics] = useState([]);
+    const [loadingMusics, setLoadingMusics] = useState(false);
     const fileInputRef = useRef(null);
     const iconFileInputRef = useRef(null);
+    const audioFileInputRef = useRef(null);
+
+    // 添加编辑音乐状态
+    const [editingMusic, setEditingMusic] = useState(null);
 
     const [formData, setFormData] = useState({
         site_name: '',
@@ -75,7 +81,14 @@ export default function SiteSettingsView() {
         mail_enable_ssl: false,
         icp_record_number: '',
         mps_record_number: '',
-        enable_register: 1
+        enable_register: 1,
+        enable_music: 0
+    });
+
+    const [newMusic, setNewMusic] = useState({
+        musicName: '',
+        musicAuthor: '',
+        musicUrl: ''
     });
 
     const [message, setMessage] = useState({ type: '', content: '' });
@@ -84,7 +97,8 @@ export default function SiteSettingsView() {
         Promise.all([
             fetchSiteConfig(),
             fetchRoles(),
-            fetchArticleStatusOptions()
+            fetchArticleStatusOptions(),
+            fetchMusics()
         ]).finally(() => {
             setLoading(false);
         });
@@ -114,7 +128,8 @@ export default function SiteSettingsView() {
                     mail_enable_ssl: response.data.mail_enable_ssl !== undefined ? response.data.mail_enable_ssl : false,
                     icp_record_number: escapeHtml(response.data.icp_record_number) || '',
                     mps_record_number: escapeHtml(response.data.mps_record_number) || '',
-                    enable_register: response.data.enable_register !== undefined ? response.data.enable_register : 1  // 添加这一行
+                    enable_register: response.data.enable_register !== undefined ? response.data.enable_register : 1,
+                    enable_music: response.data.enable_music !== undefined ? response.data.enable_music : 0
                 };
                 setFormData(escapedData);
             } else {
@@ -125,7 +140,6 @@ export default function SiteSettingsView() {
             showMessage('error', '获取站点配置时发生错误');
         }
     };
-
 
     const fetchRoles = async () => {
         try {
@@ -166,6 +180,24 @@ export default function SiteSettingsView() {
         }
     };
 
+    const fetchMusics = async () => {
+        try {
+            setLoadingMusics(true);
+            const response = await apiClient.get('/music/enabled');
+
+            if (response.success) {
+                setMusics(response.data);
+            } else {
+                showMessage('error', response.message || '获取音乐列表失败');
+            }
+        } catch (error) {
+            console.error('获取音乐列表失败:', error);
+            showMessage('error', '获取音乐列表时发生错误');
+        } finally {
+            setLoadingMusics(false);
+        }
+    };
+
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
         let finalValue = type === 'checkbox' ? checked : escapeHtml(value);
@@ -174,11 +206,180 @@ export default function SiteSettingsView() {
             finalValue = value === '' ? '' : parseInt(value, 10);
         }
 
+        if (name === 'enable_music') {
+            finalValue = checked ? 1 : 0;
+        }
+
         setFormData(prev => ({
             ...prev,
             [name]: finalValue
         }));
     };
+
+    const handleNewMusicChange = (e) => {
+        const { name, value } = e.target;
+        setNewMusic(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleEditMusicChange = (e) => {
+        const { name, value } = e.target;
+        setEditingMusic(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    // 编辑音频
+    const startEditMusic = (music) => {
+        setEditingMusic({
+            id: music.id,
+            musicName: music.musicName || '',
+            musicAuthor: music.musicAuthor || '',
+            musicUrl: music.musicUrl || ''
+        });
+    };
+
+    // 取消编辑
+    const cancelEditMusic = () => {
+        setEditingMusic(null);
+    };
+
+    // 保存编辑的音乐
+    const saveEditMusic = async () => {
+        if (!editingMusic.musicName || !editingMusic.musicAuthor || !editingMusic.musicUrl) {
+            showMessage('error', '请填写完整的音乐信息');
+            return;
+        }
+
+        try {
+            const response = await apiClient.put(`/music/update/${editingMusic.id}`, {
+                musicName: editingMusic.musicName,
+                musicAuthor: editingMusic.musicAuthor,
+                musicUrl: editingMusic.musicUrl
+            });
+
+            if (response.success) {
+                showMessage('success', '音乐更新成功');
+                setEditingMusic(null);
+                fetchMusics();
+            } else {
+                showMessage('error', response.message || '音乐更新失败');
+            }
+        } catch (error) {
+            console.error('更新音乐失败:', error);
+            showMessage('error', '更新音乐时发生错误');
+        }
+    };
+
+    // 触发音频文件选择
+    const triggerAudioFileSelect = () => {
+        if (audioFileInputRef.current) {
+            audioFileInputRef.current.click();
+        }
+    };
+
+    // 上传音频文件
+    const uploadAudioFile = async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await apiClient.post('/uploadattachment', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            if (response.fileUrl) {
+                return response.fileUrl;
+            } else {
+                throw new Error(response.error || '上传失败');
+            }
+        } catch (error) {
+            console.error('音频上传失败:', error);
+            throw error;
+        }
+    };
+
+    // 上传音频文件并更新表单
+    const handleAudioUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('audio/')) {
+            showMessage('error', '请选择音频文件');
+            return;
+        }
+
+        try {
+            showMessage('info', '正在上传音频...');
+            const fileUrl = await uploadAudioFile(file);
+
+            setNewMusic(prev => ({
+                ...prev,
+                musicUrl: fileUrl
+            }));
+
+            showMessage('success', '音频上传成功');
+        } catch (error) {
+            console.error('上传音频失败:', error);
+            showMessage('error', '音频上传失败: ' + error.message);
+        } finally {
+            if (audioFileInputRef.current) {
+                audioFileInputRef.current.value = '';
+            }
+        }
+    };
+
+    const addMusic = async () => {
+        if (!newMusic.musicName || !newMusic.musicAuthor || !newMusic.musicUrl) {
+            showMessage('error', '请填写完整的音乐信息');
+            return;
+        }
+
+        try {
+            const response = await apiClient.post('/music/add', {
+                musicName: newMusic.musicName,
+                musicAuthor: newMusic.musicAuthor,
+                musicUrl: newMusic.musicUrl
+            });
+
+            if (response.success) {
+                showMessage('success', '音乐添加成功');
+                setNewMusic({ musicName: '', musicAuthor: '', musicUrl: '' });
+                fetchMusics();
+            } else {
+                showMessage('error', response.message || '音乐添加失败');
+            }
+        } catch (error) {
+            console.error('添加音乐失败:', error);
+            showMessage('error', '添加音乐时发生错误');
+        }
+    };
+
+    const deleteMusic = async (id) => {
+        if (!window.confirm('确定要删除这首音乐吗？')) {
+            return;
+        }
+
+        try {
+            const response = await apiClient.delete(`/music/delete/${id}`);
+
+            if (response.success) {
+                showMessage('success', '音乐删除成功');
+                fetchMusics();
+            } else {
+                showMessage('error', response.message || '音乐删除失败');
+            }
+        } catch (error) {
+            console.error('删除音乐失败:', error);
+            showMessage('error', '删除音乐时发生错误');
+        }
+    };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -198,7 +399,8 @@ export default function SiteSettingsView() {
                 mail_username: unescapeHtml(formData.mail_username),
                 mail_protocol: unescapeHtml(formData.mail_protocol),
                 icp_record_number: unescapeHtml(formData.icp_record_number),
-                mps_record_number: unescapeHtml(formData.mps_record_number)
+                mps_record_number: unescapeHtml(formData.mps_record_number),
+                enable_music: formData.enable_music
             };
 
             if (formData.mail_password && formData.mail_password.trim() !== '') {
@@ -331,7 +533,7 @@ export default function SiteSettingsView() {
             <h2 className="text-xl font-semibold text-gray-900 mb-6">站点信息设置 - 修改后请点击页面最下方的保存按钮</h2>
 
             {message.content && (
-                <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 text-green-800' : message.type === 'error' ? 'bg-red-50 text-red-800' : 'bg-blue-50 text-blue-800'}`}>
                     {message.content}
                 </div>
             )}
@@ -537,6 +739,225 @@ export default function SiteSettingsView() {
                     </div>
                 </div>
 
+                {/* 音乐播放器设置 */}
+                <div className="border-b border-gray-200 pb-6">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">音乐播放器设置</h3>
+                    <div className="grid grid-cols-1 gap-6">
+                        <div>
+                            <div className="flex items-center">
+                                <input
+                                    id="enable_music"
+                                    name="enable_music"
+                                    type="checkbox"
+                                    checked={formData.enable_music === 1}
+                                    onChange={(e) => {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            enable_music: e.target.checked ? 1 : 0
+                                        }));
+                                    }}
+                                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <label htmlFor="enable_music" className="ml-2 block text-sm font-medium text-gray-700">
+                                    启用悬浮音乐播放器
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* 添加音乐表单 */}
+                        <div className="bg-gray-50 p-4 rounded-md">
+                            <h4 className="font-medium text-gray-900 mb-3">添加新音乐</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label htmlFor="musicName" className="block text-sm font-medium text-gray-700 mb-1">
+                                        曲名
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="musicName"
+                                        name="musicName"
+                                        value={newMusic.musicName}
+                                        onChange={handleNewMusicChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="请输入曲名"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="musicAuthor" className="block text-sm font-medium text-gray-700 mb-1">
+                                        歌手名
+                                    </label>
+                                    <input
+                                        type="text"
+                                        id="musicAuthor"
+                                        name="musicAuthor"
+                                        value={newMusic.musicAuthor}
+                                        onChange={handleNewMusicChange}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="请输入歌手名"
+                                    />
+                                </div>
+                                <div>
+                                    <label htmlFor="musicUrl" className="block text-sm font-medium text-gray-700 mb-1">
+                                        音乐地址
+                                    </label>
+                                    <div className="flex">
+                                        <input
+                                            type="text"
+                                            id="musicUrl"
+                                            name="musicUrl"
+                                            value={newMusic.musicUrl}
+                                            onChange={handleNewMusicChange}
+                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="请输入音乐直链"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={triggerAudioFileSelect}
+                                            className="px-3 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-r-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            上传音频
+                                        </button>
+                                    </div>
+                                    <input
+                                        type="file"
+                                        ref={audioFileInputRef}
+                                        onChange={handleAudioUpload}
+                                        accept="audio/*"
+                                        className="hidden"
+                                    />
+                                </div>
+                            </div>
+                            <div className="mt-4 flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={addMusic}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                >
+                                    添加音乐
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* 音乐列表 */}
+                        <div>
+                            <h4 className="font-medium text-gray-900 mb-3">音乐列表</h4>
+                            {loadingMusics ? (
+                                <div className="flex justify-center items-center h-20">
+                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                                </div>
+                            ) : musics.filter(music => music.status === 1).length === 0 ? (
+                                <p className="text-gray-500 text-center py-4">暂无音乐</p>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-50">
+                                        <tr>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                曲名
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                歌手
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                音乐地址
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                状态
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                操作
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                        {musics.filter(music => music.status === 1).map((music) => (
+                                            <tr key={music.id}>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {editingMusic && editingMusic.id === music.id ? (
+                                                        <input
+                                                            type="text"
+                                                            name="musicName"
+                                                            value={editingMusic.musicName}
+                                                            onChange={handleEditMusicChange}
+                                                            className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                        />
+                                                    ) : (
+                                                        music.musicName
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    {editingMusic && editingMusic.id === music.id ? (
+                                                        <input
+                                                            type="text"
+                                                            name="musicAuthor"
+                                                            value={editingMusic.musicAuthor}
+                                                            onChange={handleEditMusicChange}
+                                                            className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                        />
+                                                    ) : (
+                                                        music.musicAuthor
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
+                                                    {editingMusic && editingMusic.id === music.id ? (
+                                                        <input
+                                                            type="text"
+                                                            name="musicUrl"
+                                                            value={editingMusic.musicUrl}
+                                                            onChange={handleEditMusicChange}
+                                                            className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                        />
+                                                    ) : (
+                                                        music.musicUrl
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800`}>
+                                                        启用
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    {editingMusic && editingMusic.id === music.id ? (
+                                                        <>
+                                                            <button
+                                                                onClick={saveEditMusic}
+                                                                className="text-green-600 hover:text-green-900 mr-2"
+                                                            >
+                                                                保存
+                                                            </button>
+                                                            <button
+                                                                onClick={cancelEditMusic}
+                                                                className="text-gray-600 hover:text-gray-900"
+                                                            >
+                                                                取消
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <button
+                                                                onClick={() => startEditMusic(music)}
+                                                                className="text-blue-600 hover:text-blue-900 mr-2"
+                                                            >
+                                                                编辑
+                                                            </button>
+                                                            <button
+                                                                onClick={() => deleteMusic(music.id)}
+                                                                className="text-red-600 hover:text-red-900"
+                                                            >
+                                                                删除
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
 
                 {/* 用户与权限 */}
                 <div className="border-b border-gray-200 pb-6">

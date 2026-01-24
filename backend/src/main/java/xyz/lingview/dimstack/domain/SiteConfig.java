@@ -29,5 +29,5 @@ public class SiteConfig {
     private String icp_record_number;
     private String mps_record_number;
     private Integer enable_register;
-
+    private Integer enable_music;
 }

@@ -333,6 +333,27 @@ INSERT INTO `menus` VALUES (5, 'menu_8d1022c01adf4b8f87bc9debd86f33a5', '075eb86
 INSERT INTO `menus` VALUES (6, 'menu_f71584ff8f574978bf0e66e52bccf2ac', '075eb86f721743e3940f35869154a140175689381296899805858', '关于', '/article/about', 5, 1);
 
 -- ----------------------------
+-- Table structure for music
+-- ----------------------------
+DROP TABLE IF EXISTS `music`;
+CREATE TABLE `music`  (
+                          `id` int NOT NULL AUTO_INCREMENT,
+                          `uuid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '上传用户uuid',
+                          `music_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '曲名',
+                          `music_author` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '曲作者',
+                          `music_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '文件地址',
+                          `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                          `status` int NOT NULL COMMENT '0为删除1为正常',
+                          PRIMARY KEY (`id`) USING BTREE,
+                          INDEX `fk_music_user_uuid`(`uuid` ASC) USING BTREE,
+                          CONSTRAINT `fk_music_user_uuid` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of music
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for permission
 -- ----------------------------
 DROP TABLE IF EXISTS `permission`;
@@ -456,6 +477,7 @@ CREATE TABLE `site_config`  (
                                 `icp_record_number` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'icp备案号',
                                 `mps_record_number` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '公安联网备案号',
                                 `enable_register` int NULL DEFAULT NULL COMMENT '是否启用用户注册（1：启用，0：禁用）',
+                                `enable_music` int NULL DEFAULT NULL COMMENT '是否启用悬浮音乐播放器（1：启用，0：禁用）',
                                 PRIMARY KEY (`id`) USING BTREE,
                                 INDEX `register_user_permission`(`register_user_permission` ASC) USING BTREE,
                                 CONSTRAINT `register_user_permission` FOREIGN KEY (`register_user_permission`) REFERENCES `role` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
@@ -464,7 +486,7 @@ CREATE TABLE `site_config`  (
 -- ----------------------------
 -- Records of site_config
 -- ----------------------------
-INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 2, '© 2025 次元栈 - Dim Stack. All rights reserved.', 3, 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/a2c28b53fdc12fde51bf23928127066f.jpg?sign=0P0lUp19dTUdaMQ_WHFjknnpVGKXSsggQbKIi_mgtGM=:0', '欢迎来到瓦纳海姆星', '探索洛天依和Vsinger家族的音乐之旅', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/Image_1721230292906.png?sign=JU30z6z_RsZ3Vv7HB_5D3msYRneiga5NLjhN3EpL-3w=:0', 'default', 'https://dimstackrepo.apilinks.cn/themes.json', 0, '', NULL, '', '系统通知', '', NULL, 'smtp', 0, 1, 'UTF-8', '', '', 1);
+INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 2, '© 2025 次元栈 - Dim Stack. All rights reserved.', 3, 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/a2c28b53fdc12fde51bf23928127066f.jpg?sign=0P0lUp19dTUdaMQ_WHFjknnpVGKXSsggQbKIi_mgtGM=:0', '欢迎来到瓦纳海姆星', '探索洛天依和Vsinger家族的音乐之旅', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/Image_1721230292906.png?sign=JU30z6z_RsZ3Vv7HB_5D3msYRneiga5NLjhN3EpL-3w=:0', 'default', 'https://dimstackrepo.apilinks.cn/themes.json', 0, '', NULL, '', '系统通知', '', NULL, 'smtp', 0, 1, 'UTF-8', '', '', 1, 0);
 
 -- ----------------------------
 -- Table structure for user_information

@@ -212,7 +212,9 @@ public class SiteConfigController {
             if (siteConfig.getEnable_register() != null) {
                 currentConfig.setEnable_register(siteConfig.getEnable_register());
             }
-
+            if (siteConfig.getEnable_music() != null) {
+                currentConfig.setEnable_music(siteConfig.getEnable_music());
+            }
             boolean result = siteConfigService.updateSiteConfig(currentConfig);
 
             if (result) {
