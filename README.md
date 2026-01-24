@@ -89,28 +89,12 @@ http://localhost:8080/init/setup
 
 [部署视频](./video/部署教程.mp4)
 
-注：如果是v54升级至v55，请执行以下sql
-```sql
-USE dim_stack;
+注：如果是如下版本的升级需要手动执行数据库升级脚本
+v54->v55+
+v64->v65+
+上述版本请到数据库更新脚本目录中下载对应的升级脚本
+注：mysql5的兼容更新脚本只支持到5.7，其他版本请自行处理（建议数据库尽快升级至mysql8+）
 
-
-INSERT INTO `dashboard_menu` VALUES (45, '自定义页面', 'page', '/dashboard/custom-pages', 3, 'system:edit', 20, '2025-12-04 21:42:15', 'sidebar');
-
-
-CREATE TABLE `custom_page`  (
-                                `id` int NOT NULL AUTO_INCREMENT,
-                                `uuid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL,
-                                `page_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '页面名',
-                                `page_code` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '页面代码',
-                                `alias` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '访问地址',
-                                `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '页面创建时间',
-                                `status` int NOT NULL COMMENT '页面状态0为删除1为正常',
-                                PRIMARY KEY (`id`) USING BTREE,
-                                UNIQUE INDEX `alias`(`alias` ASC) USING BTREE COMMENT '页面访问地址',
-                                INDEX `uuid`(`uuid` ASC) USING BTREE,
-                                CONSTRAINT `fk_custom_page_user_uuid` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
-```
 
 ## 全手动部署
 > 环境要求（给出版本为可用版本，其他版本请自行测试）
