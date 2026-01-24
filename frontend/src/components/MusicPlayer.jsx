@@ -238,7 +238,7 @@ const MusicPlayer = () => {
             onMouseLeave={!isMobile ? () => setIsExpanded(false) : undefined}
         >
             {isMobile ? (
-                <div className="music-player-container bg-white/80 backdrop-blur-lg rounded-r-xl shadow-xl border border-gray-200/50 border-l-0 h-40"> {/* 移动端高度增加到h-40 */}
+                <div className="music-player-container bg-white/80 backdrop-blur-lg rounded-r-xl shadow-xl border border-gray-200/50 border-l-0 h-40">
                     <div
                         className="absolute -right-5 top-1/2 -translate-y-1/2 bg-blue-500 text-white px-1 py-3 rounded-r-md shadow-md cursor-pointer hover:bg-blue-600 transition-colors flex flex-col items-center gap-1"
                         onClick={toggleExpand}
@@ -364,6 +364,14 @@ const MusicPlayer = () => {
                             </div>
                         )}
                     </div>
+
+                    {currentMusic && (
+                        <audio
+                            ref={audioRef}
+                            src={currentMusic.musicUrl}
+                            preload="auto"
+                        />
+                    )}
                 </div>
             ) : (
                 // 桌面端版本
@@ -469,7 +477,7 @@ const MusicPlayer = () => {
 
                             <button
                                 onClick={togglePlay}
-                                className="bg-blue-500/90 backdrop-blur-sm text-white rounded-full p-1.5 hover:bg-blue-600/90 hover:scale-110 transition-all shadow-lg"
+                                className="bg-blue-500/90 backdrop-blur-sm text-white rounded-full p-2 hover:bg-blue-600/90 hover:scale-110 transition-all shadow-lg"
                                 title={isPlaying ? '暂停' : '播放'}
                             >
                                 {isPlaying ? (
