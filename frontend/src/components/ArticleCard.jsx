@@ -17,7 +17,7 @@ const renderTags = (tagsString, maxTags = 3, onTagClick) => {
     const remainingCount = tags.length - maxTags;
 
     return (
-        <div className="flex flex-wrap gap-2 mb-2">
+        <div className="flex flex-wrap gap-1 sm:gap-2 mb-2">
             {displayTags.map((tag, index) => (
                 <button
                     key={index}
@@ -104,26 +104,29 @@ export default function ArticleCard({ article, showImage = true, onTagClick, onC
 
     return (
         <article
-            className="relative group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col cursor-pointer h-full"
+            className="relative group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-200 cursor-pointer h-full
+                       flex flex-row sm:flex-col"
             onClick={handleCardClick}
         >
             {showImage && (
-                <div className="block overflow-hidden h-44 w-full">
-                    <img
-                        className="w-full h-full object-cover transform transition-transform duration-500 ease-in-out group-hover:scale-105"
-                        src={imageUrl || '/image_error.svg'}
-                        alt={safeArticle.title}
-                        onError={(e) => {
-                            e.currentTarget.src = '/image_error.svg';
-                        }}
-                    />
+                <div className="flex items-center justify-center w-1/3 sm:w-full p-2 sm:p-0 flex-shrink-0">
+                    <div className="block overflow-hidden w-full aspect-square sm:aspect-auto sm:h-44 rounded-lg sm:rounded-none">
+                        <img
+                            className="w-full h-full object-cover transform transition-transform duration-500 ease-in-out group-hover:scale-105"
+                            src={imageUrl || '/image_error.svg'}
+                            alt={safeArticle.title}
+                            onError={(e) => {
+                                e.currentTarget.src = '/image_error.svg';
+                            }}
+                        />
+                    </div>
                 </div>
             )}
 
-            <div className="p-6 flex flex-col flex-1">
+            <div className="p-3 sm:p-6 flex flex-col flex-1 w-2/3 sm:w-full">
                 {renderTags(safeArticle.tag, 3, handleTagClick)}
 
-                <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors duration-200 line-clamp-2">
+                <h2 className="text-base sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 hover:text-blue-600 transition-colors duration-200 line-clamp-2">
                     <Link
                         to={`/article/${safeArticle.alias}`}
                         className="no-underline hover:underline block"
@@ -134,10 +137,10 @@ export default function ArticleCard({ article, showImage = true, onTagClick, onC
                     </Link>
                 </h2>
 
-                <div className="mb-4 flex-1 relative">
+                <div className="mb-2 sm:mb-4 flex-1 relative">
                     <Link
                         to={`/article/${safeArticle.alias}`}
-                        className="no-underline hover:underline text-gray-600 hover:text-blue-500 block overflow-hidden"
+                        className="no-underline hover:underline text-gray-600 hover:text-blue-500 block overflow-hidden text-sm sm:text-base"
                         style={{
                             display: '-webkit-box',
                             WebkitLineClamp: 2,
@@ -152,14 +155,14 @@ export default function ArticleCard({ article, showImage = true, onTagClick, onC
                     </Link>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-2 mt-auto">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm text-gray-500">作者: {safeArticle.author}</span>
-                        <span className="text-sm text-gray-500">发布于: {formatDate(safeArticle.date)}</span>
+                <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-2 mt-auto">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 flex-wrap">
+                        <span className="text-xs sm:text-sm text-gray-500">作者: {safeArticle.author}</span>
+                        <span className="text-xs sm:text-sm text-gray-500">发布于: {formatDate(safeArticle.date)}</span>
                     </div>
                     <button
                         onClick={handleCategoryClick}
-                        className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-200 transition-colors"
+                        className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-200 transition-colors self-start sm:self-auto"
                     >
                         {safeArticle.category}
                     </button>
