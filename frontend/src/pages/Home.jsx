@@ -21,11 +21,14 @@ export default function Home() {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedTag, setSelectedTag] = useState(null);
     const [showImages, setShowImages] = useState(true);
-
-    const [forceMobile, setForceMobile] = useState(false);
+    const [forceMobile, setForceMobile] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return window.innerWidth < 676;
+        }
+        return false;
+    });
 
     const articleListRef = useRef(null);
-
     const { categoryName, tagName } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
@@ -50,14 +53,22 @@ export default function Home() {
     useEffect(() => {
         if (!articleListRef.current) return;
 
-        const ro = new ResizeObserver(entries => {
-            const width = entries[0].contentRect.width;
-            setForceMobile(width < 656);
+        const checkWidth = () => {
+            if (!articleListRef.current) return;
+            const width = articleListRef.current.offsetWidth;
+            const canFitTwoColumns = width >= 676;
+            setForceMobile(!canFitTwoColumns);
+        };
+
+        checkWidth();
+
+        const ro = new ResizeObserver(() => {
+            checkWidth();
         });
 
         ro.observe(articleListRef.current);
         return () => ro.disconnect();
-    }, []);
+    }, [articles]);
 
     const loadArticlesFromUrl = async () => {
         try {
@@ -142,18 +153,19 @@ export default function Home() {
     return (
         <div className="flex bg-gray-50 flex-col min-h-screen">
             <Header />
+
             <div className="pt-20 flex-grow">
                 <Hero />
 
                 <main className="container mx-auto px-4 py-8">
                     <div className="flex flex-col lg:flex-row gap-6">
-                        {/* 主内容区 */}
                         <div className="lg:w-7/10">
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-2xl font-bold text-gray-900">
                                         {getCurrentFilterTitle()}
                                     </h2>
+
                                     <div className="flex items-center space-x-3">
                                         <button
                                             onClick={toggleImageDisplay}
@@ -200,7 +212,6 @@ export default function Home() {
                                     </div>
                                 )}
 
-                                {/* 分页控件 */}
                                 <div className="flex justify-center mt-8">
                                     <button
                                         onClick={() => setPage(p => Math.max(1, p - 1))}
@@ -225,7 +236,6 @@ export default function Home() {
                             </div>
                         </div>
 
-                        {/* 侧边栏 */}
                         <div className="lg:w-3/10">
                             <div className="sticky top-28 space-y-4">
                                 <CategorySidebar

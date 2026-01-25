@@ -568,3 +568,16 @@
 .dark .slider::-moz-range-thumb {
   background: #60a5fa !important;
 }
+
+.dark .mobile-article-mask {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.dark .mobile-article-mask .category-chip {
+  background-color: rgba(59, 130, 246, 0.25);
+  color: #bfdbfe;
+}
+
+.dark .mobile-article-mask .category-chip:hover {
+  background-color: rgba(59, 130, 246, 0.35);
+}

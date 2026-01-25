@@ -44,6 +44,8 @@ export default function ArticleCard({
                                     }) {
     const navigate = useNavigate();
 
+    console.log('ArticleCard forceMobile:', forceMobile, 'article:', article.title);
+
     const safeArticle = {
         ...article,
         title: article.title || '',
@@ -86,113 +88,109 @@ export default function ArticleCard({
             : navigate(`/category/${encodeURIComponent(safeArticle.category)}`);
     };
 
-    return (
-        <>
-            {forceMobile && (
-                <article
-                    onClick={handleCardClick}
-                    className="
-                        relative rounded-lg overflow-hidden shadow-md h-40 flex w-full
-                    "
-                >
-                    <div className="w-1/3 aspect-square m-2 rounded overflow-hidden bg-white z-10">
-                        <img
-                            src={imageUrl}
-                            alt={safeArticle.title}
-                            className="w-full h-full object-cover"
-                        />
-                    </div>
-
-                    <div className="mobile-article-mask flex-1 p-3 flex flex-col z-10 bg-white/65 backdrop-blur-sm">
-                        {renderTags(safeArticle.tag, 2, handleTagClick, true)}
-
-                        <h2 className="text-sm font-bold mb-1 line-clamp-2 text-gray-900">
-                            {safeArticle.title}
-                        </h2>
-
-                        <p className="text-xs line-clamp-2 mb-2 text-gray-700">
-                            {safeArticle.excerpt}
-                        </p>
-
-                        <button
-                            onClick={handleCategoryClick}
-                            className="category-chip self-start inline-flex items-center text-xs px-2 py-1 rounded bg-blue-100/80 text-blue-800 hover:bg-blue-200"
-                        >
-                            {safeArticle.category}
-                        </button>
-
-                        <div className="mt-auto text-xs text-gray-600">
-                            <div>作者：{safeArticle.author}</div>
-                            <div>{formatDate(safeArticle.date)}</div>
-                        </div>
-                    </div>
-
-                    <div
-                        className="absolute inset-0"
-                        style={{
-                            backgroundImage: `url(${imageUrl})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center'
-                        }}
+    if (forceMobile) {
+        return (
+            <article
+                onClick={handleCardClick}
+                className="relative rounded-lg overflow-hidden shadow-md h-40 flex w-full cursor-pointer"
+            >
+                <div className="w-1/3 aspect-square m-2 rounded overflow-hidden bg-white z-10">
+                    <img
+                        src={imageUrl}
+                        alt={safeArticle.title}
+                        className="w-full h-full object-cover"
                     />
-                </article>
-            )}
+                </div>
 
-            {!forceMobile && (
-                <article
-                    onClick={handleCardClick}
-                    className="
-                        hidden sm:flex flex-col
-                        relative group
-                        bg-white rounded-lg
-                        shadow-md hover:shadow-lg
-                        transition-all duration-300
-                        border border-gray-200
-                        cursor-pointer
-                        w-[330px] max-w-[330px] flex-none
-                    "
-                >
-                    {showImage && (
-                        <div className="w-full h-44 overflow-hidden rounded-t-lg">
-                            <img
-                                className="w-full h-full object-cover rounded-t-lg transition-transform group-hover:scale-105"
-                                src={imageUrl}
-                                alt={safeArticle.title}
-                            />
-                        </div>
-                    )}
+                <div className="flex-1 p-3 flex flex-col z-10 bg-white/65 backdrop-blur-sm">
+                    {renderTags(safeArticle.tag, 2, handleTagClick, true)}
 
-                    <div className="p-6 flex flex-col">
-                        {renderTags(safeArticle.tag, 3, handleTagClick)}
+                    <h2 className="text-sm font-bold mb-1 line-clamp-2 text-gray-900">
+                        {safeArticle.title}
+                    </h2>
 
-                        <h2 className="text-xl font-bold mb-3 line-clamp-2">
-                            <Link
-                                to={`/article/${safeArticle.alias}`}
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                {safeTruncate(safeArticle.title, 30)}
-                            </Link>
-                        </h2>
+                    <p className="text-xs line-clamp-2 mb-2 text-gray-700">
+                        {safeArticle.excerpt}
+                    </p>
 
-                        <p className="text-gray-600 line-clamp-2 mb-4">
-                            {safeArticle.excerpt}
-                        </p>
+                    <button
+                        onClick={handleCategoryClick}
+                        className="self-start inline-flex items-center text-xs px-2 py-1 rounded bg-blue-100/80 text-blue-800 hover:bg-blue-200"
+                    >
+                        {safeArticle.category}
+                    </button>
 
-                        <div className="flex justify-between items-center mt-auto">
-                            <span className="text-sm text-gray-500">
-                                {safeArticle.author} · {formatDate(safeArticle.date)}
-                            </span>
-
-                            <button
-                                onClick={handleCategoryClick}
-                                className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
-                            >
-                                {safeArticle.category}
-                            </button>
-                        </div>
+                    <div className="mt-auto text-xs text-gray-600">
+                        <div>作者：{safeArticle.author}</div>
+                        <div>{formatDate(safeArticle.date)}</div>
                     </div>
-                </article>
+                </div>
+
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        backgroundImage: `url(${imageUrl})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center'
+                    }}
+                />
+            </article>
+        );
+    }
+
+    return (
+        <article
+            onClick={handleCardClick}
+            className="
+                flex flex-col
+                relative group
+                bg-white rounded-lg
+                shadow-md hover:shadow-lg
+                transition-all duration-300
+                border border-gray-200
+                cursor-pointer
+                w-[330px] max-w-[330px] flex-none
+            "
+        >
+            {showImage && (
+                <div className="w-full h-44 overflow-hidden rounded-t-lg">
+                    <img
+                        className="w-full h-full object-cover rounded-t-lg transition-transform group-hover:scale-105"
+                        src={imageUrl}
+                        alt={safeArticle.title}
+                    />
+                </div>
             )}
-        </>
+
+            <div className="p-6 flex flex-col">
+                {renderTags(safeArticle.tag, 3, handleTagClick)}
+
+                <h2 className="text-xl font-bold mb-3 line-clamp-2">
+                    <Link
+                        to={`/article/${safeArticle.alias}`}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {safeTruncate(safeArticle.title, 30)}
+                    </Link>
+                </h2>
+
+                <p className="text-gray-600 line-clamp-2 mb-4">
+                    {safeArticle.excerpt}
+                </p>
+
+                <div className="flex justify-between items-center mt-auto">
+                    <span className="text-sm text-gray-500">
+                        {safeArticle.author} · {formatDate(safeArticle.date)}
+                    </span>
+
+                    <button
+                        onClick={handleCategoryClick}
+                        className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
+                    >
+                        {safeArticle.category}
+                    </button>
+                </div>
+            </div>
+        </article>
     );
 }
