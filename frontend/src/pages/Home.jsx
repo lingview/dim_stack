@@ -201,23 +201,23 @@ export default function Home() {
                                 )}
 
                                 {/* 分页控件 */}
-                                <div className="flex justify-center mt-8 pagination-container">
+                                <div className="flex justify-center mt-8">
                                     <button
                                         onClick={() => setPage(p => Math.max(1, p - 1))}
                                         disabled={page === 1}
-                                        className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button pagination-prev-next"
+                                        className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50"
                                     >
                                         上一页
                                     </button>
 
-                                    <span className="px-4 py-2 mx-1 pagination-info">
+                                    <span className="px-4 py-2 mx-1">
                                         {page} / {totalPages}
                                     </span>
 
                                     <button
                                         onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                         disabled={page === totalPages}
-                                        className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button pagination-prev-next"
+                                        className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50"
                                     >
                                         下一页
                                     </button>
