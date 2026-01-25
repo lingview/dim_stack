@@ -90,9 +90,9 @@ export default function ArticleCard({
         return (
             <article
                 onClick={handleCardClick}
-                className="relative rounded-lg overflow-hidden shadow-md h-40 flex w-full cursor-pointer"
+                className="relative rounded-lg overflow-hidden shadow-md h-40 flex w-full cursor-pointer bg-white"
             >
-                <div className="w-1/3 aspect-square m-2 rounded overflow-hidden bg-white z-10">
+                <div className="w-1/3 aspect-square m-2 rounded overflow-hidden bg-gray-100 flex-shrink-0">
                     <img
                         src={imageUrl}
                         alt={safeArticle.title}
@@ -100,43 +100,34 @@ export default function ArticleCard({
                     />
                 </div>
 
-                <div className="mobile-article-mask flex-1 p-3 flex flex-col z-10 bg-white/65 backdrop-blur-sm">
+                <div className="flex-1 p-3 flex flex-col">
                     {renderTags(safeArticle.tag, 2, handleTagClick, true)}
 
-                    <h2 className="mobile-article-title text-sm font-bold mb-1 line-clamp-2 text-gray-900">
+                    <h2 className="text-sm font-bold mb-1 line-clamp-2 text-gray-900 leading-snug flex-shrink-0">
                         {safeArticle.title}
                     </h2>
 
-                    <p className="mobile-article-excerpt text-xs line-clamp-2 mb-2 text-gray-700">
+                    <p className="text-xs leading-relaxed line-clamp-1 mb-2 text-gray-700 flex-shrink-0">
                         {safeArticle.excerpt}
                     </p>
 
                     <button
                         onClick={handleCategoryClick}
-                        className="category-chip self-start inline-flex items-center text-xs px-2 py-1 rounded bg-blue-100/80 text-blue-800 hover:bg-blue-200"
+                        className="self-start inline-flex items-center text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 hover:bg-blue-200"
                     >
                         {safeArticle.category}
                     </button>
 
-                    <div className="mobile-article-meta mt-auto text-xs text-gray-600">
+                    <div className="mt-auto text-xs text-gray-600">
                         <div>作者：{safeArticle.author}</div>
                         <div>{formatDate(safeArticle.date)}</div>
                     </div>
                 </div>
-
-                <div
-                    className="absolute inset-0"
-                    style={{
-                        backgroundImage: `url(${imageUrl})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center'
-                    }}
-                />
             </article>
         );
     }
 
-    // 桌面端UI：纵向330px卡片
+
     return (
         <article
             onClick={handleCardClick}
@@ -147,7 +138,7 @@ export default function ArticleCard({
                 bg-white
                 rounded-lg
                 shadow-md hover:shadow-lg
-                transition-all duration-300
+                transition-shadow duration-200
                 border border-gray-200
                 cursor-pointer
                 w-[330px] max-w-[330px] flex-none
@@ -157,7 +148,13 @@ export default function ArticleCard({
             {showImage && (
                 <div className="w-full h-44 overflow-hidden rounded-t-lg flex-shrink-0">
                     <img
-                        className="w-full h-full object-cover rounded-t-lg transition-transform group-hover:scale-105"
+                        className="
+                            w-full h-full object-cover
+                            rounded-t-lg
+                            group-hover:scale-105
+                            group-hover:transition-transform
+                            duration-300
+                        "
                         src={imageUrl}
                         alt={safeArticle.title}
                     />
@@ -167,7 +164,7 @@ export default function ArticleCard({
             <div className="p-6 flex flex-col flex-grow">
                 {renderTags(safeArticle.tag, 3, handleTagClick)}
 
-                <h2 className="article-card-title text-xl font-bold mb-3 line-clamp-2 text-gray-900">
+                <h2 className="text-xl font-bold mb-3 line-clamp-2 text-gray-900">
                     <Link
                         to={`/article/${safeArticle.alias}`}
                         onClick={(e) => e.stopPropagation()}
@@ -176,18 +173,18 @@ export default function ArticleCard({
                     </Link>
                 </h2>
 
-                <p className="article-card-excerpt text-gray-600 line-clamp-2 mb-4 flex-grow">
+                <p className="text-gray-600 line-clamp-2 mb-4 flex-grow">
                     {safeArticle.excerpt}
                 </p>
 
                 <div className="flex justify-between items-center flex-shrink-0">
-                    <span className="article-card-meta text-sm text-gray-500">
+                    <span className="text-sm text-gray-500">
                         {safeArticle.author} · {formatDate(safeArticle.date)}
                     </span>
 
                     <button
                         onClick={handleCategoryClick}
-                        className="article-card-category bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded flex-shrink-0"
+                        className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
                     >
                         {safeArticle.category}
                     </button>
