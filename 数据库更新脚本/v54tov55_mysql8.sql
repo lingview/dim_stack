@@ -1,6 +1,3 @@
-USE dim_stack;
-
-
 INSERT INTO `dashboard_menu` VALUES (45, '自定义页面', 'page', '/dashboard/custom-pages', 3, 'system:edit', 20, '2025-12-04 21:42:15', 'sidebar');
 
 

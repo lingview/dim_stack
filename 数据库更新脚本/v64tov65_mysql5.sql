@@ -1,5 +1,3 @@
-USE dim_stack;
-
 ALTER TABLE `site_config`
     ADD COLUMN `enable_music` int NULL DEFAULT NULL COMMENT '是否启用悬浮音乐播放器（1：启用，0：禁用）' AFTER `enable_register`;
 
