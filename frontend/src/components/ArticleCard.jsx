@@ -136,6 +136,7 @@ export default function ArticleCard({
         );
     }
 
+    // 桌面端UI：纵向330px卡片
     return (
         <article
             onClick={handleCardClick}
@@ -150,10 +151,11 @@ export default function ArticleCard({
                 border border-gray-200
                 cursor-pointer
                 w-[330px] max-w-[330px] flex-none
+                h-full
             "
         >
             {showImage && (
-                <div className="w-full h-44 overflow-hidden rounded-t-lg">
+                <div className="w-full h-44 overflow-hidden rounded-t-lg flex-shrink-0">
                     <img
                         className="w-full h-full object-cover rounded-t-lg transition-transform group-hover:scale-105"
                         src={imageUrl}
@@ -162,7 +164,7 @@ export default function ArticleCard({
                 </div>
             )}
 
-            <div className="p-6 flex flex-col">
+            <div className="p-6 flex flex-col flex-grow">
                 {renderTags(safeArticle.tag, 3, handleTagClick)}
 
                 <h2 className="article-card-title text-xl font-bold mb-3 line-clamp-2 text-gray-900">
@@ -174,18 +176,18 @@ export default function ArticleCard({
                     </Link>
                 </h2>
 
-                <p className="article-card-excerpt text-gray-600 line-clamp-2 mb-4">
+                <p className="article-card-excerpt text-gray-600 line-clamp-2 mb-4 flex-grow">
                     {safeArticle.excerpt}
                 </p>
 
-                <div className="flex justify-between items-center mt-auto">
+                <div className="flex justify-between items-center flex-shrink-0">
                     <span className="article-card-meta text-sm text-gray-500">
                         {safeArticle.author} · {formatDate(safeArticle.date)}
                     </span>
 
                     <button
                         onClick={handleCategoryClick}
-                        className="article-card-category bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
+                        className="article-card-category bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded flex-shrink-0"
                     >
                         {safeArticle.category}
                     </button>
