@@ -44,8 +44,6 @@ export default function ArticleCard({
                                     }) {
     const navigate = useNavigate();
 
-    console.log('ArticleCard forceMobile:', forceMobile, 'article:', article.title);
-
     const safeArticle = {
         ...article,
         title: article.title || '',
@@ -102,25 +100,25 @@ export default function ArticleCard({
                     />
                 </div>
 
-                <div className="flex-1 p-3 flex flex-col z-10 bg-white/65 backdrop-blur-sm">
+                <div className="mobile-article-mask flex-1 p-3 flex flex-col z-10 bg-white/65 backdrop-blur-sm">
                     {renderTags(safeArticle.tag, 2, handleTagClick, true)}
 
-                    <h2 className="text-sm font-bold mb-1 line-clamp-2 text-gray-900">
+                    <h2 className="mobile-article-title text-sm font-bold mb-1 line-clamp-2 text-gray-900">
                         {safeArticle.title}
                     </h2>
 
-                    <p className="text-xs line-clamp-2 mb-2 text-gray-700">
+                    <p className="mobile-article-excerpt text-xs line-clamp-2 mb-2 text-gray-700">
                         {safeArticle.excerpt}
                     </p>
 
                     <button
                         onClick={handleCategoryClick}
-                        className="self-start inline-flex items-center text-xs px-2 py-1 rounded bg-blue-100/80 text-blue-800 hover:bg-blue-200"
+                        className="category-chip self-start inline-flex items-center text-xs px-2 py-1 rounded bg-blue-100/80 text-blue-800 hover:bg-blue-200"
                     >
                         {safeArticle.category}
                     </button>
 
-                    <div className="mt-auto text-xs text-gray-600">
+                    <div className="mobile-article-meta mt-auto text-xs text-gray-600">
                         <div>作者：{safeArticle.author}</div>
                         <div>{formatDate(safeArticle.date)}</div>
                     </div>
@@ -142,9 +140,11 @@ export default function ArticleCard({
         <article
             onClick={handleCardClick}
             className="
+                article-card
                 flex flex-col
                 relative group
-                bg-white rounded-lg
+                bg-white
+                rounded-lg
                 shadow-md hover:shadow-lg
                 transition-all duration-300
                 border border-gray-200
@@ -165,7 +165,7 @@ export default function ArticleCard({
             <div className="p-6 flex flex-col">
                 {renderTags(safeArticle.tag, 3, handleTagClick)}
 
-                <h2 className="text-xl font-bold mb-3 line-clamp-2">
+                <h2 className="article-card-title text-xl font-bold mb-3 line-clamp-2 text-gray-900">
                     <Link
                         to={`/article/${safeArticle.alias}`}
                         onClick={(e) => e.stopPropagation()}
@@ -174,18 +174,18 @@ export default function ArticleCard({
                     </Link>
                 </h2>
 
-                <p className="text-gray-600 line-clamp-2 mb-4">
+                <p className="article-card-excerpt text-gray-600 line-clamp-2 mb-4">
                     {safeArticle.excerpt}
                 </p>
 
                 <div className="flex justify-between items-center mt-auto">
-                    <span className="text-sm text-gray-500">
+                    <span className="article-card-meta text-sm text-gray-500">
                         {safeArticle.author} · {formatDate(safeArticle.date)}
                     </span>
 
                     <button
                         onClick={handleCategoryClick}
-                        className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
+                        className="article-card-category bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
                     >
                         {safeArticle.category}
                     </button>

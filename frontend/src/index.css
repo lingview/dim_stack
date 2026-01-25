@@ -581,3 +581,37 @@
 .dark .mobile-article-mask .category-chip:hover {
   background-color: rgba(59, 130, 246, 0.35);
 }
+
+.dark .article-card {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+.dark .article-card-title {
+  color: #f9fafb !important;
+}
+
+.dark .article-card-excerpt {
+  color: #d1d5db !important;
+}
+
+.dark .article-card-meta {
+  color: #9ca3af !important;
+}
+
+.dark .article-card-category {
+  background-color: #1e3a8a !important;
+  color: #93c5fd !important;
+}
+
+.dark .mobile-article-title {
+  color: #f9fafb !important;
+}
+
+.dark .mobile-article-excerpt {
+  color: #e5e7eb !important;
+}
+
+.dark .mobile-article-meta {
+  color: #9ca3af !important;
+}
