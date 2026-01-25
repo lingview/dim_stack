@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import Hero from '../components/Hero';
@@ -21,6 +21,11 @@ export default function Home() {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedTag, setSelectedTag] = useState(null);
     const [showImages, setShowImages] = useState(true);
+
+    const [forceMobile, setForceMobile] = useState(false);
+
+    const articleListRef = useRef(null);
+
     const { categoryName, tagName } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
@@ -41,6 +46,18 @@ export default function Home() {
     useEffect(() => {
         localStorage.setItem('showImages', JSON.stringify(showImages));
     }, [showImages]);
+
+    useEffect(() => {
+        if (!articleListRef.current) return;
+
+        const ro = new ResizeObserver(entries => {
+            const width = entries[0].contentRect.width;
+            setForceMobile(width < 656);
+        });
+
+        ro.observe(articleListRef.current);
+        return () => ro.disconnect();
+    }, []);
 
     const loadArticlesFromUrl = async () => {
         try {
@@ -73,9 +90,7 @@ export default function Home() {
     const loadCopyright = async () => {
         try {
             const response = await apiClient.get('/site/copyright');
-            if (response) {
-                setCopyright(response);
-            }
+            if (response) setCopyright(response);
         } catch (error) {
             console.error('加载版权信息失败:', error);
         }
@@ -84,14 +99,10 @@ export default function Home() {
     const loadSiteRecords = async () => {
         try {
             const icpResponse = await apiClient.get('/site/icp-record');
-            if (icpResponse) {
-                setIcpRecord(icpResponse);
-            }
+            if (icpResponse) setIcpRecord(icpResponse);
 
             const mpsResponse = await apiClient.get('/site/mps-record');
-            if (mpsResponse) {
-                setMpsRecord(mpsResponse);
-            }
+            if (mpsResponse) setMpsRecord(mpsResponse);
         } catch (error) {
             console.error('加载备案信息失败:', error);
         }
@@ -123,13 +134,9 @@ export default function Home() {
     };
 
     const getCurrentFilterTitle = () => {
-        if (categoryName) {
-            return `${categoryName} 分类文章`;
-        } else if (tagName) {
-            return `${tagName} 标签文章`;
-        } else {
-            return '最新文章';
-        }
+        if (categoryName) return `${categoryName} 分类文章`;
+        if (tagName) return `${tagName} 标签文章`;
+        return '最新文章';
     };
 
     return (
@@ -144,13 +151,13 @@ export default function Home() {
                         <div className="lg:w-7/10">
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-2xl font-bold text-gray-900 transition-colors duration-200">
+                                    <h2 className="text-2xl font-bold text-gray-900">
                                         {getCurrentFilterTitle()}
                                     </h2>
                                     <div className="flex items-center space-x-3">
                                         <button
                                             onClick={toggleImageDisplay}
-                                            className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                                            className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
                                         >
                                             {showImages ? '隐藏图片' : '显示图片'}
                                         </button>
@@ -169,12 +176,19 @@ export default function Home() {
                                 {loading ? (
                                     <div className="text-center py-12 text-gray-500">加载中...</div>
                                 ) : articles.length > 0 ? (
-                                    <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-                                        {articles.map((article) => (
+                                    <div
+                                        ref={articleListRef}
+                                        className={`
+                                            gap-4
+                                            ${forceMobile ? 'flex flex-col w-full' : 'grid justify-start grid-cols-[repeat(auto-fill,330px)]'}
+                                        `}
+                                    >
+                                        {articles.map(article => (
                                             <ArticleCard
                                                 key={article.id}
                                                 article={article}
                                                 showImage={showImages}
+                                                forceMobile={forceMobile}
                                                 onCategoryClick={handleCategoryChange}
                                                 onTagClick={handleTagChange}
                                             />
@@ -214,7 +228,10 @@ export default function Home() {
                         {/* 侧边栏 */}
                         <div className="lg:w-3/10">
                             <div className="sticky top-28 space-y-4">
-                                <CategorySidebar onCategorySelect={handleCategoryChange} selectedCategory={categoryName} />
+                                <CategorySidebar
+                                    onCategorySelect={handleCategoryChange}
+                                    selectedCategory={categoryName}
+                                />
                                 <TagSidebar selectedTag={tagName} />
                                 <RecommendedArticles />
                             </div>
@@ -224,37 +241,6 @@ export default function Home() {
             </div>
 
             <MusicPlayer />
-            <footer className="bg-white mt-auto transition-colors duration-200">
-                <div className="container mx-auto px-4 py-8">
-                    <div className="text-center text-gray-600 transition-colors duration-200">
-                        <p>{copyright}</p>
-                        {icpRecord && (
-                            <p className="mt-2">
-                                <a
-                                    href="https://beian.miit.gov.cn"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-gray-600 hover:text-blue-600 text-sm"
-                                >
-                                    {icpRecord}
-                                </a>
-                            </p>
-                        )}
-                        {mpsRecord && (
-                            <p className="mt-1">
-                                <a
-                                    href="http://www.beian.gov.cn"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-gray-600 hover:text-blue-600 text-sm"
-                                >
-                                    {mpsRecord}
-                                </a>
-                            </p>
-                        )}
-                    </div>
-                </div>
-            </footer>
         </div>
     );
 }

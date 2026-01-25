@@ -3,21 +3,17 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const safeTruncate = (text, maxLength) => {
     if (!text) return '';
-    return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+    return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
 };
 
-const renderTags = (tagsString, maxTags = 3, onTagClick) => {
+const renderTags = (tagsString, maxTags = 3, onTagClick, isMobile = false) => {
     if (!tagsString) return null;
 
-    const tags = tagsString.split(',').map(tag => tag.trim()).filter(tag => tag);
-
-    if (tags.length === 0) return null;
-
+    const tags = tagsString.split(',').map(t => t.trim()).filter(Boolean);
     const displayTags = tags.slice(0, maxTags);
-    const remainingCount = tags.length - maxTags;
 
     return (
-        <div className="flex flex-wrap gap-2 mb-2">
+        <div className="flex flex-wrap gap-1 sm:gap-2 mb-2">
             {displayTags.map((tag, index) => (
                 <button
                     key={index}
@@ -26,22 +22,28 @@ const renderTags = (tagsString, maxTags = 3, onTagClick) => {
                         e.stopPropagation();
                         onTagClick && onTagClick(tag);
                     }}
-                    className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded hover:bg-gray-200 transition-colors"
+                    className={
+                        isMobile
+                            ? 'text-xs text-gray-800 hover:text-black transition-colors'
+                            : 'inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded hover:bg-gray-200 transition-colors'
+                    }
                 >
                     #{tag}
                 </button>
             ))}
-            {remainingCount > 0 && (
-                <span className="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                    ...
-                </span>
-            )}
         </div>
     );
 };
 
-export default function ArticleCard({ article, showImage = true, onTagClick, onCategoryClick }) {
+export default function ArticleCard({
+                                        article,
+                                        showImage = true,
+                                        forceMobile = false,
+                                        onTagClick,
+                                        onCategoryClick
+                                    }) {
     const navigate = useNavigate();
+
     const safeArticle = {
         ...article,
         title: article.title || '',
@@ -54,117 +56,143 @@ export default function ArticleCard({ article, showImage = true, onTagClick, onC
 
     const getFullImageUrl = (url) => {
         if (!url) return null;
-
-        if (url.startsWith('http://') || url.startsWith('https://')) {
-            return url;
-        }
-
+        if (url.startsWith('http')) return url;
         try {
-            const config = getConfig();
-            return config.getFullUrl(url);
-        } catch (error) {
-            if (url.startsWith('/')) {
-                return url;
-            }
-            return `/upload/${url}`;
+            return getConfig().getFullUrl(url);
+        } catch {
+            return url.startsWith('/') ? url : `/upload/${url}`;
         }
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return date.getFullYear() + '-' +
-            String(date.getMonth() + 1).padStart(2, '0') + '-' +
-            String(date.getDate()).padStart(2, '0');
+    const imageUrl = getFullImageUrl(article.image) || '/image_error.svg';
+
+    const formatDate = (d) => {
+        if (!d) return '';
+        const date = new Date(d);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    };
+
+    const handleCardClick = () => navigate(`/article/${safeArticle.alias}`);
+
+    const handleTagClick = (tag) => {
+        onTagClick ? onTagClick(tag) : navigate(`/tag/${encodeURIComponent(tag)}`);
     };
 
     const handleCategoryClick = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (onCategoryClick) {
-            onCategoryClick(safeArticle.category);
-        } else {
-            navigate(`/category/${encodeURIComponent(safeArticle.category)}`);
-        }
-    };
-
-    const handleTagClick = (tag) => {
-        if (onTagClick) {
-            onTagClick(tag);
-        } else {
-            navigate(`/tag/${encodeURIComponent(tag)}`);
-        }
-    };
-
-    const imageUrl = getFullImageUrl(article.image);
-
-    const handleCardClick = () => {
-        navigate(`/article/${safeArticle.alias}`);
+        onCategoryClick
+            ? onCategoryClick(safeArticle.category)
+            : navigate(`/category/${encodeURIComponent(safeArticle.category)}`);
     };
 
     return (
-        <article
-            className="relative group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-200 flex flex-col cursor-pointer h-full"
-            onClick={handleCardClick}
-        >
-            {showImage && (
-                <div className="block overflow-hidden h-44 w-full">
-                    <img
-                        className="w-full h-full object-cover transform transition-transform duration-500 ease-in-out group-hover:scale-105"
-                        src={imageUrl || '/image_error.svg'}
-                        alt={safeArticle.title}
-                        onError={(e) => {
-                            e.currentTarget.src = '/image_error.svg';
+        <>
+            {forceMobile && (
+                <article
+                    onClick={handleCardClick}
+                    className="
+                        relative rounded-lg overflow-hidden shadow-md h-40 flex w-full
+                    "
+                >
+                    <div className="w-1/3 aspect-square m-2 rounded overflow-hidden bg-white z-10">
+                        <img
+                            src={imageUrl}
+                            alt={safeArticle.title}
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+
+                    <div className="mobile-article-mask flex-1 p-3 flex flex-col z-10 bg-white/65 backdrop-blur-sm">
+                        {renderTags(safeArticle.tag, 2, handleTagClick, true)}
+
+                        <h2 className="text-sm font-bold mb-1 line-clamp-2 text-gray-900">
+                            {safeArticle.title}
+                        </h2>
+
+                        <p className="text-xs line-clamp-2 mb-2 text-gray-700">
+                            {safeArticle.excerpt}
+                        </p>
+
+                        <button
+                            onClick={handleCategoryClick}
+                            className="category-chip self-start inline-flex items-center text-xs px-2 py-1 rounded bg-blue-100/80 text-blue-800 hover:bg-blue-200"
+                        >
+                            {safeArticle.category}
+                        </button>
+
+                        <div className="mt-auto text-xs text-gray-600">
+                            <div>作者：{safeArticle.author}</div>
+                            <div>{formatDate(safeArticle.date)}</div>
+                        </div>
+                    </div>
+
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            backgroundImage: `url(${imageUrl})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
                         }}
                     />
-                </div>
+                </article>
             )}
 
-            <div className="p-6 flex flex-col flex-1">
-                {renderTags(safeArticle.tag, 3, handleTagClick)}
+            {!forceMobile && (
+                <article
+                    onClick={handleCardClick}
+                    className="
+                        hidden sm:flex flex-col
+                        relative group
+                        bg-white rounded-lg
+                        shadow-md hover:shadow-lg
+                        transition-all duration-300
+                        border border-gray-200
+                        cursor-pointer
+                        w-[330px] max-w-[330px] flex-none
+                    "
+                >
+                    {showImage && (
+                        <div className="w-full h-44 overflow-hidden rounded-t-lg">
+                            <img
+                                className="w-full h-full object-cover rounded-t-lg transition-transform group-hover:scale-105"
+                                src={imageUrl}
+                                alt={safeArticle.title}
+                            />
+                        </div>
+                    )}
 
-                <h2 className="text-xl font-bold text-gray-900 mb-3 hover:text-blue-600 transition-colors duration-200 line-clamp-2">
-                    <Link
-                        to={`/article/${safeArticle.alias}`}
-                        className="no-underline hover:underline block"
-                        aria-label={`阅读：${safeArticle.title}`}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {safeTruncate(safeArticle.title, 30)}
-                    </Link>
-                </h2>
+                    <div className="p-6 flex flex-col">
+                        {renderTags(safeArticle.tag, 3, handleTagClick)}
 
-                <div className="mb-4 flex-1 relative">
-                    <Link
-                        to={`/article/${safeArticle.alias}`}
-                        className="no-underline hover:underline text-gray-600 hover:text-blue-500 block overflow-hidden"
-                        style={{
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden'
-                        }}
-                        aria-label={`阅读：${safeArticle.title}`}
-                        onClick={(e) => e.stopPropagation()}
-                        title={safeArticle.excerpt}
-                    >
-                        {safeArticle.excerpt}
-                    </Link>
-                </div>
+                        <h2 className="text-xl font-bold mb-3 line-clamp-2">
+                            <Link
+                                to={`/article/${safeArticle.alias}`}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {safeTruncate(safeArticle.title, 30)}
+                            </Link>
+                        </h2>
 
-                <div className="flex flex-wrap items-center justify-between gap-2 mt-auto">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm text-gray-500">作者: {safeArticle.author}</span>
-                        <span className="text-sm text-gray-500">发布于: {formatDate(safeArticle.date)}</span>
+                        <p className="text-gray-600 line-clamp-2 mb-4">
+                            {safeArticle.excerpt}
+                        </p>
+
+                        <div className="flex justify-between items-center mt-auto">
+                            <span className="text-sm text-gray-500">
+                                {safeArticle.author} · {formatDate(safeArticle.date)}
+                            </span>
+
+                            <button
+                                onClick={handleCategoryClick}
+                                className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
+                            >
+                                {safeArticle.category}
+                            </button>
+                        </div>
                     </div>
-                    <button
-                        onClick={handleCategoryClick}
-                        className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-200 transition-colors"
-                    >
-                        {safeArticle.category}
-                    </button>
-                </div>
-            </div>
-        </article>
+                </article>
+            )}
+        </>
     );
 }
