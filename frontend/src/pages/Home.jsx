@@ -167,12 +167,14 @@ export default function Home() {
                                     </h2>
 
                                     <div className="flex items-center space-x-3">
-                                        <button
-                                            onClick={toggleImageDisplay}
-                                            className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
-                                        >
-                                            {showImages ? '隐藏图片' : '显示图片'}
-                                        </button>
+                                        {!forceMobile && (
+                                            <button
+                                                onClick={toggleImageDisplay}
+                                                className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                                            >
+                                                {showImages ? '隐藏图片' : '显示图片'}
+                                            </button>
+                                        )}
 
                                         {(categoryName || tagName) && (
                                             <button
@@ -183,6 +185,7 @@ export default function Home() {
                                             </button>
                                         )}
                                     </div>
+
                                 </div>
 
                                 {loading ? (
