@@ -103,7 +103,7 @@ export default function ArticleCard({
                 <div className="flex-1 p-3 flex flex-col">
                     {renderTags(safeArticle.tag, 2, handleTagClick, true)}
 
-                    <h2 className="text-sm font-bold mb-1 line-clamp-2 text-gray-900 leading-snug flex-shrink-0">
+                    <h2 className="text-sm font-bold mb-1 line-clamp-1 text-gray-900 leading-snug flex-shrink-0">
                         {safeArticle.title}
                     </h2>
 
