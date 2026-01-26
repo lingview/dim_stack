@@ -4,15 +4,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URI;
 
 import net.coobird.thumbnailator.Thumbnails;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
@@ -44,20 +43,46 @@ public class FaviconController {
 
             StringBuilder baseUrl = new StringBuilder();
             baseUrl.append(scheme).append("://").append(serverName);
-            if ((scheme.equals("http") && serverPort != 80) ||
-                    (scheme.equals("https") && serverPort != 443)) {
+            if (("http".equals(scheme) && serverPort != 80) ||
+                    ("https".equals(scheme) && serverPort != 443)) {
                 baseUrl.append(":").append(serverPort);
             }
             targetUrl = baseUrl.toString() + iconUrl;
         }
 
         if (!targetUrl.startsWith("http://") && !targetUrl.startsWith("https://")) {
+            log.warn("无效的图标 URL 协议: {}", targetUrl);
+            return ResponseEntity.badRequest().build();
+        }
+
+        URI uri;
+        try {
+            uri = URI.create(targetUrl);
+        } catch (IllegalArgumentException e) {
+            log.error("图标 URL 格式非法，无法构造 URI: {}", targetUrl, e);
             return ResponseEntity.badRequest().build();
         }
 
         try {
-            byte[] imageBytes = restTemplate.getForObject(targetUrl, byte[].class);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<byte[]> response = restTemplate.exchange(
+                    uri,
+                    HttpMethod.GET,
+                    entity,
+                    byte[].class
+            );
+
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                log.warn("获取图标失败，HTTP {}: {}", response.getStatusCode(), targetUrl);
+                return ResponseEntity.status(response.getStatusCode()).build();
+            }
+
+            byte[] imageBytes = response.getBody();
             if (imageBytes == null || imageBytes.length == 0) {
+                log.warn("图标内容为空: {}", targetUrl);
                 return ResponseEntity.notFound().build();
             }
 
@@ -74,7 +99,7 @@ public class FaviconController {
 
         } catch (Exception e) {
             log.error("站点图标转换失败: {}", targetUrl, e);
-            return ResponseEntity.status(500).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }
