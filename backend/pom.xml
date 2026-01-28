@@ -225,6 +225,20 @@
             <scope>compile</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>11.20.2</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+            <version>11.20.2</version>
+            <scope>compile</scope>
+        </dependency>
+
     </dependencies>
 
 
@@ -236,33 +250,6 @@
                 <configuration>
                     <mainClass>xyz.lingview.dimstack.StartServer</mainClass>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>com.ly.smart-doc</groupId>
-                <artifactId>smart-doc-maven-plugin</artifactId>
-                <version>3.1.2</version>
-                <configuration>
-                    <configFile>./src/main/resources/smart-doc.json</configFile>
-                    <projectName>${project.description}</projectName>
-                    <includes>
-                        <!-- 使用了mybatis-plus的Page分页需要include所使用的源码包 -->
-                        <include>com.baomidou:mybatis-plus-extension</include>
-                        <!-- 使用了mybatis-plus的IPage分页需要include mybatis-plus-core-->
-                        <include>com.baomidou:mybatis-plus-core</include>
-                        <!-- 使用了jpa的分页需要include所使用的源码包 -->
-                        <include>org.springframework.data:spring-data-commons</include>
-                    </includes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <!--如果不需要在执行编译时启动smart-doc，则将phase注释掉-->
-                        <phase>compile</phase>
-                        <goals>
-                            <!--smart-doc提供了html、openapi、markdown等goal，可按需配置-->
-                            <goal>html</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

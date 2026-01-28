@@ -21,6 +21,7 @@ const TagsView = lazy(() => import('./TagsView'));
 const CategoriesView = lazy(() => import('./CategoriesView'));
 const ThemesStoreView = lazy(() => import('./ThemesStoreView'));
 const FriendLinksManager = lazy(() => import('./FriendLinksManager'));
+const UpdateManager = lazy(() => import('./UpdateManager'));
 
 export default function Dashboard() {
     const navigate = useNavigate()
@@ -397,6 +398,11 @@ export default function Dashboard() {
                             </Suspense>
                         )}
 
+                        {activeTab === 'update' && (
+                            <Suspense fallback={<div>加载中...</div>}>
+                                <UpdateManager />
+                            </Suspense>
+                        )}
                     </main>
                 </div>
             </div>

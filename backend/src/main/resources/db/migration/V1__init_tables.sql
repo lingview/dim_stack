@@ -1,0 +1,7 @@
+-- V1__init_tables.sql
+--
+-- 注意：
+-- 1. 此脚本为空是正常行为
+-- 2. 因为初始化数据库在系统配置阶段已经完成
+--    Flyway 会因配置了 baselineOnMigrate=true 而跳过本脚本
+--    并将当前状态标记为 "baseline version = 1"

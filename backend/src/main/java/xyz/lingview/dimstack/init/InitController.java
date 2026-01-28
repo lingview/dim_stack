@@ -1,5 +1,6 @@
 package xyz.lingview.dimstack.init;
 
+import org.flywaydb.core.Flyway;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,6 +12,7 @@ import xyz.lingview.dimstack.config.ConfigInfo;
 import xyz.lingview.dimstack.util.PasswordUtil;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.sql.*;
 
@@ -63,6 +65,8 @@ public class InitController {
             initializeDatabase(mysqlHost, mysqlPort, mysqlDatabase, mysqlUser, mysqlPassword,
                              adminUsername, adminPassword);
 
+            String latestVersion = readLatestFlywayVersion();
+            baselineFlyway(mysqlHost, mysqlPort, mysqlDatabase, mysqlUser, mysqlPassword, latestVersion);
             model.addAttribute("success", true);
             model.addAttribute("message", "配置文件生成成功！数据库初始化完成！请重启应用。");
         } catch (Exception e) {
@@ -95,6 +99,44 @@ public class InitController {
                 importSqlFile(dbConnection, adminUsername, adminPassword);
             }
         }
+    }
+
+    private String readLatestFlywayVersion() throws IOException {
+        org.springframework.core.io.Resource resource =
+                new org.springframework.core.io.ClassPathResource("db/migration/database_version.txt");
+
+        if (!resource.exists()) {
+            throw new IllegalStateException("未找到 db/migration/database_version.txt，请确保该文件存在！");
+        }
+
+        try (InputStream is = resource.getInputStream();
+             BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+            String version = reader.readLine();
+            if (version == null || version.trim().isEmpty()) {
+                throw new IllegalStateException("version.txt 为空！");
+            }
+            return version.trim();
+        }
+    }
+
+    private void baselineFlyway(String mysqlHost, Integer mysqlPort, String mysqlDatabase,
+                                String mysqlUser, String mysqlPassword, String latestVersion) throws Exception {
+
+        String jdbcUrl = String.format(
+                "jdbc:mysql://%s:%d/%s?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%%2B8&useSSL=false&allowPublicKeyRetrieval=true",
+                mysqlHost, mysqlPort, mysqlDatabase
+        );
+
+        Flyway flyway = Flyway.configure()
+                .dataSource(jdbcUrl, mysqlUser, mysqlPassword)
+                .locations("classpath:db/migration")
+                .baselineOnMigrate(true)
+                .baselineVersion(latestVersion)
+                .load();
+
+        flyway.baseline();
+
+        System.out.println("Flyway baseline 成功，版本: " + latestVersion);
     }
 
     /**
