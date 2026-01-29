@@ -7,12 +7,11 @@ import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.domain.UpdateInfo;
 import xyz.lingview.dimstack.dto.request.PerformUpdateRequestDTO;
 import xyz.lingview.dimstack.service.UpdateService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import xyz.lingview.dimstack.common.ApiResponse;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
@@ -99,7 +98,7 @@ public class UpdateController {
             }
 
             String updateDir = System.getProperty("user.dir") + "/.update";
-            Path dirPath = Paths.get(updateDir);
+            Path dirPath = Path.of(updateDir);
             Files.createDirectories(dirPath);
 
             String targetJarPath = updateDir + "/dimstack_update.jar";
@@ -109,7 +108,7 @@ public class UpdateController {
                 return ApiResponse.error(500, "下载失败", response);
             }
 
-            Path checksumPath = Paths.get(updateDir, "dimstack_update.sha256");
+            Path checksumPath = Path.of(updateDir, "dimstack_update.sha256");
             Files.writeString(
                     checksumPath,
                     checksum.trim(),

@@ -10,7 +10,6 @@ import org.springframework.util.StringUtils;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Component
 public class DynamicResourceResolver {
@@ -37,7 +36,7 @@ public class DynamicResourceResolver {
             String activeTheme = themeProperties.getActiveTheme();
 
             if (StringUtils.hasText(themesPath) && StringUtils.hasText(activeTheme)) {
-                Path themeResourcePath = Paths.get(themesPath, activeTheme).resolve(cleanPath);
+                Path themeResourcePath = Path.of(themesPath, activeTheme).resolve(cleanPath);
                 File themeResourceFile = themeResourcePath.toFile();
 
                 if (themeResourceFile.exists() && themeResourceFile.isFile()) {

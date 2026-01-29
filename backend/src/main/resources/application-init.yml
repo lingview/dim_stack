@@ -2,14 +2,9 @@ server:
   port: 0
 
 spring:
-  redis:
-    enabled: false
-
   autoconfigure:
     exclude:
-      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
 app:
   mode: init
 logging:

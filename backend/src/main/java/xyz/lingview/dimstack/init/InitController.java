@@ -63,7 +63,7 @@ public class InitController {
 
             // 初始化数据库
             initializeDatabase(mysqlHost, mysqlPort, mysqlDatabase, mysqlUser, mysqlPassword,
-                             adminUsername, adminPassword);
+                    adminUsername, adminPassword);
 
             String latestVersion = readLatestFlywayVersion();
             baselineFlyway(mysqlHost, mysqlPort, mysqlDatabase, mysqlUser, mysqlPassword, latestVersion);
@@ -82,8 +82,8 @@ public class InitController {
                                   String mysqlUser, String mysqlPassword,
                                   String adminUsername, String adminPassword) throws SQLException, IOException {
 
-        String jdbcUrl = String.format("jdbc:mysql://%s:%d/?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%%2B8&useSSL=false&allowPublicKeyRetrieval=true",
-                                     mysqlHost, mysqlPort);
+        String jdbcUrl = "jdbc:mysql://%s:%d/?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%%2B8&useSSL=false&allowPublicKeyRetrieval=true".formatted(
+                mysqlHost, mysqlPort);
 
         try (Connection connection = DriverManager.getConnection(jdbcUrl, mysqlUser, mysqlPassword)) {
 
@@ -91,8 +91,8 @@ public class InitController {
 
             createDatabase(connection, mysqlDatabase);
 
-            String targetDbUrl = String.format("jdbc:mysql://%s:%d/%s?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%%2B8&useSSL=false&allowPublicKeyRetrieval=true",
-                                             mysqlHost, mysqlPort, mysqlDatabase);
+            String targetDbUrl = "jdbc:mysql://%s:%d/%s?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%%2B8&useSSL=false&allowPublicKeyRetrieval=true".formatted(
+                    mysqlHost, mysqlPort, mysqlDatabase);
 
             try (Connection dbConnection = DriverManager.getConnection(targetDbUrl, mysqlUser, mysqlPassword)) {
 
@@ -122,8 +122,7 @@ public class InitController {
     private void baselineFlyway(String mysqlHost, Integer mysqlPort, String mysqlDatabase,
                                 String mysqlUser, String mysqlPassword, String latestVersion) throws Exception {
 
-        String jdbcUrl = String.format(
-                "jdbc:mysql://%s:%d/%s?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%%2B8&useSSL=false&allowPublicKeyRetrieval=true",
+        String jdbcUrl = "jdbc:mysql://%s:%d/%s?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%%2B8&useSSL=false&allowPublicKeyRetrieval=true".formatted(
                 mysqlHost, mysqlPort, mysqlDatabase
         );
 
@@ -205,13 +204,6 @@ public class InitController {
         ymlContent.append("    date-format: yyyy-MM-dd HH:mm:ss\n");
         ymlContent.append("\n");
 
-        ymlContent.append("  session:\n");
-        ymlContent.append("    redis:\n");
-        ymlContent.append("      namespace: \"dimstack:session\"\n");
-        ymlContent.append("      flush-mode: on_save\n");
-        ymlContent.append("      save-mode: always\n");
-        ymlContent.append("\n");
-
         // MySQL配置
         ymlContent.append("  datasource:\n");
         ymlContent.append("    driver-class-name: com.mysql.cj.jdbc.Driver\n");
@@ -256,18 +248,9 @@ public class InitController {
         ymlContent.append("          max-wait: -1ms\n");
         ymlContent.append("\n");
 
-        // DevTools配置
-        ymlContent.append("  devtools:\n");
-        ymlContent.append("    restart:\n");
-        ymlContent.append("      enabled: false\n");
-        ymlContent.append("    livereload:\n");
-        ymlContent.append("      enabled: false\n");
-        ymlContent.append("\n");
-
         // Thymeleaf配置
         ymlContent.append("  thymeleaf:\n");
         ymlContent.append("    cache: true\n");
-        ymlContent.append("    enabled: true\n");
         ymlContent.append("    prefix: classpath:/templates/\n");
         ymlContent.append("    suffix: .html\n");
         ymlContent.append("    encoding: UTF-8\n");
@@ -275,41 +258,23 @@ public class InitController {
         ymlContent.append("      content-type: text/html\n");
         ymlContent.append("\n");
 
-        // SpringDoc配置
-        ymlContent.append("springdoc:\n");
-        ymlContent.append("  api-docs:\n");
-        ymlContent.append("    enabled: true\n");
-        ymlContent.append("    path: /v3/api-docs\n");
-        ymlContent.append("  swagger-ui:\n");
-        ymlContent.append("    enabled: true\n");
-        ymlContent.append("    path: /swagger-ui/index.html\n");
-        ymlContent.append("    cors:\n");
-        ymlContent.append("      enabled: true\n");
-        ymlContent.append("\n");
-
-        // Project配置
-        ymlContent.append("project:\n");
-        ymlContent.append("  version: ${project.version}\n");
-        ymlContent.append("  build-date: ${maven.build.timestamp}\n");
-        ymlContent.append("\n");
-
         // Management配置
         ymlContent.append("management:\n");
         ymlContent.append("  endpoints:\n");
-        ymlContent.append("    enabled-by-default: false\n");
+        ymlContent.append("    access.default: none\n");
         ymlContent.append("    web:\n");
         ymlContent.append("      exposure:\n");
         ymlContent.append("        include: health,info\n");
         ymlContent.append("  endpoint:\n");
         ymlContent.append("    health:\n");
-        ymlContent.append("      enabled: true\n");
+        ymlContent.append("      access: read-only\n");
         ymlContent.append("      show-details: always\n");
         ymlContent.append("    info:\n");
-        ymlContent.append("      enabled: true\n");
+        ymlContent.append("      access: read-only\n");
         ymlContent.append("    metrics:\n");
-        ymlContent.append("      enabled: false\n");
+        ymlContent.append("      access: none\n");
         ymlContent.append("    shutdown:\n");
-        ymlContent.append("      enabled: false\n");
+        ymlContent.append("      access: none\n");
         ymlContent.append("\n");
 
         // MyBatis配置
@@ -319,17 +284,17 @@ public class InitController {
         ymlContent.append("  config-location: classpath:mybatis-config.xml\n");
         ymlContent.append("\n");
 
-        // Server配置 - 使用用户自定义端口
+        // Server配置
         ymlContent.append("server:\n");
         ymlContent.append("  port: ").append(serverPort).append("\n");
         ymlContent.append("  servlet:\n");
         ymlContent.append("    context-path: /\n");
         ymlContent.append("  tomcat:\n");
         ymlContent.append("    uri-encoding: UTF-8\n");
-        ymlContent.append("    max-threads: 200\n");
-        ymlContent.append("    min-spare-threads: 10\n");
-        ymlContent.append("    protocol-header: X-Forwarded-Proto\n");
-        ymlContent.append("    remote-ip-header: X-Forwarded-For\n");
+        ymlContent.append("    threads.max: 200\n");
+        ymlContent.append("    threads.min-spare: 10\n");
+        ymlContent.append("    remoteip.protocol-header: X-Forwarded-Proto\n");
+        ymlContent.append("    remoteip.remote-ip-header: X-Forwarded-For\n");
         ymlContent.append("\n");
         ymlContent.append("  forward-headers-strategy: native\n");
         ymlContent.append("\n");

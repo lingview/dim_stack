@@ -2,7 +2,7 @@ package xyz.lingview.dimstack.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
-import org.springframework.boot.autoconfigure.flyway.FlywayProperties;
+import org.springframework.boot.flyway.autoconfigure.FlywayProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

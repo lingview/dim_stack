@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -35,7 +34,7 @@ public class TempUploadCleanupService {
     public void cleanupExpiredTempUploads() {
         log.info("开始清理超过24小时的临时上传目录...");
 
-        Path uploadBasePath = Paths.get(dataRoot).toAbsolutePath().normalize().resolve(uploadDir);
+        Path uploadBasePath = Path.of(dataRoot).toAbsolutePath().normalize().resolve(uploadDir);
 
         if (!Files.exists(uploadBasePath) || !Files.isDirectory(uploadBasePath)) {
             log.warn("上传根目录不存在或无效: {}", uploadBasePath);

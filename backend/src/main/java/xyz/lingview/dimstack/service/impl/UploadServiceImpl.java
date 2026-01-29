@@ -21,7 +21,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -188,17 +190,17 @@ public class UploadServiceImpl implements UploadService {
     }
 
     private Path getBasePath() {
-        return Paths.get(dataRoot).toAbsolutePath().normalize().resolve(uploadDir);
+        return Path.of(dataRoot).toAbsolutePath().normalize().resolve(uploadDir);
     }
 
     private Path buildFileSystemPath(String... paths) {
         Path basePath = getBasePath();
-        Path relativePath = Paths.get(paths[0], Arrays.copyOfRange(paths, 1, paths.length));
+        Path relativePath = Path.of(paths[0], Arrays.copyOfRange(paths, 1, paths.length));
         return basePath.resolve(relativePath).normalize();
     }
 
     private String buildDatabasePath(String... paths) {
-        return Paths.get(uploadDir, paths).toString();
+        return Path.of(uploadDir, paths).toString();
     }
 
     @Override
@@ -354,7 +356,7 @@ public class UploadServiceImpl implements UploadService {
 
         try {
             Files.createDirectories(uploadPath);
-            Path chunkFile = uploadPath.resolve(String.format("%05d.part", chunkIndex));
+            Path chunkFile = uploadPath.resolve("%05d.part".formatted(chunkIndex));
             Files.write(chunkFile, chunkData, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
             log.debug("分片 {}/{} 上传成功", chunkIndex, uploadId);
         } catch (IOException e) {

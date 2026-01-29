@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -102,7 +101,7 @@ public class ThemeResourceFilter implements Filter {
 
             String cleanResourcePath = resourcePath.startsWith("/") ? resourcePath.substring(1) : resourcePath;
 
-            Path themeResourcePath = Paths.get(themesPath, activeTheme, cleanResourcePath);
+            Path themeResourcePath = Path.of(themesPath, activeTheme, cleanResourcePath);
             File themeResourceFile = themeResourcePath.toFile();
 
             if (themeResourceFile.exists() && themeResourceFile.isFile()) {

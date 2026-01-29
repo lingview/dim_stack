@@ -1,7 +1,7 @@
 package xyz.lingview.dimstack.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,7 +16,9 @@ import xyz.lingview.dimstack.service.SiteConfigService;
 
 import java.io.*;
 import java.net.URL;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -101,7 +103,7 @@ public class ExpansionController {
             // 查找匹配的主题
             if (themes.isArray()) {
                 for (JsonNode theme : themes) {
-                    if (slug.equals(theme.get("slug").asText())) {
+                    if (slug.equals(theme.get("slug").asString())) {
                         targetTheme = theme;
                         break;
                     }
@@ -113,7 +115,7 @@ public class ExpansionController {
             }
 
             // 获取下载URL
-            String downloadUrl = targetTheme.get("download_url").asText();
+            String downloadUrl = targetTheme.get("download_url").asString();
             if (downloadUrl == null || downloadUrl.isEmpty()) {
                 return ApiResponse.error(400, "主题下载链接无效");
             }
@@ -153,10 +155,10 @@ public class ExpansionController {
 
             // 构建主题路径
             String themesPath = "themes";
-            Path themeDir = Paths.get(themesPath, slug).normalize();
+            Path themeDir = Path.of(themesPath, slug).normalize();
 
             // 验证路径是否在themes目录内，防止路径遍历攻击
-            Path themesBasePath = Paths.get(themesPath).toAbsolutePath().normalize();
+            Path themesBasePath = Path.of(themesPath).toAbsolutePath().normalize();
             if (!themeDir.toAbsolutePath().normalize().startsWith(themesBasePath)) {
                 return ApiResponse.error(400, "非法的主题路径");
             }
@@ -205,14 +207,14 @@ public class ExpansionController {
     private boolean downloadAndExtractTheme(String downloadUrl, String themeSlug) {
         try {
             String themesPath = "themes";
-            Path themesDir = Paths.get(themesPath);
+            Path themesDir = Path.of(themesPath);
             if (!Files.exists(themesDir)) {
                 Files.createDirectories(themesDir);
             }
 
-            Path themeDir = Paths.get(themesPath, themeSlug).normalize();
+            Path themeDir = Path.of(themesPath, themeSlug).normalize();
 
-            Path themesBasePath = Paths.get(themesPath).toAbsolutePath().normalize();
+            Path themesBasePath = Path.of(themesPath).toAbsolutePath().normalize();
             if (!themeDir.toAbsolutePath().normalize().startsWith(themesBasePath)) {
                 throw new IOException("非法的主题路径");
             }
@@ -296,7 +298,7 @@ public class ExpansionController {
      */
     private void deleteDirectory(Path dir) throws IOException {
         if (Files.exists(dir)) {
-            Path themesBasePath = Paths.get("themes").toAbsolutePath().normalize();
+            Path themesBasePath = Path.of("themes").toAbsolutePath().normalize();
             if (!dir.toAbsolutePath().normalize().startsWith(themesBasePath)) {
                 throw new IOException("非法的删除路径: " + dir);
             }

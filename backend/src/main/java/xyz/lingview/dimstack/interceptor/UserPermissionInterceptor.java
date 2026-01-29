@@ -21,8 +21,7 @@ public class UserPermissionInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
 
-        if (handler instanceof HandlerMethod) {
-            HandlerMethod handlerMethod = (HandlerMethod) handler;
+        if (handler instanceof HandlerMethod handlerMethod) {
             RequiresPermission requiresPermission = handlerMethod.getMethodAnnotation(RequiresPermission.class);
 
             if (requiresPermission == null) {

@@ -8,7 +8,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.util.Optional;
 
@@ -72,7 +71,7 @@ public class UpdateService {
 
             int responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                Path targetFilePath = Paths.get(targetPath);
+                Path targetFilePath = Path.of(targetPath);
                 Files.createDirectories(targetFilePath.getParent());
 
                 try (InputStream inputStream = connection.getInputStream();
@@ -102,7 +101,7 @@ public class UpdateService {
     }
 
     public boolean verifyChecksum(String filePath, String expectedChecksum) {
-        try (InputStream in = Files.newInputStream(Paths.get(filePath))) {
+        try (InputStream in = Files.newInputStream(Path.of(filePath))) {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] buffer = new byte[8192];
             int len;
@@ -113,7 +112,7 @@ public class UpdateService {
             byte[] hash = digest.digest();
             StringBuilder hex = new StringBuilder();
             for (byte b : hash) {
-                hex.append(String.format("%02x", b));
+                hex.append("%02x".formatted(b));
             }
             return hex.toString().equalsIgnoreCase(expectedChecksum);
         } catch (Exception e) {
@@ -123,7 +122,7 @@ public class UpdateService {
     }
 
     public String getExpectedChecksum() throws IOException {
-        Path checksumPath = Paths.get(
+        Path checksumPath = Path.of(
                 System.getProperty("user.dir"),
                 ".update",
                 "dimstack_update.sha256"
@@ -148,12 +147,12 @@ public class UpdateService {
                 return false;
             }
 
-            Path targetPath = Paths.get(currentJarPath);
+            Path targetPath = Path.of(currentJarPath);
             Files.createDirectories(targetPath.getParent());
 
             if (Files.exists(targetPath)) {
                 String backupPath = currentJarPath + ".update_backup";
-                Path backupPathObj = Paths.get(backupPath);
+                Path backupPathObj = Path.of(backupPath);
                 Files.copy(targetPath, backupPathObj, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                 log.info("当前JAR已备份到: {}", backupPath);
             }
@@ -247,18 +246,19 @@ public class UpdateService {
         try {
             String javaExe = getJavaExecutable();
 
-            String scriptContent = String.format(
-                    "#!/bin/bash\n" +
-                            "echo '[Restart Script] Waiting for application to exit...'\n" +
-                            "sleep 3\n" +
-                            "echo '[Restart Script] Ensuring old process is terminated...'\n" +
-                            "kill -9 %d 2>/dev/null || true\n" +
-                            "sleep 2\n" +
-                            "echo '[Restart Script] Starting new application...'\n" +
-                            "cd '%s'\n" +
-                            "nohup '%s' -jar '%s' > app.log 2>&1 &\n" +
-                            "echo '[Restart Script] Application restarted, PID: '$!\n" +
-                            "exit 0\n",
+            String scriptContent = """
+                    #!/bin/bash
+                    echo '[Restart Script] Waiting for application to exit...'
+                    sleep 3
+                    echo '[Restart Script] Ensuring old process is terminated...'
+                    kill -9 %d 2>/dev/null || true
+                    sleep 2
+                    echo '[Restart Script] Starting new application...'
+                    cd '%s'
+                    nohup '%s' -jar '%s' > app.log 2>&1 &
+                    echo '[Restart Script] Application restarted, PID: '$!
+                    exit 0
+                    """.formatted(
                     currentPid,
                     System.getProperty("user.dir"),
                     javaExe,
@@ -267,7 +267,7 @@ public class UpdateService {
 
             String scriptPath = "/tmp/dimstack_restart.sh";
 
-            Path scriptFile = Paths.get(scriptPath);
+            Path scriptFile = Path.of(scriptPath);
             Files.write(scriptFile, scriptContent.getBytes());
             scriptFile.toFile().setExecutable(true);
 
@@ -332,7 +332,7 @@ public class UpdateService {
                     .getLocation();
 
             if (location != null) {
-                Path path = Paths.get(location.toURI()).toAbsolutePath();
+                Path path = Path.of(location.toURI()).toAbsolutePath();
 
                 if (Files.isRegularFile(path) && path.toString().endsWith(".jar")) {
                     log.info("从保护域获取 JAR: {}", path);

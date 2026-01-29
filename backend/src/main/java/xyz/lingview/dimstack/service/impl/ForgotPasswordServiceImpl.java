@@ -384,24 +384,29 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
             String currentTime = java.time.LocalDateTime.now()
                     .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-            String emailContent = String.format(
-                    "尊敬的用户 %s，您好：\n\n" +
-                            "我们检测到有人正在尝试使用您的用户名重置密码，但提供的邮箱地址与您的注册邮箱不符。\n\n" +
-                            "尝试详情：\n" +
-                            "- 尝试时间：%s\n" +
-                            "- 来源IP：%s\n" +
-                            "- 使用的用户名：%s\n" +
-                            "- 提供的邮箱：%s（错误）\n" +
-                            "- 您的注册邮箱：%s\n\n" +
-                            "安全提醒：\n" +
-                            "如果这不是您本人的操作，说明有人可能知道了您的用户名，正在尝试重置您的密码。\n\n" +
-                            "建议您立即采取以下措施：\n" +
-                            "1. 确认您的密码足够强壮且未在其他网站使用\n" +
-                            "2. 如果使用了相同密码，请立即修改密码\n" +
-                            "3. 检查账户近期登录记录是否有异常\n" +
-                            "如果是您本人操作但输错了邮箱，请使用正确的邮箱地址重试。\n\n" +
-                            "%s 安全团队\n" +
-                            "%s",
+            String emailContent = """
+                    尊敬的用户 %s，您好：
+                    
+                    我们检测到有人正在尝试使用您的用户名重置密码，但提供的邮箱地址与您的注册邮箱不符。
+                    
+                    尝试详情：
+                    - 尝试时间：%s
+                    - 来源IP：%s
+                    - 使用的用户名：%s
+                    - 提供的邮箱：%s（错误）
+                    - 您的注册邮箱：%s
+                    
+                    安全提醒：
+                    如果这不是您本人的操作，说明有人可能知道了您的用户名，正在尝试重置您的密码。
+                    
+                    建议您立即采取以下措施：
+                    1. 确认您的密码足够强壮且未在其他网站使用
+                    2. 如果使用了相同密码，请立即修改密码
+                    3. 检查账户近期登录记录是否有异常
+                    如果是您本人操作但输错了邮箱，请使用正确的邮箱地址重试。
+                    
+                    %s 安全团队
+                    %s""".formatted(
                     username,
                     currentTime,
                     clientIp,
@@ -434,23 +439,29 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
             String currentTime = java.time.LocalDateTime.now()
                     .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-            String emailContent = String.format(
-                    "尊敬的用户 %s，您好：\n\n" +
-                            "您的账户密码已于 %s 成功修改。\n\n" +
-                            "修改详情：\n" +
-                            "- 操作时间：%s\n" +
-                            "- 操作IP：%s\n" +
-                            "- 操作方式：密码找回\n\n" +
-                            "如果这不是您本人的操作，请立即：\n" +
-                            "1. 重新修改您的密码\n" +
-                            "2. 检查账户安全设置\n\n" +
-                            "为了您的账户安全，建议：\n" +
-                            "- 使用强密码（包含大小写字母、数字和特殊字符）\n" +
-                            "- 不要在多个网站使用相同密码\n" +
-                            "- 定期更换密码\n\n" +
-                            "如果是您本人操作，请忽略此邮件。\n\n" +
-                            "%s 团队\n" +
-                            "%s",
+            String emailContent = """
+                    尊敬的用户 %s，您好：
+                    
+                    您的账户密码已于 %s 成功修改。
+                    
+                    修改详情：
+                    - 操作时间：%s
+                    - 操作IP：%s
+                    - 操作方式：密码找回
+                    
+                    如果这不是您本人的操作，请立即：
+                    1. 重新修改您的密码
+                    2. 检查账户安全设置
+                    
+                    为了您的账户安全，建议：
+                    - 使用强密码（包含大小写字母、数字和特殊字符）
+                    - 不要在多个网站使用相同密码
+                    - 定期更换密码
+                    
+                    如果是您本人操作，请忽略此邮件。
+                    
+                    %s 团队
+                    %s""".formatted(
                     username,
                     currentTime,
                     currentTime,
@@ -481,20 +492,25 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
             String currentTime = java.time.LocalDateTime.now()
                     .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-            String emailContent = String.format(
-                    "尊敬的用户 %s，您好：\n\n" +
-                            "我们检测到您的账户存在异常的密码修改尝试。\n\n" +
-                            "尝试详情：\n" +
-                            "- 尝试时间：%s\n" +
-                            "- 来源IP：%s\n" +
-                            "- 原因：%s\n\n" +
-                            "如果这不是您本人的操作，您的账户可能面临安全风险。\n\n" +
-                            "请立即采取以下措施：\n" +
-                            "1. 修改您的密码\n" +
-                            "2. 检查账户绑定的邮箱是否正确\n" +
-                            "如果是您本人操作，请忽略此邮件。\n\n" +
-                            "%s 安全团队\n" +
-                            "%s",
+            String emailContent = """
+                    尊敬的用户 %s，您好：
+                    
+                    我们检测到您的账户存在异常的密码修改尝试。
+                    
+                    尝试详情：
+                    - 尝试时间：%s
+                    - 来源IP：%s
+                    - 原因：%s
+                    
+                    如果这不是您本人的操作，您的账户可能面临安全风险。
+                    
+                    请立即采取以下措施：
+                    1. 修改您的密码
+                    2. 检查账户绑定的邮箱是否正确
+                    如果是您本人操作，请忽略此邮件。
+                    
+                    %s 安全团队
+                    %s""".formatted(
                     username,
                     currentTime,
                     clientIp,

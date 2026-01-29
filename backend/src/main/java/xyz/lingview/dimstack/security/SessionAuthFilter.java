@@ -148,8 +148,7 @@ public class SessionAuthFilter implements Filter {
             throws IOException {
 
         Object handler = request.getAttribute("handler");
-        if (handler instanceof HandlerMethod) {
-            HandlerMethod handlerMethod = (HandlerMethod) handler;
+        if (handler instanceof HandlerMethod handlerMethod) {
 
             RequiresPermission requiresPermission = handlerMethod.getMethodAnnotation(RequiresPermission.class);
             if (requiresPermission != null) {

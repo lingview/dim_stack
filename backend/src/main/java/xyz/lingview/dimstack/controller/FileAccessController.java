@@ -17,7 +17,6 @@ import xyz.lingview.dimstack.mapper.UploadMapper;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * @Author: lingview
@@ -50,7 +49,7 @@ public class FileAccessController {
                 return ResponseEntity.notFound().build();
             }
 
-            Path basePath = Paths.get(dataRoot).toAbsolutePath().normalize();
+            Path basePath = Path.of(dataRoot).toAbsolutePath().normalize();
             Path filePath = basePath.resolve(attachment.getAttachment_path()).normalize();
 
             if (!Files.exists(filePath)) {

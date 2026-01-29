@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +31,7 @@ public class ThemeController {
     @RequiresPermission("system:edit")
     public String switchTheme(@RequestParam String themeName) {
         String themesPath = themeProperties.getThemesPath();
-        Path themeDir = Paths.get(themesPath, themeName);
+        Path themeDir = Path.of(themesPath, themeName);
 
         if (!Files.exists(themeDir) || !Files.isDirectory(themeDir)) {
             return "Error: Theme directory '" + themeName + "' does not exist or is not a directory";
@@ -65,7 +64,7 @@ public class ThemeController {
         try {
             StringBuilder result = new StringBuilder("Available themes:\n");
             String themesPath = themeProperties.getThemesPath();
-            Path themesDir = Paths.get(themesPath);
+            Path themesDir = Path.of(themesPath);
 
             if (Files.exists(themesDir) && Files.isDirectory(themesDir)) {
                 Files.list(themesDir)
@@ -91,7 +90,7 @@ public class ThemeController {
     public String validateTheme(@RequestParam String themeName) {
         try {
             String themesPath = themeProperties.getThemesPath();
-            Path themeDir = Paths.get(themesPath, themeName);
+            Path themeDir = Path.of(themesPath, themeName);
 
             if (!Files.exists(themeDir)) {
                 return "Theme '" + themeName + "' does not exist";
@@ -119,7 +118,7 @@ public class ThemeController {
         try {
             List<Map<String, Object>> themes = new ArrayList<>();
             String themesPath = themeProperties.getThemesPath();
-            Path themesDir = Paths.get(themesPath);
+            Path themesDir = Path.of(themesPath);
             String activeTheme = themeProperties.getActiveTheme();
 
             if (Files.exists(themesDir) && Files.isDirectory(themesDir)) {

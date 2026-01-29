@@ -1,7 +1,6 @@
 package xyz.lingview.dimstack.config;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * @Author: lingview
@@ -10,7 +9,7 @@ import java.nio.file.Paths;
  * @Version: 1.0
  */
 public class ConfigInfo {
-    public static final Path CONFIG_DIR = Paths.get("config");
+    public static final Path CONFIG_DIR = Path.of("config");
     public static final Path MAIN_CONFIG_FILE = CONFIG_DIR.resolve("application.yml");
 
     public static boolean isConfigComplete() {

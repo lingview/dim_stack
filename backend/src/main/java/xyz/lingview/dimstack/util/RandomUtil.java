@@ -2,7 +2,6 @@ package xyz.lingview.dimstack.util;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.SecureRandom;
 import java.util.UUID;
@@ -12,7 +11,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class RandomUtil {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
-    private static final Path SALT_FILE = Paths.get(".random_salt");
+    private static final Path SALT_FILE = Path.of(".random_salt");
 
     private static final String LOADED_SALT = loadOrCreateSalt();
 
@@ -31,7 +30,7 @@ public class RandomUtil {
             SECURE_RANDOM.nextBytes(saltBytes);
             StringBuilder sb = new StringBuilder(64);
             for (byte b : saltBytes) {
-                sb.append(String.format("%02x", b));
+                sb.append("%02x".formatted(b));
             }
             String newSalt = sb.toString();
 
@@ -53,7 +52,7 @@ public class RandomUtil {
             SECURE_RANDOM.nextBytes(fallback);
             StringBuilder sb = new StringBuilder(64);
             for (byte b : fallback) {
-                sb.append(String.format("%02x", b));
+                sb.append("%02x".formatted(b));
             }
             return sb.toString();
         }
@@ -96,7 +95,7 @@ public class RandomUtil {
             byte[] rawHmac = mac.doFinal(data.getBytes());
             StringBuilder sb = new StringBuilder(rawHmac.length * 2);
             for (byte b : rawHmac) {
-                sb.append(String.format("%02x", b));
+                sb.append("%02x".formatted(b));
             }
             return sb.toString();
         } catch (Exception e) {
