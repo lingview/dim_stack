@@ -211,17 +211,12 @@ public class InitController {
                 .append("/").append(mysqlDatabase).append("?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true&useAffectedRows=true\n");
         ymlContent.append("    username: ").append(mysqlUser).append("\n");
         ymlContent.append("    password: \"").append(mysqlPassword).append("\"\n");
-        ymlContent.append("    type: com.alibaba.druid.pool.DruidDataSource\n");
-        ymlContent.append("\n");
-        ymlContent.append("    druid:\n");
-        ymlContent.append("      initial-size: 3\n");
-        ymlContent.append("      min-idle: 3\n");
-        ymlContent.append("      max-active: 20\n");
-        ymlContent.append("      max-wait: 60000\n");
-        ymlContent.append("      validation-query: SELECT 1\n");
-        ymlContent.append("      test-while-idle: true\n");
-        ymlContent.append("      test-on-borrow: false\n");
-        ymlContent.append("      test-on-return: false\n");
+        ymlContent.append("    hikari:\n");
+        ymlContent.append("      maximum-pool-size: 20\n");
+        ymlContent.append("      minimum-idle: 5\n");
+        ymlContent.append("      connection-timeout: 30000\n");
+        ymlContent.append("      idle-timeout: 600000\n");
+        ymlContent.append("      max-lifetime: 1800000\n");
         ymlContent.append("\n");
 
         // Servlet配置
