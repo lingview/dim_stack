@@ -6,8 +6,9 @@ import apiClient from '../../utils/axios.jsx';
 import { fetchStatistics, fetchDashboardData } from '../../Api.jsx';
 import CustomPageManager from "./CustomPageManager.jsx";
 
-const Sidebar = lazy(() => import('./Sidebar'));
-const DashboardHeader = lazy(() => import('./DashboardHeader'));
+import Sidebar from './Sidebar';
+import DashboardHeader from './DashboardHeader';
+
 const DashboardView = lazy(() => import('./DashboardView'));
 const ArticlesView = lazy(() => import('./ArticlesView'));
 const MarkdownEditor = lazy(() => import('../MarkdownEditor'));
@@ -22,6 +23,36 @@ const CategoriesView = lazy(() => import('./CategoriesView'));
 const ThemesStoreView = lazy(() => import('./ThemesStoreView'));
 const FriendLinksManager = lazy(() => import('./FriendLinksManager'));
 const UpdateManager = lazy(() => import('./UpdateManager'));
+
+const FadeIn = ({ children, duration = 200 }) => {
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const timer = requestAnimationFrame(() => {
+            setIsVisible(true);
+        });
+        return () => cancelAnimationFrame(timer);
+    }, []);
+
+    return (
+        <div
+            className="transition-opacity ease-in-out"
+            style={{
+                opacity: isVisible ? 1 : 0,
+                transitionDuration: `${duration}ms`
+            }}
+        >
+            {children}
+        </div>
+    );
+};
+
+// 简单的加载提示
+const SimpleLoading = () => (
+    <div className="flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+    </div>
+);
 
 export default function Dashboard() {
     const navigate = useNavigate()
@@ -102,6 +133,7 @@ export default function Dashboard() {
 
         fetchArticles()
     }, [activeTab, username, shouldRefresh])
+
     useEffect(() => {
         const loadDashboardData = async () => {
             if (!loading && username) {
@@ -265,10 +297,12 @@ export default function Dashboard() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">验证登录状态中...</p>
-                </div>
+                <FadeIn>
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+                        <p className="mt-4 text-gray-600">验证登录状态中...</p>
+                    </div>
+                </FadeIn>
             </div>
         )
     }
@@ -279,128 +313,152 @@ export default function Dashboard() {
 
     return (
         <div className="min-h-screen bg-gray-50 transition-colors duration-200">
-            <div className="flex h-screen">
-                <Suspense fallback={<div>加载中...</div>}>
-                    <Sidebar
-                        activeTab={activeTab}
-                        onTabChange={handleTabChange}
-                        isOpen={sidebarOpen}
-                        onToggle={() => setSidebarOpen(!sidebarOpen)}
-                        onClose={() => setSidebarOpen(false)}
-                        username={username}
-                        menuItems={sidebarMenu}
-                    />
-                </Suspense>
+            <div className="flex h-screen relative">
+                <Sidebar
+                    activeTab={activeTab}
+                    onTabChange={handleTabChange}
+                    isOpen={sidebarOpen}
+                    onToggle={() => setSidebarOpen(!sidebarOpen)}
+                    onClose={() => setSidebarOpen(false)}
+                    username={username}
+                    menuItems={sidebarMenu}
+                />
 
-                <div className="flex-1 flex flex-col overflow-hidden">
-                    <Suspense fallback={<div>加载中...</div>}>
-                        <DashboardHeader
-                            onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-                            sidebarOpen={sidebarOpen}
-                            username={username}
-                            onLogout={handleLogout}
-                            showNewArticleButton={activeTab === 'articles'}
-                            onNewArticle={() => setShowEditor(true)}
-                        />
-                    </Suspense>
+                <div className="flex-1 flex flex-col overflow-hidden w-full md:w-auto">
+                    <DashboardHeader
+                        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+                        sidebarOpen={sidebarOpen}
+                        username={username}
+                        onLogout={handleLogout}
+                        showNewArticleButton={activeTab === 'articles'}
+                        onNewArticle={() => setShowEditor(true)}
+                    />
 
                     <main className="flex-1 overflow-y-auto p-6">
                         {activeTab === 'dashboard' && (
-                            <Suspense fallback={<div>加载中...</div>}>
-                                <DashboardView
-                                    stats={stats}
-                                    quickActions={quickActions}
-                                    notifications={notifications}
-                                    onMarkAsRead={handleMarkAsRead}
-                                    onMarkAllAsRead={handleMarkAllAsRead}
-                                />
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <DashboardView
+                                        stats={stats}
+                                        quickActions={quickActions}
+                                        notifications={notifications}
+                                        onMarkAsRead={handleMarkAsRead}
+                                        onMarkAllAsRead={handleMarkAllAsRead}
+                                    />
+                                </FadeIn>
                             </Suspense>
                         )}
 
                         {activeTab === 'articles' && (
-                            <Suspense fallback={<div>加载中...</div>}>
-                                <ArticlesView
-                                    onNewArticle={() => {
-                                        setEditingArticle(null);
-                                        setShowEditor(true);
-                                    }}
-                                    onEditArticle={handleEditArticle}
-                                    onImportArticle={handleImportArticle}
-                                    articles={articles}
-                                    shouldRefresh={shouldRefresh}
-                                    setShouldRefresh={setShouldRefresh}
-                                />
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <ArticlesView
+                                        onNewArticle={() => {
+                                            setEditingArticle(null);
+                                            setShowEditor(true);
+                                        }}
+                                        onEditArticle={handleEditArticle}
+                                        onImportArticle={handleImportArticle}
+                                        articles={articles}
+                                        shouldRefresh={shouldRefresh}
+                                        setShouldRefresh={setShouldRefresh}
+                                    />
+                                </FadeIn>
                             </Suspense>
                         )}
 
                         {activeTab === 'profile' && (
-                            <Suspense fallback={<div>加载中...</div>}>
-                                <ProfileView />
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <ProfileView />
+                                </FadeIn>
                             </Suspense>
                         )}
 
                         {activeTab === 'comments' && (
-                            <Suspense fallback={<div>加载中...</div>}>
-                                <CommentsView />
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <CommentsView />
+                                </FadeIn>
                             </Suspense>
                         )}
 
                         {activeTab === 'articlesreview' && (
-                            <Suspense fallback={<div>加载中...</div>}>
-                                <ArticlesReview />
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <ArticlesReview />
+                                </FadeIn>
                             </Suspense>
                         )}
 
                         {activeTab === 'friendlinks' && (
-                            <Suspense fallback={<div>加载中...</div>}>
-                                <FriendLinksManager />
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <FriendLinksManager />
+                                </FadeIn>
                             </Suspense>
                         )}
 
                         {activeTab === 'menus' && (
-                            <Suspense fallback={<div>加载中...</div>}>
-                                <MenusView />
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <MenusView />
+                                </FadeIn>
                             </Suspense>
                         )}
 
                         {activeTab === 'users' && (
-                            <Suspense fallback={<div>加载中...</div>}>
-                                <UsersView />
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <UsersView />
+                                </FadeIn>
                             </Suspense>
                         )}
 
                         {activeTab === 'settings' && (
-                            <Suspense fallback={<div>加载中...</div>}>
-                                <SiteSettingsView />
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <SiteSettingsView />
+                                </FadeIn>
                             </Suspense>
                         )}
                         {activeTab === 'tags' && (
-                            <Suspense fallback={<div>加载中...</div>}>
-                                <TagsView />
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <TagsView />
+                                </FadeIn>
                             </Suspense>
                         )}
 
                         {activeTab === 'categories' && (
-                            <Suspense fallback={<div>加载中...</div>}>
-                                <CategoriesView />
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <CategoriesView />
+                                </FadeIn>
                             </Suspense>
                         )}
 
                         {activeTab === 'themes' && (
-                            <Suspense fallback={<div>加载中...</div>}>
-                                <ThemesStoreView />
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <ThemesStoreView />
+                                </FadeIn>
                             </Suspense>
                         )}
 
                         {activeTab === 'custom-pages' && (
-                            <Suspense fallback={<div>加载中...</div>}>
-                                <CustomPageManager />
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <CustomPageManager />
+                                </FadeIn>
                             </Suspense>
                         )}
 
                         {activeTab === 'update' && (
-                            <Suspense fallback={<div>加载中...</div>}>
-                                <UpdateManager />
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <UpdateManager />
+                                </FadeIn>
                             </Suspense>
                         )}
                     </main>
@@ -409,11 +467,13 @@ export default function Dashboard() {
 
             {showEditor && (
                 <Suspense fallback={<div className="fixed inset-0 z-50 bg-white flex items-center justify-center">加载编辑器中...</div>}>
-                    <MarkdownEditor
-                        onSave={handleEditorSave}
-                        onCancel={handleEditorCancel}
-                        initialData={editingArticle}
-                    />
+                    <FadeIn duration={250}>
+                        <MarkdownEditor
+                            onSave={handleEditorSave}
+                            onCancel={handleEditorCancel}
+                            initialData={editingArticle}
+                        />
+                    </FadeIn>
                 </Suspense>
             )}
         </div>

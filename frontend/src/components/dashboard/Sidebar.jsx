@@ -3,9 +3,11 @@ import { getIcon } from '../../utils/IconUtils';
 import { fetchSiteName } from '../../Api.jsx';
 import {useNavigate} from "react-router-dom";
 
-export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, username, menuItems }) {
+export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onClose, username, menuItems }) {
     const [expandedItems, setExpandedItems] = useState({})
     const [siteName, setSiteName] = useState('');
+    const [isVisible, setIsVisible] = useState(false);
+    const [showOverlay, setShowOverlay] = useState(false);
 
     useEffect(() => {
         const loadSiteName = async () => {
@@ -19,6 +21,24 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, user
 
         loadSiteName();
     }, []);
+
+    useEffect(() => {
+        const timer = requestAnimationFrame(() => {
+            setIsVisible(true);
+        });
+        return () => cancelAnimationFrame(timer);
+    }, []);
+
+    useEffect(() => {
+        if (isOpen) {
+            setShowOverlay(true);
+        } else {
+            const timer = setTimeout(() => {
+                setShowOverlay(false);
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen]);
 
     const getRouteSegment = (link) => {
         if (!link) return ''
@@ -45,17 +65,36 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, user
     return (
         <>
             {/* 移动端遮罩层 */}
-            {/*{isOpen && (*/}
-            {/*    <div*/}
-            {/*        className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"*/}
-            {/*        onClick={onClose}*/}
-            {/*    />*/}
-            {/*)}*/}
+            {showOverlay && (
+                <div
+                    className="fixed inset-0 z-40 md:hidden backdrop-blur-sm transition-all duration-300"
+                    onClick={onClose}
+                    style={{
+                        backdropFilter: isOpen ? 'blur(4px)' : 'blur(0px)',
+                        pointerEvents: isOpen ? 'auto' : 'none'
+                    }}
+                />
+            )}
 
-            <div className={`${
-                isOpen ? 'w-64' : 'w-16'
-            } bg-white border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col relative z-30`}>
-
+            <div
+                className={`
+                    ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+                    w-64 md:w-auto
+                    ${!isOpen && 'md:w-16'}
+                    bg-white border-r border-gray-200
+                    flex flex-col
+                    fixed md:relative
+                    h-full
+                    z-50
+                    transition-all duration-300 ease-in-out
+                `}
+                style={{
+                    opacity: isVisible ? 1 : 0,
+                    transitionProperty: 'opacity, transform, width',
+                    transitionDuration: '200ms, 300ms, 300ms',
+                    transitionTimingFunction: 'ease-in-out'
+                }}
+            >
                 <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
@@ -113,7 +152,12 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, user
                                                         child && (
                                                             <li key={child.id}>
                                                                 <button
-                                                                    onClick={() => onTabChange(getRouteSegment(child.link))}
+                                                                    onClick={() => {
+                                                                        onTabChange(getRouteSegment(child.link));
+                                                                        if (window.innerWidth < 768) {
+                                                                            onClose();
+                                                                        }
+                                                                    }}
                                                                     className={`w-full flex items-center px-3 py-2 ml-6 text-sm font-medium rounded-md transition-colors duration-200 ${
                                                                         activeTab === getRouteSegment(child.link)
                                                                             ? 'bg-blue-100 text-blue-700'
@@ -131,7 +175,12 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, user
                                         </div>
                                     ) : (
                                         <button
-                                            onClick={() => onTabChange(getRouteSegment(item.link))}
+                                            onClick={() => {
+                                                onTabChange(getRouteSegment(item.link));
+                                                if (window.innerWidth < 768) {
+                                                    onClose();
+                                                }
+                                            }}
                                             className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
                                                 activeTab === getRouteSegment(item.link)
                                                     ? 'bg-blue-100 text-blue-700'
@@ -149,7 +198,7 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, user
                 </nav>
 
                 {/* 底部用户信息 */}
-                <div className="p-4 border-t border-gray-200">
+                <div className="mt-auto p-4 border-t border-gray-200">
                     <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
                             {getUserInitial(username)}
