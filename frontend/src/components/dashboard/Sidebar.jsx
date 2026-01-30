@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { getIcon } from '../../utils/IconUtils';
 import { fetchSiteName } from '../../Api.jsx';
 import {useNavigate} from "react-router-dom";
+import {getConfig} from "../../utils/config.jsx"
 
-export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onClose, username, menuItems }) {
+export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onClose, username, avatar, menuItems }) {
     const [expandedItems, setExpandedItems] = useState({})
     const [siteName, setSiteName] = useState('');
     const [isVisible, setIsVisible] = useState(false);
     const [showOverlay, setShowOverlay] = useState(false);
-
+    const avatarUrl = getConfig().getFullUrl(avatar);
     useEffect(() => {
         const loadSiteName = async () => {
             const name = await fetchSiteName();
@@ -46,9 +47,9 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onCl
         return segments[segments.length - 1] || segments[segments.length - 2] || ''
     }
 
-    const getUserInitial = (name) => {
-        return name ? name.charAt(0).toUpperCase() : 'L'
-    }
+    // const getUserInitial = (name) => {
+    //     return name ? name.charAt(0).toUpperCase() : 'L'
+    // }
 
     const toggleExpanded = (itemId) => {
         setExpandedItems(prev => ({
@@ -99,7 +100,7 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onCl
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                             <div className="text-2xl font-bold text-blue-600">
-                                {isOpen ? siteName : siteName?.charAt(0)} {/* 使用siteName */}
+                                {isOpen ? siteName : siteName?.charAt(0)}
                             </div>
                         </div>
                     </div>
@@ -201,7 +202,8 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onCl
                 <div className="mt-auto p-4 border-t border-gray-200">
                     <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                            {getUserInitial(username)}
+                            {/*{getUserInitial(username)}*/}
+                            <img src={avatarUrl} alt="Avatar" className="w-8 h-8 rounded-full"></img>
                         </div>
                         {isOpen && (
                             <div className="flex-1 min-w-0">

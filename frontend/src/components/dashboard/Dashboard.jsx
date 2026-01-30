@@ -61,6 +61,7 @@ export default function Dashboard() {
     const [sidebarOpen, setSidebarOpen] = useState(true)
     const [notifications, setNotifications] = useState([])
     const [username, setUsername] = useState('')
+    const [avatar, setAvatar] = useState('')
     const [showEditor, setShowEditor] = useState(false)
     const [loading, setLoading] = useState(true)
     const [articles, setArticles] = useState(null)
@@ -77,6 +78,7 @@ export default function Dashboard() {
 
                 if (response.code === 200 && response.data.loggedIn) {
                     setUsername(response.data.username || '')
+                    setAvatar(response.data.avatar || '')
                 } else {
                     navigate('/login')
                 }
@@ -321,6 +323,7 @@ export default function Dashboard() {
                     onToggle={() => setSidebarOpen(!sidebarOpen)}
                     onClose={() => setSidebarOpen(false)}
                     username={username}
+                    avatar={avatar}
                     menuItems={sidebarMenu}
                 />
 
@@ -329,6 +332,7 @@ export default function Dashboard() {
                         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
                         sidebarOpen={sidebarOpen}
                         username={username}
+                        avatar={avatar}
                         onLogout={handleLogout}
                         showNewArticleButton={activeTab === 'articles'}
                         onNewArticle={() => setShowEditor(true)}

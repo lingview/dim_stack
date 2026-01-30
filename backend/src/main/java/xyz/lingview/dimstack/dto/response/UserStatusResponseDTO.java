@@ -6,5 +6,6 @@ import lombok.Data;
 public class UserStatusResponseDTO {
     private boolean loggedIn;
     private String username;
+    private String avatar;
     private String message;
 }

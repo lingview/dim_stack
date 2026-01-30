@@ -45,6 +45,7 @@ public class UserController {
 
             responseDTO.setLoggedIn(true);
             responseDTO.setUsername(username);
+            responseDTO.setAvatar(userInformationMapper.selectAvatarByUsername(username));
             responseDTO.setMessage("用户已登录");
         } else {
             responseDTO.setLoggedIn(false);

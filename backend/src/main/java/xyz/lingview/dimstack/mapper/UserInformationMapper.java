@@ -43,6 +43,7 @@ public interface UserInformationMapper {
 
     int updatePasswordByUsername(@Param("username") String username, @Param("password") String password);
 
+    String selectAvatarByUsername(@Param("username") String username);
     // 后台添加新用户
     int insertUser(UserInformation user);
 }

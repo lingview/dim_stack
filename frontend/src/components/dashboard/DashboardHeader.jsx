@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {getConfig} from "../../utils/config.jsx";
 
-export default function DashboardHeader({ onToggleSidebar, sidebarOpen, username, onLogout }) {
+export default function DashboardHeader({ onToggleSidebar, sidebarOpen, username, avatar, onLogout }) {
     const navigate = useNavigate()
     const [userMenuOpen, setUserMenuOpen] = useState(false)
     const [isVisible, setIsVisible] = useState(false);
+    const avatarUrl = getConfig().getFullUrl(avatar);
 
     useEffect(() => {
         const timer = requestAnimationFrame(() => {
@@ -67,7 +69,8 @@ export default function DashboardHeader({ onToggleSidebar, sidebarOpen, username
                             className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 p-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
                         >
                             <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                                {getUserInitial(username)}
+                                <img src={avatarUrl} alt="Avatar" className="w-full h-full rounded-full" />
+                                {/*{getUserInitial(username)}*/}
                             </div>
                             <span className="font-medium text-sm sm:text-base">{username}</span>
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

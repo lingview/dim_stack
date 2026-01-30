@@ -167,6 +167,12 @@
         WHERE username = #{username}
     </update>
 
+    <select id="selectAvatarByUsername" resultType="string">
+        SELECT avatar
+        FROM user_information
+        WHERE username = #{username}
+    </select>
+
     <!--后台添加用户-->
     <insert id="insertUser" parameterType="xyz.lingview.dimstack.domain.UserInformation">
         INSERT INTO user_information (
