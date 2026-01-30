@@ -23,7 +23,7 @@ import java.net.UnknownHostException;
 public class StartServer {
     public static void main(String[] args) {
         if (needsInitialization()) {
-            startInitMode();
+            startInitMode(args);
         } else {
             SpringApplication.run(StartServer.class, args);
         }
@@ -33,17 +33,29 @@ public class StartServer {
         return !ConfigInfo.isConfigComplete();
     }
 
-    private static void startInitMode() {
+    private static void startInitMode(String[] args) {
         log.info("系统初始化模块加载成功");
         log.info("检测到首次运行或配置不完整，启动初始化模式...");
         log.info("配置文件目录: " + ConfigInfo.CONFIG_DIR.toAbsolutePath());
 
         SpringApplication initApp = new SpringApplication(xyz.lingview.dimstack.init.InitApplication.class);
-        initApp.run(
+
+        String[] initArgs = combineArguments(args, new String[]{
                 "--spring.config.location=classpath:/",
                 "--spring.config.name=application-init"
-        );
+        });
+
+        initApp.run(initArgs);
     }
+
+
+    private static String[] combineArguments(String[] originalArgs, String[] additionalArgs) {
+        String[] combined = new String[originalArgs.length + additionalArgs.length];
+        System.arraycopy(originalArgs, 0, combined, 0, originalArgs.length);
+        System.arraycopy(additionalArgs, 0, combined, originalArgs.length, additionalArgs.length);
+        return combined;
+    }
+
 
     @Component
     public static class ServerInfoPrinter implements ApplicationListener<ContextRefreshedEvent> {
