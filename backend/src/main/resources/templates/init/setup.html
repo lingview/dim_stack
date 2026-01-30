@@ -269,6 +269,13 @@
                         启用高级配置
                     </label>
                 </div>
+                
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="onlyGenerateConfig" name="onlyGenerateConfig">
+                    <label class="form-check-label" for="onlyGenerateConfig">
+                        仅重新生成配置文件（不重置数据库）
+                    </label>
+                </div>
 
                 <div id="advancedSection" class="advanced-section">
                     <div class="form-section">
@@ -286,7 +293,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn">确认（如果数据库存在则会清空）</button>
+                <button type="submit" class="btn" id="submitBtn">生成配置文件</button>
             </form>
         </div>
     </div>
@@ -296,6 +303,61 @@
     document.getElementById('hasAdvanced').addEventListener('change', function () {
         document.getElementById('advancedSection').style.display =
             this.checked ? 'block' : 'none';
+    });
+    
+    document.getElementById('onlyGenerateConfig').addEventListener('change', function () {
+        const adminSection = document.querySelector('.form-section:nth-child(2)'); // 管理员账户设置部分
+        const adminUsernameInput = document.querySelector('[name="adminUsername"]');
+        const adminPasswordInput = document.querySelector('[name="adminPassword"]');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        if (this.checked) {
+            if (adminSection) {
+                adminSection.style.display = 'none';
+            }
+            if (adminUsernameInput) {
+                adminUsernameInput.removeAttribute('required');
+            }
+            if (adminPasswordInput) {
+                adminPasswordInput.removeAttribute('required');
+            }
+            submitBtn.textContent = '生成配置文件';
+        } else {
+            if (adminSection) {
+                adminSection.style.display = 'block';
+            }
+            if (adminUsernameInput) {
+                adminUsernameInput.setAttribute('required', '');
+            }
+            if (adminPasswordInput) {
+                adminPasswordInput.setAttribute('required', '');
+            }
+            submitBtn.textContent = '生成配置文件并初始化数据库';
+        }
+    });
+
+    window.addEventListener('load', function() {
+        const onlyGenerateConfig = document.getElementById('onlyGenerateConfig');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        if (onlyGenerateConfig.checked) {
+            const adminSection = document.querySelector('.form-section:nth-child(2)');
+            const adminUsernameInput = document.querySelector('[name="adminUsername"]');
+            const adminPasswordInput = document.querySelector('[name="adminPassword"]');
+            
+            if (adminSection) {
+                adminSection.style.display = 'none';
+            }
+            if (adminUsernameInput) {
+                adminUsernameInput.removeAttribute('required');
+            }
+            if (adminPasswordInput) {
+                adminPasswordInput.removeAttribute('required');
+            }
+            submitBtn.textContent = '生成配置文件';
+        } else {
+            submitBtn.textContent = '生成配置文件并初始化数据库';
+        }
     });
 </script>
 </body>

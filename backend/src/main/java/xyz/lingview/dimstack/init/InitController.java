@@ -52,6 +52,7 @@ public class InitController {
             @RequestParam(required = false) String dataRoot,
             @RequestParam(required = false) String uploadDir,
             @RequestParam(required = false) String logRoot,
+            @RequestParam(defaultValue = "false") boolean onlyGenerateConfig,  // 新增参数
             Model model) {
 
         try {
@@ -61,20 +62,55 @@ public class InitController {
                     redisHost, redisPort, redisPassword, redisDatabase,
                     hasAdvanced, logLevel, dataRoot, uploadDir, logRoot);
 
-            // 初始化数据库
-            initializeDatabase(mysqlHost, mysqlPort, mysqlDatabase, mysqlUser, mysqlPassword,
-                    adminUsername, adminPassword);
+            if (!onlyGenerateConfig) {
+                // 初始化数据库
+                initializeDatabase(mysqlHost, mysqlPort, mysqlDatabase, mysqlUser, mysqlPassword,
+                        adminUsername, adminPassword);
 
-            String latestVersion = readLatestFlywayVersion();
-            baselineFlyway(mysqlHost, mysqlPort, mysqlDatabase, mysqlUser, mysqlPassword, latestVersion);
-            model.addAttribute("success", true);
-            model.addAttribute("message", "配置文件生成成功！数据库初始化完成！请重启应用。");
+                String latestVersion = readLatestFlywayVersion();
+                baselineFlyway(mysqlHost, mysqlPort, mysqlDatabase, mysqlUser, mysqlPassword, latestVersion);
+                model.addAttribute("success", true);
+                model.addAttribute("message", "配置文件生成成功！数据库初始化完成！请重启应用。");
+            } else {
+                // 仅生成配置文件
+                String latestVersion = readLatestFlywayVersion();
+
+                if (!checkFlywaySchemaHistoryExists(mysqlHost, mysqlPort, mysqlDatabase, mysqlUser, mysqlPassword)) {
+                    baselineFlyway(mysqlHost, mysqlPort, mysqlDatabase, mysqlUser, mysqlPassword, latestVersion);
+                    model.addAttribute("message", "配置文件已重新生成！由于数据库中没有flyway历史记录，已执行基线设置。请重启应用以使新配置生效。");
+                } else {
+                    model.addAttribute("message", "配置文件已重新生成！数据库中已有flyway历史记录，未执行基线设置。请重启应用以使新配置生效。");
+                }
+                model.addAttribute("success", true);
+            }
         } catch (Exception e) {
-            model.addAttribute("error", true);
+            model.addAttribute("success", false);
             model.addAttribute("message", "初始化失败: " + e.getMessage());
         }
 
         return "init/result";
+    }
+
+    private boolean checkFlywaySchemaHistoryExists(String mysqlHost, Integer mysqlPort, String mysqlDatabase,
+                                                   String mysqlUser, String mysqlPassword) throws SQLException {
+        String jdbcUrl = "jdbc:mysql://%s:%d/%s?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%%2B8&useSSL=false&allowPublicKeyRetrieval=true".formatted(
+                mysqlHost, mysqlPort, mysqlDatabase);
+
+        try (Connection connection = DriverManager.getConnection(jdbcUrl, mysqlUser, mysqlPassword)) {
+            try (Statement stmt = connection.createStatement()) {
+                String sql = "SELECT COUNT(*) FROM information_schema.tables " +
+                             "WHERE table_schema = '" + mysqlDatabase + "' " +
+                             "AND table_name = 'flyway_schema_history'";
+                
+                try (ResultSet rs = stmt.executeQuery(sql)) {
+                    if (rs.next()) {
+                        int count = rs.getInt(1);
+                        return count > 0;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     // 初始化数据库

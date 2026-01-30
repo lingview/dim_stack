@@ -1,5 +1,6 @@
 package xyz.lingview.dimstack.init;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
@@ -13,6 +14,7 @@ import java.net.UnknownHostException;
 
 @Configuration
 @EnableAutoConfiguration
+@Slf4j
 @ComponentScan(basePackages = "xyz.lingview.dimstack.init")
 public class InitApplication {
 
@@ -48,7 +50,7 @@ public class InitApplication {
                     try {
                         hostAddress = Inet4Address.getLocalHost().getHostAddress();
                     } catch (UnknownHostException e) {
-                        e.printStackTrace();
+                        log.error("DNS 解析失败，主机未知: {}", e.getMessage(), e);
                     }
 
                     String localHost = hostAddress + ":" + getPort();
