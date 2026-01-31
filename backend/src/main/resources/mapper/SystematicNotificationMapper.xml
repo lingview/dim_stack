@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.lingview.dimstack.mapper.SystematicNotificationMapper">
+
+    <insert id="insertSystematicNotification" parameterType="xyz.lingview.dimstack.domain.SystematicNotification">
+        INSERT INTO systematic_notification (uuid, content, type, status)
+        VALUES (#{uuid}, #{content}, #{type}, #{status})
+    </insert>
+
+    <select id="getSystematicNotificationsWithPagination" resultType="xyz.lingview.dimstack.domain.SystematicNotification">
+        SELECT id, uuid, content, create_time, type, status
+        FROM systematic_notification
+        WHERE uuid = #{uuid} AND status != 0
+        ORDER BY create_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="getReadNotificationsWithPagination" resultType="xyz.lingview.dimstack.domain.SystematicNotification">
+        SELECT id, uuid, content, create_time, type, status
+        FROM systematic_notification
+        WHERE uuid = #{uuid} AND status = 1
+        ORDER BY create_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="getUnreadNotificationsWithPagination" resultType="xyz.lingview.dimstack.domain.SystematicNotification">
+        SELECT id, uuid, content, create_time, type, status
+        FROM systematic_notification
+        WHERE uuid = #{uuid} AND status = 2
+        ORDER BY create_time DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="getCountByUuid" resultType="int">
+        SELECT COUNT(*)
+        FROM systematic_notification
+        WHERE uuid = #{uuid} AND status != 0
+    </select>
+
+    <select id="getReadCountByUuid" resultType="int">
+        SELECT COUNT(*)
+        FROM systematic_notification
+        WHERE uuid = #{uuid} AND status = 1
+    </select>
+
+    <select id="getUnreadCountByUuid" resultType="int">
+        SELECT COUNT(*)
+        FROM systematic_notification
+        WHERE uuid = #{uuid} AND status = 2
+    </select>
+
+    <select id="selectByIdAndUuid" resultType="xyz.lingview.dimstack.domain.SystematicNotification">
+        SELECT id, uuid, content, create_time, type, status
+        FROM systematic_notification
+        WHERE id = #{id} AND uuid = #{uuid} AND status != 0
+    </select>
+
+    <update id="updateNotificationStatus">
+        UPDATE systematic_notification
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <update id="deleteSystematicNotification">
+        UPDATE systematic_notification
+        SET status = 0
+        WHERE id = #{id}
+    </update>
+
+</mapper>

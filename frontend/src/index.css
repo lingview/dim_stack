@@ -615,3 +615,92 @@
 .dark .mobile-article-meta {
   color: #9ca3af !important;
 }
+
+
+.dark .notification-container {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.dark .notification-title {
+  color: #f9fafb;
+}
+
+.dark .notification-tab {
+  background-color: #374151;
+  color: #d1d5db;
+}
+
+.dark .notification-tab:hover {
+  background-color: #4b5563;
+}
+
+.dark .notification-tab-active {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.dark .notification-tab-active:hover {
+  background-color: #2563eb;
+}
+
+.dark .notification-loading,
+.dark .notification-empty {
+  color: #9ca3af;
+}
+
+.dark .notification-item {
+  border-color: #374151;
+}
+
+.dark .notification-item-read {
+  background-color: #1f2937;
+}
+
+.dark .notification-item-read:hover {
+  background-color: #374151;
+}
+
+.dark .notification-item-unread {
+  background-color: #1e3a5f;
+}
+
+.dark .notification-item-unread:hover {
+  background-color: #2d4a6f;
+}
+
+.dark .notification-item-title {
+  color: #f9fafb;
+}
+
+.dark .notification-item-content {
+  color: #d1d5db;
+}
+
+.dark .notification-time {
+  color: #6b7280;
+}
+
+.dark .notification-btn-read {
+  color: #60a5fa;
+}
+
+.dark .notification-btn-read:hover {
+  color: #93c5fd;
+}
+
+.dark .notification-btn-delete {
+  color: #f87171;
+}
+
+.dark .notification-btn-delete:hover {
+  color: #fca5a5;
+}
+
+.dark .notification-loading-more {
+  color: #9ca3af;
+}
+
+.dark .notification-no-more {
+  color: #6b7280;
+}

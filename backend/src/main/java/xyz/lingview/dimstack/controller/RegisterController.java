@@ -19,6 +19,7 @@ import xyz.lingview.dimstack.mapper.RegisterMapper;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.MailService;
+import xyz.lingview.dimstack.service.NotificationService;
 import xyz.lingview.dimstack.util.PasswordUtil;
 import xyz.lingview.dimstack.util.RandomUtil;
 import xyz.lingview.dimstack.util.CaptchaUtil;
@@ -53,6 +54,9 @@ public class RegisterController {
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     private UserInformationMapper userInformationMapper;
@@ -152,6 +156,7 @@ public class RegisterController {
                     String formattedDate = formatter.format(date);
                     String siteName = siteConfigUtil.getSiteName();
                     mailService.sendSimpleMail(email, siteName + " 注册成功", "用户：" + username + " 于 " + formattedDate + " 注册成功");
+                    notificationService.sendSystemNotification(username, "系统通知", "用户：" + username + " 于 " + formattedDate + " 注册成功");
                 }
 
                 RegisterResponseDTO data = new RegisterResponseDTO();

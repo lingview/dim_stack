@@ -10,6 +10,7 @@ import xyz.lingview.dimstack.mapper.FriendLinksMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.FriendLinksService;
 import xyz.lingview.dimstack.service.MailService;
+import xyz.lingview.dimstack.service.NotificationService;
 import xyz.lingview.dimstack.util.RandomUtil;
 import xyz.lingview.dimstack.util.SiteConfigUtil;
 
@@ -38,6 +39,9 @@ public class FriendLinksServiceImpl implements FriendLinksService {
 
     @Autowired
     private UserInformationMapper userInformationMapper;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Override
     public boolean applyFriendLink(FriendLinksRequestDTO requestDTO) {
@@ -88,6 +92,7 @@ public class FriendLinksServiceImpl implements FriendLinksService {
             for (String email : emails) {
                 try {
                     mailService.sendSimpleMail(email, siteName + " 友链申请", emailContent);
+                    notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "您有一个新的友链申请待审核");
                     log.info("已发送审核通知邮件至: {}", email);
                 } catch (Exception e) {
                     log.error("发送审核通知邮件失败，目标邮箱: {}", email, e);

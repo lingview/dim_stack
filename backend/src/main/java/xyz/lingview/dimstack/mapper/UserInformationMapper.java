@@ -23,6 +23,8 @@ public interface UserInformationMapper {
 
     String getEmailByUsername(@Param("username") String username);
 
+    String getUsernameByEmail(@Param("email") String email);
+
     List<String> getEmailsByPermissionCode(@Param("permissionCode") String permissionCode);
 
     String getUsernameByArticleId(@Param("articleId") String articleId);

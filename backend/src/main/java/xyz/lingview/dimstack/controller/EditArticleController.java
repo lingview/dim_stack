@@ -12,6 +12,7 @@ import xyz.lingview.dimstack.dto.request.UpdateArticleDTO;
 import xyz.lingview.dimstack.mapper.*;
 import xyz.lingview.dimstack.service.EditArticleService;
 import xyz.lingview.dimstack.service.MailService;
+import xyz.lingview.dimstack.service.NotificationService;
 import xyz.lingview.dimstack.util.SiteConfigUtil;
 
 import java.text.SimpleDateFormat;
@@ -39,6 +40,9 @@ public class EditArticleController {
 
     @Autowired
     UserInformationMapper userInformationMapper;
+
+    @Autowired
+    NotificationService notificationService;
 
     @Autowired
     MailService mailService;
@@ -140,6 +144,7 @@ public class EditArticleController {
                                         siteName + " 文章审核",
                                         "用户：" + username + " 于 " + formattedDate + " 更新了文章：" + "《" + article_name + "》" + "可能需要您审核"
                                 );
+                                notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "用户：" + username + " 于 " + formattedDate + " 创建了文章：" + "《" + article_name + "》" + "可能需要您审核");
                                 log.info("已发送审核通知邮件至: {}", email);
                             } catch (Exception e) {
                                 log.error("发送审核通知邮件失败，目标邮箱: {}", email, e);
@@ -242,6 +247,7 @@ public class EditArticleController {
                     String siteName = siteConfigUtil.getSiteName();
                     String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
                     mailService.sendSimpleMail(email, siteName + " 文章删除成功", "用户：" + username + " 于 " + formattedDate + " 成功删除文章：" + "《" + article_name + "》");
+                    notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "用户：" + username + " 于 " + formattedDate + " 删除了文章：" + "《" + article_name + "》");
                 }
             } else {
                 response.put("success", false);
@@ -354,6 +360,7 @@ public class EditArticleController {
                                     siteName + " 文章审核",
                                     "用户：" + username + " 于 " + formattedDate + " 发布了新文章：" + "《" + article_name + "》" + "可能需要您审核"
                             );
+                            notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "用户：" + username + " 于 " + formattedDate + " 发布了新文章：" + "《" + article_name + "》" + "可能需要您审核");
                             log.info("已发送审核通知邮件至: {}", email);
                         } catch (Exception e) {
                             log.error("发送审核通知邮件失败，目标邮箱: {}", email, e);

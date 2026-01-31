@@ -47,7 +47,6 @@ const FadeIn = ({ children, duration = 200 }) => {
     );
 };
 
-// 简单的加载提示
 const SimpleLoading = () => (
     <div className="flex items-center justify-center p-4">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>

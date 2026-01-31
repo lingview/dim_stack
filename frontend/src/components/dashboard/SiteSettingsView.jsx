@@ -1096,7 +1096,7 @@ export default function SiteSettingsView() {
 
                 {/* 通知服务配置 */}
                 <div className="border-b border-gray-200 pb-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">邮件服务配置</h3>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">通知服务配置</h3>
                     <div className="bg-blue-50 p-3 rounded-md mb-4">
                         <p className="text-sm text-blue-700">
                             <strong>说明：</strong>通常来说465端口对应ssl加密，587端口对应tls加密，请检查你的邮件服务商支持的加密方式，如果ssl和tls都勾选系统会使用tls加密
@@ -1114,7 +1114,7 @@ export default function SiteSettingsView() {
                                     className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                 />
                                 <label htmlFor="enable_notification" className="ml-2 block text-sm font-medium text-gray-700">
-                                    启用邮件通知功能（该选项不影响安全模块的邮件通知功能，如：忘记密码）
+                                    启用通知功能（该选项不影响安全模块的邮件通知功能，如：忘记密码）（配置邮箱信息后才能使用邮件通知）
                                 </label>
                             </div>
                         </div>

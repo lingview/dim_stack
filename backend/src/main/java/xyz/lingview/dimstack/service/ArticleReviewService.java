@@ -31,6 +31,8 @@ public class ArticleReviewService {
     @Autowired
     private SiteConfigUtil siteConfigUtil;
 
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     MailService mailService;
@@ -106,6 +108,7 @@ public class ArticleReviewService {
                     siteName + " 审核结果通知",
                     "您的文章：" + "《" + article_name + "》" +" 于 " + formattedDate + " 完成审核，审核结果为：" + statusDescription
             );
+            notificationService.sendSystemNotification(username, "系统通知", "您的文章：" + "《" + article_name + "》" +" 于 " + formattedDate + " 完成审核，审核结果为：" + statusDescription);
         }
         return result;
     }

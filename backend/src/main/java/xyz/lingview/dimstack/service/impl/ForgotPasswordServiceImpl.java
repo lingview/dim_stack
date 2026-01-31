@@ -11,6 +11,7 @@ import xyz.lingview.dimstack.dto.response.ForgotPasswordResponseDTO;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.ForgotPasswordService;
 import xyz.lingview.dimstack.service.MailService;
+import xyz.lingview.dimstack.service.NotificationService;
 import xyz.lingview.dimstack.util.CaptchaUtil;
 import xyz.lingview.dimstack.util.PasswordUtil;
 import xyz.lingview.dimstack.common.ApiResponse;
@@ -42,6 +43,9 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
 
     @Autowired
     private SiteConfigUtil siteConfigUtil;
+
+    @Autowired
+    private NotificationService notificationService;
 
     private static final String FORGOT_PASSWORD_CAPTCHA_PREFIX = "dimstack:forgot_password_captcha_";
     private static final String FORGOT_PASSWORD_FAIL_COUNT_PREFIX = "dimstack:forgot_password_fail_";
@@ -158,7 +162,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
             String siteName = siteConfigUtil.getSiteName();
             mailService.sendSimpleMail(email, "【" + siteName + "】密码重置验证码",
                     "您正在重置密码，验证码是：" + captcha + "，有效期10分钟。如果不是本人操作，请忽略。");
-
+            notificationService.sendSystemNotification(username, "系统通知", "用户 " + username + " 尝试重置密码");
             redisTemplate.opsForValue().set(rateLimitKey, "1", SEND_CAPTCHA_COOLDOWN_SECONDS, TimeUnit.SECONDS);
 
             log.info("忘记密码验证码已发送至邮箱: {}", maskEmail(email));
@@ -422,6 +426,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
                     "【" + siteName + "】安全提醒：检测到密码重置尝试",
                     emailContent
             );
+            notificationService.sendSystemNotification(username, "系统通知", emailContent);
 
             log.info("首次异常尝试警告邮件已发送至用户 {} 的注册邮箱", username);
 
@@ -475,6 +480,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
                     "【" + siteName + "】重要：您的密码已修改",
                     emailContent
             );
+            notificationService.sendSystemNotification(username, "系统通知", emailContent);
 
             log.info("密码修改通知邮件已发送至: {}", maskEmail(email));
 
@@ -524,6 +530,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
                     "【" + siteName + "】安全警告：检测到可疑的密码修改尝试",
                     emailContent
             );
+            notificationService.sendSystemNotification(username, "系统通知", emailContent);
 
             log.info("可疑活动通知邮件已发送至: {}", maskEmail(email));
 

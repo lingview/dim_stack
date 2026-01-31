@@ -46,6 +46,12 @@
         WHERE username = #{username}
     </select>
 
+    <select id="getUsernameByEmail" parameterType="string" resultType="string">
+        SELECT username
+        FROM user_information
+        WHERE email = #{email}
+    </select>
+
     <!-- 根据权限码返回所有拥有该权限的用户邮箱 -->
     <select id="getEmailsByPermissionCode" parameterType="string" resultType="string">
         SELECT DISTINCT ui.email

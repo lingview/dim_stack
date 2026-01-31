@@ -12,6 +12,7 @@ import xyz.lingview.dimstack.dto.response.LogoutResponseDTO;
 import xyz.lingview.dimstack.mapper.LoginMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.MailService;
+import xyz.lingview.dimstack.service.NotificationService;
 import xyz.lingview.dimstack.util.CaptchaUtil;
 import xyz.lingview.dimstack.util.SiteConfigUtil;
 import xyz.lingview.dimstack.util.PasswordUtil;
@@ -44,6 +45,9 @@ public class LoginController {
 
     @Autowired
     private SiteConfigUtil siteConfigUtil;
+
+    @Autowired
+    private NotificationService notificationService;
 
     private static final String CAPTCHA_PREFIX = "captcha_";
     private static final String SESSION_CAPTCHA_KEY_ATTR = "captchaKey";
@@ -123,12 +127,13 @@ public class LoginController {
 
             if (siteConfigUtil.isNotificationEnabled()) {
                 String email = userInformationMapper.getEmailByUsername(username);
+                String formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
                 if (email != null && !email.trim().isEmpty()) {
                     String siteName = siteConfigUtil.getSiteName();
-                    String formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
                     mailService.sendSimpleMail(email, siteName + " 登录成功",
                             "用户：" + username + " 于 " + formattedDate + " 登录成功");
                 }
+                notificationService.sendSystemNotification(username, "系统通知", "用户：" + username + " 于 " + formattedDate + " 登录成功");
             }
 
             var data = new LoginResponseDTO();

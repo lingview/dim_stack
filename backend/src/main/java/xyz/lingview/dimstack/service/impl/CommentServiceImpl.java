@@ -15,6 +15,7 @@ import xyz.lingview.dimstack.mapper.CommentMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.CommentService;
 import xyz.lingview.dimstack.service.MailService;
+import xyz.lingview.dimstack.service.NotificationService;
 import xyz.lingview.dimstack.util.SiteConfigUtil;
 
 import java.time.LocalDateTime;
@@ -41,6 +42,9 @@ public class CommentServiceImpl implements CommentService {
     
     @Autowired
     private SiteConfigUtil siteConfigUtil;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Override
     public List<CommentDTO> getCommentsByArticleAlias(String articleAlias, String username) {
@@ -241,6 +245,7 @@ public class CommentServiceImpl implements CommentService {
                 if (articleAuthor != null && articleAuthor.getEmail() != null) {
                     String content = "用户：" + commenterName + " 评论了您的文章《" + article.getArticle_name() + "》：" + comment.getContent();
                     mailService.sendSimpleMail(articleAuthor.getEmail(), subject, content);
+                    notificationService.sendSystemNotification(articleAuthor.getUsername(), "系统通知", content);
                 }
             }
             
@@ -254,6 +259,7 @@ public class CommentServiceImpl implements CommentService {
                     if (originalCommentAuthor != null && originalCommentAuthor.getEmail() != null) {
                         String content = "用户 " + commenterName + " 回复了您的评论：" + comment.getContent();
                         mailService.sendSimpleMail(originalCommentAuthor.getEmail(), subject, content);
+                        notificationService.sendSystemNotification(originalCommentAuthor.getUsername(), "系统通知", content);
                     }
                 }
             }
@@ -285,6 +291,7 @@ public class CommentServiceImpl implements CommentService {
                 String content = "用户 " + likerUsername + " 点赞了您的评论：" + comment.getContent();
                 
                 mailService.sendSimpleMail(commentAuthor.getEmail(), subject, content);
+                notificationService.sendSystemNotification(commentAuthor.getUsername(), "系统通知", content);
             }
         } catch (Exception e) {
             log.warn("点赞通知邮件发送失败{}", String.valueOf(e));
