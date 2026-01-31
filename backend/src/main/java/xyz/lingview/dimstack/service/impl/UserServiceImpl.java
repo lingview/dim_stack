@@ -196,13 +196,19 @@ public class UserServiceImpl implements UserService {
         newUser.setUsername(userUpdateDTO.getUsername());
         newUser.setEmail(userUpdateDTO.getEmail());
         newUser.setPhone(userUpdateDTO.getPhone());
-        newUser.setGender(userUpdateDTO.getGender());
+        String rawGender = userUpdateDTO.getGender();
+        String dbGender = null;
+        if (rawGender != null && !rawGender.trim().isEmpty()) {
+            String trimmed = rawGender.trim();
+            if ("male".equals(trimmed) || "female".equals(trimmed) || "other".equals(trimmed)) {
+                dbGender = trimmed;
+            }
+        }
+        newUser.setGender(dbGender);
 
         int defaultRoleId = siteConfigMapper.getRegisterUserPermission();
         newUser.setRole_id(defaultRoleId);
-
         newUser.setStatus((byte) 1);
-
 
         String hashedPassword = BCrypt.hashpw(userUpdateDTO.getPassword(), BCrypt.gensalt());
         newUser.setPassword(hashedPassword);
