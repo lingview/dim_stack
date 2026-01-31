@@ -157,7 +157,7 @@ export default function UpdateManager() {
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">系统更新</h2>
+        <h2 className="text-xl font-semibold text-gray-900">系统更新（Windows系统请手动替换jar包进行更新）</h2>
       </div>
 
       {error && (
@@ -221,7 +221,7 @@ export default function UpdateManager() {
                   <button
                     onClick={handlePerformUpdate}
                     disabled={updating}
-                    className="ml-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {updating ? '更新中...' : '执行更新'}
                   </button>
