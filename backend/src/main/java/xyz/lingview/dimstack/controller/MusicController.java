@@ -62,6 +62,27 @@ public class MusicController {
         }
     }
 
+//    因为某些情况下redis的数据是没有启用悬浮播放器，所以为后台提供不依赖redis的接口
+    @GetMapping("/admin/enabled")
+    @RequiresPermission("system:edit")
+    public ResponseEntity<Map<String, Object>> getAdminEnabledMusics() {
+
+        try {
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "data", musicService.getAllEnabledMusics()
+            ));
+        } catch (Exception e) {
+            log.error("获取启用的音乐列表失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "获取音乐列表失败: " + e.getMessage()
+                    ));
+        }
+    }
+
+
     // 添加音乐
     @PostMapping("/add")
     @RequiresPermission("system:edit")

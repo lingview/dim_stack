@@ -184,7 +184,7 @@ export default function SiteSettingsView() {
     const fetchMusics = async () => {
         try {
             setLoadingMusics(true);
-            const response = await apiClient.get('/music/enabled');
+            const response = await apiClient.get('/music/admin/enabled');
 
             if (response.success) {
                 setMusics(response.data);
