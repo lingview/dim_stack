@@ -51,18 +51,18 @@ export default function TagsView() {
     };
 
     const handleDeleteTag = async (id) => {
-        if (window.confirm('确定要删除这个标签吗？')) {
+        if (window.confirm('确定要禁用这个标签吗？')) {
             try {
                 const response = await apiClient.delete(`/tags-categories/tags/${id}`);
                 if (response.success) {
                     fetchTags();
-                    alert('标签删除成功');
+                    alert('标签禁用成功');
                 } else {
-                    alert('标签删除失败: ' + response.message);
+                    alert('标签禁用失败: ' + response.message);
                 }
             } catch (error) {
-                console.error('删除标签失败:', error);
-                alert('删除标签失败');
+                console.error('禁用标签失败:', error);
+                alert('禁用标签失败');
             }
         }
     };

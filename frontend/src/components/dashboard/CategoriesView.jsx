@@ -51,18 +51,18 @@ export default function CategoriesView() {
     };
 
     const handleDeleteCategory = async (id) => {
-        if (window.confirm('确定要删除这个分类吗？')) {
+        if (window.confirm('确定要禁用这个分类吗？')) {
             try {
                 const response = await apiClient.delete(`/tags-categories/categories/${id}`);
                 if (response.success) {
                     fetchCategories();
-                    alert('分类删除成功');
+                    alert('分类禁用成功');
                 } else {
-                    alert('分类删除失败: ' + response.message);
+                    alert('分类禁用失败: ' + response.message);
                 }
             } catch (error) {
-                console.error('删除分类失败:', error);
-                alert('删除分类失败');
+                console.error('禁用分类失败:', error);
+                alert('禁用分类失败');
             }
         }
     };
