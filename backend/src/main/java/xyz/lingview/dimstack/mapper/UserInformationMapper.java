@@ -44,6 +44,10 @@ public interface UserInformationMapper {
     int updatePasswordByUsername(@Param("username") String username, @Param("password") String password);
 
     String selectAvatarByUsername(@Param("username") String username);
+
+    int selectUserByPhone(@Param("phone") String phone);
+
+    int selectUserByEmail(@Param("email") String email);
     // 后台添加新用户
     int insertUser(UserInformation user);
 }

@@ -118,6 +118,20 @@ public class RegisterController {
                 return ApiResponse.error(400, "账号已存在！");
             }
 
+            if (phone != null && !phone.trim().isEmpty()) {
+                int phoneExists = userInformationMapper.selectUserByPhone(phone);
+                if (phoneExists > 0) {
+                    return ApiResponse.error(400, "手机号已存在！");
+                }
+            }
+
+            if (email != null && !email.trim().isEmpty()) {
+                int emailExists = userInformationMapper.selectUserByEmail(email);
+                if (emailExists > 0) {
+                    return ApiResponse.error(400, "邮箱已存在！");
+                }
+            }
+
             Register register = new Register();
             register.setUsername(username);
             register.setEmail(email);
