@@ -201,7 +201,7 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onCl
                 {/* 底部用户信息 */}
                 <div className="mt-auto p-4 border-t border-gray-200">
                     <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold">
                             {/*{getUserInitial(username)}*/}
                             <img src={avatarUrl} alt="Avatar" className="w-8 h-8 rounded-full"></img>
                         </div>

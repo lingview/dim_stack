@@ -68,7 +68,7 @@ export default function DashboardHeader({ onToggleSidebar, sidebarOpen, username
                             onClick={() => setUserMenuOpen(!userMenuOpen)}
                             className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 p-2 rounded-md hover:bg-gray-100 transition-colors duration-200"
                         >
-                            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold">
                                 <img src={avatarUrl} alt="Avatar" className="w-full h-full rounded-full" />
                                 {/*{getUserInitial(username)}*/}
                             </div>
