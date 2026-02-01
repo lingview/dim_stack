@@ -309,13 +309,13 @@ export default function Register() {
                           <span className="text-gray-500 text-xs">点击获取</span>
                         </div>
                     )}
-                    <button
-                        type="button"
-                        onClick={fetchCaptcha}
-                        className="ml-2 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"
-                    >
-                      刷新
-                    </button>
+                    {/*<button*/}
+                    {/*    type="button"*/}
+                    {/*    onClick={fetchCaptcha}*/}
+                    {/*    className="ml-2 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded"*/}
+                    {/*>*/}
+                    {/*  刷新*/}
+                    {/*</button>*/}
                   </div>
                 </div>
               </div>

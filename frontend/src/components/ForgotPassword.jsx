@@ -289,7 +289,7 @@ export default function ForgotPassword() {
                                   : 'bg-blue-600 text-white hover:bg-blue-700'
                           }`}
                       >
-                        {countdown > 0 ? `${countdown}s` : '发送验证码'}
+                        {countdown > 0 ? `${countdown}s` : '获取'}
                       </button>
                     </div>
                     <p className="mt-1 text-xs text-gray-500">
