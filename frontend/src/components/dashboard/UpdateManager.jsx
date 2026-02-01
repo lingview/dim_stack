@@ -157,7 +157,7 @@ export default function UpdateManager() {
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">系统更新（Windows系统请手动替换jar包进行更新，如果是用宝塔面板等工具管理系统也请手动替换jar包更新）</h2>
+        <h2 className="text-xl font-semibold text-gray-900">系统更新（Windows系统请手动替换jar包进行更新）</h2>
       </div>
 
       {error && (
