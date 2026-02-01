@@ -265,7 +265,12 @@ public class UpdateService {
                     jarPath
             );
 
-            String scriptPath = "/tmp/dimstack_restart.sh";
+            String tempDir = System.getProperty("user.dir") + "/.update";
+            Path tempDirPath = Path.of(tempDir);
+            Files.createDirectories(tempDirPath);
+
+            String scriptFileName = "dimstack_restart_" + System.currentTimeMillis() + ".sh";
+            String scriptPath = tempDir + "/" + scriptFileName;
 
             Path scriptFile = Path.of(scriptPath);
             Files.write(scriptFile, scriptContent.getBytes());
