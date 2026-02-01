@@ -310,9 +310,13 @@ public class UpdateService {
                     .commandLine()
                     .flatMap(cmd -> {
                         String[] parts = cmd.split("\\s+");
-                        for (int i = 0; i < parts.length - 1; i++) {
+                        for (int i = 0; i < parts.length; i++) {
                             if ("-jar".equals(parts[i])) {
-                                return Optional.of(parts[i + 1]);
+                                for (int j = i + 1; j < parts.length; j++) {
+                                    if (parts[j].endsWith(".jar")) {
+                                        return Optional.of(parts[j]);
+                                    }
+                                }
                             }
                         }
                         return Optional.empty();
