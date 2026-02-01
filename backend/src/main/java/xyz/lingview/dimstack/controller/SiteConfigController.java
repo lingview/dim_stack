@@ -137,9 +137,10 @@ public class SiteConfigController {
                 currentConfig.setRegister_user_permission(siteConfig.getRegister_user_permission());
             }
 
-            if (siteConfig.getArticle_status() != 0) {
-                currentConfig.setArticle_status(siteConfig.getArticle_status());
-            }
+//            if (siteConfig.getArticle_status() != 0) {
+//                currentConfig.setArticle_status(siteConfig.getArticle_status());
+//            }
+            currentConfig.setArticle_status(siteConfig.getArticle_status());
 
             if (siteConfig.getHero_image() != null) {
                 currentConfig.setHero_image(siteConfig.getHero_image());
