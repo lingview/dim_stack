@@ -404,9 +404,19 @@ export default function ArticlesReview() {
                                             </div>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900">{article.article_name}</div>
-                                        <div className="text-sm text-gray-500 line-clamp-1">{article.excerpt}</div>
+                                    <td className="px-6 py-4 max-w-xs" style={{ width: '20rem' }}>
+                                        <div
+                                            className="text-sm font-medium text-gray-900 truncate"
+                                            title={article.article_name}
+                                        >
+                                            {article.article_name}
+                                        </div>
+                                        <div
+                                            className="text-sm text-gray-500 truncate"
+                                            title={article.excerpt || '无摘要'}
+                                        >
+                                            {article.excerpt || '无摘要'}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {article.author_name}
@@ -675,9 +685,11 @@ export default function ArticlesReview() {
                                     </div>
 
                                     {articleDetail.excerpt && (
-                                        <div className="mb-6 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-300">
+                                        <div className="mb-6 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-300 max-h-40 overflow-y-auto">
                                             <h4 className="text-sm font-semibold text-gray-900 mb-2">文章摘要</h4>
-                                            <p className="text-gray-700 leading-relaxed">{articleDetail.excerpt}</p>
+                                            <p className="text-gray-700 leading-relaxed break-words whitespace-pre-wrap">
+                                                {articleDetail.excerpt}
+                                            </p>
                                         </div>
                                     )}
 
