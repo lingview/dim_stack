@@ -44,10 +44,8 @@ public class UserServiceImpl implements UserService {
 //            user.setUsername(userUpdateDTO.getUsername());
 //        }
 //        修改为从session中读取用户信息（最后只能改自己hhh）
-        System.out.println("当前用户名：" + currentUsername);
-        System.out.println("请求用户名：" + userUpdateDTO.getUsername());
         user.setUuid(userInformationMapper.selectUserUUID(currentUsername));
-        user.setUsername(currentUsername);
+        user.setUsername(user.getUsername());
 
         if (userUpdateDTO.getAvatar() != null && !userUpdateDTO.getAvatar().isEmpty()) {
 //            System.out.println("头像不在这里设置");
