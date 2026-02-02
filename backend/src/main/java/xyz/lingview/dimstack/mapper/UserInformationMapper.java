@@ -47,6 +47,8 @@ public interface UserInformationMapper {
 
     String selectAvatarByUsername(@Param("username") String username);
 
+    int selectUserByUsername(@Param("username") String username);
+
     int selectUserByPhone(@Param("phone") String phone);
 
     int selectUserByEmail(@Param("email") String email);

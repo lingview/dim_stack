@@ -1,5 +1,6 @@
 package xyz.lingview.dimstack.service;
 
+import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.domain.Role;
 import xyz.lingview.dimstack.domain.UserInformation;
 import xyz.lingview.dimstack.dto.request.UserDTO;
@@ -10,7 +11,7 @@ import java.util.List;
 public interface UserService {
     UserInformation getUserByUUID(String uuid);
 
-    boolean updateUserInfo(UserUpdateDTO userUpdateDTO, String currentUsername);
+    ApiResponse<Void> updateUserInfo(UserUpdateDTO userUpdateDTO, String currentUsername);
 
     String getUserUUID(String username);
 
@@ -42,9 +43,9 @@ public interface UserService {
     boolean checkPassword(String plaintextPassword, String hashedPassword);
 
     // 用户管理模块修改用户信息
-    boolean updateUserByAdmin(UserUpdateDTO userUpdateDTO);
+    ApiResponse<Void> updateUserByAdmin(UserUpdateDTO userUpdateDTO);
 
     // 后台添加新用户
-    boolean addUser(UserUpdateDTO userUpdateDTO);
+    ApiResponse<Void> addUser(UserUpdateDTO userUpdateDTO);
 
 }

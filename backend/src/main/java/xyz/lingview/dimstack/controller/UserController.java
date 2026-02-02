@@ -64,7 +64,7 @@ public class UserController {
 
 
     @PutMapping("/update")
-    public boolean updateUserInfo(@RequestBody UserUpdateDTO userUpdateDTO, HttpSession session) {
+    public ApiResponse<Void> updateUserInfo(@RequestBody UserUpdateDTO userUpdateDTO, HttpSession session) {
         String currentUsername = (String) session.getAttribute("username");
         return userService.updateUserInfo(userUpdateDTO, currentUsername);
     }
@@ -131,22 +131,12 @@ public class UserController {
     @PostMapping("/add")
     @RequiresPermission("user:management")
     public ApiResponse<Void> addUser(@RequestBody UserUpdateDTO userUpdateDTO) {
-        boolean result = userService.addUser(userUpdateDTO);
-        if (result) {
-            return ApiResponse.success("用户添加成功");
-        } else {
-            return ApiResponse.error(400, "添加用户失败，用户名可能已存在");
-        }
+        return userService.addUser(userUpdateDTO);
     }
 
     @PostMapping("/admin/update")
     @RequiresPermission("user:management")
     public ApiResponse<Void> updateUserByAdmin(@RequestBody UserUpdateDTO userUpdateDTO) {
-        boolean result = userService.updateUserByAdmin(userUpdateDTO);
-        if (result) {
-            return ApiResponse.success("用户信息更新成功");
-        } else {
-            return ApiResponse.error(400, "更新失败，可能是用户名已存在");
-        }
+        return userService.updateUserByAdmin(userUpdateDTO);
     }
 }

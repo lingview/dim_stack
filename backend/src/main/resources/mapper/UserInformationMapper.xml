@@ -179,6 +179,13 @@
         WHERE username = #{username}
     </select>
 
+    <!-- 检查用户名是否存在 -->
+    <select id="selectUserByUsername" resultType="int">
+        SELECT COUNT(*)
+        FROM user_information
+        WHERE username = #{username}
+    </select>
+
     <!-- 检查手机号是否存在 -->
     <select id="selectUserByPhone" resultType="int">
         SELECT COUNT(*)

@@ -3,6 +3,7 @@ package xyz.lingview.dimstack.service.impl;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.domain.Role;
 import xyz.lingview.dimstack.domain.UserInformation;
 import xyz.lingview.dimstack.dto.request.UserDTO;
@@ -36,24 +37,49 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updateUserInfo(UserUpdateDTO userUpdateDTO, String currentUsername) {
+    public ApiResponse<Void> updateUserInfo(UserUpdateDTO userUpdateDTO, String currentUsername) {
         UserInformation user = new UserInformation();
 //        修复一个水平越权漏洞
 //        user.setUuid(userUpdateDTO.getUuid());
-//        if (userUpdateDTO.getUsername() != null && !userUpdateDTO.getUsername().isEmpty()) {
-//            user.setUsername(userUpdateDTO.getUsername());
-//        }
 //        修改为从session中读取用户信息（最后只能改自己hhh）
-        user.setUuid(userInformationMapper.selectUserUUID(currentUsername));
-        user.setUsername(user.getUsername());
+        String currentUserUuid = userInformationMapper.selectUserUUID(currentUsername);
+        user.setUuid(currentUserUuid);
+
+        if (userUpdateDTO.getUsername() != null && !userUpdateDTO.getUsername().isEmpty()) {
+            if (!currentUsername.equals(userUpdateDTO.getUsername())) {
+                int usernameExists = userInformationMapper.selectUserByUsername(userUpdateDTO.getUsername());
+                if (usernameExists > 0) {
+                    return ApiResponse.error(400, "用户名已存在！");
+                }
+            }
+            user.setUsername(userUpdateDTO.getUsername());
+        }
+
 
         if (userUpdateDTO.getAvatar() != null && !userUpdateDTO.getAvatar().isEmpty()) {
 //            System.out.println("头像不在这里设置");
         }
+
+        UserInformation userInformation = userInformationMapper.selectUserByUUID(currentUserUuid);
+        String currentUserEmail = userInformation.getEmail();
+        String currentUserPhone = userInformation.getPhone();
+
         if (userUpdateDTO.getPhone() != null && !userUpdateDTO.getPhone().isEmpty()) {
+            if (!userUpdateDTO.getPhone().equals(currentUserPhone)) {
+                int phoneExists = userInformationMapper.selectUserByPhone(userUpdateDTO.getPhone());
+                if (phoneExists > 0) {
+                    return ApiResponse.error(400, "手机号已存在！");
+                }
+            }
             user.setPhone(userUpdateDTO.getPhone());
         }
         if (userUpdateDTO.getEmail() != null && !userUpdateDTO.getEmail().isEmpty()) {
+            if (!userUpdateDTO.getEmail().equals(currentUserEmail)) {
+                int emailExists = userInformationMapper.selectUserByEmail(userUpdateDTO.getEmail());
+                if (emailExists > 0) {
+                    return ApiResponse.error(400, "邮箱已存在！");
+                }
+            }
             user.setEmail(userUpdateDTO.getEmail());
         }
         if (userUpdateDTO.getGender() != null && !userUpdateDTO.getGender().isEmpty()) {
@@ -77,7 +103,10 @@ public class UserServiceImpl implements UserService {
         }
 
         int result = userInformationMapper.updateUserByUUID(user);
-        return result > 0;
+        if (result <= 0) {
+            return ApiResponse.error(500, "更新失败");
+        }
+        return ApiResponse.success("更新成功");
     }
 
     @Override
@@ -158,24 +187,38 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public boolean updateUserByAdmin(UserUpdateDTO userUpdateDTO) {
+    public ApiResponse<Void> updateUserByAdmin(UserUpdateDTO userUpdateDTO) {
         UserInformation user = userInformationMapper.selectUserByUUID(userUpdateDTO.getUuid());
         if (user == null) {
-            return false;
+            return ApiResponse.error(404, "用户不存在");
         }
 
         if (userUpdateDTO.getUsername() != null && !userUpdateDTO.getUsername().isEmpty()) {
-            String existingUserUUID = userInformationMapper.selectUserUUID(userUpdateDTO.getUsername());
-            if (existingUserUUID != null && !existingUserUUID.equals(userUpdateDTO.getUuid())) {
-                return false;
+            if (!user.getUsername().equals(userUpdateDTO.getUsername())) {
+                int usernameExists = userInformationMapper.selectUserByUsername(userUpdateDTO.getUsername());
+                if (usernameExists > 0) {
+                    return ApiResponse.error(400, "用户名已存在！");
+                }
             }
             user.setUsername(userUpdateDTO.getUsername());
         }
 
         if (userUpdateDTO.getEmail() != null && !userUpdateDTO.getEmail().isEmpty()) {
+            if (!user.getEmail().equals(userUpdateDTO.getEmail())) {
+                int emailExists = userInformationMapper.selectUserByEmail(userUpdateDTO.getEmail());
+                if (emailExists > 0) {
+                    return ApiResponse.error(400, "邮箱已存在！");
+                }
+            }
             user.setEmail(userUpdateDTO.getEmail());
         }
         if (userUpdateDTO.getPhone() != null && !userUpdateDTO.getPhone().isEmpty()) {
+            if (!user.getPhone().equals(userUpdateDTO.getPhone())) {
+                int phoneExists = userInformationMapper.selectUserByPhone(userUpdateDTO.getPhone());
+                if (phoneExists > 0) {
+                    return ApiResponse.error(400, "手机号已存在！");
+                }
+            }
             user.setPhone(userUpdateDTO.getPhone());
         }
         if (userUpdateDTO.getPassword() != null && !userUpdateDTO.getPassword().isEmpty()) {
@@ -184,15 +227,30 @@ public class UserServiceImpl implements UserService {
         }
 
         int result = userInformationMapper.updateUserByUUID(user);
-        return result > 0;
+        if (result <= 0) {
+            return ApiResponse.error(500, "更新失败");
+        }
+        return ApiResponse.success("更新成功");
     }
 
+
     @Override
-    public boolean addUser(UserUpdateDTO userUpdateDTO) {
-        // 检查用户名是否已存在
+    public ApiResponse<Void> addUser(UserUpdateDTO userUpdateDTO) {
         String existingUserUUID = userInformationMapper.selectUserUUID(userUpdateDTO.getUsername());
         if (existingUserUUID != null) {
-            return false;
+            return ApiResponse.error(400, "用户名已存在！");
+        }
+        if (userUpdateDTO.getEmail() != null && !userUpdateDTO.getEmail().isEmpty()) {
+            int emailExists = userInformationMapper.selectUserByEmail(userUpdateDTO.getEmail());
+            if (emailExists > 0) {
+                return ApiResponse.error(400, "邮箱已存在！");
+            }
+        }
+        if (userUpdateDTO.getPhone() != null && !userUpdateDTO.getPhone().isEmpty()) {
+            int phoneExists = userInformationMapper.selectUserByPhone(userUpdateDTO.getPhone());
+            if (phoneExists > 0) {
+                return ApiResponse.error(400, "手机号已存在！");
+            }
         }
 
         UserInformation newUser = new UserInformation();
@@ -230,7 +288,10 @@ public class UserServiceImpl implements UserService {
         }
 
         int result = userInformationMapper.insertUser(newUser);
-        return result > 0;
+        if (result <= 0) {
+            return ApiResponse.error(500, "添加用户失败");
+        }
+        return ApiResponse.success("添加用户成功");
     }
 
 }

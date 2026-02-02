@@ -171,15 +171,16 @@ export default function UsersView() {
         });
         setError('');
       } else {
-        setError(response.message || '更新用户信息失败');
+        const errorMessage = response?.message || response?.error || '更新用户信息失败';
+        setError(errorMessage);
       }
     } catch (error) {
       console.error('更新用户信息失败:', error);
-      if (error.response && error.response.data) {
-        setError(error.response.data.message || '更新用户信息失败');
-      } else {
-        setError('更新用户信息失败');
-      }
+      const errorMessage = error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          '更新用户信息失败';
+      setError('更新用户信息失败: ' + errorMessage);
     }
   };
 
@@ -221,15 +222,16 @@ export default function UsersView() {
         });
         setError('');
       } else {
-        setError(response.message || '添加用户失败');
+        const errorMessage = response?.message || response?.error || '添加用户失败';
+        setError(errorMessage);
       }
     } catch (error) {
       console.error('添加用户失败:', error);
-      if (error.response && error.response.data) {
-        setError(error.response.data.message || '添加用户失败');
-      } else {
-        setError('添加用户失败');
-      }
+      const errorMessage = error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          '添加用户失败';
+      setError('添加用户失败: ' + errorMessage);
     }
   };
 
@@ -563,7 +565,7 @@ export default function UsersView() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">邮箱 *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">邮箱</label>
                   <input
                     type="email"
                     value={newUser.email}

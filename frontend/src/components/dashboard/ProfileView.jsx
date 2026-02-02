@@ -225,11 +225,11 @@ export default function ProfileView() {
 
             const response = await apiClient.put('/user/update', updateData);
 
-            if (response) {
+            if (response && response.code === 200) {
                 const isUsernameChanged = originalUnescapedUsername !== currentUsername;
 
                 if (isUsernameChanged) {
-                    showMessage('用户名已更改，请重新登录...', 'success');
+                    showMessage(response.message || '用户名已更改，请重新登录...', 'success');
 
                     setTimeout(() => {
                         logoutAndRedirect();
@@ -237,7 +237,7 @@ export default function ProfileView() {
 
                     setOriginalUsername(escapeHtml(currentUsername));
                 } else {
-                    showMessage('个人信息更新成功', 'success');
+                    showMessage(response.message || '个人信息更新成功', 'success');
                     setUser(prev => ({
                         ...prev,
                         password: ''
@@ -245,11 +245,16 @@ export default function ProfileView() {
                     setOriginalUsername(escapeHtml(currentUsername));
                 }
             } else {
-                showMessage('更新失败', 'error');
+                const errorMessage = response?.message || response?.error || '更新失败';
+                showMessage(errorMessage, 'error');
             }
         } catch (error) {
             console.error('更新用户信息失败:', error);
-            showMessage('更新用户信息失败: ' + (error.response?.data?.message || error.message), 'error');
+            const errorMessage = error.response?.data?.message ||
+                error.response?.data?.error ||
+                error.message ||
+                '更新用户信息失败';
+            showMessage('更新用户信息失败: ' + errorMessage, 'error');
         } finally {
             setSaving(false);
         }
