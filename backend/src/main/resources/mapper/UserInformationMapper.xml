@@ -11,7 +11,7 @@
     </select>
 
     <select id="selectUserByUUID" parameterType="string" resultType="xyz.lingview.dimstack.domain.UserInformation">
-        SELECT id, uuid, username, avatar, phone, email, gender, password, birthday, role_id, create_time, status
+        SELECT id, uuid, username, avatar, phone, email, gender, birthday, role_id, create_time, status
         FROM user_information
         WHERE uuid = #{uuid} AND status = 1
     </select>

@@ -1,5 +1,6 @@
 package xyz.lingview.dimstack.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +59,9 @@ public class LoginController {
     @PostMapping("/login")
     public ApiResponse<LoginResponseDTO> login(
             @RequestBody LoginDTO loginDTO,
-            HttpSession session) {
+            HttpServletRequest request) {
+
+        HttpSession session = request.getSession();
 
         try {
             String username = loginDTO.getUsername();
@@ -118,10 +121,13 @@ public class LoginController {
                 return ApiResponse.error(401, "用户名或密码错误");
             }
 
+            session.invalidate();
+            session = request.getSession(true);
 
             session.setAttribute("username", username);
             session.setAttribute("isLoggedIn", true);
             session.setAttribute("loginTime", System.currentTimeMillis());
+            session.setAttribute("userAgent", request.getHeader("User-Agent"));
 
             log.info("用户 {} 登录成功，Session ID: {}", username, session.getId());
 

@@ -64,8 +64,9 @@ public class UserController {
 
 
     @PutMapping("/update")
-    public boolean updateUserInfo(@RequestBody UserUpdateDTO userUpdateDTO) {
-        return userService.updateUserInfo(userUpdateDTO);
+    public boolean updateUserInfo(@RequestBody UserUpdateDTO userUpdateDTO, HttpSession session) {
+        String currentUsername = (String) session.getAttribute("username");
+        return userService.updateUserInfo(userUpdateDTO, currentUsername);
     }
 
     @GetMapping("/uuid")

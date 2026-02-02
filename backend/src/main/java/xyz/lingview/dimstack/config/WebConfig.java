@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import xyz.lingview.dimstack.interceptor.UserAgentSessionFilter;
 import xyz.lingview.dimstack.interceptor.UserPermissionInterceptor;
 import xyz.lingview.dimstack.security.SessionAuthFilter;
 
@@ -27,6 +28,9 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Autowired
     private ThemeResourceFilter themeResourceFilter;
+
+    @Autowired
+    private UserAgentSessionFilter userAgentSessionFilter;
 
     // 注册 SessionAuthFilter
     @Bean
@@ -75,6 +79,10 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(userAgentSessionFilter)
+                .addPathPatterns("/api/**")
+                .excludePathPatterns("/api/login", "/api/logout");
+
         registry.addInterceptor(userPermissionInterceptor)
                 .addPathPatterns("/api/**");
     }

@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface UserService {
     UserInformation getUserByUUID(String uuid);
-    boolean updateUserInfo(UserUpdateDTO userUpdateDTO);
+    boolean updateUserInfo(UserUpdateDTO userUpdateDTO, String currentUsername);
     String getUserUUID(String username);
 
     // 获取所有用户列表
