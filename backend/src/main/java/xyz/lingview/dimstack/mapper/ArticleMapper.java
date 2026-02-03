@@ -18,4 +18,7 @@ public interface ArticleMapper {
     Article selectArticleByAlias(String alias);
     Article selectArticleByArticleId(String articleId);
 
+    // 根据文章uuid查询文章所有者uuid
+    String selectUserUuidByArticleId(String articleId);
+
 }

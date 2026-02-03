@@ -70,4 +70,9 @@
         SELECT * FROM article WHERE article_id = #{articleId} AND status IN (1, 2)
     </select>
 
+    <!-- 根据文章uuid查询文章所有者uuid -->
+    <select id="selectUserUuidByArticleId" parameterType="string" resultType="string">
+        SELECT uuid FROM article WHERE article_id = #{articleId}
+    </select>
+
 </mapper>

@@ -46,6 +46,9 @@ public class EditArticleController {
 
     @Autowired
     MailService mailService;
+    @Autowired
+    private ArticleMapper articleMapper;
+
     @GetMapping("/getarticlelist")
     @RequiresPermission("post:create")
     public ResponseEntity<Map<String, Object>> getArticleList(
@@ -100,6 +103,7 @@ public class EditArticleController {
             if (originalArticle == null) {
                 response.put("success", false);
                 response.put("message", "文章不存在或无权限访问");
+                log.warn("检测越权攻击用户{} 尝试取消发布文章{}", username, updateArticleDTO.getArticle_id());
                 return ResponseEntity.ok(response);
             }
 
@@ -280,9 +284,19 @@ public class EditArticleController {
             }
 
             String articleId = payload.get("article_id");
+
             if (articleId == null || articleId.isEmpty()) {
                 response.put("success", false);
                 response.put("message", "文章ID不能为空");
+                return ResponseEntity.ok(response);
+            }
+
+            String articleFromUserUuid = articleMapper.selectUserUuidByArticleId(articleId);
+            String userUuid = userInformationMapper.selectUserUUID(username);
+            if (!articleFromUserUuid.equals(userUuid)) {
+                response.put("success", false);
+                response.put("message", "这不是您的文章");
+                log.warn("检测越权攻击用户{} 尝试取消发布文章{}", username, articleId);
                 return ResponseEntity.ok(response);
             }
 
@@ -325,9 +339,19 @@ public class EditArticleController {
             }
 
             String articleId = payload.get("article_id");
+
             if (articleId == null || articleId.isEmpty()) {
                 response.put("success", false);
                 response.put("message", "文章ID不能为空");
+                return ResponseEntity.ok(response);
+            }
+
+            String articleFromUserUuid = articleMapper.selectUserUuidByArticleId(articleId);
+            String userUuid = userInformationMapper.selectUserUUID(username);
+            if (!articleFromUserUuid.equals(userUuid)) {
+                response.put("success", false);
+                response.put("message", "这不是您的文章");
+                log.warn("检测越权攻击用户{} 尝试取消发布文章{}", username, articleId);
                 return ResponseEntity.ok(response);
             }
 
