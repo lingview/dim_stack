@@ -3,7 +3,7 @@
 >
 
 <!-- 这是一张图片，ocr 内容为： -->
-![](https://img.shields.io/badge/Spring_Boot-3.5-green.svg)
+![](https://img.shields.io/badge/Spring_Boot-4.0.2-green.svg)
 
 <!-- 这是一张图片，ocr 内容为： -->
 ![](https://img.shields.io/badge/React-19.1.1-%2361DAFB.svg)
