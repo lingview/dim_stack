@@ -188,7 +188,7 @@ public class InitController {
      */
     private void createDatabase(Connection connection, String dbName) throws SQLException {
         try (Statement stmt = connection.createStatement()) {
-            stmt.executeUpdate("CREATE DATABASE `" + dbName + "` CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci");
+            stmt.executeUpdate("CREATE DATABASE `" + dbName + "` CHARACTER SET utf8mb4");
         }
     }
 
