@@ -1,15 +1,11 @@
 package xyz.lingview.dimstack.config;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
 @Configuration
 public class RedisConfig {
@@ -24,29 +20,12 @@ public class RedisConfig {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
 
-        StringRedisSerializer stringSerializer = new StringRedisSerializer();
-
-        ObjectMapper objectMapper = JsonMapper.builder()
-                .findAndAddModules()
-                .build();
-
-        objectMapper.activateDefaultTyping(
-                objectMapper.getPolymorphicTypeValidator(),
-                ObjectMapper.DefaultTyping.NON_FINAL,
-                JsonTypeInfo.As.PROPERTY
-        );
-
-        GenericJackson2JsonRedisSerializer jsonSerializer =
-                new GenericJackson2JsonRedisSerializer(objectMapper);
-
-        template.setKeySerializer(stringSerializer);
-        template.setValueSerializer(jsonSerializer);
-
-        template.setHashKeySerializer(stringSerializer);
-        template.setHashValueSerializer(jsonSerializer);
+        template.setKeySerializer(RedisSerializer.string());
+        template.setValueSerializer(RedisSerializer.json());
+        template.setHashKeySerializer(RedisSerializer.string());
+        template.setHashValueSerializer(RedisSerializer.json());
 
         template.afterPropertiesSet();
-
         return template;
     }
 }
