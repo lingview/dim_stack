@@ -128,35 +128,51 @@ public class EditArticleController {
 
             if (result) {
                 log.info("文章更新成功，article_id: {}", updateArticleDTO.getArticle_id());
-
+// 修改通知逻辑，更新文章不再发送审核通知，改为只提示文章所属用户
+//                if (siteConfigUtil.isNotificationEnabled()) {
+//                    Date date = new Date();
+//                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//                    String formattedDate = formatter.format(date);
+//
+//                    String siteName = siteConfigUtil.getSiteName();
+//
+//                    List<String> emails = userInformationMapper.getEmailsByPermissionCode("post:review");
+//
+//                    if (emails == null || emails.isEmpty()) {
+//                        log.warn("未找到拥有 'post:review' 权限的用户，跳过发送审核通知邮件");
+//                    } else {
+//                        for (String email : emails) {
+//                            try {
+//                                String articleId = updateArticleDTO.getArticle_id();
+//                                String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
+//                                mailService.sendSimpleMail(
+//                                        email,
+//                                        siteName + " 文章审核",
+//                                        "用户：" + username + " 于 " + formattedDate + " 更新了文章：" + "《" + article_name + "》" + "可能需要您审核"
+//                                );
+//                                notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "用户：" + username + " 于 " + formattedDate + " 创建了文章：" + "《" + article_name + "》" + "可能需要您审核");
+//                                log.info("已发送审核通知邮件至: {}", email);
+//                            } catch (Exception e) {
+//                                log.error("发送审核通知邮件失败，目标邮箱: {}", email, e);
+//                            }
+//                        }
+//                    }
+//                }
                 if (siteConfigUtil.isNotificationEnabled()) {
                     Date date = new Date();
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                     String formattedDate = formatter.format(date);
-
+                    String articleId = updateArticleDTO.getArticle_id();
+                    String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
+                    String email = userInformationMapper.getEmailByUsername(username);
                     String siteName = siteConfigUtil.getSiteName();
-
-                    List<String> emails = userInformationMapper.getEmailsByPermissionCode("post:review");
-
-                    if (emails == null || emails.isEmpty()) {
-                        log.warn("未找到拥有 'post:review' 权限的用户，跳过发送审核通知邮件");
-                    } else {
-                        for (String email : emails) {
-                            try {
-                                String articleId = updateArticleDTO.getArticle_id();
-                                String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
-                                mailService.sendSimpleMail(
-                                        email,
-                                        siteName + " 文章审核",
-                                        "用户：" + username + " 于 " + formattedDate + " 更新了文章：" + "《" + article_name + "》" + "可能需要您审核"
-                                );
-                                notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "用户：" + username + " 于 " + formattedDate + " 创建了文章：" + "《" + article_name + "》" + "可能需要您审核");
-                                log.info("已发送审核通知邮件至: {}", email);
-                            } catch (Exception e) {
-                                log.error("发送审核通知邮件失败，目标邮箱: {}", email, e);
-                            }
-                        }
-                    }
+                    mailService.sendSimpleMail(
+                            email,
+                            siteName + " 文章更新",
+                            "您的文章" + "《" + article_name + "》" + " 于 " + formattedDate + " 进行了更新"
+                    );
+                    notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "您的文章" + "《" + article_name + "》" + " 于 " + formattedDate + " 进行了更新");
+                    log.info("已发送更新通知至用户邮箱: {}", email);
                 }
                 response.put("success", true);
                 response.put("message", "文章更新成功");
@@ -358,11 +374,13 @@ public class EditArticleController {
             }
 
             boolean adminPostNoReview = siteConfigUtil.adminPostNoReview();
+            boolean noReviewNotice = false;
             int articleDefault;
             List<String> userPermission = userPermissionMapper.findPermissionCodesByUserName(username);
             if (userPermission.contains("post:review")){
                 if (adminPostNoReview) {
                     // 如果是管理员发布文章无需审核则直接发布
+                    noReviewNotice = true;
                     articleDefault = 1;
                 }else{
                     // 否则获取系统设置的文章默认状态
@@ -380,34 +398,57 @@ public class EditArticleController {
 
             int result = editArticleMapper.publishArticle(params);
 
-            if (siteConfigUtil.isNotificationEnabled()) {
-                Date date = new Date();
-                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                String formattedDate = formatter.format(date);
+            if (noReviewNotice){
+                if (siteConfigUtil.isNotificationEnabled()) {
+                    Date date = new Date();
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    String formattedDate = formatter.format(date);
 
-                String siteName = siteConfigUtil.getSiteName();
+                    String siteName = siteConfigUtil.getSiteName();
 
-                List<String> emails = userInformationMapper.getEmailsByPermissionCode("post:review");
+                    String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
 
-                if (emails == null || emails.isEmpty()) {
-                    log.warn("未找到拥有 'post:review' 权限的用户，跳过发送审核通知邮件");
-                } else {
-                    for (String email : emails) {
-                        try {
-                            String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
-                            mailService.sendSimpleMail(
-                                    email,
-                                    siteName + " 文章审核",
-                                    "用户：" + username + " 于 " + formattedDate + " 发布了新文章：" + "《" + article_name + "》" + "可能需要您审核"
-                            );
-                            notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "用户：" + username + " 于 " + formattedDate + " 发布了新文章：" + "《" + article_name + "》" + "可能需要您审核");
-                            log.info("已发送审核通知邮件至: {}", email);
-                        } catch (Exception e) {
-                            log.error("发送审核通知邮件失败，目标邮箱: {}", email, e);
+                    String email = userInformationMapper.getEmailByUsername(username);
+                    mailService.sendSimpleMail(
+                            email,
+                            siteName + " 文章审核",
+                            "您的文章：" + "《" + article_name + "》" + "已自动审核通过"
+                    );
+                    notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "您的文章：" + "《" + article_name + "》" + "已自动审核通过");
+                    log.info("管理员用户 {} 已自动通过文章审核：《{}》，审核时间：{}", username, article_name, formattedDate);
+
+                }
+            }else {
+                if (siteConfigUtil.isNotificationEnabled()) {
+                    Date date = new Date();
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    String formattedDate = formatter.format(date);
+
+                    String siteName = siteConfigUtil.getSiteName();
+
+                    List<String> emails = userInformationMapper.getEmailsByPermissionCode("post:review");
+
+                    if (emails == null || emails.isEmpty()) {
+                        log.warn("未找到拥有 'post:review' 权限的用户，跳过发送审核通知邮件");
+                    } else {
+                        for (String email : emails) {
+                            try {
+                                String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
+                                mailService.sendSimpleMail(
+                                        email,
+                                        siteName + " 文章审核",
+                                        "用户：" + username + " 于 " + formattedDate + " 发布了新文章：" + "《" + article_name + "》" + "可能需要您审核"
+                                );
+                                notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "用户：" + username + " 于 " + formattedDate + " 发布了新文章：" + "《" + article_name + "》" + "可能需要您审核");
+                                log.info("已发送审核通知邮件至: {}", email);
+                            } catch (Exception e) {
+                                log.error("发送审核通知邮件失败，目标邮箱: {}", email, e);
+                            }
                         }
                     }
                 }
             }
+
             if (result > 0) {
                 response.put("success", true);
                 response.put("message", "文章已发布");
