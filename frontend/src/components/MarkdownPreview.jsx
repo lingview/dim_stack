@@ -7,6 +7,8 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Check, Music, FileText } from 'lucide-react';
 import { preprocessMarkdown, isSafeUrl } from '../utils/markdownUtils';
+import remarkDisableLonelyOrderedList from "../utils/remark-disable-lonely-ol.jsx";
+import remarkBreaks from 'remark-breaks';
 
 const SANITIZE_SCHEMA = {
     tagNames: [
@@ -220,11 +222,21 @@ export default function MarkdownPreview({ content }) {
     };
 
     return (
-        <div className="w-1/2 p-4 overflow-y-auto bg-white text-gray-900" style={{ overflowAnchor: 'none' }}>
+        <div
+            className="w-1/2 p-4 overflow-y-auto bg-white text-gray-900"
+            style={{ overflowAnchor: 'none' }}
+        >
             <ReactMarkdown
                 children={preprocessMarkdown(content)}
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeRaw, [rehypeSanitize, SANITIZE_SCHEMA]]}
+                remarkPlugins={[
+                    remarkGfm,
+                    remarkBreaks,
+                    remarkDisableLonelyOrderedList
+                ]}
+                rehypePlugins={[
+                    rehypeRaw,
+                    [rehypeSanitize, SANITIZE_SCHEMA]
+                ]}
                 components={renderMarkdownComponents}
             />
         </div>
