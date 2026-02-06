@@ -125,4 +125,32 @@ public class SiteConfigUtil {
         }
         return false;
     }
+
+
+    public boolean adminPostNoReview() {
+        try {
+            String siteConfigJson = redisTemplate.opsForValue().get("dimstack:site_config");
+            if (siteConfigJson != null) {
+                JsonObject jsonObject = JsonParser.parseString(siteConfigJson).getAsJsonObject();
+                JsonElement element = jsonObject.get("admin_post_no_review");
+
+                if (element == null || element.isJsonNull()) {
+                    return false;
+                }
+
+                if (element.isJsonPrimitive()) {
+                    if (element.getAsJsonPrimitive().isNumber()) {
+                        return element.getAsInt() == 1;
+                    }
+                    if (element.getAsJsonPrimitive().isString()) {
+                        String val = element.getAsString().trim();
+                        return "1".equals(val) || "true".equals(val.toLowerCase());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("检查 admin_post_no_review 设置时发生异常", e);
+        }
+        return false;
+    }
 }

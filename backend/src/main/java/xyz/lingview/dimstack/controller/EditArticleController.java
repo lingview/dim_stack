@@ -48,6 +48,8 @@ public class EditArticleController {
     MailService mailService;
     @Autowired
     private ArticleMapper articleMapper;
+    @Autowired
+    private UserPermissionMapper userPermissionMapper;
 
     @GetMapping("/getarticlelist")
     @RequiresPermission("post:create")
@@ -355,7 +357,21 @@ public class EditArticleController {
                 return ResponseEntity.ok(response);
             }
 
-            int articleDefault = SiteConfigMapper.getArticleStatus();
+            boolean adminPostNoReview = siteConfigUtil.adminPostNoReview();
+            int articleDefault;
+            List<String> userPermission = userPermissionMapper.findPermissionCodesByUserName(username);
+            if (userPermission.contains("post:review")){
+                if (adminPostNoReview) {
+                    // 如果是管理员发布文章无需审核则直接发布
+                    articleDefault = 1;
+                }else{
+                    // 否则获取系统设置的文章默认状态
+                    articleDefault = SiteConfigMapper.getArticleStatus();
+                }
+            }else {
+                articleDefault = SiteConfigMapper.getArticleStatus();
+            }
+
 
             Map<String, Object> params = new HashMap<>();
             params.put("article_id", articleId);
