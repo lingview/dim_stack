@@ -159,6 +159,7 @@ public class EditArticleController {
 //                    }
 //                }
                 if (siteConfigUtil.isNotificationEnabled()) {
+                    System.out.println("发送系统通知");
                     Date date = new Date();
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                     String formattedDate = formatter.format(date);
@@ -166,12 +167,13 @@ public class EditArticleController {
                     String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
                     String email = userInformationMapper.getEmailByUsername(username);
                     String siteName = siteConfigUtil.getSiteName();
+                    notificationService.sendSystemNotification(username, "系统通知", "您的文章" + "《" + article_name + "》" + " 于 " + formattedDate + " 进行了更新");
                     mailService.sendSimpleMail(
                             email,
                             siteName + " 文章更新",
                             "您的文章" + "《" + article_name + "》" + " 于 " + formattedDate + " 进行了更新"
                     );
-                    notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "您的文章" + "《" + article_name + "》" + " 于 " + formattedDate + " 进行了更新");
+//                    notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "您的文章" + "《" + article_name + "》" + " 于 " + formattedDate + " 进行了更新");
                     log.info("已发送更新通知至用户邮箱: {}", email);
                 }
                 response.put("success", true);
@@ -268,8 +270,8 @@ public class EditArticleController {
                     String email = userInformationMapper.getEmailByUsername(username);
                     String siteName = siteConfigUtil.getSiteName();
                     String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
+                    notificationService.sendSystemNotification(username, "系统通知", "用户：" + username + " 于 " + formattedDate + " 删除了文章：" + "《" + article_name + "》");
                     mailService.sendSimpleMail(email, siteName + " 文章删除成功", "用户：" + username + " 于 " + formattedDate + " 成功删除文章：" + "《" + article_name + "》");
-                    notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "用户：" + username + " 于 " + formattedDate + " 删除了文章：" + "《" + article_name + "》");
                 }
             } else {
                 response.put("success", false);
@@ -409,12 +411,12 @@ public class EditArticleController {
                     String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
 
                     String email = userInformationMapper.getEmailByUsername(username);
+                    notificationService.sendSystemNotification(username, "系统通知", "您的文章：" + "《" + article_name + "》" + "已自动审核通过");
                     mailService.sendSimpleMail(
                             email,
                             siteName + " 文章审核",
                             "您的文章：" + "《" + article_name + "》" + "已自动审核通过"
                     );
-                    notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "您的文章：" + "《" + article_name + "》" + "已自动审核通过");
                     log.info("管理员用户 {} 已自动通过文章审核：《{}》，审核时间：{}", username, article_name, formattedDate);
 
                 }
@@ -427,19 +429,34 @@ public class EditArticleController {
                     String siteName = siteConfigUtil.getSiteName();
 
                     List<String> emails = userInformationMapper.getEmailsByPermissionCode("post:review");
+                    List<String> usernames = userInformationMapper.getUsernamesByPermissionCode("post:review");
+                    String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
+                    if (usernames == null || usernames.isEmpty()){
+                        log.warn("未找到拥有 'post:review' 权限的用户，跳过发送审核通知");
+                    }
+                    if (usernames != null) {
+                        for (String reviewUsername : usernames) {
+                            try {
+
+                                notificationService.sendSystemNotification(reviewUsername, "系统通知", "用户：" + username + " 于 " + formattedDate + " 发布了新文章：" + "《" + article_name + "》" + "可能需要您审核");
+                                log.info("已发送审核通知至: {}", reviewUsername);
+                            } catch (Exception e) {
+                                log.error("发送审核通知失败，目标用户: {}", reviewUsername, e);
+                            }
+                        }
+                    }
 
                     if (emails == null || emails.isEmpty()) {
                         log.warn("未找到拥有 'post:review' 权限的用户，跳过发送审核通知邮件");
                     } else {
                         for (String email : emails) {
                             try {
-                                String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
+//                                notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "用户：" + username + " 于 " + formattedDate + " 发布了新文章：" + "《" + article_name + "》" + "可能需要您审核");
                                 mailService.sendSimpleMail(
                                         email,
                                         siteName + " 文章审核",
                                         "用户：" + username + " 于 " + formattedDate + " 发布了新文章：" + "《" + article_name + "》" + "可能需要您审核"
                                 );
-                                notificationService.sendSystemNotification(userInformationMapper.getUsernameByEmail(email), "系统通知", "用户：" + username + " 于 " + formattedDate + " 发布了新文章：" + "《" + article_name + "》" + "可能需要您审核");
                                 log.info("已发送审核通知邮件至: {}", email);
                             } catch (Exception e) {
                                 log.error("发送审核通知邮件失败，目标邮箱: {}", email, e);

@@ -64,6 +64,17 @@
           AND ui.email IS NOT NULL;
     </select>
 
+    <select id="getUsernamesByPermissionCode" parameterType="string" resultType="string">
+        SELECT DISTINCT ui.username
+        FROM user_information ui
+                 INNER JOIN role r ON ui.role_id = r.id
+                 INNER JOIN role_permission rp ON r.id = rp.role_id
+                 INNER JOIN permission p ON rp.permission_id = p.id
+        WHERE p.code = #{permissionCode}
+          AND ui.status = 1
+          AND ui.username IS NOT NULL;
+    </select>
+
     <!-- 根据文章id查询文章所述用户 -->
     <select id="getUsernameByArticleId" resultType="string">
         SELECT ui.username

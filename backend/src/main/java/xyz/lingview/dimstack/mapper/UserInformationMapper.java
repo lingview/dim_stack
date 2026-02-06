@@ -27,6 +27,8 @@ public interface UserInformationMapper {
 
     List<String> getEmailsByPermissionCode(@Param("permissionCode") String permissionCode);
 
+    List<String> getUsernamesByPermissionCode(@Param("permissionCode") String permissionCode);
+
     String getUsernameByArticleId(@Param("articleId") String articleId);
 
     List<UserDTO> selectAllUsers();
