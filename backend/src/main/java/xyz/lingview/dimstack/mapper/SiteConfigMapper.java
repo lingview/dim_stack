@@ -36,4 +36,7 @@ public interface SiteConfigMapper {
 
     // 获取是否允许用户注册
     Integer getEnableRegister();
+    
+    // 获取管理员文章是否无需审核
+    Integer getAdminPostNoReview();
 }

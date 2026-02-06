@@ -157,6 +157,14 @@ public class SiteConfigServiceImpl implements SiteConfigService {
         return null;
     }
 
+    @Override
+    public Integer getAdminPostNoReview() {
+        SiteConfig config = getSiteConfig();
+        if (config != null) {
+            return config.getAdmin_post_no_review();
+        }
+        return null;
+    }
 
     /**
      * 更新Redis缓存

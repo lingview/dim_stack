@@ -83,7 +83,8 @@ export default function SiteSettingsView() {
         icp_record_number: '',
         mps_record_number: '',
         enable_register: 1,
-        enable_music: 0
+        enable_music: 0,
+        admin_post_no_review: 0
     });
 
     const [newMusic, setNewMusic] = useState({
@@ -140,7 +141,8 @@ export default function SiteSettingsView() {
                     icp_record_number: escapeHtml(response.data.icp_record_number) || '',
                     mps_record_number: escapeHtml(response.data.mps_record_number) || '',
                     enable_register: response.data.enable_register !== undefined ? response.data.enable_register : 1,
-                    enable_music: response.data.enable_music !== undefined ? response.data.enable_music : 0
+                    enable_music: response.data.enable_music !== undefined ? response.data.enable_music : 0,
+                    admin_post_no_review: response.data.admin_post_no_review !== undefined ? response.data.admin_post_no_review : 0
                 };
                 setFormData(escapedData);
             } else {
@@ -208,7 +210,7 @@ export default function SiteSettingsView() {
             finalValue = checked;
         } else if (name === 'smtp_port' || name === 'article_status') {
             finalValue = value === '' ? '' : parseInt(value, 10);
-        } else if (name === 'enable_music') {
+        } else if (name === 'enable_music' || name === 'admin_post_no_review') {
             finalValue = checked ? 1 : 0;
         } else {
             finalValue = escapeHtml(value);
@@ -438,7 +440,8 @@ export default function SiteSettingsView() {
                 icp_record_number: unescapeHtml(formData.icp_record_number),
                 mps_record_number: unescapeHtml(formData.mps_record_number),
                 enable_register: formData.enable_register,
-                enable_music: formData.enable_music
+                enable_music: formData.enable_music,
+                admin_post_no_review: formData.admin_post_no_review  // 添加管理员文章审核字段
             };
 
             if (formData.mail_password && formData.mail_password.trim() !== '') {
@@ -1143,6 +1146,32 @@ export default function SiteSettingsView() {
                                             </option>
                                         ))}
                                     </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        管理员文章审核
+                                    </label>
+                                    <div className="flex items-center">
+                                        <input
+                                            id="admin_post_no_review"
+                                            name="admin_post_no_review"
+                                            type="checkbox"
+                                            checked={formData.admin_post_no_review === 1}
+                                            onChange={(e) => {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    admin_post_no_review: e.target.checked ? 1 : 0
+                                                }));
+                                            }}
+                                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <label htmlFor="admin_post_no_review" className="ml-2 block text-sm text-gray-700">
+                                            管理员文章无需审核
+                                        </label>
+                                    </div>
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        启用后管理员发布的文章将直接发布，无需等待审核
+                                    </p>
                                 </div>
                             </div>
                         </div>

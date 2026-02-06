@@ -30,4 +30,5 @@ public class SiteConfig {
     private String mps_record_number;
     private Integer enable_register;
     private Integer enable_music;
+    private Integer admin_post_no_review;
 }

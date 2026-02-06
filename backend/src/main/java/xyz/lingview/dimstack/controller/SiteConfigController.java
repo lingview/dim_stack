@@ -216,6 +216,9 @@ public class SiteConfigController {
             if (siteConfig.getEnable_music() != null) {
                 currentConfig.setEnable_music(siteConfig.getEnable_music());
             }
+            if (siteConfig.getAdmin_post_no_review() != null) {
+                currentConfig.setAdmin_post_no_review(siteConfig.getAdmin_post_no_review());
+            }
             boolean result = siteConfigService.updateSiteConfig(currentConfig);
 
             if (result) {
@@ -304,6 +307,24 @@ public class SiteConfigController {
                     .body(Map.of(
                             "success", false,
                             "message", "获取用户注册状态失败: " + e.getMessage()
+                    ));
+        }
+    }
+
+    @GetMapping("/admin-post-no-review")
+    public ResponseEntity<Map<String, Object>> getAdminPostNoReviewStatus() {
+        try {
+            Integer adminPostNoReview = siteConfigService.getAdminPostNoReview();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "data", Map.of("adminPostNoReview", adminPostNoReview != null && adminPostNoReview == 1)
+            ));
+        } catch (Exception e) {
+            log.error("获取管理员文章审核状态失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "获取管理员文章审核状态失败: " + e.getMessage()
                     ));
         }
     }
