@@ -1,4 +1,4 @@
-package xyz.lingview.dimstack.service.impl;
+package xyz.lingview.dimstack.task;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
