@@ -83,7 +83,13 @@
             excerpt = #{excerpt},
             article_content = #{article_content},
             password = #{password},
-            category_id = (SELECT id FROM article_categories WHERE article_categories = #{category}),
+            category_id = (
+                SELECT c.id 
+                FROM article_categories c 
+                LEFT JOIN article_categories p ON c.parent_id = p.id 
+                WHERE c.article_categories = #{category}
+                AND p.id IS NULL
+            ),
             alias = #{alias},
             status = #{status}
         WHERE article_id = #{article_id}
@@ -102,9 +108,14 @@
                 FROM article_categories c 
                 LEFT JOIN article_categories p ON c.parent_id = p.id 
                 WHERE c.article_categories = #{childCategory}
-                <if test="parentCategory != null and parentCategory != ''">
-                    AND p.article_categories = #{parentCategory}
-                </if>
+                AND (
+                    <if test="parentCategory != null and parentCategory != ''">
+                        p.article_categories = #{parentCategory}
+                    </if>
+                    <if test="parentCategory == null or parentCategory == ''">
+                        p.id IS NULL
+                    </if>
+                )
             ),
             alias = #{alias},
             status = #{status}

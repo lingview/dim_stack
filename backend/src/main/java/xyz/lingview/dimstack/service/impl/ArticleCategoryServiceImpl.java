@@ -121,9 +121,10 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
                 throw new RuntimeException("分类名称中不能包含 '/' 字符");
             }
 
-            ArticleCategory existingCategory = articleCategoryMapper.findByName(categoryName);
+            ArticleCategory existingCategory = articleCategoryMapper.findByParentAndName(
+                categoryDTO.getParent_id(), categoryName);
             if (existingCategory != null && !existingCategory.getId().equals(categoryDTO.getId())) {
-                throw new RuntimeException("分类名称已存在");
+                throw new RuntimeException("在同一层级下分类名称已存在");
             }
 
             category.setArticle_categories(categoryName);
