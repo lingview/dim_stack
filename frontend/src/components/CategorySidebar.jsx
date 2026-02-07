@@ -30,7 +30,8 @@ export default function CategorySidebar({selectedCategory }) {
         if (selectedCategory === categoryName) {
             navigate('/');
         } else {
-            navigate(`/category/${categoryName}`);
+            const encodedCategory = encodeURIComponent(categoryName);
+            navigate(`/category?name=${encodedCategory}`);
         }
     };
 

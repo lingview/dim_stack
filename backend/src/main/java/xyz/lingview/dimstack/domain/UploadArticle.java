@@ -13,6 +13,8 @@ public class UploadArticle {
     private String password;
     private String tag;
     private String category;
+    private String parentCategory;
+    private String childCategory;
     private String alias;
     private int status;
 }

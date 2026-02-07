@@ -11,6 +11,7 @@ import xyz.lingview.dimstack.domain.UploadAttachment;
 public interface UploadMapper {
     int insertUploadAttachment(UploadAttachment UploadAttachment);
     int insertUploadArticle(UploadArticle UploadArticle);
+    int insertUploadArticleWithCategory(UploadArticle uploadArticle);
     int selectArticleCountByAliasAndUuid(String alias, String uuid);
     int insertArticleTagRelation(@Param("articleId") String articleId, @Param("tagName") String tagName);
     int deleteArticleTagRelations(@Param("articleId") String articleId);

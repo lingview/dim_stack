@@ -27,6 +27,15 @@ public interface ArticleCategoryMapper {
     int insert(ArticleCategory category);
     int update(ArticleCategory category);
     int updateStatus(@Param("id") Integer id, @Param("status") Integer status);
+    
+    // 多级分类相关方法
+    List<ArticleCategory> findTopLevelCategories();
+    List<ArticleCategory> findChildrenByParentId(@Param("parentId") Integer parentId);
+    List<ArticleCategory> findTreeStructure();
+    ArticleCategory findByParentAndName(@Param("parentId") Integer parentId, @Param("categoryName") String categoryName);
+    int updateParentId(@Param("id") Integer id, @Param("parentId") Integer parentId);
+    int deleteCategoryAndChildren(@Param("id") Integer id);
+
     // 通过文章id查询文章所属分类
     String getCategoryByArticleId(@Param("article_id") String article_id);
     // 增加分类文章数量

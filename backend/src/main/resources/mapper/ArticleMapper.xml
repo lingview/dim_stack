@@ -39,7 +39,15 @@
         FROM article
         WHERE status = 1
         <if test="category != null and category != ''">
-            AND category_id = (SELECT id FROM article_categories WHERE article_categories = #{category})
+            AND category_id = (
+                SELECT c.id 
+                FROM article_categories c 
+                LEFT JOIN article_categories p ON c.parent_id = p.id 
+                WHERE c.article_categories = #{childCategory}
+                <if test="parentCategory != null and parentCategory != ''">
+                    AND p.article_categories = #{parentCategory}
+                </if>
+            )
         </if>
         ORDER BY create_time DESC
         LIMIT #{param1}, #{param2}
@@ -63,7 +71,15 @@
         FROM article a
         WHERE a.status = 1
         <if test="category != null and category != ''">
-            AND a.category_id = (SELECT id FROM article_categories WHERE article_categories = #{category})
+            AND a.category_id = (
+                SELECT c.id 
+                FROM article_categories c 
+                LEFT JOIN article_categories p ON c.parent_id = p.id 
+                WHERE c.article_categories = #{childCategory}
+                <if test="parentCategory != null and parentCategory != ''">
+                    AND p.article_categories = #{parentCategory}
+                </if>
+            )
         </if>
     </select>
 

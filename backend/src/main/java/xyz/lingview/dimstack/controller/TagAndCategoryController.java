@@ -41,9 +41,9 @@ public class TagAndCategoryController {
         return articleCategoryMapper.findAllEnabledCategoriesAndCount();
     }
 
-    @GetMapping("/categories/{category}/articles")
+    @GetMapping("/categories/articles")
     public PageResult<ArticleDTO> getArticlesByCategory(
-            @PathVariable String category,
+            @RequestParam String category,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
 

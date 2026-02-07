@@ -24,6 +24,7 @@ public interface EditArticleMapper {
     String getUuidByArticleId(String articleId);
     String getUsernameByUuid(String uuid);
     int updateArticle(UpdateArticleDTO updateArticleDTO);
+    int updateArticleWithCategory(Map<String, Object> params);
 
     int deleteArticle(Map<String, Object> params);
     int unpublishArticle(Map<String, Object> params);

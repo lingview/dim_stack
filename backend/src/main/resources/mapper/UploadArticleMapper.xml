@@ -21,6 +21,19 @@
         VALUES (#{uuid}, #{article_id}, #{article_name}, #{article_cover}, #{excerpt}, #{article_content}, #{password}, (SELECT id FROM article_categories WHERE article_categories = #{category}), #{alias}, #{status})
     </insert>
 
+    <insert id="insertUploadArticleWithCategory" parameterType="xyz.lingview.dimstack.domain.UploadArticle">
+        INSERT INTO article(uuid, article_id, article_name, article_cover, excerpt, article_content, password, category_id, alias, status)
+        VALUES (#{uuid}, #{article_id}, #{article_name}, #{article_cover}, #{excerpt}, #{article_content}, #{password}, 
+            (SELECT c.id 
+             FROM article_categories c 
+             LEFT JOIN article_categories p ON c.parent_id = p.id 
+             WHERE c.article_categories = #{childCategory}
+             <if test="parentCategory != null and parentCategory != ''">
+                 AND p.article_categories = #{parentCategory}
+             </if>), 
+            #{alias}, #{status})
+    </insert>
+
     <select id="selectArticleCountByAliasAndUuid" resultType="int">
         SELECT COUNT(*) FROM article WHERE alias = #{alias} AND uuid = #{uuid}
     </select>

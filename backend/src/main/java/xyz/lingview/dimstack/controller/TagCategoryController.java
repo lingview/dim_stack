@@ -200,6 +200,60 @@ public class TagCategoryController {
         }
     }
 
+    @GetMapping("/categories/tree")
+    @RequiresPermission("system:edit")
+    public ResponseEntity<Map<String, Object>> getCategoryTree() {
+        try {
+            var categories = articleCategoryService.getCategoryTree();
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", categories
+            ));
+        } catch (Exception e) {
+            log.error("获取分类树形结构失败", e);
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "获取分类树形结构失败: " + e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/categories/top-level")
+    @RequiresPermission("system:edit")
+    public ResponseEntity<Map<String, Object>> getTopLevelCategories() {
+        try {
+            var categories = articleCategoryService.getTopLevelCategories();
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", categories
+            ));
+        } catch (Exception e) {
+            log.error("获取顶级分类列表失败", e);
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "获取顶级分类列表失败: " + e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/categories/children/{parentId}")
+    @RequiresPermission("system:edit")
+    public ResponseEntity<Map<String, Object>> getChildrenByParentId(@PathVariable Integer parentId) {
+        try {
+            var categories = articleCategoryService.getChildrenByParentId(parentId);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", categories
+            ));
+        } catch (Exception e) {
+            log.error("获取子分类列表失败", e);
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "获取子分类列表失败: " + e.getMessage()
+            ));
+        }
+    }
+
     @PostMapping("/categories")
     @RequiresPermission("system:edit")
     public ResponseEntity<Map<String, Object>> createCategory(@RequestBody ArticleCategoryDTO categoryDTO, HttpSession session) {

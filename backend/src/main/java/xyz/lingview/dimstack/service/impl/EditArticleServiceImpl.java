@@ -8,6 +8,7 @@ import xyz.lingview.dimstack.dto.request.EditArticleDTO;
 import xyz.lingview.dimstack.mapper.ArticleCategoryMapper;
 import xyz.lingview.dimstack.mapper.EditArticleMapper;
 import xyz.lingview.dimstack.service.EditArticleService;
+import xyz.lingview.dimstack.util.CategoryPathUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,9 @@ public class EditArticleServiceImpl implements EditArticleService {
 
     @Autowired
     private ArticleCategoryMapper articleCategoryMapper;
+
+    @Autowired
+    private CategoryPathUtil categoryPathUtil;
 
     @Override
     public Map<String, Object> getArticleListByUsername(String username, Integer page, Integer size) {
@@ -115,15 +119,38 @@ public class EditArticleServiceImpl implements EditArticleService {
                 }
             }
 
-            int result = editArticleMapper.updateArticle(updateArticleDTO);
+            CategoryPathUtil.CategoryPath categoryPath = categoryPathUtil.parsePath(updateArticleDTO.getCategory());
+            
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put("article_id", updateArticleDTO.getArticle_id());
+            paramMap.put("article_name", updateArticleDTO.getArticle_name());
+            paramMap.put("article_cover", updateArticleDTO.getArticle_cover());
+            paramMap.put("excerpt", updateArticleDTO.getExcerpt());
+            paramMap.put("article_content", updateArticleDTO.getArticle_content());
+            paramMap.put("password", updateArticleDTO.getPassword());
+            paramMap.put("parentCategory", categoryPath.getParentCategory());
+            paramMap.put("childCategory", categoryPath.getChildCategory());
+            paramMap.put("alias", updateArticleDTO.getAlias());
+            paramMap.put("status", updateArticleDTO.getStatus());
+            
+            int result = editArticleMapper.updateArticleWithCategory(paramMap);
 
             // 更新分类计数
             if (result > 0) {
                 String newCategory = updateArticleDTO.getCategory();
                 if (oldCategory != null && !oldCategory.equals(newCategory)) {
-                    articleCategoryMapper.decrementCount(oldCategory);
+                    CategoryPathUtil.CategoryPath oldPath = categoryPathUtil.parsePath(oldCategory);
+                    String oldFullPath = oldPath.getParentCategory() != null 
+                        ? oldPath.getParentCategory() + "/" + oldPath.getChildCategory()
+                        : oldPath.getChildCategory();
+                    articleCategoryMapper.decrementCount(oldFullPath);
+                    
                     if (newCategory != null) {
-                        articleCategoryMapper.incrementCount(newCategory);
+                        CategoryPathUtil.CategoryPath newPath = categoryPathUtil.parsePath(newCategory);
+                        String newFullPath = newPath.getParentCategory() != null 
+                            ? newPath.getParentCategory() + "/" + newPath.getChildCategory()
+                            : newPath.getChildCategory();
+                        articleCategoryMapper.incrementCount(newFullPath);
                     }
                 }
             }

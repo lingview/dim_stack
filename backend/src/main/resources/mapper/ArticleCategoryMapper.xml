@@ -6,28 +6,36 @@
 
     <select id="findAllEnabledCategories" resultType="xyz.lingview.dimstack.domain.ArticleCategory">
         SELECT
-            id,
-            article_categories AS article_categories,
-            categories_explain AS categories_explain,
-            founder,
-            create_time AS create_time,
-            status
-        FROM article_categories
-        WHERE status = 1
+            c.id,
+            CASE 
+                WHEN p.article_categories IS NULL THEN c.article_categories 
+                ELSE CONCAT(p.article_categories, '/', c.article_categories) 
+            END AS article_categories,
+            c.categories_explain AS categories_explain,
+            c.founder,
+            c.create_time AS create_time,
+            c.status
+        FROM article_categories c
+        LEFT JOIN article_categories p ON c.parent_id = p.id
+        WHERE c.status = 1
     </select>
 
     <select id="findAllEnabledCategoriesAndCount" resultType="xyz.lingview.dimstack.domain.ArticleCategoryAndCount">
         SELECT
-            id,
-            article_categories,
-            categories_explain,
-            founder,
-            create_time,
-            status,
-            article_count AS articleCount
-        FROM article_categories
-        WHERE status = 1
-        ORDER BY create_time DESC
+            c.id,
+            CASE 
+                WHEN p.article_categories IS NULL THEN c.article_categories 
+                ELSE CONCAT(p.article_categories, '/', c.article_categories) 
+            END AS article_categories,
+            c.categories_explain,
+            c.founder,
+            c.create_time,
+            c.status,
+            c.article_count AS articleCount
+        FROM article_categories c
+        LEFT JOIN article_categories p ON c.parent_id = p.id
+        WHERE c.status = 1
+        ORDER BY c.create_time DESC
     </select>
 
     <select id="findArticlesByCategory" resultType="xyz.lingview.dimstack.dto.request.ArticleDTO">
@@ -48,10 +56,15 @@
         FROM (
                  SELECT art.id, art.uuid, art.article_id, art.category_id
                  FROM article art
-                          INNER JOIN article_categories ac ON art.category_id = ac.id
+                          INNER JOIN article_categories c ON art.category_id = c.id
+                          LEFT JOIN article_categories p ON c.parent_id = p.id
                  WHERE art.status = 1
-                   AND ac.status = 1
-                   AND ac.article_categories = #{category}
+                   AND c.status = 1
+                   AND (
+                       (#{category} LIKE '%/%' AND CONCAT(p.article_categories, '/', c.article_categories) = #{category})
+                       OR
+                       (#{category} NOT LIKE '%/%' AND c.article_categories = #{category} AND p.article_categories IS NULL)
+                   )
                  ORDER BY art.create_time DESC
                  LIMIT #{offset}, #{limit}
              ) page
@@ -69,63 +82,82 @@
     <select id="countArticlesByCategory" resultType="int">
         SELECT COUNT(*)
         FROM article a
-        JOIN article_categories ac ON a.category_id = ac.id
-        WHERE ac.article_categories = #{category}
-          AND a.status = 1
+        JOIN article_categories c ON a.category_id = c.id
+        LEFT JOIN article_categories p ON c.parent_id = p.id
+        WHERE a.status = 1
+          AND (
+              (#{category} LIKE '%/%' AND CONCAT(p.article_categories, '/', c.article_categories) = #{category})
+              OR
+              (#{category} NOT LIKE '%/%' AND c.article_categories = #{category} AND p.article_categories IS NULL)
+          )
     </select>
 
     <select id="findAll" resultType="xyz.lingview.dimstack.domain.ArticleCategory">
         SELECT
             id,
+            parent_id,
             article_categories AS article_categories,
             categories_explain AS categories_explain,
             founder,
             create_time AS create_time,
-            status
+            status,
+            article_count
         FROM article_categories
         ORDER BY create_time DESC
     </select>
 
     <select id="findByStatus" resultType="xyz.lingview.dimstack.domain.ArticleCategory">
         SELECT
-            id,
-            article_categories AS article_categories,
-            categories_explain AS categories_explain,
-            founder,
-            create_time AS create_time,
-            status
-        FROM article_categories
-        WHERE status = #{status}
-        ORDER BY create_time DESC
+            c.id,
+            CASE 
+                WHEN p.article_categories IS NULL THEN c.article_categories 
+                ELSE CONCAT(p.article_categories, '/', c.article_categories) 
+            END AS article_categories,
+            c.categories_explain AS categories_explain,
+            c.founder,
+            c.create_time AS create_time,
+            c.status
+        FROM article_categories c
+        LEFT JOIN article_categories p ON c.parent_id = p.id
+        WHERE c.status = #{status}
+        ORDER BY c.create_time DESC
     </select>
 
     <select id="findById" resultType="xyz.lingview.dimstack.domain.ArticleCategory">
         SELECT
-            id,
-            article_categories AS article_categories,
-            categories_explain AS categories_explain,
-            founder,
-            create_time AS create_time,
-            status
-        FROM article_categories
-        WHERE id = #{id}
+            c.id,
+            c.parent_id,
+            CASE 
+                WHEN p.article_categories IS NULL THEN c.article_categories 
+                ELSE CONCAT(p.article_categories, '/', c.article_categories) 
+            END AS article_categories,
+            c.categories_explain AS categories_explain,
+            c.founder,
+            c.create_time AS create_time,
+            c.status,
+            c.article_count
+        FROM article_categories c
+        LEFT JOIN article_categories p ON c.parent_id = p.id
+        WHERE c.id = #{id}
     </select>
 
     <select id="findByName" resultType="xyz.lingview.dimstack.domain.ArticleCategory">
         SELECT
             id,
+            parent_id,
             article_categories AS article_categories,
             categories_explain AS categories_explain,
             founder,
             create_time AS create_time,
-            status
+            status,
+            article_count
         FROM article_categories
         WHERE article_categories = #{categoryName}
     </select>
 
     <insert id="insert" parameterType="xyz.lingview.dimstack.domain.ArticleCategory">
-        INSERT INTO article_categories (article_categories, categories_explain, founder, status)
-        VALUES (#{article_categories}, #{categories_explain}, #{founder}, #{status})
+        INSERT INTO article_categories (parent_id, article_categories, categories_explain, founder, status, article_count)
+        VALUES (#{parent_id}, #{article_categories}, #{categories_explain}, #{founder}, #{status}, #{article_count})
     </insert>
 
     <update id="update" parameterType="xyz.lingview.dimstack.domain.ArticleCategory">
@@ -159,19 +191,124 @@
 
     <!-- 增加分类文章数量 -->
     <update id="incrementCount" parameterType="string">
-        UPDATE article_categories
-        SET article_count = article_count + 1
-        WHERE article_categories = #{category} AND status = 1
+        UPDATE article_categories c
+        LEFT JOIN article_categories p ON c.parent_id = p.id
+        SET c.article_count = c.article_count + 1
+        WHERE (
+            (#{category} LIKE '%/%' AND CONCAT(p.article_categories, '/', c.article_categories) = #{category})
+            OR
+            (#{category} NOT LIKE '%/%' AND c.article_categories = #{category} AND p.article_categories IS NULL)
+        )
+        AND c.status = 1
     </update>
 
     <!-- 分类文章数量 -1 -->
     <update id="decrementCount" parameterType="string">
-        UPDATE article_categories
-        SET article_count = article_count - 1
-        WHERE article_categories = #{category}
-        AND status = 1
-        AND article_count > 0
+        UPDATE article_categories c
+        LEFT JOIN article_categories p ON c.parent_id = p.id
+        SET c.article_count = c.article_count - 1
+        WHERE (
+            (#{category} LIKE '%/%' AND CONCAT(p.article_categories, '/', c.article_categories) = #{category})
+            OR
+            (#{category} NOT LIKE '%/%' AND c.article_categories = #{category} AND p.article_categories IS NULL)
+        )
+        AND c.status = 1
+        AND c.article_count > 0
     </update>
+    
+    <!-- 查询顶级分类 -->
+    <select id="findTopLevelCategories" resultType="xyz.lingview.dimstack.domain.ArticleCategory">
+        SELECT
+            id,
+            parent_id,
+            article_categories,
+            categories_explain,
+            founder,
+            create_time,
+            status,
+            article_count
+        FROM article_categories
+        WHERE parent_id IS NULL AND status = 1
+        ORDER BY article_categories
+    </select>
+
+    <!-- 根据父ID查询子分类 -->
+    <select id="findChildrenByParentId" resultType="xyz.lingview.dimstack.domain.ArticleCategory">
+        SELECT
+            id,
+            parent_id,
+            article_categories,
+            categories_explain,
+            founder,
+            create_time,
+            status,
+            article_count
+        FROM article_categories
+        WHERE parent_id = #{parentId} AND status = 1
+        ORDER BY article_categories
+    </select>
+
+    <!-- 查询树形结构 -->
+    <select id="findTreeStructure" resultType="xyz.lingview.dimstack.domain.ArticleCategory">
+        SELECT
+            c.id,
+            c.parent_id,
+            c.article_categories,
+            c.categories_explain,
+            c.founder,
+            c.create_time,
+            c.status,
+            c.article_count,
+            CASE 
+                WHEN p.article_categories IS NULL THEN c.article_categories
+                ELSE CONCAT(p.article_categories, '/', c.article_categories)
+            END AS full_path,
+            CASE 
+                WHEN c.parent_id IS NULL THEN 1
+                ELSE 2
+            END AS level
+        FROM article_categories c
+        LEFT JOIN article_categories p ON c.parent_id = p.id
+        WHERE c.status = 1
+        ORDER BY 
+            CASE WHEN c.parent_id IS NULL THEN 0 ELSE 1 END,
+            c.parent_id,
+            c.article_categories
+    </select>
+
+    <!-- 根据父ID和名称查找分类 -->
+    <select id="findByParentAndName" resultType="xyz.lingview.dimstack.domain.ArticleCategory">
+        SELECT
+            id,
+            parent_id,
+            article_categories,
+            categories_explain,
+            founder,
+            create_time,
+            status,
+            article_count
+        FROM article_categories
+        WHERE article_categories = #{categoryName}
+        <if test="parentId != null">
+            AND parent_id = #{parentId}
+        </if>
+        <if test="parentId == null">
+            AND parent_id IS NULL
+        </if>
+    </select>
+
+    <!-- 更新父分类ID -->
+    <update id="updateParentId">
+        UPDATE article_categories
+        SET parent_id = #{parentId}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除分类及其子分类 -->
+    <delete id="deleteCategoryAndChildren">
+        DELETE FROM article_categories
+        WHERE id = #{id} OR parent_id = #{id}
+    </delete>
 
 
 </mapper>

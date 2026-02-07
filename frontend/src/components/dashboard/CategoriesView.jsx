@@ -1,19 +1,22 @@
 import { useState, useEffect } from 'react';
 import apiClient from '../../utils/axios';
 
-export default function CategoriesView() {
+export default function CategoryManagement() {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
+    const [topLevelCategories, setTopLevelCategories] = useState([]);
     const [formData, setFormData] = useState({
         category_name: '',
-        category_explain: ''
+        category_explain: '',
+        parent_id: null
     });
     const [formErrors, setFormErrors] = useState({});
 
     useEffect(() => {
         fetchCategories();
+        fetchTopLevelCategories();
     }, []);
 
     const fetchCategories = async () => {
@@ -21,7 +24,8 @@ export default function CategoriesView() {
             setLoading(true);
             const response = await apiClient.get('/tags-categories/categories');
             if (response.success) {
-                setCategories(response.data || []);
+                const treeData = buildTreeStructure(response.data || []);
+                setCategories(treeData);
             }
         } catch (error) {
             console.error('获取分类列表失败:', error);
@@ -30,11 +34,39 @@ export default function CategoriesView() {
         }
     };
 
+    const fetchTopLevelCategories = async () => {
+        try {
+            const response = await apiClient.get('/tags-categories/categories/top-level');
+            if (response.success) {
+                setTopLevelCategories(response.data || []);
+            }
+        } catch (error) {
+            console.error('获取顶级分类失败:', error);
+        }
+    };
+
     const handleCreateCategory = () => {
         setEditingCategory(null);
         setFormData({
             category_name: '',
-            category_explain: ''
+            category_explain: '',
+            parent_id: null
+        });
+        setFormErrors({});
+        setShowModal(true);
+    };
+
+    const handleCreateSubCategory = (parentCategory) => {
+        if (parentCategory.parent_id !== null) {
+            alert('只能创建一级子分类，不能创建三级分类');
+            return;
+        }
+
+        setEditingCategory(null);
+        setFormData({
+            category_name: '',
+            category_explain: '',
+            parent_id: parentCategory.id
         });
         setFormErrors({});
         setShowModal(true);
@@ -44,19 +76,20 @@ export default function CategoriesView() {
         setEditingCategory(category);
         setFormData({
             category_name: category.category_name,
-            category_explain: category.category_explain
+            category_explain: category.category_explain,
+            parent_id: category.parent_id
         });
         setFormErrors({});
         setShowModal(true);
     };
 
     const handleDeleteCategory = async (id) => {
-        if (window.confirm('确定要禁用这个分类吗？')) {
+        if (window.confirm('确定要禁用这个分类吗？\n\n注意：此操作将级联禁用该分类及其所有子分类，确保分类体系的完整性。')) {
             try {
                 const response = await apiClient.delete(`/tags-categories/categories/${id}`);
                 if (response.success) {
                     fetchCategories();
-                    alert('分类禁用成功');
+                    alert('分类禁用成功\n\n已同步禁用所有相关子分类');
                 } else {
                     alert('分类禁用失败: ' + response.message);
                 }
@@ -108,6 +141,7 @@ export default function CategoriesView() {
 
             if (response.success) {
                 fetchCategories();
+                fetchTopLevelCategories();
                 setShowModal(false);
                 alert(editingCategory ? '分类更新成功' : '分类创建成功');
             } else {
@@ -123,7 +157,7 @@ export default function CategoriesView() {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: name === 'parent_id' ? (value ? parseInt(value) : null) : value
         }));
 
         if (formErrors[name]) {
@@ -138,11 +172,111 @@ export default function CategoriesView() {
         return status === 1 ? '启用' : '禁用';
     };
 
+
+    const buildTreeStructure = (flatList) => {
+        const nodeMap = {};
+        const roots = [];
+
+        flatList.forEach(node => {
+            nodeMap[node.id] = { ...node, children: [] };
+        });
+
+        flatList.forEach(node => {
+            if (node.parent_id === null) {
+                roots.push(nodeMap[node.id]);
+            } else {
+                const parent = nodeMap[node.parent_id];
+                if (parent) {
+                    parent.children.push(nodeMap[node.id]);
+                }
+            }
+        });
+
+        return roots;
+    };
+
     const getStatusClass = (status) => {
         return status === 1
             ? 'bg-green-100 text-green-800'
             : 'bg-red-100 text-red-800';
     };
+
+    const renderCategoryTree = (categories, level = 0) => {
+        return categories.map((category) => (
+            <div key={category.id}>
+                <div className={`flex items-center justify-between py-3 px-4 bg-white border-b border-gray-200 hover:bg-gray-50 ${level > 0 ? 'ml-8' : ''}`}>
+                    <div className="flex items-center space-x-3">
+                        {level > 0 && (
+                            <div className="flex items-center -ml-8 mr-2">
+                                <div className="w-6 h-6 border-l-2 border-b-2 border-gray-300 rounded-bl"></div>
+                                <div className="w-2 h-px bg-gray-300"></div>
+                            </div>
+                        )}
+
+                        <div>
+                            <div className="font-medium text-gray-900">{category.category_name}</div>
+                            <div className="text-sm text-gray-500">{category.category_explain}</div>
+                            {category.parent_name && (
+                                <div className="text-xs text-gray-400">父分类: {category.parent_name}</div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusClass(category.status)}`}>
+                        {getStatusText(category.status)}
+                    </span>
+                        <span className="text-sm text-gray-500">
+                        文章数: {category.article_count || 0}
+                    </span>
+                        <span className="text-sm text-gray-500">
+                        子分类: {category.child_count || 0}
+                    </span>
+                        <div className="flex space-x-2">
+                            {category.status === 1 ? (
+                                <>
+                                    {category.parent_id === null && (
+                                        <button
+                                            onClick={() => handleCreateSubCategory(category)}
+                                            className="text-blue-600 hover:text-blue-900 text-sm"
+                                            title="创建子分类"
+                                        >
+                                            + 子分类
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => handleEditCategory(category)}
+                                        className="text-blue-600 hover:text-blue-900 text-sm"
+                                    >
+                                        编辑
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteCategory(category.id)}
+                                        className="text-red-600 hover:text-red-900 text-sm"
+                                    >
+                                        禁用
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    onClick={() => handleActivateCategory(category.id)}
+                                    className="text-green-600 hover:text-green-900 text-sm"
+                                >
+                                    激活
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {category.children && category.children.length > 0 && (
+                    <div>
+                        {renderCategoryTree(category.children, level + 1)}
+                    </div>
+                )}
+            </div>
+        ));
+    };
+
 
     if (loading) {
         return (
@@ -160,65 +294,14 @@ export default function CategoriesView() {
                     onClick={handleCreateCategory}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
                 >
-                    新建分类
+                    新建顶级分类
                 </button>
             </div>
 
-            <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">分类名称</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">说明</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建者</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {categories.map((category) => (
-                            <tr key={category.id}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{category.id}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{category.category_name}</td>
-                                <td className="px-6 py-4 text-sm text-gray-500">{category.category_explain}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{category.founder}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(category.status)}`}>
-                                        {getStatusText(category.status)}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    {category.status === 1 ? (
-                                        <>
-                                            <button
-                                                onClick={() => handleEditCategory(category)}
-                                                className="text-blue-600 hover:text-blue-900 mr-3"
-                                            >
-                                                编辑
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteCategory(category.id)}
-                                                className="text-red-600 hover:text-red-900"
-                                            >
-                                                禁用
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <button
-                                            onClick={() => handleActivateCategory(category.id)}
-                                            className="text-green-600 hover:text-green-900"
-                                        >
-                                            激活
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-
-                {categories.length === 0 && (
+            <div className="divide-y divide-gray-200">
+                {categories.length > 0 ? (
+                    renderCategoryTree(categories)
+                ) : (
                     <div className="text-center py-12">
                         <p className="text-gray-500">暂无分类数据</p>
                     </div>
@@ -230,12 +313,40 @@ export default function CategoriesView() {
                     <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
                         <div className="px-6 py-4 border-b border-gray-200">
                             <h3 className="text-lg font-medium text-gray-900">
-                                {editingCategory ? '编辑分类' : '新建分类'}
+                                {editingCategory ? '编辑分类' :
+                                    formData.parent_id ? '创建子分类' : '新建顶级分类'}
                             </h3>
+                            {formData.parent_id && (
+                                <p className="text-sm text-gray-500 mt-1">
+                                    父分类: {topLevelCategories.find(c => c.id === formData.parent_id)?.category_name}
+                                </p>
+                            )}
                         </div>
 
                         <form onSubmit={handleSubmit}>
                             <div className="px-6 py-4 space-y-4">
+                                {!editingCategory && (
+                                    <div>
+                                        <label htmlFor="parent_id" className="block text-sm font-medium text-gray-700">
+                                            父分类 (可选)
+                                        </label>
+                                        <select
+                                            id="parent_id"
+                                            name="parent_id"
+                                            value={formData.parent_id || ''}
+                                            onChange={handleInputChange}
+                                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        >
+                                            <option value="">选择父分类 (留空则为顶级分类)</option>
+                                            {topLevelCategories.map((category) => (
+                                                <option key={category.id} value={category.id}>
+                                                    {category.category_name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
                                 <div>
                                     <label htmlFor="category_name" className="block text-sm font-medium text-gray-700">
                                         分类名称
@@ -247,6 +358,7 @@ export default function CategoriesView() {
                                         value={formData.category_name}
                                         onChange={handleInputChange}
                                         className={`mt-1 block w-full border ${formErrors.category_name ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                                        placeholder="请输入分类名称"
                                     />
                                     {formErrors.category_name && (
                                         <p className="mt-1 text-sm text-red-600">{formErrors.category_name}</p>
@@ -264,6 +376,7 @@ export default function CategoriesView() {
                                         value={formData.category_explain}
                                         onChange={handleInputChange}
                                         className={`mt-1 block w-full border ${formErrors.category_explain ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+                                        placeholder="请输入分类说明"
                                     />
                                     {formErrors.category_explain && (
                                         <p className="mt-1 text-sm text-red-600">{formErrors.category_explain}</p>

@@ -62,7 +62,7 @@ function App() {
             <Routes>
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/" element={<Home />} />
-                <Route path="/category/:categoryName" element={<Home />} />
+                <Route path="/category" element={<Home />} />
                 <Route path="/tag/:tagName" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />

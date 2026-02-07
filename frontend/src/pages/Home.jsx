@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Hero from '../components/Hero';
 import ArticleCard from '../components/ArticleCard';
@@ -7,7 +7,7 @@ import CategorySidebar from '../components/CategorySidebar';
 import TagSidebar from '../components/TagSidebar';
 import RecommendedArticles from '../components/RecommendedArticles';
 import MusicPlayer from '../components/MusicPlayer';
-import { fetchArticles, fetchArticlesByCategory } from '../Api.jsx';
+import { fetchArticles } from '../Api.jsx';
 import apiClient from '../utils/axios';
 
 export default function Home() {
@@ -18,8 +18,6 @@ export default function Home() {
     const [copyright, setCopyright] = useState('');
     const [icpRecord, setIcpRecord] = useState('');
     const [mpsRecord, setMpsRecord] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState(null);
-    const [selectedTag, setSelectedTag] = useState(null);
     const [showImages, setShowImages] = useState(true);
     const [forceMobile, setForceMobile] = useState(() => {
         if (typeof window !== 'undefined') {
@@ -29,7 +27,9 @@ export default function Home() {
     });
 
     const articleListRef = useRef(null);
-    const { categoryName, tagName } = useParams();
+    const [searchParams] = useSearchParams();
+    const categoryName = searchParams.get('name');
+    const tagName = searchParams.get('tag');
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -44,7 +44,7 @@ export default function Home() {
         loadArticlesFromUrl();
         loadCopyright();
         loadSiteRecords();
-    }, [location.pathname, page]);
+    }, [location.search, page]);
 
     useEffect(() => {
         localStorage.setItem('showImages', JSON.stringify(showImages));
@@ -76,23 +76,19 @@ export default function Home() {
             let result;
 
             if (categoryName) {
-                result = await fetchArticlesByCategory(categoryName, page, 6);
-                setSelectedCategory(categoryName);
-                setSelectedTag(null);
+                result = await apiClient.get(`/categories/articles?category=${encodeURIComponent(categoryName)}&page=${page}&size=6`);
             } else if (tagName) {
                 result = await apiClient.get(`/tags/${tagName}/articles?page=${page}&size=6`);
-                setSelectedTag(tagName);
-                setSelectedCategory(null);
             } else {
                 result = await fetchArticles(page, 6);
-                setSelectedCategory(null);
-                setSelectedTag(null);
             }
 
-            setArticles(result.data);
-            setTotalPages(result.total_pages);
+            setArticles(Array.isArray(result.data) ? result.data : []);
+            setTotalPages(result.total_pages || 1);
         } catch (error) {
             console.error('加载文章失败:', error);
+            setArticles([]);
+            setTotalPages(1);
         } finally {
             setLoading(false);
         }
@@ -120,23 +116,17 @@ export default function Home() {
     };
 
     const handleCategoryChange = (category) => {
-        setSelectedCategory(category);
-        setSelectedTag(null);
         setPage(1);
-        navigate(`/category/${category}`);
+        navigate(`/category?name=${encodeURIComponent(category)}`);
     };
 
     const handleTagChange = (tag) => {
-        setSelectedTag(tag);
-        setSelectedCategory(null);
         setPage(1);
         navigate(`/tag/${tag}`);
     };
 
     const handleClearFilter = () => {
         navigate('/');
-        setSelectedCategory(null);
-        setSelectedTag(null);
         setPage(1);
     };
 

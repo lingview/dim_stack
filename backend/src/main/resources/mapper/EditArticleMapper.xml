@@ -89,6 +89,28 @@
         WHERE article_id = #{article_id}
     </update>
 
+    <update id="updateArticleWithCategory" parameterType="map">
+        UPDATE article
+        SET
+            article_name = #{article_name},
+            article_cover = #{article_cover},
+            excerpt = #{excerpt},
+            article_content = #{article_content},
+            password = #{password},
+            category_id = (
+                SELECT c.id 
+                FROM article_categories c 
+                LEFT JOIN article_categories p ON c.parent_id = p.id 
+                WHERE c.article_categories = #{childCategory}
+                <if test="parentCategory != null and parentCategory != ''">
+                    AND p.article_categories = #{parentCategory}
+                </if>
+            ),
+            alias = #{alias},
+            status = #{status}
+        WHERE article_id = #{article_id}
+    </update>
+
 
     <!-- 删除文章 -->
     <update id="deleteArticle" parameterType="map">

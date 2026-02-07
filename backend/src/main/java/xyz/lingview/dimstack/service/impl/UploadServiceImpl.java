@@ -15,6 +15,7 @@ import xyz.lingview.dimstack.mapper.ArticleCategoryMapper;
 import xyz.lingview.dimstack.mapper.UploadMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.UploadService;
+import xyz.lingview.dimstack.util.CategoryPathUtil;
 import xyz.lingview.dimstack.util.RandomUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,6 +47,9 @@ public class UploadServiceImpl implements UploadService {
 
     @Autowired
     private ArticleCategoryMapper articleCategoryMapper;
+
+    @Autowired
+    private CategoryPathUtil categoryPathUtil;
 
     // 注入配置属性
     @Value("${file.data-root:.}")
@@ -585,6 +589,11 @@ public class UploadServiceImpl implements UploadService {
                     .body(Map.of("error", "文章分类不能为空"));
         }
 
+        CategoryPathUtil.CategoryPath categoryPath = categoryPathUtil.parsePath(uploadArticle.getCategory());
+
+        uploadArticle.setParentCategory(categoryPath.getParentCategory());
+        uploadArticle.setChildCategory(categoryPath.getChildCategory());
+
         String alias = uploadArticle.getAlias();
         if (alias == null || alias.trim().isEmpty()) {
             alias = UUID.randomUUID().toString();
@@ -620,7 +629,7 @@ public class UploadServiceImpl implements UploadService {
         }
 
         try {
-            int result = uploadMapper.insertUploadArticle(uploadArticle);
+            int result = uploadMapper.insertUploadArticleWithCategory(uploadArticle);
             if (result == 1) {
                 String[] tags = uploadArticle.getTag().split(",");
                 for (String tag : tags) {
@@ -629,7 +638,11 @@ public class UploadServiceImpl implements UploadService {
                     }
                 }
 
-                articleCategoryMapper.incrementCount(uploadArticle.getCategory());
+                CategoryPathUtil.CategoryPath parsedPath = categoryPathUtil.parsePath(uploadArticle.getCategory());
+                String fullPath = parsedPath.getParentCategory() != null 
+                    ? parsedPath.getParentCategory() + "/" + parsedPath.getChildCategory()
+                    : parsedPath.getChildCategory();
+                articleCategoryMapper.incrementCount(fullPath);
                 log.info("文章上传成功，文章ID: {}", uploadArticle.getArticle_id());
                 return ResponseEntity.ok(Map.of(
                         "message", "文章保存成功",
