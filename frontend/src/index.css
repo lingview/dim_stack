@@ -704,3 +704,7 @@
 .dark .notification-no-more {
   color: #6b7280;
 }
+
+.dark .toolbar-btn {
+  color: #ffffff;
+}

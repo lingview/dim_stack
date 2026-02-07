@@ -43,7 +43,7 @@ export default function MarkdownToolbar({
                     <button
                         onClick={() => onToolbarClick(button.type)}
                         title={button.title}
-                        className="p-2 sm:p-3 hover:bg-gray-100 rounded w-12 h-12 flex items-center justify-center sm:w-10 sm:h-10"
+                        className="p-2 sm:p-3 hover:bg-gray-100 rounded w-12 h-12 flex items-center justify-center sm:w-10 sm:h-10 toolbar-btn"
                     >
                         <button.icon className="h-5 w-5 sm:h-4 sm:w-4" />
                     </button>
