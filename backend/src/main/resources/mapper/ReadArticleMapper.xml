@@ -45,16 +45,21 @@
             a.favorite_count,
             a.password,
             GROUP_CONCAT(atr.article_tag) as tag,
-            a.category,
+            CASE 
+                WHEN p.article_categories IS NULL THEN c.article_categories
+                ELSE CONCAT(p.article_categories, '/', c.article_categories)
+            END AS category,
             a.alias,
             a.create_time,
             a.status
         FROM article a
                  LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
+                 LEFT JOIN article_categories c ON a.category_id = c.id
+                 LEFT JOIN article_categories p ON c.parent_id = p.id
         WHERE a.article_id = #{article_id} AND a.status = 1
         GROUP BY a.id, a.uuid, a.article_id, a.article_name, a.article_cover,
                  a.excerpt, a.article_content, a.page_views, a.like_count,
-                 a.favorite_count, a.password, a.category, a.alias,
+                 a.favorite_count, a.password, c.article_categories, p.article_categories, a.alias,
                  a.create_time, a.status
     </select>
 
@@ -73,16 +78,21 @@
             a.favorite_count,
             a.password,
             GROUP_CONCAT(atr.article_tag) as tag,
-            a.category,
+            CASE 
+                WHEN p.article_categories IS NULL THEN c.article_categories
+                ELSE CONCAT(p.article_categories, '/', c.article_categories)
+            END AS category,
             a.alias,
             a.create_time,
             a.status
         FROM article a
                  LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
+                 LEFT JOIN article_categories c ON a.category_id = c.id
+                 LEFT JOIN article_categories p ON c.parent_id = p.id
         WHERE a.alias = #{alias} AND a.status = 1
         GROUP BY a.id, a.uuid, a.article_id, a.article_name, a.article_cover,
                  a.excerpt, a.article_content, a.page_views, a.like_count,
-                 a.favorite_count, a.password, a.category, a.alias,
+                 a.favorite_count, a.password, c.article_categories, p.article_categories, a.alias,
                  a.create_time, a.status
     </select>
 

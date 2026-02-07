@@ -14,16 +14,21 @@
             a.excerpt,
             a.create_time,
             t.tag,
-            a.category,
+            CASE 
+                WHEN p.article_categories IS NULL THEN c.article_categories
+                ELSE CONCAT(p.article_categories, '/', c.article_categories)
+            END AS category,
             a.status
         FROM (
-                 SELECT article_id
+                 SELECT article_id, category_id
                  FROM article
                  WHERE status = 3
                  ORDER BY create_time DESC
                  LIMIT #{offset}, #{size}
              ) page
                  JOIN article a ON page.article_id = a.article_id
+                 LEFT JOIN article_categories c ON a.category_id = c.id
+                 LEFT JOIN article_categories p ON c.parent_id = p.id
                  LEFT JOIN (
             SELECT article_id, GROUP_CONCAT(article_tag) AS tag
             FROM article_tag_relation
@@ -70,16 +75,21 @@
             a.excerpt,
             a.create_time,
             t.tag,
-            a.category,
+            CASE 
+                WHEN p.article_categories IS NULL THEN c.article_categories
+                ELSE CONCAT(p.article_categories, '/', c.article_categories)
+            END AS category,
             a.status
         FROM (
-                 SELECT article_id
+                 SELECT article_id, category_id
                  FROM article
                  WHERE status IN (1, 2, 3, 4)
                  ORDER BY create_time DESC
                  LIMIT #{offset}, #{size}
              ) page
                  JOIN article a ON page.article_id = a.article_id
+                 LEFT JOIN article_categories c ON a.category_id = c.id
+                 LEFT JOIN article_categories p ON c.parent_id = p.id
                  LEFT JOIN (
             SELECT article_id, GROUP_CONCAT(article_tag) AS tag
             FROM article_tag_relation

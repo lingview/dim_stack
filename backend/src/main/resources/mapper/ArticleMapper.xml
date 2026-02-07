@@ -28,21 +28,26 @@
         a.article_cover AS image,
         a.create_time AS date,
         u.username AS author,
-        a.category,
+        CASE 
+                WHEN p.article_categories IS NULL THEN c.article_categories
+                ELSE CONCAT(p.article_categories, '/', c.article_categories)
+            END AS category,
         a.alias,
         t.tag
         FROM (
-        SELECT id
+        SELECT id, category_id
         FROM article
         WHERE status = 1
         <if test="category != null and category != ''">
-            AND category = #{category}
+            AND category_id = (SELECT id FROM article_categories WHERE article_categories = #{category})
         </if>
         ORDER BY create_time DESC
         LIMIT #{param1}, #{param2}
         ) page
         JOIN article a ON page.id = a.id
         JOIN user_information u ON a.uuid = u.uuid
+        LEFT JOIN article_categories c ON a.category_id = c.id
+        LEFT JOIN article_categories p ON c.parent_id = p.id
         LEFT JOIN (
         SELECT article_id, GROUP_CONCAT(article_tag) AS tag
         FROM article_tag_relation
@@ -58,7 +63,7 @@
         FROM article a
         WHERE a.status = 1
         <if test="category != null and category != ''">
-            AND a.category = #{category}
+            AND a.category_id = (SELECT id FROM article_categories WHERE article_categories = #{category})
         </if>
     </select>
 

@@ -105,7 +105,10 @@
             a.article_cover AS image,
             a.create_time AS date,
             u.username AS author,
-            a.category,
+            CASE 
+                WHEN p.article_categories IS NULL THEN c.article_categories
+                ELSE CONCAT(p.article_categories, '/', c.article_categories)
+            END AS category,
             tags.tag_list AS tag,
             a.alias
         FROM (
@@ -115,6 +118,8 @@
              ) atr
                  INNER JOIN article a ON atr.article_id = a.article_id
                  INNER JOIN user_information u ON a.uuid = u.uuid
+                 LEFT JOIN article_categories c ON a.category_id = c.id
+                 LEFT JOIN article_categories p ON c.parent_id = p.id
                  INNER JOIN (
             SELECT article_id, GROUP_CONCAT(article_tag) AS tag_list
             FROM article_tag_relation
