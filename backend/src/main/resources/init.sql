@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 31/01/2026 11:39:23
+ Date: 07/02/2026 11:22:55
 */
 
 SET NAMES utf8mb4;
@@ -33,7 +33,7 @@ CREATE TABLE `article`  (
                             `like_count` bigint NOT NULL DEFAULT 0 COMMENT '文章点赞数',
                             `favorite_count` bigint NOT NULL DEFAULT 0 COMMENT '文章收藏数',
                             `password` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '文章阅读密码',
-                            `category` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '文章分类',
+                            `category_id` int NOT NULL,
                             `alias` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '文章访问链接',
                             `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '文章创建时间',
                             `status` tinyint NOT NULL COMMENT '文章状态：0=删除, 1=正常, 2=未发布, 3=待审核，4违规',
@@ -41,21 +41,21 @@ CREATE TABLE `article`  (
                             UNIQUE INDEX `article_id`(`article_id` ASC) USING BTREE,
                             UNIQUE INDEX `alias`(`alias` ASC) USING BTREE,
                             INDEX `user_article_uuid`(`uuid` ASC) USING BTREE,
-                            INDEX `categories`(`category` ASC) USING BTREE,
                             INDEX `idx_article_status_ctime`(`status` ASC, `create_time` DESC) USING BTREE,
-                            INDEX `idx_article_status_category_ctime`(`status` ASC, `category` ASC, `create_time` DESC) USING BTREE,
-                            INDEX `idx_article_status_category_pageviews`(`status` ASC, `category` ASC, `page_views` DESC) USING BTREE,
+                            INDEX `idx_article_status_category_ctime`(`status` ASC, `create_time` DESC) USING BTREE,
+                            INDEX `idx_article_status_category_pageviews`(`status` ASC, `page_views` DESC) USING BTREE,
+                            INDEX `fk_article_category_id`(`category_id` ASC) USING BTREE,
                             FULLTEXT INDEX `idx_fulltext_cn`(`article_name`, `excerpt`) WITH PARSER `ngram`,
                             FULLTEXT INDEX `idx_fulltext_en`(`article_name`, `excerpt`),
-                            CONSTRAINT `categories` FOREIGN KEY (`category`) REFERENCES `article_categories` (`article_categories`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+                            CONSTRAINT `fk_article_category_id` FOREIGN KEY (`category_id`) REFERENCES `article_categories` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
                             CONSTRAINT `fk_article_user` FOREIGN KEY (`uuid`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COMMENT = '文章上传记录表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of article
 -- ----------------------------
-INSERT INTO `article` VALUES (1, '075eb86f721743e3940f35869154a140175689381296899805858', 'a1d3112d-fd8e-4484-9c3c-bad24a9e2019', '关于', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/Image_2756849649102.jpg?sign=nkverrmGB28h2DgiXlGIZBlzD2WMVByK7hNn9zwAJI4=:0', '关于本项目', '# 关于次元栈\n## 🌟 项目简介\n**次元栈** 基于SpringBoot的的现代化博客系统\n\n平台核心功能：\n\n+ 📝 文章发布与内容管理（CMS）\n+ 💬 用户互动：评论、点赞、收藏\n+ 🔖 标签分类：支持跨圈层内容组织\n+ 👥 用户系统：注册、登录、个人主页、权限管理、文章发布管理系统......\n+ 🔍 内容搜索与推荐\n+ 📱 响应式前端，支持移动端浏览\n......\n---\n\n## 🛠 技术栈\n\n| 层级       | 技术选型                                                         |\n|------------|--------------------------------------------------------------|\n| **后端**   | Java 17+, Spring Boot 4, Mybatis, MySQL, Redis, Cookie      |\n| **前端**   | React 19, JavaScript, Vite, Axios, Tailwind CSS              |\n| **构建**   | Maven (后端), npm/pnpm (前端)                                    |\n| **部署**   | Docker, Nginx, Linux, Windows                                |\n---\n\n', 0, 0, 0, '', '默认分类', 'about', '2025-09-13 12:42:47', 1);
-INSERT INTO `article` VALUES (2, '075eb86f721743e3940f35869154a140175689381296899805858', '3cb9d2eb-bd24-486e-bb56-c6dc9332b4f1', '致谢', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/e5f2f1fe4bfceeb32e88217577732c04.jpg?sign=IA5DnGzWtBhEhYM5e9je4Xx3CqZOMngUd_D4TdLt2X4=:0', '感谢对本项目提供帮助的个人、组织与项目', '# 致谢\n\n在此，我们衷心感谢以下为本项目提供帮助、支持或灵感的个人和组织：\n\n## 贡献者\n感谢所有参与本项目的贡献者（按字母顺序排列）：\n- [@bytegeek](https://github.com/xrb114) - 渗透测试\n- [@Denghls](https://github.com/Denghls) - 需求分析\n- [@hanbingniao](https://github.com/hanbingniao) - 系统测试\n- [@kongcangyimama](https://github.com/kongcangyimama) - 主题设计\n- [@lingview](https://github.com/lingview) - 系统开发\n- [@q1uf3ng](https://github.com/q1uf3ng) - 渗透测试\n- [@YeFeng0712](https://github.com/YeFeng0712) - 需求分析\n- [@yukifia](https://github.com/yukifia) - 需求分析\n\n---\n\n## 💡 特别感谢\n- 感谢所有为本项目贡献代码、提出问题和提供反馈的开发者。  \n- 感谢开源社区持续的支持与贡献。  \n\n---\n\n注：如果你在本项目中做出了贡献，请提交 PR 将你的名字加入到致谢名单中！  \n', 0, 0, 0, '', '默认分类', 'thanks', '2025-09-14 11:26:52', 1);
+INSERT INTO `article` VALUES (1, '075eb86f721743e3940f35869154a140175689381296899805858', 'a1d3112d-fd8e-4484-9c3c-bad24a9e2019', '关于', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/Image_2756849649102.jpg?sign=nkverrmGB28h2DgiXlGIZBlzD2WMVByK7hNn9zwAJI4=:0', '关于本项目', '# 关于次元栈\n## 🌟 项目简介\n**次元栈** 基于SpringBoot的的现代化博客系统\n\n平台核心功能：\n\n+ 📝 文章发布与内容管理（CMS）\n+ 💬 用户互动：评论、点赞、收藏\n+ 🔖 标签分类：支持跨圈层内容组织\n+ 👥 用户系统：注册、登录、个人主页、权限管理、文章发布管理系统......\n+ 🔍 内容搜索与推荐\n+ 📱 响应式前端，支持移动端浏览\n......\n---\n\n## 🛠 技术栈\n\n| 层级       | 技术选型                                                         |\n|------------|--------------------------------------------------------------|\n| **后端**   | Java 17+, Spring Boot 4, Mybatis, MySQL, Redis, Cookie      |\n| **前端**   | React 19, JavaScript, Vite, Axios, Tailwind CSS              |\n| **构建**   | Maven (后端), npm/pnpm (前端)                                    |\n| **部署**   | Docker, Nginx, Linux, Windows                                |\n---\n\n', 0, 0, 0, '', 1, 'about', '2025-09-13 12:42:47', 1);
+INSERT INTO `article` VALUES (2, '075eb86f721743e3940f35869154a140175689381296899805858', '3cb9d2eb-bd24-486e-bb56-c6dc9332b4f1', '致谢', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/e5f2f1fe4bfceeb32e88217577732c04.jpg?sign=IA5DnGzWtBhEhYM5e9je4Xx3CqZOMngUd_D4TdLt2X4=:0', '感谢对本项目提供帮助的个人、组织与项目', '# 致谢\n\n在此，我们衷心感谢以下为本项目提供帮助、支持或灵感的个人和组织：\n\n## 贡献者\n感谢所有参与本项目的贡献者（按字母顺序排列）：\n- [@bytegeek](https://github.com/xrb114) - 渗透测试\n- [@Denghls](https://github.com/Denghls) - 需求分析\n- [@hanbingniao](https://github.com/hanbingniao) - 系统测试\n- [@kongcangyimama](https://github.com/kongcangyimama) - 主题设计\n- [@lingview](https://github.com/lingview) - 系统开发\n- [@q1uf3ng](https://github.com/q1uf3ng) - 渗透测试\n- [@YeFeng0712](https://github.com/YeFeng0712) - 需求分析\n- [@yukifia](https://github.com/yukifia) - 需求分析\n\n---\n\n## 💡 特别感谢\n- 感谢所有为本项目贡献代码、提出问题和提供反馈的开发者。  \n- 感谢开源社区持续的支持与贡献。  \n\n---\n\n注：如果你在本项目中做出了贡献，请提交 PR 将你的名字加入到致谢名单中！  \n', 0, 0, 0, '', 1, 'thanks', '2025-09-14 11:26:52', 1);
 
 -- ----------------------------
 -- Table structure for article_categories
@@ -63,6 +63,7 @@ INSERT INTO `article` VALUES (2, '075eb86f721743e3940f35869154a14017568938129689
 DROP TABLE IF EXISTS `article_categories`;
 CREATE TABLE `article_categories`  (
                                        `id` int NOT NULL AUTO_INCREMENT,
+                                       `parent_id` int NULL DEFAULT NULL COMMENT '父分类ID，NULL 表示顶级分类',
                                        `article_categories` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '分类名称',
                                        `categories_explain` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '分类说明',
                                        `founder` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '创建人',
@@ -70,16 +71,18 @@ CREATE TABLE `article_categories`  (
                                        `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '创建时间',
                                        `status` int NOT NULL COMMENT '分类状态：0=禁用, 1=启用',
                                        PRIMARY KEY (`id`) USING BTREE,
-                                       UNIQUE INDEX `article_categories`(`article_categories` ASC) USING BTREE,
+                                       UNIQUE INDEX `uk_category_name_parent`(`article_categories` ASC, `parent_id` ASC) USING BTREE,
+                                       INDEX `idx_parent_id`(`parent_id` ASC) USING BTREE,
                                        INDEX `categories_founder`(`founder` ASC) USING BTREE,
-                                       CONSTRAINT `categories_founder` FOREIGN KEY (`founder`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE SET NULL
+                                       CONSTRAINT `categories_founder_new` FOREIGN KEY (`founder`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE SET NULL,
+                                       CONSTRAINT `fk_parent_category` FOREIGN KEY (`parent_id`) REFERENCES `article_categories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of article_categories
 -- ----------------------------
-INSERT INTO `article_categories` VALUES (1, '默认分类', '默认分类', '075eb86f721743e3940f35869154a140175689381296899805858', 2, '2025-09-13 13:35:57', 1);
-INSERT INTO `article_categories` VALUES (2, '接口文档', '接口文档', '075eb86f721743e3940f35869154a140175689381296899805858', 0, '2026-01-31 11:35:39', 0);
+INSERT INTO `article_categories` VALUES (1, NULL, '默认分类', '默认分类', '075eb86f721743e3940f35869154a140175689381296899805858', 2, '2025-09-13 13:35:57', 1);
+INSERT INTO `article_categories` VALUES (2, NULL, '接口文档', '接口文档', '075eb86f721743e3940f35869154a140175689381296899805858', 0, '2026-01-31 11:35:39', 0);
 
 -- ----------------------------
 -- Table structure for article_like
