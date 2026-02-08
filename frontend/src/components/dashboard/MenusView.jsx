@@ -250,20 +250,20 @@ export default function MenusView() {
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  排序序号 *
-                </label>
-                <input
-                  type="number"
-                  name="sort_order"
-                  value={formData.sort_order}
-                  onChange={handleFormChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                  min="0"
-                />
-              </div>
+              {/*<div>*/}
+              {/*  <label className="block text-sm font-medium text-gray-700 mb-1">*/}
+              {/*    排序序号 **/}
+              {/*  </label>*/}
+              {/*  <input*/}
+              {/*    type="number"*/}
+              {/*    name="sort_order"*/}
+              {/*    value={formData.sort_order}*/}
+              {/*    onChange={handleFormChange}*/}
+              {/*    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"*/}
+              {/*    required*/}
+              {/*    min="0"*/}
+              {/*  />*/}
+              {/*</div>*/}
             </div>
             <div className="flex justify-end space-x-3">
               <button
