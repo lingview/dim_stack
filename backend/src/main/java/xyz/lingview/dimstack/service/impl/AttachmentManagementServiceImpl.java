@@ -234,4 +234,44 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
         AttachmentManagement attachment = attachmentManagementMapper.selectByAttachmentId(attachmentId);
         return attachment != null ? attachment.getUuid() : null;
     }
+    
+    @Override
+    public int cleanupExpiredDeletedAttachments() {
+        List<AttachmentManagement> expiredAttachments = attachmentManagementMapper.selectExpiredDeletedAttachments();
+        
+        int cleanedCount = 0;
+        
+        for (AttachmentManagement attachment : expiredAttachments) {
+            try {
+                String filePath = attachment.getAttachment_path();
+                System.out.println("路径"+filePath);
+                boolean fileDeleted = deletePhysicalFile(filePath);
+                
+                if (fileDeleted) {
+                    int result = attachmentManagementMapper.physicallyDeleteAttachment(attachment.getAttachment_id());
+                    if (result > 0) {
+                        cleanedCount++;
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("清理附件失败: " + attachment.getAttachment_id() + ", 错误: " + e.getMessage());
+            }
+        }
+        
+        return cleanedCount;
+    }
+
+    private boolean deletePhysicalFile(String filePath) {
+
+        try {
+            java.io.File file = new java.io.File(filePath);
+            if (file.exists()) {
+                return file.delete();
+            }
+            return true;
+        } catch (Exception e) {
+            System.err.println("物理删除文件失败: " + filePath + ", 错误: " + e.getMessage());
+            return false;
+        }
+    }
 }

@@ -34,4 +34,6 @@ public interface AttachmentManagementService {
     boolean restoreAttachment(String attachmentId);
 
     String getAttachmentOwnerUuid(String attachmentId);
+
+    int cleanupExpiredDeletedAttachments();
 }

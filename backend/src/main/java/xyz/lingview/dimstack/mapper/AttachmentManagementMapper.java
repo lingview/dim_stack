@@ -81,4 +81,10 @@ public interface AttachmentManagementMapper {
     
     // 根据用户UUID查询已删除附件总数（6小时内）
     int countDeletedOnlyByUserUuid(@Param("userUuid") String userUuid);
+    
+    // 查询删除超过6小时的附件
+    List<AttachmentManagement> selectExpiredDeletedAttachments();
+    
+    // 物理删除附件记录（将状态改为2）
+    int physicallyDeleteAttachment(@Param("attachmentId") String attachmentId);
 }

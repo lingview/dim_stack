@@ -160,7 +160,7 @@ CREATE TABLE `attachment`  (
                                `access_key` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '文件访问键',
                                `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间',
                                `deleted_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
-                               `status` tinyint NOT NULL COMMENT '附件状态：0=删除, 1=正常',
+                               `status` tinyint NOT NULL COMMENT '附件状态：0=软删除, 1=正常, 2=物理文件已删除',
                                PRIMARY KEY (`id`) USING BTREE,
                                UNIQUE INDEX `attachment_id`(`attachment_id` ASC) USING BTREE,
                                UNIQUE INDEX `attachment_path`(`attachment_path` ASC) USING BTREE,

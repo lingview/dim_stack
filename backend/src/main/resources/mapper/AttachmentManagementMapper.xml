@@ -184,4 +184,18 @@
           AND uuid = #{userUuid}
     </select>
 
+    <select id="selectExpiredDeletedAttachments" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
+        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        FROM attachment a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.status = 0 AND TIMESTAMPDIFF(HOUR, a.deleted_time, NOW()) > 6
+        ORDER BY a.deleted_time ASC
+    </select>
+
+    <update id="physicallyDeleteAttachment">
+        UPDATE attachment
+        SET status = 2
+        WHERE attachment_id = #{attachmentId}
+    </update>
+
 </mapper>
