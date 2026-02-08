@@ -44,10 +44,10 @@
           AND uuid = #{uuid}
     </select>
 
-    <update id="deleteByUuid">
+    <update id="deleteByAttachmentId">
         UPDATE attachment
         SET status = 0, deleted_time = #{deletedTime}
-        WHERE attachment_id = #{uuid}
+        WHERE attachment_id = #{attachmentId}
     </update>
 
     <select id="selectByAttachmentId" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">

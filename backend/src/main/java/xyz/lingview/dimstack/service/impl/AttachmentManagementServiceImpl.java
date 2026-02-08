@@ -219,7 +219,7 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
     @Override
     public boolean deleteAttachment(String attachmentId) {
         LocalDateTime deletedTime = LocalDateTime.now();
-        int result = attachmentManagementMapper.deleteByUuid(attachmentId, deletedTime);
+        int result = attachmentManagementMapper.deleteByAttachmentId(attachmentId, deletedTime);
         return result > 0;
     }
     

@@ -159,8 +159,6 @@ public class AttachmentManagementController {
             @PathVariable String attachmentId) {
 
         boolean success = attachmentManagementService.deleteAttachment(attachmentId);
-        System.out.println("Deleting attachment ID: " + attachmentId);
-        System.out.println("Delete result: " + success);
 
         if (success) {
             return ApiResponse.success("删除成功");

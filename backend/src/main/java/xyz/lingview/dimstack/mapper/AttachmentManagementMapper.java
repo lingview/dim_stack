@@ -26,7 +26,7 @@ public interface AttachmentManagementMapper {
     int countAll();
 
     // 删除附件
-    int deleteByUuid(@Param("uuid") String uuid, @Param("deletedTime") LocalDateTime deletedTime);
+    int deleteByAttachmentId(@Param("attachmentId") String attachmentId, @Param("deletedTime") LocalDateTime deletedTime);
 
     // 基于UUID分页查询附件列表
     List<AttachmentManagement> selectPageByUuid(@Param("uuid") String uuid, @Param("offset") int offset, @Param("limit") int limit);
