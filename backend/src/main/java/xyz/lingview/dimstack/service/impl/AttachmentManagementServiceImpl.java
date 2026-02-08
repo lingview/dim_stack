@@ -1,12 +1,16 @@
 package xyz.lingview.dimstack.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.AttachmentManagement;
 import xyz.lingview.dimstack.mapper.AttachmentManagementMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.AttachmentManagementService;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +23,7 @@ import java.util.Map;
  * @Version: 1.0
  */
 @Service
+@Slf4j
 public class AttachmentManagementServiceImpl implements AttachmentManagementService {
     
     @Autowired
@@ -26,6 +31,9 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
     
     @Autowired
     private UserInformationMapper userInformationMapper;
+    
+    @Value("${file.data-root:.}")
+    private String dataRoot;
     
     @Override
     public Map<String, Object> getPage(int page, int size) {
@@ -244,33 +252,64 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
         for (AttachmentManagement attachment : expiredAttachments) {
             try {
                 String filePath = attachment.getAttachment_path();
-                System.out.println("路径"+filePath);
+                log.debug("准备清理过期附件: {}", filePath);
+                
                 boolean fileDeleted = deletePhysicalFile(filePath);
                 
                 if (fileDeleted) {
                     int result = attachmentManagementMapper.physicallyDeleteAttachment(attachment.getAttachment_id());
                     if (result > 0) {
                         cleanedCount++;
+                        log.info("成功清理过期附件: {}", attachment.getAttachment_id());
                     }
                 }
             } catch (Exception e) {
-                System.err.println("清理附件失败: " + attachment.getAttachment_id() + ", 错误: " + e.getMessage());
+                log.error("清理附件失败: {}, 错误: {}", attachment.getAttachment_id(), e.getMessage(), e);
             }
         }
         
+        log.info("附件清理任务完成，共清理 {} 个附件", cleanedCount);
         return cleanedCount;
     }
 
     private boolean deletePhysicalFile(String filePath) {
-
         try {
-            java.io.File file = new java.io.File(filePath);
-            if (file.exists()) {
-                return file.delete();
+            String normalizedPath = filePath.replace('\\', '/');
+            log.debug("原始路径: {}, 标准化后: {}", filePath, normalizedPath);
+
+            Path fullPath = Path.of(dataRoot, normalizedPath).toAbsolutePath().normalize();
+
+            Path allowedRoot = Path.of(dataRoot, "upload").toAbsolutePath().normalize();
+            if (!fullPath.startsWith(allowedRoot)) {
+                log.error("检测到非法文件删除请求，路径超出允许范围: {}", filePath);
+                return false;
             }
-            return true;
+
+            File file = fullPath.toFile();
+            log.debug("完整文件路径: {}", fullPath);
+            
+            if (file.exists() && file.isFile()) {
+                if (!file.canWrite()) {
+                    log.warn("文件没有写权限，无法删除: {}", fullPath);
+                    return false;
+                }
+                
+                boolean deleted = file.delete();
+                if (deleted) {
+                    log.info("成功删除文件: {}", fullPath);
+                } else {
+                    log.warn("文件删除失败: {}", fullPath);
+                }
+                return deleted;
+            } else if (!file.exists()) {
+                log.warn("文件不存在，可能已被删除: {}", fullPath);
+                return true;
+            } else {
+                log.warn("路径不是普通文件，跳过删除: {}", fullPath);
+                return false;
+            }
         } catch (Exception e) {
-            System.err.println("物理删除文件失败: " + filePath + ", 错误: " + e.getMessage());
+            log.error("物理删除文件时发生错误，路径: {}", filePath, e);
             return false;
         }
     }
