@@ -166,18 +166,37 @@ export default function UpdateManager() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-          <h3 className="font-semibold text-blue-800 mb-2">当前版本</h3>
-          <p className="text-lg font-mono">{currentVersion || '未知'}</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 version-grid">
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 version-card version-current">
+          <h3 className="font-semibold text-blue-800 mb-2 version-title">
+            当前版本
+          </h3>
+          <p className="text-lg font-mono version-value">
+            {currentVersion || '未知'}
+          </p>
         </div>
-        <div className={`p-4 rounded-lg border ${hasUpdate ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
-          <h3 className="font-semibold mb-2">最新版本</h3>
-          <p className={`text-lg font-mono ${hasUpdate ? 'text-green-800' : 'text-gray-600'}`}>
+
+        <div
+            className={`
+      p-4 rounded-lg border
+      version-card version-latest
+      ${hasUpdate ? 'bg-green-50 border-green-200 has-update' : 'bg-gray-50 border-gray-200 no-update'}
+    `}
+        >
+          <h3 className="font-semibold mb-2 version-title">
+            最新版本
+          </h3>
+          <p
+              className={`
+        text-lg font-mono version-value
+        ${hasUpdate ? 'text-green-800' : 'text-gray-600'}
+      `}
+          >
             {newVersion || '尚未检查'}
           </p>
         </div>
       </div>
+
 
       <div className="mb-6 space-y-4">
         <button
@@ -233,21 +252,44 @@ export default function UpdateManager() {
       </div>
 
       {updateInfo && hasUpdate && (
-        <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
-          <h3 className="font-semibold mb-2">更新详情</h3>
-          <div className="space-y-2 text-sm">
-            <p><span className="font-medium">版本:</span> v{updateInfo.version}</p>
-            <p><span className="font-medium">发布日期:</span> {updateInfo.releaseDate}</p>
-            <p><span className="font-medium">更新日志:</span></p>
-            <p className="whitespace-pre-line ml-2">{updateInfo.changelog}</p>
-            {updateInfo.requiredDatabaseMigration && (
-              <p className="text-orange-600 font-medium">注：此更新包含数据库迁移，请注意备份数据</p>
-            )}
-            {updateInfo.backupRecommended && (
-              <p className="text-orange-600 font-medium">注：强烈建议在更新前备份数据</p>
-            )}
+          <div className="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200 update-detail-card">
+            <h3 className="font-semibold mb-2 update-detail-title">
+              更新详情
+            </h3>
+
+            <div className="space-y-2 text-sm update-detail-body">
+              <p className="update-detail-item">
+                <span className="font-medium update-detail-label">版本:</span>
+                <span className="update-detail-value"> v{updateInfo.version}</span>
+              </p>
+
+              <p className="update-detail-item">
+                <span className="font-medium update-detail-label">发布日期:</span>
+                <span className="update-detail-value"> {updateInfo.releaseDate}</span>
+              </p>
+
+              <p className="update-detail-item">
+                <span className="font-medium update-detail-label">更新日志:</span>
+              </p>
+
+              <p className="whitespace-pre-line ml-2 update-detail-changelog">
+                {updateInfo.changelog}
+              </p>
+
+              {updateInfo.requiredDatabaseMigration && (
+                  <p className="update-warning update-warning-critical">
+                    注：此更新包含数据库迁移，请注意备份数据
+                  </p>
+              )}
+
+              {updateInfo.backupRecommended && (
+                  <p className="update-warning update-warning-recommend">
+                    注：强烈建议在更新前备份数据
+                  </p>
+              )}
+            </div>
           </div>
-        </div>
+
       )}
 
       {message && (
@@ -256,13 +298,16 @@ export default function UpdateManager() {
         </div>
       )}
 
-      <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <h3 className="font-semibold text-yellow-800 mb-2">注意事项</h3>
-        <ul className="list-disc pl-5 space-y-1 text-sm text-yellow-700">
-          <li>更新前请务必备份重要数据</li>
-          <li>更新过程中请勿关闭应用</li>
-          <li>更新完成后需要重启应用才能生效</li>
-          <li>如遇到问题，请联系技术支持</li>
+      <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg notice-card">
+        <h3 className="font-semibold text-yellow-800 mb-2 notice-title">
+          注意事项
+        </h3>
+
+        <ul className="list-disc pl-5 space-y-1 text-sm text-yellow-700 notice-list">
+          <li className="notice-item">更新前请务必备份重要数据</li>
+          <li className="notice-item">更新过程中请勿关闭应用</li>
+          <li className="notice-item">更新完成后需要重启应用才能生效</li>
+          <li className="notice-item">如遇到问题，请联系技术支持</li>
         </ul>
       </div>
     </div>

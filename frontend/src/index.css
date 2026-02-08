@@ -708,3 +708,90 @@
 .dark .toolbar-btn {
   color: #ffffff;
 }
+
+/*更新模块*/
+.dark .version-card {
+  background-color: #0f172a;
+  border-color: #1f2937;
+}
+
+.dark .version-current {
+  background-color: #0b1220;
+  border-color: #1e3a8a;
+}
+
+.dark .version-latest.has-update {
+  background-color: #0b1220;
+  border-color: #1e40af;
+}
+
+.dark .version-latest.no-update {
+  background-color: #111827;
+  border-color: #1f2937;
+}
+
+.dark .version-title {
+  color: #e5e7eb;
+}
+
+.dark .version-value {
+  color: #cbd5f5;
+}
+
+.dark .version-latest.no-update .version-value {
+  color: #9ca3af;
+}
+
+.dark .update-detail-card {
+  background-color: #111827;
+  border-color: #1f2937;
+}
+
+.dark .update-detail-title {
+  color: #e5e7eb;
+}
+
+.dark .update-detail-body {
+  color: #cbd5f5;
+}
+
+.dark .update-detail-label {
+  color: #e5e7eb;
+}
+
+.dark .update-detail-value {
+  color: #cbd5f5;
+}
+
+.dark .update-detail-changelog {
+  color: #a5b4fc;
+}
+
+.dark .update-warning {
+  font-weight: 500;
+}
+
+.dark .update-warning-critical {
+  color: #f59e0b;
+}
+
+.dark .update-warning-recommend {
+  color: #fbbf24;
+}
+
+.dark .notice-card {
+  background-color: #1f1a0f;
+  border-color: #3f2f14;
+}
+
+.dark .notice-title {
+  color: #fde68a;
+}
+
+.dark .notice-list {
+  color: #fcd34d;
+}
+
+.dark .notice-item {
+  color: #fde68a;
+}
