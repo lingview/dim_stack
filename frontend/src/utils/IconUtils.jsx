@@ -3,7 +3,7 @@ import {
     Palette, Plug, UserPlus, RefreshCcw, BarChart2, Book,
     Settings, Wrench, Image, Link as LinkIcon, Clipboard, Users,
     Database, ShoppingCart, Package, CheckSquare, List,
-    Tags, Folder
+    Tags, Folder, Paperclip
 } from 'lucide-react';
 
 export function getIcon(iconName) {
@@ -40,6 +40,7 @@ export function getIcon(iconName) {
         case 'update': return <RefreshCcw className="w-5 h-5" />;
         case 'tag': return <Tags className="w-5 h-5" />;
         case 'category': return <Folder className="w-5 h-5" />;
+        case 'attachment': return <Paperclip className="w-5 h-5" />;
         default: return <File className="w-5 h-5" />;
     }
 }
@@ -77,6 +78,7 @@ export function getIconColor(iconName) {
         case 'info': return 'bg-blue-500';
         case 'tag': return 'bg-yellow-500';
         case 'category': return 'bg-purple-500';
+        case 'attachment': return 'bg-blue-500';
         default: return 'bg-gray-500';
     }
 }

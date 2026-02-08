@@ -15,6 +15,9 @@ public interface UserService {
 
     String getUserUUID(String username);
 
+    // 获取所有非删除用户列表
+    List<UserDTO> getAllEnableUsers();
+
     // 获取所有用户列表
     List<UserDTO> getAllUsers();
 

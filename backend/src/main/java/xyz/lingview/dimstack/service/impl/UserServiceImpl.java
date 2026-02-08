@@ -117,9 +117,15 @@ public class UserServiceImpl implements UserService {
 
     // 后台用户管理
     @Override
+    public List<UserDTO> getAllEnableUsers() {
+        return userInformationMapper.selectAllEnableUsers();
+    }
+
+    @Override
     public List<UserDTO> getAllUsers() {
         return userInformationMapper.selectAllUsers();
     }
+
 
     @Override
     public UserDTO getUserById(Integer id) {

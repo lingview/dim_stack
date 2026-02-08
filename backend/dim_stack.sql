@@ -288,7 +288,8 @@ INSERT INTO `dashboard_menu` VALUES (104, '用户', 'users', '/dashboard/users',
 INSERT INTO `dashboard_menu` VALUES (105, '标签管理', 'tag', '/dashboard/tags', 3, 'system:edit', 40, '2025-09-13 11:12:42', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (106, '分类管理', 'category', '/dashboard/categories', 3, 'system:edit', 40, '2025-09-13 11:12:42', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (107, '友链管理', 'link', '/dashboard/friendlinks', 3, 'system:edit', 45, '2025-12-04 21:42:15', 'sidebar');
-
+INSERT INTO `dashboard_menu` VALUES (108, '全局附件管理', 'attachment', '/dashboard/global-attachments', 3, 'system:edit', 46, '2026-02-08 20:50:15', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (109, '我的附件', 'upload', '/dashboard/my-attachments', 3, NULL, 47, '2026-02-08 20:50:19', 'sidebar');
 -- ----------------------------
 -- Table structure for friend_links
 -- ----------------------------

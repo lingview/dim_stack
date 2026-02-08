@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xyz.lingview.dimstack.mapper.AttachmentManagementMapper">
+
+    <select id="selectByUuid" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
+        SELECT a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        FROM attachment a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.status = 1
+          AND a.uuid = #{uuid}
+    </select>
+
+    <select id="selectPage" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
+        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        FROM attachment a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.status = 1
+        ORDER BY a.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*)
+        FROM attachment
+        WHERE status = 1
+    </select>
+
+    <select id="selectPageByUuid" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
+        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        FROM attachment a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.status = 1
+          AND a.uuid = #{uuid}
+        ORDER BY a.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByUuid" resultType="int">
+        SELECT COUNT(*)
+        FROM attachment
+        WHERE status = 1
+          AND uuid = #{uuid}
+    </select>
+
+    <update id="deleteByUuid">
+        UPDATE attachment
+        SET status = 0, deleted_time = #{deletedTime}
+        WHERE attachment_id = #{uuid}
+    </update>
+
+    <select id="selectByAttachmentId" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
+        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        FROM attachment a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.attachment_id = #{attachmentId}
+    </select>
+
+    <update id="restoreAttachment">
+        UPDATE attachment
+        SET status = 1, deleted_time = NULL
+        WHERE attachment_id = #{attachmentId}
+    </update>
+
+    <select id="selectAllPageWithRecentDeleted" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
+        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        FROM attachment a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.status = 1 
+           OR (a.status = 0 AND a.deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR))
+        ORDER BY a.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAllWithRecentDeleted" resultType="int">
+        SELECT COUNT(*)
+        FROM attachment
+        WHERE status = 1 
+           OR (status = 0 AND deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR))
+    </select>
+
+    <select id="selectDeletedOnlyPage" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
+        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        FROM attachment a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.status = 0 AND a.deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR)
+        ORDER BY a.deleted_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countDeletedOnly" resultType="int">
+        SELECT COUNT(*)
+        FROM attachment
+        WHERE status = 0 AND deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR)
+    </select>
+
+    <select id="selectPageByUuidWithRecentDeleted" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
+        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        FROM attachment a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE (a.status = 1 OR (a.status = 0 AND a.deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR)))
+          AND a.uuid = #{uuid}
+        ORDER BY a.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByUuidWithRecentDeleted" resultType="int">
+        SELECT COUNT(*)
+        FROM attachment
+        WHERE (status = 1 OR (status = 0 AND deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR)))
+          AND uuid = #{uuid}
+    </select>
+
+    <select id="selectDeletedOnlyPageByUuid" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
+        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        FROM attachment a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.status = 0 AND a.deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR)
+          AND a.uuid = #{uuid}
+        ORDER BY a.deleted_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countDeletedOnlyByUuid" resultType="int">
+        SELECT COUNT(*)
+        FROM attachment
+        WHERE status = 0 AND deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR)
+          AND uuid = #{uuid}
+    </select>
+    
+    <!-- 用户筛选相关方法 -->
+    
+    <select id="selectPageByUserUuid" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
+        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        FROM attachment a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.status = 1
+          AND a.uuid = #{userUuid}
+        ORDER BY a.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <select id="countByUserUuid" resultType="int">
+        SELECT COUNT(*)
+        FROM attachment
+        WHERE status = 1
+          AND uuid = #{userUuid}
+    </select>
+    
+    <select id="selectPageByUserUuidWithDeleted" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
+        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        FROM attachment a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE (a.status = 1 OR (a.status = 0 AND a.deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR)))
+          AND a.uuid = #{userUuid}
+        ORDER BY a.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <select id="countByUserUuidWithDeleted" resultType="int">
+        SELECT COUNT(*)
+        FROM attachment
+        WHERE (status = 1 OR (status = 0 AND deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR)))
+          AND uuid = #{userUuid}
+    </select>
+    
+    <!-- 用户筛选相关方法 - 仅已删除 -->
+    
+    <select id="selectDeletedOnlyPageByUserUuid" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
+        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        FROM attachment a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.status = 0 AND a.deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR)
+          AND a.uuid = #{userUuid}
+        ORDER BY a.deleted_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <select id="countDeletedOnlyByUserUuid" resultType="int">
+        SELECT COUNT(*)
+        FROM attachment
+        WHERE status = 0 AND deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR)
+          AND uuid = #{userUuid}
+    </select>
+
+</mapper>

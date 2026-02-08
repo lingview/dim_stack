@@ -31,6 +31,8 @@ public interface UserInformationMapper {
 
     String getUsernameByArticleId(@Param("articleId") String articleId);
 
+    List<UserDTO> selectAllEnableUsers();
+
     List<UserDTO> selectAllUsers();
 
     UserDTO selectUserById(@Param("id") Integer id);

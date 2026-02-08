@@ -23,6 +23,8 @@ const CategoriesView = lazy(() => import('./CategoriesView'));
 const ThemesStoreView = lazy(() => import('./ThemesStoreView'));
 const FriendLinksManager = lazy(() => import('./FriendLinksManager'));
 const UpdateManager = lazy(() => import('./UpdateManager'));
+const GlobalAttachmentsManager = lazy(() => import('./GlobalAttachmentsManager'));
+const UserAttachmentsManager = lazy(() => import('./UserAttachmentsManager'));
 
 const FadeIn = ({ children, duration = 200 }) => {
     const [isVisible, setIsVisible] = useState(false);
@@ -461,6 +463,21 @@ export default function Dashboard() {
                             <Suspense fallback={<SimpleLoading />}>
                                 <FadeIn>
                                     <UpdateManager />
+                                </FadeIn>
+                            </Suspense>
+                        )}
+                        {activeTab === 'global-attachments' && (
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <GlobalAttachmentsManager />
+                                </FadeIn>
+                            </Suspense>
+                        )}
+
+                        {activeTab === 'my-attachments' && (
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <UserAttachmentsManager />
                                 </FadeIn>
                             </Suspense>
                         )}

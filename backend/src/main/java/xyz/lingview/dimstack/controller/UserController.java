@@ -83,6 +83,12 @@ public class UserController {
 
     @GetMapping("/list")
     @RequiresPermission("user:management")
+    public List<UserDTO> getUserEnableList() {
+        return userService.getAllEnableUsers();
+    }
+
+    @GetMapping("/listall")
+    @RequiresPermission("user:management")
     public List<UserDTO> getUserList() {
         return userService.getAllUsers();
     }
