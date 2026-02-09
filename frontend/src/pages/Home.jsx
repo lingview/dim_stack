@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Hero from '../components/Hero';
 import ArticleCard from '../components/ArticleCard';
@@ -28,8 +28,8 @@ export default function Home() {
 
     const articleListRef = useRef(null);
     const [searchParams] = useSearchParams();
+    const { tagName } = useParams();
     const categoryName = searchParams.get('name');
-    const tagName = searchParams.get('tag');
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -44,7 +44,7 @@ export default function Home() {
         loadArticlesFromUrl();
         loadCopyright();
         loadSiteRecords();
-    }, [location.search, page]);
+    }, [location.search, location.pathname, page, tagName]);
 
     useEffect(() => {
         localStorage.setItem('showImages', JSON.stringify(showImages));
