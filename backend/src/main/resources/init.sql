@@ -156,6 +156,7 @@ CREATE TABLE `attachment`  (
                                `id` int NOT NULL AUTO_INCREMENT COMMENT '上传顺序',
                                `uuid` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '用户唯一id',
                                `attachment_id` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '附件唯一id',
+                               `original_filename` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '原始文件名',
                                `attachment_path` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '附件路径',
                                `access_key` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '文件访问键',
                                `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间',

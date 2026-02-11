@@ -281,6 +281,7 @@ public class UploadServiceImpl implements UploadService {
         UploadAttachment uploadFile = new UploadAttachment();
         uploadFile.setUuid(userUUID);
         uploadFile.setAttachment_id(fileUUID);
+        uploadFile.setOriginal_filename(originalFilename);
         uploadFile.setAttachment_path(buildDatabasePath(username, "attachment", subFolder, fileName));
         uploadFile.setAccess_key(accessKey);
         int insertResult = uploadMapper.insertUploadAttachment(uploadFile);
@@ -529,6 +530,7 @@ public class UploadServiceImpl implements UploadService {
         UploadAttachment uploadFile = new UploadAttachment();
         uploadFile.setUuid(userUUID);
         uploadFile.setAttachment_id(fileUUID);
+        uploadFile.setOriginal_filename(filename);
         uploadFile.setAttachment_path(buildDatabasePath(username, "attachment", subFolder, newFileName));
         uploadFile.setAccess_key(accessKey);
 
@@ -747,6 +749,7 @@ public class UploadServiceImpl implements UploadService {
             UploadAttachment uploadFile = new UploadAttachment();
             uploadFile.setUuid(userUUID);
             uploadFile.setAttachment_id(fileUUID);
+            uploadFile.setOriginal_filename(originalFilename);
             uploadFile.setAttachment_path(buildDatabasePath(username, "avatar", fileName));
             uploadFile.setAccess_key(accessKey);
 
@@ -873,6 +876,7 @@ public class UploadServiceImpl implements UploadService {
             UploadAttachment uploadFile = new UploadAttachment();
             uploadFile.setUuid(targetUserUUID);
             uploadFile.setAttachment_id(fileUUID);
+            uploadFile.setOriginal_filename(originalFilename);
             uploadFile.setAttachment_path(buildDatabasePath(targetUsername, "avatar", fileName));
             uploadFile.setAccess_key(accessKey);
 

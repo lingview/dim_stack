@@ -148,7 +148,7 @@ const GlobalAttachmentsManager = () => {
         return getConfig().getFullUrl(`/file/${accessKey}`);
     };
 
-    const getFileName = (attachmentPath) => {
+    const getFilePath = (attachmentPath) => {
         if (!attachmentPath) return 'unknown';
         const lastSlashIndex = Math.max(
             attachmentPath.lastIndexOf('/'),
@@ -206,8 +206,8 @@ const GlobalAttachmentsManager = () => {
     const renderPreview = (attachment) => {
         const fileType = getFileType(attachment.attachment_path);
         const fileUrl = getFileUrl(attachment.access_key);
-        const fileName = getFileName(attachment.attachment_path);
-        const truncatedFileName = truncateText(fileName, 20);
+        const FilePath = getFilePath(attachment.attachment_path);
+        const truncatedFilePath = truncateText(FilePath, 20);
         const opacityClass = attachment.status === 0 ? 'opacity-50' : '';
 
         switch (fileType) {
@@ -216,7 +216,7 @@ const GlobalAttachmentsManager = () => {
                     <div className={`w-32 h-32 flex items-center justify-center bg-gray-100 rounded ${opacityClass}`}>
                         <img
                             src={fileUrl}
-                            alt={fileName}
+                            alt={FilePath}
                             className="max-w-full max-h-full object-contain rounded"
                             loading="lazy"
                             onError={(e) => {
@@ -249,25 +249,25 @@ const GlobalAttachmentsManager = () => {
 
             case 'pdf':
                 return (
-                    <div className={`flex items-center gap-2 p-2 bg-red-50 rounded ${opacityClass}`} title={fileName}>
-                        <FileText className="w-8 h-8 text-red-600 flex-shrink-0" />
-                        <span className="text-sm text-gray-700 truncate">{truncatedFileName}</span>
+                    <div className={`flex items-center gap-2 p-2 rounded ${opacityClass}`} title={FilePath}>
+                        <FileText className="w-8 h-8  flex-shrink-0" />
+                        <span className="text-sm text-gray-700 truncate">{truncatedFilePath}</span>
                     </div>
                 );
 
             case 'archive':
                 return (
-                    <div className={`flex items-center gap-2 p-2 bg-yellow-50 rounded ${opacityClass}`} title={fileName}>
-                        <FileArchive className="w-8 h-8 text-yellow-600 flex-shrink-0" />
-                        <span className="text-sm text-gray-700 truncate">{truncatedFileName}</span>
+                    <div className={`flex items-center gap-2 p-2 rounded ${opacityClass}`} title={FilePath}>
+                        <FileArchive className="w-8 h-8 flex-shrink-0" />
+                        <span className="text-sm text-gray-700 truncate">{truncatedFilePath}</span>
                     </div>
                 );
 
             default:
                 return (
-                    <div className={`flex items-center gap-2 p-2 bg-gray-50 rounded ${opacityClass}`} title={fileName}>
-                        <File className="w-8 h-8 text-gray-600 flex-shrink-0" />
-                        <span className="text-sm text-gray-700 truncate">{truncatedFileName}</span>
+                    <div className={`flex items-center gap-2 p-2 rounded ${opacityClass}`} title={FilePath}>
+                        <File className="w-8 h-8 flex-shrink-0" />
+                        <span className="text-sm text-gray-700 truncate">{truncatedFilePath}</span>
                     </div>
                 );
         }
@@ -356,6 +356,9 @@ const GlobalAttachmentsManager = () => {
                                         预览
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        原始文件名
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         文件类型
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -380,6 +383,12 @@ const GlobalAttachmentsManager = () => {
                                     <tr key={attachment.attachment_id || attachment.uuid} className="hover:bg-gray-50">
                                         <td className="px-6 py-4">
                                             {renderPreview(attachment)}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" title={attachment.original_filename || '未记录'}>
+                                            {attachment.original_filename 
+                                                ? truncateText(attachment.original_filename, 30)
+                                                : '未记录'
+                                            }
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">

@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class AttachmentManagement {
     private String uuid;
     private String attachment_id;
+    private String original_filename;
     private String attachment_path;
     private String access_key;
     private LocalDateTime create_time;

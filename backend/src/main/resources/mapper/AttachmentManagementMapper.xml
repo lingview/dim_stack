@@ -5,7 +5,7 @@
 <mapper namespace="xyz.lingview.dimstack.mapper.AttachmentManagementMapper">
 
     <select id="selectByUuid" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
-        SELECT a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        SELECT a.attachment_id, a.original_filename, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
         FROM attachment a
         JOIN user_information u ON a.uuid = u.uuid
         WHERE a.status = 1
@@ -13,7 +13,7 @@
     </select>
 
     <select id="selectPage" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
-        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        SELECT a.uuid, a.attachment_id, a.original_filename, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
         FROM attachment a
         JOIN user_information u ON a.uuid = u.uuid
         WHERE a.status = 1
@@ -28,7 +28,7 @@
     </select>
 
     <select id="selectPageByUuid" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
-        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        SELECT a.uuid, a.attachment_id, a.original_filename, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
         FROM attachment a
         JOIN user_information u ON a.uuid = u.uuid
         WHERE a.status = 1
@@ -51,7 +51,7 @@
     </update>
 
     <select id="selectByAttachmentId" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
-        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        SELECT a.uuid, a.attachment_id, a,original_filename, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
         FROM attachment a
         JOIN user_information u ON a.uuid = u.uuid
         WHERE a.attachment_id = #{attachmentId}
@@ -64,7 +64,7 @@
     </update>
 
     <select id="selectAllPageWithRecentDeleted" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
-        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        SELECT a.uuid, a.attachment_id, a.attachment_path, a.original_filename, a.access_key, a.create_time, a.deleted_time, a.status, u.username
         FROM attachment a
         JOIN user_information u ON a.uuid = u.uuid
         WHERE a.status = 1 
@@ -81,7 +81,7 @@
     </select>
 
     <select id="selectDeletedOnlyPage" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
-        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        SELECT a.uuid, a.attachment_id, a.attachment_path, a.original_filename, a.access_key, a.create_time, a.deleted_time, a.status, u.username
         FROM attachment a
         JOIN user_information u ON a.uuid = u.uuid
         WHERE a.status = 0 AND a.deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR)
@@ -96,7 +96,7 @@
     </select>
 
     <select id="selectPageByUuidWithRecentDeleted" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
-        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        SELECT a.uuid, a.attachment_id, a.original_filename, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
         FROM attachment a
         JOIN user_information u ON a.uuid = u.uuid
         WHERE (a.status = 1 OR (a.status = 0 AND a.deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR)))
@@ -113,7 +113,7 @@
     </select>
 
     <select id="selectDeletedOnlyPageByUuid" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
-        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        SELECT a.uuid, a.attachment_id, a.original_filename, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
         FROM attachment a
         JOIN user_information u ON a.uuid = u.uuid
         WHERE a.status = 0 AND a.deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR)
@@ -129,10 +129,10 @@
           AND uuid = #{uuid}
     </select>
     
-    <!-- 用户筛选相关方法 -->
+    <!-- 根据用户筛选附件 -->
     
     <select id="selectPageByUserUuid" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
-        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        SELECT a.uuid, a.attachment_id, a.original_filename, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
         FROM attachment a
         JOIN user_information u ON a.uuid = u.uuid
         WHERE a.status = 1
@@ -149,7 +149,7 @@
     </select>
     
     <select id="selectPageByUserUuidWithDeleted" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
-        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        SELECT a.uuid, a.attachment_id, a.original_filename, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
         FROM attachment a
         JOIN user_information u ON a.uuid = u.uuid
         WHERE (a.status = 1 OR (a.status = 0 AND a.deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR)))
@@ -165,10 +165,10 @@
           AND uuid = #{userUuid}
     </select>
     
-    <!-- 用户筛选相关方法 - 仅已删除 -->
+    <!-- 根据用户筛选已删除附件 -->
     
     <select id="selectDeletedOnlyPageByUserUuid" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
-        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        SELECT a.uuid, a.attachment_id, a.original_filename, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
         FROM attachment a
         JOIN user_information u ON a.uuid = u.uuid
         WHERE a.status = 0 AND a.deleted_time >= DATE_SUB(NOW(), INTERVAL 6 HOUR)
@@ -185,7 +185,7 @@
     </select>
 
     <select id="selectExpiredDeletedAttachments" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
-        SELECT a.uuid, a.attachment_id, a.attachment_path, a.access_key, a.create_time, a.deleted_time, a.status, u.username
+        SELECT a.uuid, a.attachment_id, a.attachment_path, a.original_filename, a.access_key, a.create_time, a.deleted_time, a.status, u.username
         FROM attachment a
         JOIN user_information u ON a.uuid = u.uuid
         WHERE a.status = 0 AND TIMESTAMPDIFF(HOUR, a.deleted_time, NOW()) > 6
