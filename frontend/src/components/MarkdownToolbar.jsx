@@ -5,16 +5,16 @@ import {
 } from 'lucide-react';
 
 const TOOLBAR_BUTTONS = [
-    { type: 'bold', icon: Bold, title: '粗体' },
-    { type: 'italic', icon: Italic, title: '斜体' },
+    { type: 'bold', icon: Bold, title: '粗体 (Ctrl+B)' },
+    { type: 'italic', icon: Italic, title: '斜体 (Ctrl+I)' },
     { type: 'heading', icon: Heading, title: '标题' },
-    { type: 'link', icon: LinkIcon, title: '链接' },
+    { type: 'link', icon: LinkIcon, title: '链接 (Ctrl+K)' },
     { type: 'image', icon: Image, title: '插入图片', isFile: true },
     { type: 'video', icon: Video, title: '插入视频', isFile: true },
     { type: 'audio', icon: Music, title: '插入音频', isFile: true },
     { type: 'archive', icon: FileText, title: '插入压缩包', isFile: true },
     { type: 'list', icon: List, title: '列表' },
-    { type: 'code', icon: Code, title: '代码' }
+    { type: 'code', icon: Code, title: '代码 (Ctrl+E)' }
 ];
 
 export default function MarkdownToolbar({
@@ -53,7 +53,7 @@ export default function MarkdownToolbar({
                             ref={headingMenuRef}
                             className="absolute top-full left-0 mt-1 w-32 bg-white rounded-md shadow-lg border border-gray-200 z-10"
                         >
-                            {['# 一级标题', '## 二级标题', '### 三级标题'].map((h, idx) => (
+                            {['# 一级标题', '## 二级标题', '### 三级标题', '#### 四级标题'].map((h, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => onHeadingSelect(h)}
