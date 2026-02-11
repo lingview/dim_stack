@@ -32,7 +32,7 @@ const SANITIZE_SCHEMA = {
     }
 };
 
-export default function MarkdownPreview({ content }) {
+export default function MarkdownPreview({ content, previewRef }) {
     const [copiedCode, setCopiedCode] = useState(null);
 
     const handleCopyCode = async (code, index) => {
@@ -223,6 +223,7 @@ export default function MarkdownPreview({ content }) {
 
     return (
         <div
+            ref={previewRef}
             className="w-1/2 p-4 overflow-y-auto bg-white text-gray-900"
             style={{ overflowAnchor: 'none' }}
         >

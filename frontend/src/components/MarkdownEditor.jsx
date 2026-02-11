@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { FileText, Save, X } from 'lucide-react';
+import { FileText, Save, X, Link, Unlink } from 'lucide-react';
 import MarkdownToolbar from './MarkdownToolbar';
 import MarkdownTextarea from './MarkdownTextarea';
 import MarkdownPreview from './MarkdownPreview';
@@ -92,13 +92,16 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const [selectionPosition, setSelectionPosition] = useState({ x: 0, y: 0 });
     const [selectedTextInfo, setSelectedTextInfo] = useState(null);
     const [detectedFormats, setDetectedFormats] = useState(null);
+    const [syncScrollEnabled, setSyncScrollEnabled] = useState(false);
 
     const historyManagerRef = useRef(new HistoryManager());
     const isProcessingHistoryRef = useRef(false);
 
     const textareaRef = useRef(null);
+    const previewRef = useRef(null);
     const fileInputRef = useRef(null);
     const savedSelectionRef = useRef({ start: 0, end: 0 });
+    const isSyncingScrollRef = useRef(false);
 
     const { uploading, processFile, SUPPORTED_FILE_TYPES } = useFileUpload(apiClient, getConfig);
 
@@ -162,6 +165,79 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, [content]);
+
+    useEffect(() => {
+        const editor = textareaRef.current;
+        const preview = previewRef.current;
+        
+        if (!editor || !preview || !syncScrollEnabled) return;
+
+        const handleEditorScroll = () => {
+            if (isSyncingScrollRef.current) return;
+            
+            isSyncingScrollRef.current = true;
+            
+            const editorScrollTop = editor.scrollTop;
+            const editorScrollHeight = editor.scrollHeight - editor.clientHeight;
+            const editorScrollRatio = editorScrollHeight > 0 ? editorScrollTop / editorScrollHeight : 0;
+            
+            const previewScrollHeight = preview.scrollHeight - preview.clientHeight;
+            const previewScrollTop = previewScrollHeight * editorScrollRatio;
+            
+            preview.scrollTop = Math.max(0, Math.min(previewScrollTop, previewScrollHeight));
+            
+            setTimeout(() => {
+                isSyncingScrollRef.current = false;
+            }, 16);
+        };
+
+        const handlePreviewScroll = () => {
+            if (isSyncingScrollRef.current) return;
+            
+            isSyncingScrollRef.current = true;
+            
+            const previewScrollTop = preview.scrollTop;
+            const previewScrollHeight = preview.scrollHeight - preview.clientHeight;
+            const previewScrollRatio = previewScrollHeight > 0 ? previewScrollTop / previewScrollHeight : 0;
+            
+            const editorScrollHeight = editor.scrollHeight - editor.clientHeight;
+            const editorScrollTop = editorScrollHeight * previewScrollRatio;
+            
+            editor.scrollTop = Math.max(0, Math.min(editorScrollTop, editorScrollHeight));
+            
+            setTimeout(() => {
+                isSyncingScrollRef.current = false;
+            }, 16);
+        };
+
+        let throttleTimer = null;
+        const throttledEditorScroll = () => {
+            if (throttleTimer) return;
+            throttleTimer = setTimeout(() => {
+                handleEditorScroll();
+                throttleTimer = null;
+            }, 16);
+        };
+
+        let throttlePreviewTimer = null;
+        const throttledPreviewScroll = () => {
+            if (throttlePreviewTimer) return;
+            throttlePreviewTimer = setTimeout(() => {
+                handlePreviewScroll();
+                throttlePreviewTimer = null;
+            }, 16);
+        };
+
+        editor.addEventListener('scroll', throttledEditorScroll);
+        preview.addEventListener('scroll', throttledPreviewScroll);
+
+        return () => {
+            editor.removeEventListener('scroll', throttledEditorScroll);
+            preview.removeEventListener('scroll', throttledPreviewScroll);
+            if (throttleTimer) clearTimeout(throttleTimer);
+            if (throttlePreviewTimer) clearTimeout(throttlePreviewTimer);
+        };
+    });
 
     const handleUndo = () => {
         const prevState = historyManagerRef.current.undo();
@@ -789,11 +865,27 @@ ${cleanText}
                 </div>
                 <div className="flex items-center space-x-2">
                     {uploading && <div className="text-sm text-blue-600">文件上传中...</div>}
-                    <div className="flex items-center space-x-1 text-sm text-gray-500">
-                        <span>Ctrl+Z 撤销</span>
-                        <span>|</span>
-                        <span>Ctrl+Y 重做</span>
-                    </div>
+                    {/*<div className="flex items-center space-x-1 text-sm text-gray-500">*/}
+                    {/*    <span>Ctrl+Z 撤销</span>*/}
+                    {/*    <span>|</span>*/}
+                    {/*    <span>Ctrl+Y 重做</span>*/}
+                    {/*</div>*/}
+                    <button
+                        onClick={() => setSyncScrollEnabled(!syncScrollEnabled)}
+                        className={`flex items-center px-3 py-1 rounded-md transition-colors ${
+                            syncScrollEnabled
+                                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                        title={syncScrollEnabled ? '点击关闭同步滚动' : '点击开启同步滚动'}
+                    >
+                        {syncScrollEnabled ? (
+                            <Link className="h-4 w-4 mr-1" />
+                        ) : (
+                            <Unlink className="h-4 w-4 mr-1" />
+                        )}
+                        {syncScrollEnabled ? '同步滚动开' : '同步滚动关'}
+                    </button>
                     <button
                         onClick={onCancel}
                         className="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
@@ -830,7 +922,7 @@ ${cleanText}
                     />
                 </div>
 
-                <MarkdownPreview content={content} />
+                <MarkdownPreview content={content} previewRef={previewRef} />
             </div>
 
             <input
