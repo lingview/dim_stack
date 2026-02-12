@@ -178,27 +178,27 @@ export default function TableOfContents({ article }) {
 
     if (!headings || headings.length === 0) {
         return (
-            <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-                <div className="border-b border-gray-200 px-4 py-3">
+            <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6 toc-container">
+                <div className="border-b border-gray-200 px-4 py-3 toc-header">
                     <div className="flex items-center">
                         <List className="h-5 w-5 text-gray-600 mr-2" />
                         <h3 className="text-lg font-semibold text-gray-800">文章目录</h3>
                     </div>
                 </div>
                 <div className="p-4">
-                    <nav className="space-y-1 max-h-96 overflow-y-auto">
+                    <nav className="space-y-1 max-h-96 overflow-y-auto toc-nav">
                         <button
                             onClick={toggleCollapse}
-                            className="w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-center justify-between text-sm text-gray-800 font-medium hover:bg-gray-50"
+                            className="w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-center justify-between text-sm text-gray-800 font-medium hover:bg-gray-50 toc-title-btn"
                         >
-                            <span className="leading-5 break-words line-clamp-2">
-                                {article?.article_name || '文章名称'}
-                            </span>
+                        <span className="leading-5 break-words line-clamp-2">
+                            {article?.article_name || '文章名称'}
+                        </span>
                             {isCollapsed ? <ChevronDown className="h-4 w-4 text-gray-500" /> : <ChevronUp className="h-4 w-4 text-gray-500" />}
                         </button>
 
                         {isCollapsed && (
-                            <div className="text-center text-gray-500 py-4 text-sm">
+                            <div className="text-center text-gray-500 py-4 text-sm toc-collapsed-tip">
                                 目录已收起
                             </div>
                         )}
@@ -209,8 +209,8 @@ export default function TableOfContents({ article }) {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-            <div className="border-b border-gray-200 px-4 py-3">
+        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6 toc-container">
+            <div className="border-b border-gray-200 px-4 py-3 toc-header">
                 <div className="flex items-center">
                     <List className="h-5 w-5 text-gray-600 mr-2" />
                     <h3 className="text-lg font-semibold text-gray-800">文章目录</h3>
@@ -218,19 +218,19 @@ export default function TableOfContents({ article }) {
             </div>
 
             <div className="p-4">
-                <nav className="space-y-1 max-h-96 overflow-y-auto">
+                <nav className="space-y-1 max-h-96 overflow-y-auto toc-nav">
                     <button
                         onClick={toggleCollapse}
-                        className="w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-center justify-between text-sm text-gray-800 font-medium hover:bg-gray-50"
+                        className="w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-center justify-between text-sm text-gray-800 font-medium hover:bg-gray-50 toc-title-btn"
                     >
-                        <span className="leading-5 break-words line-clamp-2">
-                            {article?.article_name || '文章名称'}
-                        </span>
+                    <span className="leading-5 break-words line-clamp-2">
+                        {article?.article_name || '文章名称'}
+                    </span>
                         {isCollapsed ? <ChevronDown className="h-4 w-4 text-gray-500" /> : <ChevronUp className="h-4 w-4 text-gray-500" />}
                     </button>
 
                     {isCollapsed ? (
-                        <div className="text-center text-gray-500 py-4 text-sm">
+                        <div className="text-center text-gray-500 py-4 text-sm toc-collapsed-tip">
                             目录已收起
                         </div>
                     ) : (
@@ -247,7 +247,7 @@ export default function TableOfContents({ article }) {
                                             isActive
                                                 ? 'bg-blue-50 text-blue-700 font-medium'
                                                 : 'text-gray-600 hover:bg-gray-50 hover:text-blue-600'
-                                        }`}
+                                        } toc-heading-item`}
                                         style={{ paddingLeft: `${12 + indent}px` }}
                                         title={heading.text}
                                     >

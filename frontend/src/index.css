@@ -795,3 +795,88 @@
 .dark .notice-item {
   color: #fde68a;
 }
+
+/* 悬浮工具栏暗色适配 */
+.dark .rich-toolbar {
+  background-color: #1f2937;
+  border-color: #374151;
+  color: #f9fafb;
+}
+
+.dark .rich-toolbar-btn {
+  background-color: transparent;
+  color: #e5e7eb;
+}
+
+.dark .rich-toolbar-btn:hover {
+  background-color: #374151;
+}
+
+.dark .rich-toolbar-btn.bg-blue-50 {
+  background-color: #334155 !important;
+  color: #93c5fd !important;
+}
+
+.dark .rich-heading-menu {
+  background-color: #111827;
+  border-color: #374151;
+}
+
+.dark .rich-heading-option {
+  color: #f9fafb;
+}
+
+.dark .rich-heading-option:hover {
+  background-color: #1f2937;
+}
+
+
+/*文章阅读器目录组件暗色模式适配*/
+.dark .toc-container {
+  background-color: #1f2937;
+  color: #f9fafb;
+}
+
+.dark .toc-header {
+  border-color: #374151;
+}
+
+.dark .toc-nav {
+  color: #e5e7eb;
+}
+
+.dark .toc-title-btn,
+.dark .toc-heading-item {
+  color: #e5e7eb;
+}
+
+.dark .toc-title-btn:hover,
+.dark .toc-heading-item:hover {
+  background-color: #374151;
+}
+
+.dark .toc-heading-item.bg-blue-50 {
+  background-color: #334155 !important;
+  color: #93c5fd !important;
+}
+
+.dark .toc-heading-item .text-blue-600,
+.dark .toc-heading-item .text-blue-700 {
+  color: #93c5fd !important;
+}
+
+.dark .toc-collapsed-tip {
+  color: #9ca3af;
+}
+
+
+
+/* 文章阅读器回到顶部暗色模式适配 */
+.dark .back-to-top-btn {
+  background-color: #1f2937;
+  color: #f9fafb;
+}
+
+.dark .back-to-top-btn:hover {
+  background-color: #374151;
+}

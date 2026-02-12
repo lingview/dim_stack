@@ -206,7 +206,7 @@ export default function FriendLinksManager() {
 
     return (
         <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">友链管理</h2>
+            <h2 className="text-xl font-semibold text-gray-900">友链管理</h2>
 
             {message.content && (
                 <div className={`mb-6 p-4 rounded-lg ${

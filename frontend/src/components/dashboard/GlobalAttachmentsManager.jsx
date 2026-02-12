@@ -280,7 +280,7 @@ const GlobalAttachmentsManager = () => {
             <div className="bg-white rounded-lg shadow p-6">
                 {/* 头部 */}
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <h2 className="text-xl font-semibold">
+                    <h2 className="text-xl font-semibold text-gray-900">
                         {viewMode === 'normal' ? '全局附件管理' : '已删除附件管理'}
                     </h2>
                     <div className="flex items-center gap-4">

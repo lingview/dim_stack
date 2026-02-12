@@ -129,7 +129,7 @@ const TextSelectionToolbar = ({
         <div className="relative">
             <div
                 ref={toolbarRef}
-                className="fixed z-50 bg-white border border-gray-300 rounded-lg shadow-lg py-1 px-2 flex items-center space-x-1"
+                className="fixed z-50 bg-white border border-gray-300 rounded-lg shadow-lg py-1 px-2 flex items-center space-x-1 rich-toolbar"
                 style={{
                     left: `${position.x}px`,
                     top: `${position.y}px`,
@@ -141,12 +141,12 @@ const TextSelectionToolbar = ({
                     const status = getButtonStatus(type);
                     const buttonClass = getButtonClass(status);
                     const isActive = status === 'active';
-                    
+
                     return (
                         <div key={type} className="relative">
                             <button
                                 onClick={() => handleFormatClick(type)}
-                                className={buttonClass}
+                                className={`${buttonClass} rich-toolbar-btn`}
                                 title={`${title} ${isActive ? '(已应用)' : ''} (${getShortcutKey(type)})`}
                             >
                                 <div className="relative">
@@ -161,16 +161,16 @@ const TextSelectionToolbar = ({
                                 <div
                                     ref={headingMenuRef}
                                     className={`absolute w-32 bg-white rounded-md shadow-lg border border-gray-200 z-50 ${
-                                        headingMenuDirection === 'up' 
-                                            ? 'bottom-full mb-1' 
+                                        headingMenuDirection === 'up'
+                                            ? 'bottom-full mb-1'
                                             : 'top-full mt-1'
-                                    }`}
+                                    } rich-heading-menu`}
                                 >
                                     {headingOptions.map((heading) => (
                                         <button
                                             key={heading.level}
                                             onClick={() => handleHeadingSelect(heading.prefix)}
-                                            className="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm first:rounded-t-md last:rounded-b-md transition-colors"
+                                            className="block w-full text-left px-3 py-2 hover:bg-gray-100 text-sm first:rounded-t-md last:rounded-b-md transition-colors rich-heading-option"
                                         >
                                             {heading.text}
                                         </button>

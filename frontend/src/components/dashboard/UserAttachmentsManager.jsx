@@ -239,7 +239,7 @@ const UserAttachmentsManager = () => {
             <div className="bg-white rounded-lg shadow">
                 <div className="px-6 py-4 border-b border-gray-200">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <h2 className="text-2xl font-bold text-gray-800">
+                        <h2 className="text-xl font-semibold text-gray-900">
                             {viewMode === 'normal' ? '我的附件' : '我的已删除附件'}
                         </h2>
                         <div className="flex items-center gap-4">

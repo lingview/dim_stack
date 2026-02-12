@@ -225,7 +225,7 @@ export default function ArticleReader() {
             {showBackToTop && (
                 <button
                     onClick={scrollToTop}
-                    className="fixed bottom-8 right-8 bg-white hover:bg-gray-100 text-black rounded-full p-3 shadow-lg transition-all duration-300 z-50"
+                    className="fixed bottom-8 right-8 bg-white hover:bg-gray-100 text-black rounded-full p-3 shadow-lg transition-all duration-300 z-50 back-to-top-btn"
                     aria-label="返回顶部"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

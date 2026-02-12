@@ -107,7 +107,7 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onCl
                 </div>
 
                 {/* 导航菜单 */}
-                <nav className="mt-4 flex-1 overflow-y-auto">
+                <nav className="mt-4 flex-1 overflow-y-auto overflow-x-hidden">
                     <ul className="space-y-1 px-2">
                         {menuItems.map((item) => (
                             item && (

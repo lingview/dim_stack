@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../../utils/axios.jsx';
 
@@ -119,7 +119,7 @@ export default function CustomPageManager() {
     return (
         <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">自定义页面管理</h2>
+                <h2 className="text-xl font-semibold text-gray-900">自定义页面管理</h2>
                 <button
                     onClick={handleCreateNew}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
