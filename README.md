@@ -1,5 +1,5 @@
-# 次元栈论坛 · Dim Stack
-> 基于 Spring Boot + React 的现代化论坛 CMS 系统
+# 次元栈 · Dim Stack
+> 基于 Spring Boot + React 的现代化个人博客系统
 >
 
 <!-- 这是一张图片，ocr 内容为： -->
@@ -132,6 +132,7 @@ java -jar dim_stack.jar
 ## 贡献者
 感谢所有参与本项目的贡献者（按字母顺序排列）：
 - [@bytegeek](https://github.com/xrb114) - 渗透测试
+- [@dear-sk](https://github.com/dear-sk) - 系统测试
 - [@Denghls](https://github.com/Denghls) - 需求分析
 - [@hanbingniao](https://github.com/hanbingniao) - 系统测试
 - [@kongcangyimama](https://github.com/kongcangyimama) - 主题设计
