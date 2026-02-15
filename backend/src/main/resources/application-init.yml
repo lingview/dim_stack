@@ -11,3 +11,8 @@ logging:
   level:
     root: INFO
     xyz.lingview.dimstack: DEBUG
+
+management:
+  health:
+    redis:
+      enabled: false

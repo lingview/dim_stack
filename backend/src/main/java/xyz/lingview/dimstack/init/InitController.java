@@ -53,7 +53,7 @@ public class InitController {
             @RequestParam(required = false) String dataRoot,
             @RequestParam(required = false) String uploadDir,
             @RequestParam(required = false) String logRoot,
-            @RequestParam(defaultValue = "false") boolean onlyGenerateConfig,  // 新增参数
+            @RequestParam(defaultValue = "false") boolean onlyGenerateConfig,
             Model model) {
 
         try {
@@ -305,6 +305,10 @@ public class InitController {
         ymlContent.append("    health:\n");
         ymlContent.append("      access: read-only\n");
         ymlContent.append("      show-details: always\n");
+        if (!enableRedis) {
+            ymlContent.append("    redis:\n");
+            ymlContent.append("      enabled: false\n");
+        }
         ymlContent.append("    info:\n");
         ymlContent.append("      access: read-only\n");
         ymlContent.append("    metrics:\n");

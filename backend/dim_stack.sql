@@ -81,7 +81,7 @@ CREATE TABLE `article_categories`  (
 -- ----------------------------
 -- Records of article_categories
 -- ----------------------------
-INSERT INTO `article_categories` VALUES (1, NULL, '默认分类', '默认分类', '075eb86f721743e3940f35869154a140175689381296899805858', 2, '2025-09-13 13:35:57', 1);
+INSERT INTO `article_categories` VALUES (1, NULL, '默认分类', '默认分类', '075eb86f721743e3940f35869154a140175689381296899805858', 1, '2025-09-13 13:35:57', 1);
 INSERT INTO `article_categories` VALUES (2, NULL, '接口文档', '接口文档', '075eb86f721743e3940f35869154a140175689381296899805858', 0, '2026-01-31 11:35:39', 0);
 
 -- ----------------------------
