@@ -31,7 +31,7 @@ public class CacheAutoConfiguration {
             log.info("Redis 连接成功，使用 Redis 缓存站点数据");
             return redisImpl;
         } else {
-            System.err.println("Redis 连接失败使用内存缓存站点数据");
+            log.info("Redis 连接失败使用内存缓存站点数据");
             return new MemoryCacheServiceImpl();
         }
     }
