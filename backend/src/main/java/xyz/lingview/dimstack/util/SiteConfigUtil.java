@@ -2,7 +2,7 @@ package xyz.lingview.dimstack.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import xyz.lingview.dimstack.service.CacheService;
 import org.springframework.stereotype.Component;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -13,7 +13,7 @@ import com.google.gson.JsonElement;
 public class SiteConfigUtil {
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private CacheService cacheService;
 
     /**
      * 从Redis中的dimstack:site_config获取指定字段的值
@@ -22,7 +22,7 @@ public class SiteConfigUtil {
      */
     public String getSiteConfigField(String fieldKey) {
         try {
-            String siteConfigJson = redisTemplate.opsForValue().get("dimstack:site_config");
+            String siteConfigJson = cacheService.get("dimstack:site_config", String.class);
             if (siteConfigJson != null) {
                 JsonObject jsonObject = JsonParser.parseString(siteConfigJson).getAsJsonObject();
                 JsonElement fieldElement = jsonObject.get(fieldKey);
@@ -67,7 +67,7 @@ public class SiteConfigUtil {
      */
     public boolean isNotificationEnabled() {
         try {
-            String siteConfigJson = redisTemplate.opsForValue().get("dimstack:site_config");
+            String siteConfigJson = cacheService.get("dimstack:site_config", String.class);
             if (siteConfigJson != null) {
                 JsonObject jsonObject = JsonParser.parseString(siteConfigJson).getAsJsonObject();
                 JsonElement enableNotificationElement = jsonObject.get("enable_notification");
@@ -89,7 +89,7 @@ public class SiteConfigUtil {
      */
     public boolean isRegisterEnabled() {
         try {
-            String siteConfigJson = redisTemplate.opsForValue().get("dimstack:site_config");
+            String siteConfigJson = cacheService.get("dimstack:site_config", String.class);
             if (siteConfigJson != null) {
                 JsonObject jsonObject = JsonParser.parseString(siteConfigJson).getAsJsonObject();
                 JsonElement enableRegisterElement = jsonObject.get("enable_register");
@@ -111,7 +111,7 @@ public class SiteConfigUtil {
      */
     public boolean isMusicEnabled() {
         try {
-            String siteConfigJson = redisTemplate.opsForValue().get("dimstack:site_config");
+            String siteConfigJson = cacheService.get("dimstack:site_config", String.class);
             if (siteConfigJson != null) {
                 JsonObject jsonObject = JsonParser.parseString(siteConfigJson).getAsJsonObject();
                 JsonElement enableMusicElement = jsonObject.get("enable_music");
@@ -129,7 +129,7 @@ public class SiteConfigUtil {
 
     public boolean adminPostNoReview() {
         try {
-            String siteConfigJson = redisTemplate.opsForValue().get("dimstack:site_config");
+            String siteConfigJson = cacheService.get("dimstack:site_config", String.class);
             if (siteConfigJson != null) {
                 JsonObject jsonObject = JsonParser.parseString(siteConfigJson).getAsJsonObject();
                 JsonElement element = jsonObject.get("admin_post_no_review");

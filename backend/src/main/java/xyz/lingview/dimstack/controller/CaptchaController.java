@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import xyz.lingview.dimstack.service.CacheService;
 
 import jakarta.servlet.http.HttpSession;
 import xyz.lingview.dimstack.util.CaptchaUtil;
@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 public class CaptchaController {
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private CacheService cacheService;
 
     @GetMapping("/captcha")
     public ApiResponse<Map<String, String>> getCaptcha(HttpSession session) {
@@ -31,11 +31,11 @@ public class CaptchaController {
             // 删除旧的验证码（如果存在）
             String oldCaptchaKey = (String) session.getAttribute("captchaKey");
             if (oldCaptchaKey != null) {
-                redisTemplate.delete("captcha_" + oldCaptchaKey);
+                cacheService.delete("captcha_" + oldCaptchaKey);
             }
 
-            // 保存新验证码到Redis（有效期5分钟）
-            redisTemplate.opsForValue().set("captcha_" + captchaKey, captcha.toLowerCase(), 5, TimeUnit.MINUTES);
+            // 保存新验证码到缓存（有效期5分钟）
+            cacheService.set("captcha_" + captchaKey, captcha.toLowerCase(), 5, TimeUnit.MINUTES);
 
             // 存储新的验证码key到session
             session.setAttribute("captchaKey", captchaKey);

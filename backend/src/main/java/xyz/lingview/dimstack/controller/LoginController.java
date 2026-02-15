@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import xyz.lingview.dimstack.service.CacheService;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.domain.Login;
 import xyz.lingview.dimstack.dto.request.LoginDTO;
@@ -36,7 +36,7 @@ public class LoginController {
     private LoginMapper loginMapper;
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private CacheService cacheService;
 
     @Autowired
     private MailService mailService;
@@ -95,7 +95,7 @@ public class LoginController {
             }
 
             String redisCaptchaKey = CAPTCHA_PREFIX + captchaKey;
-            String redisCaptcha = redisTemplate.opsForValue().get(redisCaptchaKey);
+            String redisCaptcha = cacheService.get(redisCaptchaKey, String.class);
 
             if (redisCaptcha == null) {
                 log.warn("Redis 中无验证码 - key: {}", redisCaptchaKey);
@@ -170,9 +170,9 @@ public class LoginController {
 
     private void cleanUpCaptcha(HttpSession session, String redisCaptchaKey) {
         try {
-            redisTemplate.delete(redisCaptchaKey);
+            cacheService.delete(redisCaptchaKey);
             session.removeAttribute(SESSION_CAPTCHA_KEY_ATTR);
-            log.debug("已清理验证码 - Redis Key: {}, Session Attribute: {}", redisCaptchaKey, SESSION_CAPTCHA_KEY_ATTR);
+            log.debug("已清理验证码 - Cache Key: {}, Session Attribute: {}", redisCaptchaKey, SESSION_CAPTCHA_KEY_ATTR);
         } catch (Exception e) {
             log.warn("清理验证码时发生异常", e);
         }

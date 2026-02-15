@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import xyz.lingview.dimstack.service.CacheService;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.dto.request.ForgotPasswordDTO;
 import xyz.lingview.dimstack.dto.response.ForgotPasswordResponseDTO;
@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 public class ForgotPasswordServiceImpl implements ForgotPasswordService {
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private CacheService cacheService;
 
     @Autowired
     private UserInformationMapper userInformationMapper;
@@ -93,7 +93,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
 
             // 检查发送频率限制
             String rateLimitKey = FORGOT_PASSWORD_RATE_LIMIT_PREFIX + email;
-            String lastSendTime = redisTemplate.opsForValue().get(rateLimitKey);
+            String lastSendTime = cacheService.get(rateLimitKey, String.class);
 
             if (lastSendTime != null) {
                 return ApiResponse.error(429, "验证码已发送，请60秒后再试");
@@ -104,8 +104,8 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
 
             if (userInfo == null) {
                 String userFailKey = FORGOT_PASSWORD_USER_FAIL_PREFIX + username;
-                Long failCount = redisTemplate.opsForValue().increment(userFailKey);
-                redisTemplate.expire(userFailKey, 1, TimeUnit.HOURS);
+                long failCount = cacheService.incrementAndGet(userFailKey);
+                cacheService.set(userFailKey, failCount, 1, TimeUnit.HOURS);
 
                 log.warn("用户名 {} 或邮箱 {} 不匹配，失败次数: {}", username, email, failCount);
 
@@ -122,7 +122,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
                     }
                 }
 
-                redisTemplate.opsForValue().set(rateLimitKey, "1", SEND_CAPTCHA_COOLDOWN_SECONDS, TimeUnit.SECONDS);
+                cacheService.set(rateLimitKey, "1", SEND_CAPTCHA_COOLDOWN_SECONDS, TimeUnit.SECONDS);
 
                 ensureMinimumDelay(startTime, 800);
 
@@ -137,7 +137,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
             }
 
             String userFailKey = FORGOT_PASSWORD_USER_FAIL_PREFIX + username;
-            redisTemplate.delete(userFailKey);
+            cacheService.delete(userFailKey);
 
             // 生成验证码
             String captcha = CaptchaUtil.generateCaptcha(6);
@@ -145,11 +145,11 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
 
             String oldCaptchaKey = (String) session.getAttribute(SESSION_FORGOT_PASSWORD_CAPTCHA_KEY_ATTR);
             if (oldCaptchaKey != null) {
-                redisTemplate.delete(FORGOT_PASSWORD_CAPTCHA_PREFIX + oldCaptchaKey);
+                cacheService.delete(FORGOT_PASSWORD_CAPTCHA_PREFIX + oldCaptchaKey);
             }
 
-            // 保存新验证码到Redis（有效期10分钟）
-            redisTemplate.opsForValue().set(
+            // 保存新验证码到缓存（有效期10分钟）
+            cacheService.set(
                     FORGOT_PASSWORD_CAPTCHA_PREFIX + captchaKey,
                     captcha.toLowerCase(),
                     10,
@@ -163,7 +163,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
             mailService.sendSimpleMail(email, "【" + siteName + "】密码重置验证码",
                     "您正在重置密码，验证码是：" + captcha + "，有效期10分钟。如果不是本人操作，请忽略。");
             notificationService.sendSystemNotification(username, "系统通知", "用户 " + username + " 尝试重置密码");
-            redisTemplate.opsForValue().set(rateLimitKey, "1", SEND_CAPTCHA_COOLDOWN_SECONDS, TimeUnit.SECONDS);
+            cacheService.set(rateLimitKey, "1", SEND_CAPTCHA_COOLDOWN_SECONDS, TimeUnit.SECONDS);
 
             log.info("忘记密码验证码已发送至邮箱: {}", maskEmail(email));
 
@@ -212,7 +212,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
             }
 
             String failKey = FORGOT_PASSWORD_FAIL_COUNT_PREFIX + username;
-            String failCountStr = redisTemplate.opsForValue().get(failKey);
+            String failCountStr = cacheService.get(failKey, String.class);
             int failCount = failCountStr != null ? Integer.parseInt(failCountStr) : 0;
 
             if (failCount >= MAX_VERIFY_ATTEMPTS) {
@@ -238,7 +238,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
             }
 
             String redisCaptchaKey = FORGOT_PASSWORD_CAPTCHA_PREFIX + sessionCaptchaKey;
-            String redisCaptcha = redisTemplate.opsForValue().get(redisCaptchaKey);
+            String redisCaptcha = cacheService.get(redisCaptchaKey, String.class);
 
             if (redisCaptcha == null) {
                 log.warn("Redis 中无验证码 - key: {}", redisCaptchaKey);
@@ -248,8 +248,8 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
 
             if (!CaptchaUtil.validateCaptcha(redisCaptcha, captcha)) {
 
-                redisTemplate.opsForValue().increment(failKey);
-                redisTemplate.expire(failKey, VERIFY_LOCK_MINUTES, TimeUnit.MINUTES);
+                cacheService.incrementAndGet(failKey);
+                cacheService.set(failKey, String.valueOf(cacheService.get(failKey, Long.class)), VERIFY_LOCK_MINUTES, TimeUnit.MINUTES);
 
                 int remainingAttempts = MAX_VERIFY_ATTEMPTS - failCount - 1;
                 log.warn("用户 {} 验证码错误，剩余尝试次数: {}", username, remainingAttempts);
@@ -264,20 +264,20 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
 
             UserInformation userInfo = userInformationMapper.getUserByUsernameAndEmail(username, email);
             if (userInfo == null) {
-                redisTemplate.opsForValue().increment(failKey);
-                redisTemplate.expire(failKey, VERIFY_LOCK_MINUTES, TimeUnit.MINUTES);
+                cacheService.incrementAndGet(failKey);
+                cacheService.set(failKey, String.valueOf(cacheService.get(failKey, Long.class)), VERIFY_LOCK_MINUTES, TimeUnit.MINUTES);
                 cleanUpForgotPasswordCaptcha(session, redisCaptchaKey);
                 return ApiResponse.error(400, "用户名或邮箱不匹配");
             }
 
-            redisTemplate.delete(failKey);
+            cacheService.delete(failKey);
 
             session.setAttribute(SESSION_FORGOT_PASSWORD_VERIFIED_ATTR, true);
             session.setAttribute(SESSION_FORGOT_PASSWORD_VERIFIED_USER, username);
             session.setAttribute(SESSION_FORGOT_PASSWORD_VERIFIED_EMAIL_ATTR, email);
             session.removeAttribute(SESSION_FORGOT_PASSWORD_CAPTCHA_KEY_ATTR);
 
-            redisTemplate.delete(redisCaptchaKey);
+            cacheService.delete(redisCaptchaKey);
 
             log.info("用户 {} 验证码验证成功", username);
 
@@ -362,7 +362,7 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
             session.removeAttribute(SESSION_FORGOT_PASSWORD_VERIFIED_USER);
 
             String userFailKey = FORGOT_PASSWORD_USER_FAIL_PREFIX + username;
-            redisTemplate.delete(userFailKey);
+            cacheService.delete(userFailKey);
 
             session.invalidate();
 
@@ -541,10 +541,10 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
 
     private void cleanUpForgotPasswordCaptcha(HttpSession session, String redisCaptchaKey) {
         try {
-            redisTemplate.delete(redisCaptchaKey);
+            cacheService.delete(redisCaptchaKey);
             session.removeAttribute(SESSION_FORGOT_PASSWORD_CAPTCHA_KEY_ATTR);
             session.removeAttribute(SESSION_FORGOT_PASSWORD_VERIFIED_USER);
-            log.debug("已清理忘记密码验证码 - Redis Key: {}", redisCaptchaKey);
+            log.debug("已清理忘记密码验证码 - Cache Key: {}", redisCaptchaKey);
         } catch (Exception e) {
             log.warn("清理忘记密码验证码时发生异常", e);
         }
@@ -556,14 +556,10 @@ public class ForgotPasswordServiceImpl implements ForgotPasswordService {
     private boolean checkIpRateLimit(String ip) {
         try {
             String ipLimitKey = FORGOT_PASSWORD_IP_LIMIT_PREFIX + ip;
-            Long requestCount = redisTemplate.opsForValue().increment(ipLimitKey);
-
-            if (requestCount == null) {
-                return true;
-            }
+            long requestCount = cacheService.incrementAndGet(ipLimitKey);
 
             if (requestCount == 1) {
-                redisTemplate.expire(ipLimitKey, 1, TimeUnit.HOURS);
+                cacheService.set(ipLimitKey, requestCount, 1, TimeUnit.HOURS);
             }
 
             return requestCount <= IP_HOURLY_LIMIT;

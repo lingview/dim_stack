@@ -1,6 +1,5 @@
 package xyz.lingview.dimstack.service;
 
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -8,30 +7,30 @@ import java.util.Set;
 @Service
 public class UserBlacklistService {
 
-    private final StringRedisTemplate redisTemplate;
+    private final CacheService cacheService;
     private static final String BLACKLIST_KEY = "dimstack:user:blacklist";
 
-    public UserBlacklistService(StringRedisTemplate redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    public UserBlacklistService(CacheService cacheService) {
+        this.cacheService = cacheService;
     }
 
     public void addUserToBlacklist(String username) {
-        redisTemplate.opsForSet().add(BLACKLIST_KEY, username);
+        cacheService.addToSet(BLACKLIST_KEY, username);
     }
 
     public void removeUserFromBlacklist(String username) {
-        redisTemplate.opsForSet().remove(BLACKLIST_KEY, username);
+        cacheService.removeFromSet(BLACKLIST_KEY, username);
     }
 
     public boolean isUserInBlacklist(String username) {
-        return Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(BLACKLIST_KEY, username));
+        return cacheService.isMemberOfSet(BLACKLIST_KEY, username);
     }
 
     public void clearBlacklist() {
-        redisTemplate.delete(BLACKLIST_KEY);
+        cacheService.deleteSet(BLACKLIST_KEY);
     }
 
     public Set<String> getBlacklistedUsers() {
-        return redisTemplate.opsForSet().members(BLACKLIST_KEY);
+        return cacheService.getSetMembers(BLACKLIST_KEY, String.class);
     }
 }

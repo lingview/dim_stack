@@ -1,13 +1,12 @@
 package xyz.lingview.dimstack.service.impl;
 
-import tools.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.SiteConfig;
 import xyz.lingview.dimstack.dto.request.HeroDTO;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
+import xyz.lingview.dimstack.service.CacheService;
 import xyz.lingview.dimstack.service.SiteConfigService;
 
 @Service
@@ -18,17 +17,15 @@ public class SiteConfigServiceImpl implements SiteConfigService {
     private SiteConfigMapper siteConfigMapper;
 
     @Autowired
-    private StringRedisTemplate stringRedisTemplate;
+    private CacheService cacheService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Override
     public SiteConfig getSiteConfig() {
         try {
-            String siteConfigJson = stringRedisTemplate.opsForValue().get("dimstack:site_config");
-            if (siteConfigJson != null) {
-                return objectMapper.readValue(siteConfigJson, SiteConfig.class);
+            SiteConfig siteConfig = cacheService.get("dimstack:site_config", SiteConfig.class);
+            if (siteConfig != null) {
+                return siteConfig;
             }
         } catch (Exception e) {
             log.warn("从Redis读取站点配置失败，回退到数据库查询", e);
@@ -120,8 +117,7 @@ public class SiteConfigServiceImpl implements SiteConfigService {
                 config.setSite_theme(themeName);
                 int result = siteConfigMapper.updateSiteConfig(config);
                 if (result > 0) {
-                    // 更新Redis缓存
-                    updateRedisCache(config);
+                    cacheService.set("dimstack:site_config", config);
                     return true;
                 }
             }
@@ -137,8 +133,7 @@ public class SiteConfigServiceImpl implements SiteConfigService {
         try {
             int result = siteConfigMapper.updateSiteConfig(siteConfig);
             if (result > 0) {
-                // 更新Redis缓存
-                updateRedisCache(siteConfig);
+                cacheService.set("dimstack:site_config", siteConfig);
                 return true;
             }
             return false;
@@ -164,19 +159,5 @@ public class SiteConfigServiceImpl implements SiteConfigService {
             return config.getAdmin_post_no_review();
         }
         return null;
-    }
-
-    /**
-     * 更新Redis缓存
-     * @param siteConfig 站点配置
-     */
-    private void updateRedisCache(SiteConfig siteConfig) {
-        try {
-            String siteConfigJson = objectMapper.writeValueAsString(siteConfig);
-            stringRedisTemplate.opsForValue().set("dimstack:site_config", siteConfigJson);
-            log.info("站点配置已同步更新到Redis");
-        } catch (Exception e) {
-            log.error("同步站点配置到Redis失败", e);
-        }
     }
 }

@@ -3,7 +3,7 @@ package xyz.lingview.dimstack.controller;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import xyz.lingview.dimstack.service.CacheService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -44,7 +44,7 @@ public class RegisterController {
     private RegisterMapper registerMapper;
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private CacheService cacheService;
 
     @Autowired
     SiteConfigMapper siteConfigMapper;
@@ -103,7 +103,7 @@ public class RegisterController {
             if (isBlank(captcha)) return ApiResponse.error(400, "验证码不能为空");
             if (isBlank(captchaKey)) return ApiResponse.error(400, "验证码无效");
 
-            String redisCaptcha = redisTemplate.opsForValue().get("captcha_" + captchaKey);
+            String redisCaptcha = cacheService.get("captcha_" + captchaKey, String.class);
             if (redisCaptcha == null) {
                 return ApiResponse.error(400, "验证码已过期，请重新获取");
             }
@@ -196,7 +196,7 @@ public class RegisterController {
     }
 
     private void clearCaptcha(String captchaKey) {
-        redisTemplate.delete("captcha_" + captchaKey);
+        cacheService.delete("captcha_" + captchaKey);
         log.info("已清理验证码: {}", captchaKey);
     }
 }

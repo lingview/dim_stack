@@ -19,7 +19,6 @@ import java.net.UnknownHostException;
 @SpringBootApplication
 @EnableAsync
 @EnableScheduling
-@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 604800, redisNamespace = "dimstack:session")
 public class StartServer {
     public static void main(String[] args) {
         if (needsInitialization()) {
