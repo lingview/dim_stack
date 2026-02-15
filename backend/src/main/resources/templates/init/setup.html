@@ -227,20 +227,27 @@
 
                 <div class="form-section">
                     <h5>Redis 配置</h5>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="enableRedis" name="enableRedis">
+                        <label class="form-check-label" for="enableRedis">
+                            启用 Redis 缓存
+                        </label>
+                    </div>
 
                     <div class="row">
                         <div class="col">
                             <div class="form-group">
                                 <label class="form-label">主机地址</label>
                                 <input type="text" class="form-control"
-                                       name="redisHost" value="127.0.0.1">
+                                       name="redisHost" value="127.0.0.1" id="redisHost">
                             </div>
                         </div>
                         <div class="col">
                             <div class="form-group">
                                 <label class="form-label">端口号</label>
                                 <input type="number" class="form-control"
-                                       name="redisPort" value="6379">
+                                       name="redisPort" value="6379" id="redisPort">
                             </div>
                         </div>
                     </div>
@@ -250,14 +257,14 @@
                             <div class="form-group">
                                 <label class="form-label">密码（可选）</label>
                                 <input type="password" class="form-control"
-                                       name="redisPassword">
+                                       name="redisPassword" id="redisPassword">
                             </div>
                         </div>
                         <div class="col">
                             <div class="form-group">
                                 <label class="form-label">数据库编号</label>
                                 <input type="number" class="form-control"
-                                       name="redisDatabase" value="0">
+                                       name="redisDatabase" value="0" id="redisDatabase">
                             </div>
                         </div>
                     </div>
@@ -300,6 +307,24 @@
 </div>
 
 <script>
+    document.getElementById('enableRedis').addEventListener('change', function () {
+        const redisFields = ['redisHost', 'redisPort', 'redisPassword', 'redisDatabase'];
+        const isChecked = this.checked;
+        
+        redisFields.forEach(fieldName => {
+            const field = document.getElementById(fieldName);
+            if (field) {
+                if (isChecked) {
+                    field.removeAttribute('disabled');
+                    field.removeAttribute('readonly');
+                } else {
+                    field.setAttribute('disabled', 'disabled');
+                    field.setAttribute('readonly', 'readonly');
+                }
+            }
+        });
+    });
+
     document.getElementById('hasAdvanced').addEventListener('change', function () {
         document.getElementById('advancedSection').style.display =
             this.checked ? 'block' : 'none';
@@ -337,6 +362,23 @@
     });
 
     window.addEventListener('load', function() {
+        const enableRedis = document.getElementById('enableRedis');
+        const redisFields = ['redisHost', 'redisPort', 'redisPassword', 'redisDatabase'];
+        const isChecked = enableRedis.checked;
+        
+        redisFields.forEach(fieldName => {
+            const field = document.getElementById(fieldName);
+            if (field) {
+                if (isChecked) {
+                    field.removeAttribute('disabled');
+                    field.removeAttribute('readonly');
+                } else {
+                    field.setAttribute('disabled', 'disabled');
+                    field.setAttribute('readonly', 'readonly');
+                }
+            }
+        });
+        
         const onlyGenerateConfig = document.getElementById('onlyGenerateConfig');
         const submitBtn = document.getElementById('submitBtn');
         

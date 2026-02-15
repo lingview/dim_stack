@@ -25,7 +25,7 @@ public class HotArticleServiceImpl implements HotArticleService {
     public List<HotArticleDTO> getHotArticles() {
 
         @SuppressWarnings("unchecked")
-        List<HotArticleDTO> articles = (List<HotArticleDTO>) cacheService.get(HOT_ARTICLES_KEY, Object.class);
+        List<HotArticleDTO> articles = (List<HotArticleDTO>) cacheService.get(HOT_ARTICLES_KEY, List.class);
 
         if (articles == null || articles.isEmpty()) {
             articles = hotArticleMapper.selectHotArticles();

@@ -43,10 +43,11 @@ public class InitController {
             @RequestParam String mysqlDatabase,
             @RequestParam String mysqlUser,
             @RequestParam String mysqlPassword,
-            @RequestParam String redisHost,
-            @RequestParam Integer redisPort,
-            @RequestParam String redisPassword,
-            @RequestParam Integer redisDatabase,
+            @RequestParam(defaultValue = "false") boolean enableRedis,
+            @RequestParam(required = false) String redisHost,
+            @RequestParam(required = false) Integer redisPort,
+            @RequestParam(required = false) String redisPassword,
+            @RequestParam(required = false) Integer redisDatabase,
             @RequestParam(defaultValue = "false") boolean hasAdvanced,
             @RequestParam(required = false) String logLevel,
             @RequestParam(required = false) String dataRoot,
@@ -59,7 +60,7 @@ public class InitController {
             // 生成配置文件
             generateApplicationYml(adminUsername, adminPassword, serverPort,
                     mysqlHost, mysqlPort, mysqlDatabase, mysqlUser, mysqlPassword,
-                    redisHost, redisPort, redisPassword, redisDatabase,
+                    enableRedis, redisHost, redisPort, redisPassword, redisDatabase,
                     hasAdvanced, logLevel, dataRoot, uploadDir, logRoot);
 
             if (!onlyGenerateConfig) {
@@ -223,7 +224,7 @@ public class InitController {
     private void generateApplicationYml(String adminUsername, String adminPassword, Integer serverPort,
                                         String mysqlHost, Integer mysqlPort, String mysqlDatabase,
                                         String mysqlUser, String mysqlPassword,
-                                        String redisHost, Integer redisPort, String redisPassword,
+                                        boolean enableRedis, String redisHost, Integer redisPort, String redisPassword,
                                         Integer redisDatabase, boolean hasAdvanced,
                                         String logLevel, String dataRoot, String uploadDir, String logRoot) throws IOException {
 
@@ -264,20 +265,24 @@ public class InitController {
         ymlContent.append("\n");
 
         // Redis配置
-        ymlContent.append("  data:\n");
-        ymlContent.append("    redis:\n");
-        ymlContent.append("      host: ").append(redisHost).append("\n");
-        ymlContent.append("      port: ").append(redisPort).append("\n");
-        ymlContent.append("      password: \"").append(redisPassword).append("\"\n");
-        ymlContent.append("      database: ").append(redisDatabase).append("\n");
-        ymlContent.append("      timeout: 5s\n");
-        ymlContent.append("      lettuce:\n");
-        ymlContent.append("        pool:\n");
-        ymlContent.append("          max-active: 8\n");
-        ymlContent.append("          max-idle: 8\n");
-        ymlContent.append("          min-idle: 0\n");
-        ymlContent.append("          max-wait: -1ms\n");
-        ymlContent.append("\n");
+        if (enableRedis && redisHost != null && redisPort != null) {
+            ymlContent.append("  data:\n");
+            ymlContent.append("    redis:\n");
+            ymlContent.append("      host: ").append(redisHost).append("\n");
+            ymlContent.append("      port: ").append(redisPort).append("\n");
+            if (redisPassword != null && !redisPassword.isEmpty()) {
+                ymlContent.append("      password: \"").append(redisPassword).append("\"\n");
+            }
+            ymlContent.append("      database: ").append(redisDatabase != null ? redisDatabase : 0).append("\n");
+            ymlContent.append("      timeout: 5s\n");
+            ymlContent.append("      lettuce:\n");
+            ymlContent.append("        pool:\n");
+            ymlContent.append("          max-active: 8\n");
+            ymlContent.append("          max-idle: 8\n");
+            ymlContent.append("          min-idle: 0\n");
+            ymlContent.append("          max-wait: -1ms\n");
+            ymlContent.append("\n");
+        }
 
         // Thymeleaf配置
         ymlContent.append("  thymeleaf:\n");
@@ -374,6 +379,8 @@ public class InitController {
 
         // App配置
         ymlContent.append("app:\n");
+        ymlContent.append("  redis:\n");
+        ymlContent.append("    enabled: ").append(enableRedis).append("\n");
         ymlContent.append("  theme:\n");
         ymlContent.append("    active-theme: default\n");
         ymlContent.append("    themes-path: themes\n");

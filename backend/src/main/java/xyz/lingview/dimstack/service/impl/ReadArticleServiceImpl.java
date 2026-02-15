@@ -61,7 +61,7 @@ public class ReadArticleServiceImpl implements ReadArticleService {
         String key = "dimstack:sitemap:articles";
 
         @SuppressWarnings("unchecked")
-        List<ReadArticle> articles = (List<ReadArticle>) cacheService.get(key, Object.class);
+        List<ReadArticle> articles = (List<ReadArticle>) cacheService.get(key, List.class);
 
         if (articles == null || articles.isEmpty()) {
             log.info("文章sitemap缓存未命中，从数据库加载");
@@ -84,7 +84,7 @@ public class ReadArticleServiceImpl implements ReadArticleService {
         String key = "dimstack:sitemap:categories";
 
         @SuppressWarnings("unchecked")
-        List<String> categories = (List<String>) cacheService.get(key, Object.class);
+        List<String> categories = (List<String>) cacheService.get(key, List.class);
 
         if (categories == null || categories.isEmpty()) {
             log.info("分类sitemap缓存未命中，从数据库加载");
@@ -105,7 +105,7 @@ public class ReadArticleServiceImpl implements ReadArticleService {
         String key = "dimstack:sitemap:tags";
 
         @SuppressWarnings("unchecked")
-        List<String> tags = (List<String>) cacheService.get(key, Object.class);
+        List<String> tags = (List<String>) cacheService.get(key, List.class);
 
         if (tags == null || tags.isEmpty()) {
             log.info("标签sitemap缓存未命中，从数据库加载");

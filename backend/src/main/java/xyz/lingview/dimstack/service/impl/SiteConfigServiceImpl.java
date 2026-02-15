@@ -28,7 +28,7 @@ public class SiteConfigServiceImpl implements SiteConfigService {
                 return siteConfig;
             }
         } catch (Exception e) {
-            log.warn("从Redis读取站点配置失败，回退到数据库查询", e);
+            log.warn("从缓存读取站点配置失败，回退到数据库查询", e);
         }
         return siteConfigMapper.getSiteConfig();
     }

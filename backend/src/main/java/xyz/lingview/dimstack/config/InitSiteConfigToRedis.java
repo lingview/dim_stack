@@ -4,9 +4,9 @@ import tools.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import xyz.lingview.dimstack.domain.SiteConfig;
+import xyz.lingview.dimstack.service.CacheService;
 import xyz.lingview.dimstack.service.SiteConfigService;
 
 @Component
@@ -17,25 +17,24 @@ public class InitSiteConfigToRedis implements CommandLineRunner {
     private SiteConfigService siteConfigService;
 
     @Autowired
-    private StringRedisTemplate stringRedisTemplate;
+    private CacheService cacheService;
 
     @Autowired
     private ObjectMapper objectMapper;
 
     @Override
     public void run(String... args) throws Exception {
-        log.info("开始将站点配置加载到Redis");
+        log.info("开始将站点配置加载到缓存");
         try {
             SiteConfig siteConfig = siteConfigService.getSiteConfig();
             if (siteConfig != null) {
-                String siteConfigJson = objectMapper.writeValueAsString(siteConfig);
-                stringRedisTemplate.opsForValue().set("dimstack:site_config", siteConfigJson);
-                log.info("站点配置已成功加载到Redis");
+                cacheService.set("dimstack:site_config", siteConfig);
+                log.info("站点配置已成功加载到缓存");
             } else {
-                log.warn("未找到站点配置信息，跳过Redis加载");
+                log.warn("未找到站点配置信息，跳过缓存加载");
             }
         } catch (Exception e) {
-            log.error("加载站点配置到Redis失败", e);
+            log.error("加载站点配置到缓存失败", e);
         }
     }
 }
