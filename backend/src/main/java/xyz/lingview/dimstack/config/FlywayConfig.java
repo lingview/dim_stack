@@ -32,9 +32,9 @@ public class FlywayConfig {
                 .outOfOrder(false)
                 .load();
 
-        log.info(">>> 开始数据库验证及更新...");
+        log.info("开始数据库验证及更新...");
         flyway.migrate();
-        System.out.println("数据库验证更新完毕");
+        log.info("数据库验证更新完毕");
 
         return flyway;
     }

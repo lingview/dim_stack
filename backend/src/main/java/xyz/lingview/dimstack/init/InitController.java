@@ -1,5 +1,6 @@
 package xyz.lingview.dimstack.init;
 
+import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Controller;
@@ -25,6 +26,7 @@ import java.sql.*;
 @Controller
 @RequestMapping("/init")
 @ConditionalOnProperty(name = "app.mode", havingValue = "init")
+@Slf4j
 public class InitController {
 
     @GetMapping("/setup")
@@ -172,7 +174,7 @@ public class InitController {
 
         flyway.baseline();
 
-        System.out.println("Flyway baseline 成功，版本: " + latestVersion);
+        log.info("Flyway baseline 成功，版本: {}", latestVersion);
     }
 
     /**
@@ -216,7 +218,7 @@ public class InitController {
             pstmt.setString(2, hashedPassword);
 
             int affectedRows = pstmt.executeUpdate();
-            System.out.println("更新了 " + affectedRows + " 条管理员用户记录");
+            log.info("更新了 {} 条管理员用户记录", affectedRows);
         }
     }
 

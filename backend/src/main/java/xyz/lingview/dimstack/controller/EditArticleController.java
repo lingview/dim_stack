@@ -159,7 +159,7 @@ public class EditArticleController {
 //                    }
 //                }
                 if (siteConfigUtil.isNotificationEnabled()) {
-                    System.out.println("发送系统通知");
+                    log.info("发送系统通知");
                     Date date = new Date();
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                     String formattedDate = formatter.format(date);

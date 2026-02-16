@@ -55,7 +55,7 @@ public class InitApplication {
 
                     String localHost = hostAddress + ":" + getPort();
                     String url = "http://" + localHost + "/init/setup";
-                    System.out.println("初始化地址为：" + url);
+                    log.info("初始化地址为：{}", url);
                 }
             }
         }
