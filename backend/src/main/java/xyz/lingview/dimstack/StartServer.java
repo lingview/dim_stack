@@ -19,6 +19,8 @@ import java.net.UnknownHostException;
 @SpringBootApplication
 @EnableAsync
 @EnableScheduling
+// 内存模式下无法使用该注解（）
+//@EnableRedisHttpSession(maxInactiveIntervalInSeconds = 604800, redisNamespace = "dimstack:session")
 public class StartServer {
     public static void main(String[] args) {
         if (needsInitialization()) {
@@ -35,7 +37,7 @@ public class StartServer {
     private static void startInitMode(String[] args) {
         log.info("系统初始化模块加载成功");
         log.info("检测到首次运行或配置不完整，启动初始化模式...");
-        log.info("配置文件目录: " + ConfigInfo.CONFIG_DIR.toAbsolutePath());
+        log.info("配置文件目录: {}", ConfigInfo.CONFIG_DIR.toAbsolutePath());
 
         SpringApplication initApp = new SpringApplication(xyz.lingview.dimstack.init.InitApplication.class);
 
