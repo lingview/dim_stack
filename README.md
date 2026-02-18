@@ -54,9 +54,9 @@
 >
 > OpenJDK版本：17+
 >
-> Redis版本：5+
+> Redis版本：5+（可选）
 >
-> mysql版本：8+
+> mysql版本：5.7+
 >
 > 演示站：[https://apilinks.cn/](https://apilinks.cn/)
 >
