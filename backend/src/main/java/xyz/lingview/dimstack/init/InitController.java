@@ -94,21 +94,31 @@ public class InitController {
         return "init/result";
     }
 
+    private void validateDatabaseName(String dbName) {
+        if (dbName == null || dbName.isBlank()) {
+            throw new IllegalArgumentException("数据库名不能为空");
+        }
+        if (dbName.length() > 64) {
+            throw new IllegalArgumentException("数据库名长度不能超过64个字符");
+        }
+        if (!dbName.matches("^[a-zA-Z0-9_]+$")) {
+            throw new IllegalArgumentException("数据库名只能包含字母、数字和下划线，非法输入: " + dbName);
+        }
+    }
+
     private boolean checkFlywaySchemaHistoryExists(String mysqlHost, Integer mysqlPort, String mysqlDatabase,
                                                    String mysqlUser, String mysqlPassword) throws SQLException {
         String jdbcUrl = "jdbc:mysql://%s:%d/%s?characterEncoding=utf-8&nullCatalogMeansCurrent=true&serverTimezone=GMT%%2B8&useSSL=false&allowPublicKeyRetrieval=true".formatted(
                 mysqlHost, mysqlPort, mysqlDatabase);
 
         try (Connection connection = DriverManager.getConnection(jdbcUrl, mysqlUser, mysqlPassword)) {
-            try (Statement stmt = connection.createStatement()) {
-                String sql = "SELECT COUNT(*) FROM information_schema.tables " +
-                             "WHERE table_schema = '" + mysqlDatabase + "' " +
-                             "AND table_name = 'flyway_schema_history'";
-                
-                try (ResultSet rs = stmt.executeQuery(sql)) {
+            String sql = "SELECT COUNT(*) FROM information_schema.tables " +
+                    "WHERE table_schema = ? AND table_name = 'flyway_schema_history'";
+            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                pstmt.setString(1, mysqlDatabase);
+                try (ResultSet rs = pstmt.executeQuery()) {
                     if (rs.next()) {
-                        int count = rs.getInt(1);
-                        return count > 0;
+                        return rs.getInt(1) > 0;
                     }
                 }
             }
@@ -181,6 +191,7 @@ public class InitController {
      * 删除数据库
      */
     private void dropDatabaseIfExists(Connection connection, String dbName) throws SQLException {
+        validateDatabaseName(dbName);
         try (Statement stmt = connection.createStatement()) {
             stmt.executeUpdate("DROP DATABASE IF EXISTS `" + dbName + "`");
         }
@@ -190,6 +201,7 @@ public class InitController {
      * 创建数据库
      */
     private void createDatabase(Connection connection, String dbName) throws SQLException {
+        validateDatabaseName(dbName);
         try (Statement stmt = connection.createStatement()) {
             stmt.executeUpdate("CREATE DATABASE `" + dbName + "` CHARACTER SET utf8mb4");
         }
