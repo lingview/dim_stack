@@ -1,6 +1,6 @@
 package xyz.lingview.dimstack.controller;
 
-import cn.hutool.crypto.digest.BCrypt;
+import org.mindrot.jbcrypt.BCrypt;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
