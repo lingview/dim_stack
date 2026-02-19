@@ -296,31 +296,6 @@ public class InitController {
         ymlContent.append("      content-type: text/html\n");
         ymlContent.append("\n");
 
-        // Management配置
-        ymlContent.append("management:\n");
-        ymlContent.append("  endpoints:\n");
-        ymlContent.append("    access.default: none\n");
-        ymlContent.append("    web:\n");
-        ymlContent.append("      exposure:\n");
-        ymlContent.append("        include: health,info\n");
-        ymlContent.append("  endpoint:\n");
-        ymlContent.append("    health:\n");
-        ymlContent.append("      access: read-only\n");
-        ymlContent.append("      show-details: always\n");
-        ymlContent.append("    info:\n");
-        ymlContent.append("      access: read-only\n");
-        ymlContent.append("    metrics:\n");
-        ymlContent.append("      access: none\n");
-        ymlContent.append("    shutdown:\n");
-        ymlContent.append("      access: none\n");
-        // 当Redis不启用时，禁用Redis健康检查indicator
-        if (!enableRedis) {
-            ymlContent.append("  health:\n");
-            ymlContent.append("    redis:\n");
-            ymlContent.append("      enabled: false\n");
-        }
-        ymlContent.append("\n");
-
         // MyBatis配置
         ymlContent.append("mybatis:\n");
         ymlContent.append("  type-aliases-package: xyz.lingview.dimstack.**.domain\n");
