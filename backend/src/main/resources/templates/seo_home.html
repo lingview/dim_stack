@@ -1,42 +1,42 @@
-<!doctype html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<!--<!doctype html>-->
+<!--<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1">-->
 
-    <title th:text="${siteName}"></title>
-    <meta name="description" th:content="${siteDescription}">
+<!--    <title th:text="${siteName}"></title>-->
+<!--    <meta name="description" th:content="${siteDescription}">-->
 
-    <link rel="icon" th:href="${siteIcon}" type="image/x-icon" />
-    <link rel="shortcut icon" th:href="${siteIcon}" type="image/x-icon" />
+<!--    <link rel="icon" th:href="${siteIcon}" type="image/x-icon" />-->
+<!--    <link rel="shortcut icon" th:href="${siteIcon}" type="image/x-icon" />-->
 
-    <link rel="canonical" th:href="${url}" />
+<!--    <link rel="canonical" th:href="${url}" />-->
 
-    <meta property="og:type" content="website">
-    <meta property="og:title" th:content="${siteName}">
-    <meta property="og:description" th:content="${siteDescription}">
-    <meta property="og:url" th:content="${url}">
-    <meta property="og:site_name" th:content="${siteName}">
+<!--    <meta property="og:type" content="website">-->
+<!--    <meta property="og:title" th:content="${siteName}">-->
+<!--    <meta property="og:description" th:content="${siteDescription}">-->
+<!--    <meta property="og:url" th:content="${url}">-->
+<!--    <meta property="og:site_name" th:content="${siteName}">-->
 
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" th:content="${siteName}">
-    <meta name="twitter:description" th:content="${siteDescription}">
-</head>
+<!--    <meta name="twitter:card" content="summary">-->
+<!--    <meta name="twitter:title" th:content="${siteName}">-->
+<!--    <meta name="twitter:description" th:content="${siteDescription}">-->
+<!--</head>-->
 
-<body>
-<h1 th:text="${siteName}"></h1>
+<!--<body>-->
+<!--<h1 th:text="${siteName}"></h1>-->
 
-<div th:if="${articles != null and not #lists.isEmpty(articles)}">
-    <ul>
-        <li th:each="article : ${articles}">
-            <h2>
-                <a th:href="@{'/article/' + ${article.alias}}" th:text="${article.title}"></a>
-            </h2>
-            <p th:text="${article.excerpt}"></p>
-            <time th:datetime="${article.date}" th:text="${#dates.format(article.date, 'yyyy-MM-dd')}"></time>
-        </li>
-    </ul>
-</div>
+<!--<div th:if="${articles != null and not #lists.isEmpty(articles)}">-->
+<!--    <ul>-->
+<!--        <li th:each="article : ${articles}">-->
+<!--            <h2>-->
+<!--                <a th:href="@{'/article/' + ${article.alias}}" th:text="${article.title}"></a>-->
+<!--            </h2>-->
+<!--            <p th:text="${article.excerpt}"></p>-->
+<!--            <time th:datetime="${article.date}" th:text="${#dates.format(article.date, 'yyyy-MM-dd')}"></time>-->
+<!--        </li>-->
+<!--    </ul>-->
+<!--</div>-->
 
-</body>
-</html>
+<!--</body>-->
+<!--</html>-->
