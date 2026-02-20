@@ -5,11 +5,11 @@ import MarkdownTextarea from './MarkdownTextarea';
 import MarkdownPreview from './MarkdownPreview';
 import ArticleInfoForm from './ArticleInfoForm';
 import TextSelectionToolbar from './TextSelectionToolbar';
-import { useFileUpload } from '../hooks/useFileUpload';
-import { isSafeUrl } from '../utils/markdownUtils';
-import { detectTextFormats, detectContextFormats, determineFormatAction } from '../utils/formatDetectionUtils';
-import apiClient from '../utils/axios';
-import { getConfig } from '../utils/config';
+import { useFileUpload } from '../../hooks/useFileUpload';
+import { isSafeUrl } from '../../utils/markdownUtils';
+import { detectTextFormats, detectContextFormats, determineFormatAction } from '../../utils/formatDetectionUtils';
+import apiClient from '../../utils/axios';
+import { getConfig } from '../../utils/config';
 
 class HistoryManager {
     constructor() {

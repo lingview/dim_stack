@@ -11,7 +11,7 @@ import DashboardHeader from './DashboardHeader';
 
 const DashboardView = lazy(() => import('./DashboardView'));
 const ArticlesView = lazy(() => import('./ArticlesView'));
-const MarkdownEditor = lazy(() => import('../MarkdownEditor'));
+const MarkdownEditor = lazy(() => import('./MarkdownEditor'));
 const ProfileView = lazy(() => import('./ProfileView'));
 const CommentsView = lazy(() => import('./CommentsView'));
 const ArticlesReview = lazy(() => import('./ArticlesReview'));

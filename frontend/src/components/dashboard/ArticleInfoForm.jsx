@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import apiClient from '../utils/axios';
-import { getConfig } from '../utils/config';
+import apiClient from '../../utils/axios';
+import { getConfig } from '../../utils/config';
 
 export default function ArticleInfoForm({ articleData, onSave, onCancel, uploading }) {
     const [formData, setFormData] = useState({

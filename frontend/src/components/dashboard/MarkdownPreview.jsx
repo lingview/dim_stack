@@ -6,8 +6,8 @@ import rehypeSanitize from 'rehype-sanitize';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Copy, Check, Music, FileText } from 'lucide-react';
-import { preprocessMarkdown, isSafeUrl } from '../utils/markdownUtils';
-import remarkDisableLonelyOrderedList from "../utils/remark-disable-lonely-ol.jsx";
+import { preprocessMarkdown, isSafeUrl } from '../../utils/markdownUtils';
+import remarkDisableLonelyOrderedList from "../../utils/remark-disable-lonely-ol.jsx";
 import remarkBreaks from 'remark-breaks';
 
 const SANITIZE_SCHEMA = {
