@@ -8,15 +8,15 @@ public class RouterController {
 
     @GetMapping({
 //        "/",
-        "/login",
-        "/register",
+//        "/login",
+//        "/register",
         "/dashboard",
         "/dashboard/**",
-        "/article/**",
-        "/category/**",
-        "/tag/**",
-        "/friend-links",
-        "/forgot-password",
+//        "/article/**",
+//        "/category/**",
+//        "/tag/**",
+//        "/friend-links",
+//        "/forgot-password",
     })
     public String frontendRoutes() {
         return "forward:/index.html";
