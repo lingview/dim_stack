@@ -51,7 +51,7 @@
 
 
 
-### 宝塔面板部署
+## 宝塔面板部署
 请移步b站查看部署视频
 
 [https://www.bilibili.com/video/BV1qncgzkEHk/](https://www.bilibili.com/video/BV1qncgzkEHk/)
