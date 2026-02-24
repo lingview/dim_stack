@@ -18,7 +18,6 @@ public class RobotsController {
         sb.append("User-agent: *\n");
         sb.append("Allow: /\n\n");
 
-        sb.append("Disallow: /api/\n");
         sb.append("Disallow: /dashboard/\n");
         sb.append("Disallow: /login\n");
         sb.append("Disallow: /register\n");
