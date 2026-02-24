@@ -100,7 +100,7 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onCl
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
                             <div className="text-2xl font-bold text-blue-600">
-                                {isOpen ? siteName : siteName?.charAt(0)}
+                                {isOpen ? siteName : (siteName && typeof siteName === 'string' ? siteName.charAt(0) : 'D')}
                             </div>
                         </div>
                     </div>
