@@ -212,109 +212,13 @@ v77->v84+
 
 ## 系统启动相关
 ### 流程图
-```mermaid
-flowchart TD
-    Start([系统启动]) --> Check{检查配置是否完整}
-
-    Check -- 否 --> InitMode[初始化模式]
-    subgraph InitFlow [首次运行/配置缺失]
-        direction TB
-        InitMode --> LoadInit[加载 InitApplication]
-        LoadInit --> SetInitArgs[注入初始化配置参数]
-        SetInitArgs --> RunInit[启动初始化向导]
-        RunInit --> EndInit([等待配置完成])
-    end
-
-    Check -- 是 --> NormMode[正常服务模式]
-    subgraph NormFlow [生产运行环境]
-        direction TB
-        NormMode --> LoadMain[加载 StartServer]
-        LoadMain --> StartSpring[启动 Spring 容器]
-        StartSpring --> DetectEvent[监听 ContextRefreshedEvent]
-        DetectEvent --> CheckRoot{是否根上下文？}
-        CheckRoot -- 否 --> Skip
-        CheckRoot -- 是 --> CheckEnv{是否为 init 模式？}
-        CheckEnv -- 是 --> Skip[跳过]
-        CheckEnv -- 否 --> GetAddr[获取本机 IP 与端口]
-        GetAddr --> PrintUrl[打印服务访问地址]
-        PrintUrl --> EndMain([服务就绪])
-    end
-
-    %% 样式美化
-    style Start fill:#333,color:#fff,stroke-width:0px
-    style Check fill:#ff9900,color:#000,stroke:#333,stroke-width:2px
-    style InitMode fill:#ffcccb,stroke:#f66,stroke-width:2px
-    style NormMode fill:#ccffcc,stroke:#090,stroke-width:2px
-    style EndInit fill:#ffcccb,stroke:#f66,stroke-width:2px
-    style EndMain fill:#ccffcc,stroke:#090,stroke-width:2px
-    
-    style InitFlow fill:#fff5f5,stroke:#f66,stroke-dasharray: 5 5
-    style NormFlow fill:#f0fff0,stroke:#090,stroke-dasharray: 5 5
-```
+![](https://cdn.nlark.com/yuque/__mermaid_v3/59224c171ab9c2e4029a61dfa6212a6c.svg)
 
 
 
 ## 缓存模式相关
 ### 流程图
-```mermaid
-flowchart TD
-    Start([Spring 容器启动<br/>加载 CacheAutoConfiguration]) --> PostConstruct[执行 @PostConstruct<br/>打印当前缓存模式日志]
-    PostConstruct --> BeanStart[请求创建 cacheService Bean]
-    
-    BeanStart --> DetermineMode{判断缓存模式<br/>determineRedisMode}
-    
-    subgraph ModeLogic [模式决策逻辑]
-        direction TB
-        DetermineMode --> CheckExplicitTrue{app.redis.enabled<br/>== true}
-        CheckExplicitTrue -- 是 --> ModeRedis[REDIS_ENABLED<br/>强制 Redis 模式]
-        
-        CheckExplicitTrue -- 否 --> CheckExplicitFalse{app.redis.enabled<br/>== false}
-        CheckExplicitFalse -- 是 --> ModeMem[MEMORY_ONLY<br/>强制内存模式]
-        
-        CheckExplicitFalse -- 否 --> CheckConfig{检测到 Redis 配置<br/>Host 非空且 Port 有效}
-        CheckConfig -- 是 --> ModeCompat[REDIS_COMPATIBILITY<br/>兼容模式<br/>警告: 建议显式配置]
-        CheckConfig -- 否 --> ModeMemFinal[MEMORY_ONLY<br/>默认内存模式]
-    end
-
-    ModeRedis --> CreateRedis
-    ModeCompat --> CreateRedis
-    ModeMem --> CreateMem
-    ModeMemFinal --> CreateMem
-
-    subgraph Creation [实例创建与验证]
-        direction TB
-        CreateRedis[创建 RedisCacheService] --> InitTemplate[初始化 RedisTemplate<br/>设置 JSON 序列化器]
-        InitTemplate --> TestConnect{测试 Redis 连接<br/>isRedisAvailable?}
-        
-        TestConnect -- 成功 --> ReturnRedis[返回 Redis 实现类]
-        TestConnect -- 失败 --> ThrowError[抛出 RuntimeException<br/>提示检查 Redis 服务与配置]
-        
-        CreateMem[创建 MemoryCacheService] --> ReturnMem[返回 内存实现类]
-    end
-
-    ReturnRedis --> End([Bean 创建完成<br/>缓存服务就绪])
-    ReturnMem --> End
-    ThrowError --> Stop([启动失败])
-
-    %% 样式定义
-    style Start fill:#333,color:#fff,stroke-width:0px
-    style End fill:#28a745,color:#fff,stroke-width:0px
-    style Stop fill:#dc3545,color:#fff,stroke-width:0px
-    
-    style ModeRedis fill:#ffcccc,stroke:#dc3545,stroke-width:2px
-    style ModeMem fill:#d4edda,stroke:#28a745,stroke-width:2px
-    style ModeMemFinal fill:#d4edda,stroke:#28a745,stroke-width:2px
-    style ModeCompat fill:#fff3cd,stroke:#ffc107,stroke-width:2px
-    
-    style DetermineMode fill:#ffeb3b,stroke:#333,stroke-width:2px
-    style CheckExplicitTrue fill:#ffeb3b,stroke:#333
-    style CheckExplicitFalse fill:#ffeb3b,stroke:#333
-    style CheckConfig fill:#ffeb3b,stroke:#333
-    style TestConnect fill:#ffeb3b,stroke:#333
-
-    style ModeLogic fill:#f9f9f9,stroke:#ccc,stroke-dasharray: 5 5
-    style Creation fill:#f9f9f9,stroke:#ccc,stroke-dasharray: 5 5
-```
+![](https://cdn.nlark.com/yuque/__mermaid_v3/1253db148446cf9d1b6cedd8e49eeffb.svg)
 
 ## 贡献者
 感谢所有参与本项目的贡献者（按字母顺序排列）：
