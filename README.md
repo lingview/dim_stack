@@ -2,19 +2,14 @@
 > 基于 Spring Boot + React 的现代化个人博客系统
 >
 
-<!-- 这是一张图片，ocr 内容为： -->
 ![](https://img.shields.io/badge/Spring_Boot-4.0.2-green.svg)
 
-<!-- 这是一张图片，ocr 内容为： -->
 ![](https://img.shields.io/badge/React-19.1.1-%2361DAFB.svg)
 
-<!-- 这是一张图片，ocr 内容为： -->
 ![](https://img.shields.io/badge/Node.js-22.16.0-43853D.svg)
 
-<!-- 这是一张图片，ocr 内容为： -->
 ![](https://img.shields.io/badge/Database-MySQL-4479A1.svg)
 
-<!-- 这是一张图片，ocr 内容为： -->
 ![](https://img.shields.io/badge/Database-Redis-DC382D.svg)
 
 
@@ -89,20 +84,16 @@ java -jar dimstack-1.0-SNAPSHOT.jar --server.port=2223
 http://localhost:2223/init/setup
 ```
 
-<!-- 这是一张图片，ocr 内容为： -->
-![](img.png)<!-- 这是一张图片，ocr 内容为： -->
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771939967216-cf2e1778-f2b1-402a-9770-9645247e35ec.png)
+![](img.png)![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771939967216-cf2e1778-f2b1-402a-9770-9645247e35ec.png)
 
 
 
 按照初始化向导的提示填写：管理员用户名、密码、站点运行端口、日志级别、mysql信息以及redis信息等（默认信息不懂的话不要动）
 
-<!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771939997662-94df1978-192b-4ac6-8193-6a15787adb98.png)
 
 填写完后点击确认（系统会自动按照填写的信息完成初始化，导入sql、配置文件生成等），出现下面界面即为成功，重启即可
 
-<!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1768055855648-4337108c-4ef7-41cc-981a-f7c7675f1d3e.png)
 
 
@@ -116,7 +107,6 @@ java -jar dimstack-1.0-SNAPSHOT.jar
 
 运行后能看到主页正常加载即为成功
 
-<!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771940913049-420a6404-abee-4d66-9e09-612db7affbd5.png)
 
 ### systemd自启
@@ -151,7 +141,6 @@ Environment="JAVA_OPTS=-Xms512m -Xmx1g"
 WantedBy=multi-user.target
 ```
 
-<!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771941575477-4a3a488d-95fc-4d9e-a43d-a0c13b9efa02.png)
 
 #### 重载systemd配置
@@ -159,7 +148,6 @@ WantedBy=multi-user.target
 systemctl daemon-reload 
 ```
 
-<!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771941635847-feeaa633-f9ce-4413-b8cc-e28263106eb8.png)
 
 #### 启动服务
@@ -167,7 +155,6 @@ systemctl daemon-reload
 sudo systemctl start dimstack
 ```
 
-<!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771943203827-d4fa1370-22d1-41ed-a188-ee2a428815fa.png)
 
 #### 检查状态
@@ -175,11 +162,9 @@ sudo systemctl start dimstack
 sudo systemctl status dimstack
 ```
 
-<!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771943255079-76fd2faa-02f6-406a-8eba-8cd0f521c9fc.png)
 
 #### 设置开机自启
-<!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771943292424-f8aa57ab-aca6-44e3-b24d-fb672406045e.png)
 
 ## 老版本相关
@@ -212,16 +197,124 @@ v77->v84+
   - Googlebot、Bingbot、Baiduspider、DuckDuckBot、Sogou、360Spider 等
 
 ### SEO优化
+<font style="color:rgba(6, 10, 38, 0.7) !important;">支持动态生成 Sitemap 和 Robots.txt，智能处理反向代理头</font>
+
 针对Google、Bing等主流搜索引擎的爬虫进行了独立优化（未覆盖百度，百度爬虫仅能获取基础信息）
 
-<!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771940427421-d51eba44-e781-43f6-9359-6dd69eec331a.png)
 
 ### 大模型读取
 文章内容可以被大部分网页AI直接读取（密码文章无法读取）
 
-<!-- 这是一张图片，ocr 内容为： -->
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771940630986-7aa68429-8aa0-4c46-a37b-3a7912a4525f.png)
+
+
+
+## 系统启动相关
+### 流程图
+```mermaid
+flowchart TD
+    Start([系统启动]) --> Check{检查配置是否完整}
+
+    Check -- 否 --> InitMode[初始化模式]
+    subgraph InitFlow [首次运行/配置缺失]
+        direction TB
+        InitMode --> LoadInit[加载 InitApplication]
+        LoadInit --> SetInitArgs[注入初始化配置参数]
+        SetInitArgs --> RunInit[启动初始化向导]
+        RunInit --> EndInit([等待配置完成])
+    end
+
+    Check -- 是 --> NormMode[正常服务模式]
+    subgraph NormFlow [生产运行环境]
+        direction TB
+        NormMode --> LoadMain[加载 StartServer]
+        LoadMain --> StartSpring[启动 Spring 容器]
+        StartSpring --> DetectEvent[监听 ContextRefreshedEvent]
+        DetectEvent --> CheckRoot{是否根上下文？}
+        CheckRoot -- 否 --> Skip
+        CheckRoot -- 是 --> CheckEnv{是否为 init 模式？}
+        CheckEnv -- 是 --> Skip[跳过]
+        CheckEnv -- 否 --> GetAddr[获取本机 IP 与端口]
+        GetAddr --> PrintUrl[打印服务访问地址]
+        PrintUrl --> EndMain([服务就绪])
+    end
+
+    %% 样式美化
+    style Start fill:#333,color:#fff,stroke-width:0px
+    style Check fill:#ff9900,color:#000,stroke:#333,stroke-width:2px
+    style InitMode fill:#ffcccb,stroke:#f66,stroke-width:2px
+    style NormMode fill:#ccffcc,stroke:#090,stroke-width:2px
+    style EndInit fill:#ffcccb,stroke:#f66,stroke-width:2px
+    style EndMain fill:#ccffcc,stroke:#090,stroke-width:2px
+    
+    style InitFlow fill:#fff5f5,stroke:#f66,stroke-dasharray: 5 5
+    style NormFlow fill:#f0fff0,stroke:#090,stroke-dasharray: 5 5
+```
+
+
+
+## 缓存模式相关
+### 流程图
+```mermaid
+flowchart TD
+    Start([Spring 容器启动<br/>加载 CacheAutoConfiguration]) --> PostConstruct[执行 @PostConstruct<br/>打印当前缓存模式日志]
+    PostConstruct --> BeanStart[请求创建 cacheService Bean]
+    
+    BeanStart --> DetermineMode{判断缓存模式<br/>determineRedisMode}
+    
+    subgraph ModeLogic [模式决策逻辑]
+        direction TB
+        DetermineMode --> CheckExplicitTrue{app.redis.enabled<br/>== true}
+        CheckExplicitTrue -- 是 --> ModeRedis[REDIS_ENABLED<br/>强制 Redis 模式]
+        
+        CheckExplicitTrue -- 否 --> CheckExplicitFalse{app.redis.enabled<br/>== false}
+        CheckExplicitFalse -- 是 --> ModeMem[MEMORY_ONLY<br/>强制内存模式]
+        
+        CheckExplicitFalse -- 否 --> CheckConfig{检测到 Redis 配置<br/>Host 非空且 Port 有效}
+        CheckConfig -- 是 --> ModeCompat[REDIS_COMPATIBILITY<br/>兼容模式<br/>警告: 建议显式配置]
+        CheckConfig -- 否 --> ModeMemFinal[MEMORY_ONLY<br/>默认内存模式]
+    end
+
+    ModeRedis --> CreateRedis
+    ModeCompat --> CreateRedis
+    ModeMem --> CreateMem
+    ModeMemFinal --> CreateMem
+
+    subgraph Creation [实例创建与验证]
+        direction TB
+        CreateRedis[创建 RedisCacheService] --> InitTemplate[初始化 RedisTemplate<br/>设置 JSON 序列化器]
+        InitTemplate --> TestConnect{测试 Redis 连接<br/>isRedisAvailable?}
+        
+        TestConnect -- 成功 --> ReturnRedis[返回 Redis 实现类]
+        TestConnect -- 失败 --> ThrowError[抛出 RuntimeException<br/>提示检查 Redis 服务与配置]
+        
+        CreateMem[创建 MemoryCacheService] --> ReturnMem[返回 内存实现类]
+    end
+
+    ReturnRedis --> End([Bean 创建完成<br/>缓存服务就绪])
+    ReturnMem --> End
+    ThrowError --> Stop([启动失败])
+
+    %% 样式定义
+    style Start fill:#333,color:#fff,stroke-width:0px
+    style End fill:#28a745,color:#fff,stroke-width:0px
+    style Stop fill:#dc3545,color:#fff,stroke-width:0px
+    
+    style ModeRedis fill:#ffcccc,stroke:#dc3545,stroke-width:2px
+    style ModeMem fill:#d4edda,stroke:#28a745,stroke-width:2px
+    style ModeMemFinal fill:#d4edda,stroke:#28a745,stroke-width:2px
+    style ModeCompat fill:#fff3cd,stroke:#ffc107,stroke-width:2px
+    
+    style DetermineMode fill:#ffeb3b,stroke:#333,stroke-width:2px
+    style CheckExplicitTrue fill:#ffeb3b,stroke:#333
+    style CheckExplicitFalse fill:#ffeb3b,stroke:#333
+    style CheckConfig fill:#ffeb3b,stroke:#333
+    style TestConnect fill:#ffeb3b,stroke:#333
+
+    style ModeLogic fill:#f9f9f9,stroke:#ccc,stroke-dasharray: 5 5
+    style Creation fill:#f9f9f9,stroke:#ccc,stroke-dasharray: 5 5
+```
 
 ## 贡献者
 感谢所有参与本项目的贡献者（按字母顺序排列）：
