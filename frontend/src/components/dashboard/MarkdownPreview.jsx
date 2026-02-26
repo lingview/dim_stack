@@ -227,7 +227,7 @@ export default function MarkdownPreview({ content, previewRef }) {
             className="w-1/2 p-4 overflow-y-auto bg-white text-gray-900 pb-32"
             style={{ 
                 overflowAnchor: 'none',
-                paddingBottom: '30rem'
+                paddingBottom: '80vh'
             }}
         >
             <ReactMarkdown

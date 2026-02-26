@@ -18,7 +18,7 @@ const MarkdownTextarea = forwardRef(({
             placeholder="在此输入 Markdown 内容..."
             className="flex-1 p-4 pb-32 focus:outline-none font-mono resize-none text-gray-900 bg-white"
             style={{
-                paddingBottom: '30rem'
+                paddingBottom: '80vh'
             }}
             spellCheck={false}
         />
