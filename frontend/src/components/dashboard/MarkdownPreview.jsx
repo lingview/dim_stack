@@ -224,8 +224,11 @@ export default function MarkdownPreview({ content, previewRef }) {
     return (
         <div
             ref={previewRef}
-            className="w-1/2 p-4 overflow-y-auto bg-white text-gray-900"
-            style={{ overflowAnchor: 'none' }}
+            className="w-1/2 p-4 overflow-y-auto bg-white text-gray-900 pb-32"
+            style={{ 
+                overflowAnchor: 'none',
+                paddingBottom: '30rem'
+            }}
         >
             <ReactMarkdown
                 children={preprocessMarkdown(content)}
