@@ -28,10 +28,11 @@
         a.article_cover AS image,
         a.create_time AS date,
         u.username AS author,
-        CASE 
-                WHEN p.article_categories IS NULL THEN c.article_categories
-                ELSE CONCAT(p.article_categories, '/', c.article_categories)
-            END AS category,
+        u.avatar AS author_avatar,
+        CASE
+        WHEN p.article_categories IS NULL THEN c.article_categories
+        ELSE CONCAT(p.article_categories, '/', c.article_categories)
+        END AS category,
         a.alias,
         t.tag
         FROM (
@@ -40,20 +41,20 @@
         WHERE status = 1
         <if test="category != null and category != ''">
             AND category_id = (
-                SELECT c.id 
-                FROM article_categories c 
-                LEFT JOIN article_categories p ON c.parent_id = p.id 
-                WHERE c.article_categories = #{childCategory}
-                <if test="parentCategory != null and parentCategory != ''">
-                    AND p.article_categories = #{parentCategory}
-                </if>
+            SELECT c.id
+            FROM article_categories c
+            LEFT JOIN article_categories p ON c.parent_id = p.id
+            WHERE c.article_categories = #{childCategory}
+            <if test="parentCategory != null and parentCategory != ''">
+                AND p.article_categories = #{parentCategory}
+            </if>
             )
         </if>
         ORDER BY create_time DESC
         LIMIT #{param1}, #{param2}
         ) page
         JOIN article a ON page.id = a.id
-        JOIN user_information u ON a.uuid = u.uuid
+        JOIN user_information u ON a.uuid = u.uuid  <!-- 确保此处关联的是用户唯一标识 -->
         LEFT JOIN article_categories c ON a.category_id = c.id
         LEFT JOIN article_categories p ON c.parent_id = p.id
         LEFT JOIN (
@@ -63,7 +64,6 @@
         ) t ON a.article_id = t.article_id
         ORDER BY a.create_time DESC
     </select>
-
 
     <!-- 统计文章总数 -->
     <select id="countArticles" resultType="int">

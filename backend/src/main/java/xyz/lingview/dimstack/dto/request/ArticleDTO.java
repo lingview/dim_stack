@@ -12,6 +12,7 @@ public class ArticleDTO {
     private String image;
     private Date date;
     private String author;
+    private String author_avatar;
     private String category;
     private String tag;
     private String alias;

@@ -30,7 +30,7 @@ export default function RecommendedArticles() {
 
     if (loading) {
         return (
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white rounded-xl shadow-sm p-5">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">热门文章</h3>
                 <div className="space-y-4">
                     {[...Array(3)].map((_, i) => (
@@ -52,7 +52,7 @@ export default function RecommendedArticles() {
 
     if (error) {
         return (
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white rounded-xl shadow-sm p-5">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">热门文章</h3>
                 <div className="text-red-500 text-sm text-center py-4">
                     {error}
@@ -68,7 +68,7 @@ export default function RecommendedArticles() {
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-sm p-6">
+        <div className="bg-white rounded-xl shadow-sm p-5">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">热门文章</h3>
             <ul className="space-y-3">
                 {hotArticles.length === 0 ? (

@@ -20,18 +20,21 @@ export default function Home() {
     const [mpsRecord, setMpsRecord] = useState('');
     const [showImages, setShowImages] = useState(true);
     const [forceMobile, setForceMobile] = useState(() => {
-        if (typeof window !== 'undefined') {
-            return window.innerWidth < 676;
-        }
+        if (typeof window !== 'undefined') return window.innerWidth < 768;
         return false;
     });
 
-    const articleListRef = useRef(null);
     const [searchParams] = useSearchParams();
     const { tagName } = useParams();
     const categoryName = searchParams.get('name');
     const navigate = useNavigate();
     const location = useLocation();
+
+    useEffect(() => {
+        const checkMobile = () => setForceMobile(window.innerWidth < 768);
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     useEffect(() => {
         const savedShowImages = localStorage.getItem('showImages');
@@ -49,26 +52,6 @@ export default function Home() {
     useEffect(() => {
         localStorage.setItem('showImages', JSON.stringify(showImages));
     }, [showImages]);
-
-    useEffect(() => {
-        if (!articleListRef.current) return;
-
-        const checkWidth = () => {
-            if (!articleListRef.current) return;
-            const width = articleListRef.current.offsetWidth;
-            const canFitTwoColumns = width >= 676;
-            setForceMobile(!canFitTwoColumns);
-        };
-
-        checkWidth();
-
-        const ro = new ResizeObserver(() => {
-            checkWidth();
-        });
-
-        ro.observe(articleListRef.current);
-        return () => ro.disconnect();
-    }, [articles]);
 
     const loadArticlesFromUrl = async () => {
         try {
@@ -144,12 +127,12 @@ export default function Home() {
         <div className="flex bg-gray-50 flex-col min-h-screen">
             <Header />
 
-            <div className="pt-20 flex-grow">
+            <div className="pt-20 grow">
                 <Hero />
 
-                <main className="container mx-auto px-4 py-8">
-                    <div className="flex flex-col lg:flex-row gap-6">
-                        <div className="lg:w-7/10">
+                <main className="max-w-6xl mx-auto px-4 py-8">
+                    <div className="flex flex-col lg:flex-row gap-5">
+                        <div className="lg:w-3/4">
                             <div className="mb-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-2xl font-bold text-gray-900">
@@ -157,14 +140,12 @@ export default function Home() {
                                     </h2>
 
                                     <div className="flex items-center space-x-3">
-                                        {!forceMobile && (
-                                            <button
-                                                onClick={toggleImageDisplay}
-                                                className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
-                                            >
-                                                {showImages ? '隐藏图片' : '显示图片'}
-                                            </button>
-                                        )}
+                                        <button
+                                            onClick={toggleImageDisplay}
+                                            className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                                        >
+                                            {showImages ? '隐藏图片' : '显示图片'}
+                                        </button>
 
                                         {(categoryName || tagName) && (
                                             <button
@@ -175,19 +156,12 @@ export default function Home() {
                                             </button>
                                         )}
                                     </div>
-
                                 </div>
 
                                 {loading ? (
                                     <div className="text-center py-12 text-gray-500">加载中...</div>
                                 ) : articles.length > 0 ? (
-                                    <div
-                                        ref={articleListRef}
-                                        className={`
-                                            gap-4
-                                            ${forceMobile ? 'flex flex-col w-full' : 'grid justify-start grid-cols-[repeat(auto-fill,330px)]'}
-                                        `}
-                                    >
+                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                         {articles.map(article => (
                                             <ArticleCard
                                                 key={article.id}
@@ -230,7 +204,7 @@ export default function Home() {
                             </div>
                         </div>
 
-                        <div className="lg:w-3/10">
+                        <div className="lg:w-1/4">
                             <div className="sticky top-28 space-y-4">
                                 <CategorySidebar
                                     onCategorySelect={handleCategoryChange}
