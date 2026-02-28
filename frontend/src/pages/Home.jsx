@@ -130,83 +130,95 @@ export default function Home() {
             <div className="pt-20 grow">
                 <Hero />
 
-                <main className="max-w-6xl mx-auto px-4 py-8">
-                    <div className="flex flex-col lg:flex-row gap-5">
-                        <div className="lg:w-3/4">
-                            <div className="mb-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-2xl font-bold text-gray-900">
-                                        {getCurrentFilterTitle()}
-                                    </h2>
+                <main className="max-w-310 mx-auto px-4 py-8">
+                    <div className="flex flex-col lg:flex-row gap-6">
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-6 filter-header-border">
+                                <h2 className="text-2xl font-bold text-gray-900 filter-title">
+                                    {getCurrentFilterTitle()}
+                                </h2>
 
-                                    <div className="flex items-center space-x-3">
+                                <div className="flex items-center space-x-4">
+                                    <div
+                                        className="hidden md:flex items-center cursor-pointer group"v
+                                        onClick={toggleImageDisplay}
+                                    >
+                        <span className="mr-3 text-sm font-medium text-gray-600 switch-label select-none">
+                            {showImages ? '显示图片' : '隐藏图片'}
+                        </span>
+
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only"
+                                                checked={showImages}
+                                                readOnly
+                                            />
+                                            <div className={`
+                                w-11 h-6 rounded-full transition-all duration-300 border
+                                ${showImages ? 'bg-blue-500 border-blue-600' : 'bg-gray-200 border-gray-300 dark-switch-bg'}
+                            `}></div>
+                                            <div className={`
+                                absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow-sm transition-transform duration-300
+                                ${showImages ? 'translate-x-5' : 'translate-x-0'}
+                            `}></div>
+                                        </div>
+                                    </div>
+
+                                    {(categoryName || tagName) && (
                                         <button
-                                            onClick={toggleImageDisplay}
-                                            className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                                            onClick={handleClearFilter}
+                                            className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
                                         >
-                                            {showImages ? '隐藏图片' : '显示图片'}
+                                            清除筛选
                                         </button>
-
-                                        {(categoryName || tagName) && (
-                                            <button
-                                                onClick={handleClearFilter}
-                                                className="text-sm text-blue-600 hover:text-blue-800"
-                                            >
-                                                清除筛选
-                                            </button>
-                                        )}
-                                    </div>
+                                    )}
                                 </div>
+                            </div>
 
-                                {loading ? (
-                                    <div className="text-center py-12 text-gray-500">加载中...</div>
-                                ) : articles.length > 0 ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                                        {articles.map(article => (
-                                            <div key={article.id} className="lg:flex lg:justify-center">
-                                                <div className="w-full lg:max-w-sm">
-                                                    <ArticleCard
-                                                        article={article}
-                                                        showImage={showImages}
-                                                        forceMobile={forceMobile}
-                                                        onCategoryClick={handleCategoryChange}
-                                                        onTagClick={handleTagChange}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-12 text-gray-500">
-                                        暂无文章
-                                    </div>
-                                )}
-
-                                <div className="flex justify-center mt-8 pagination-container">
-                                    <button
-                                        onClick={() => setPage(p => Math.max(1, p - 1))}
-                                        disabled={page === 1}
-                                        className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button pagination-prev-next"
-                                    >
-                                        上一页
-                                    </button>
-
-                                    <span className="px-4 py-2 mx-1 pagination-info">
-                                        {page} / {totalPages}
-                                    </span>
-
-                                    <button
-                                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                        disabled={page === totalPages}
-                                        className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button pagination-prev-next"
-                                    >
-                                        下一页
-                                    </button>
+                            {loading ? (
+                                <div className="text-center py-12 text-gray-500">加载中...</div>
+                            ) : articles.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                    {articles.map(article => (
+                                        <div key={article.id} className="w-full flex justify-center">
+                                            <ArticleCard
+                                                article={article}
+                                                showImage={showImages}
+                                                forceMobile={forceMobile}
+                                                onCategoryClick={handleCategoryChange}
+                                                onTagClick={handleTagChange}
+                                            />
+                                        </div>
+                                    ))}
                                 </div>
+                            ) : (
+                                <div className="text-center py-12 text-gray-500">
+                                    暂无文章
+                                </div>
+                            )}
+                            <div className="flex justify-center mt-12 pagination-container">
+                                <button
+                                    onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo(0, 0); }}
+                                    disabled={page === 1}
+                                    className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button"
+                                >
+                                    上一页
+                                </button>
+                                <span className="px-4 py-2 mx-1 pagination-info text-gray-600">
+                    {page} / {totalPages}
+                </span>
+                                <button
+                                    onClick={() => { setPage(p => Math.min(totalPages, p + 1)); window.scrollTo(0, 0); }}
+                                    disabled={page === totalPages}
+                                    className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button"
+                                >
+                                    下一页
+                                </button>
                             </div>
                         </div>
 
-                        <div className="lg:w-1/4">
+                        <div className="lg:w-77.5 shrink-0">
                             <div className="sticky top-28 space-y-4">
                                 <CategorySidebar
                                     onCategorySelect={handleCategoryChange}
