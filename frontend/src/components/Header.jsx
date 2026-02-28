@@ -141,12 +141,26 @@ export default function Header() {
                         <ul className="flex space-x-8">
                             {menus.map((menu, index) => (
                                 <li key={menu.menus_id || index}>
-                                    <a
-                                        href={menu.menus_url}
-                                        className="text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
-                                    >
-                                        {menu.menus_name}
-                                    </a>
+                                    {menu.menus_url.startsWith('/') && !menu.menus_url.startsWith('//') ? (
+                                        <button
+                                            onClick={() => {
+                                                navigate(menu.menus_url);
+                                                closeMobileMenu();
+                                            }}
+                                            className="text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200 text-left"
+                                        >
+                                            {menu.menus_name}
+                                        </button>
+                                    ) : (
+                                        <a
+                                            href={menu.menus_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
+                                        >
+                                            {menu.menus_name}
+                                        </a>
+                                    )}
                                 </li>
                             ))}
                         </ul>
@@ -234,13 +248,27 @@ export default function Header() {
                             <ul className="space-y-1 mb-4">
                                 {menus.map((menu, index) => (
                                     <li key={menu.menus_id || index}>
-                                        <a
-                                            href={menu.menus_url}
-                                            className="block py-3 px-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 font-medium transition-all duration-200 rounded-lg"
-                                            onClick={closeMobileMenu}
-                                        >
-                                            {menu.menus_name}
-                                        </a>
+                                        {menu.menus_url.startsWith('/') && !menu.menus_url.startsWith('//') ? (
+                                            <button
+                                                onClick={() => {
+                                                    navigate(menu.menus_url);
+                                                    closeMobileMenu();
+                                                }}
+                                                className="block w-full text-left py-3 px-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 font-medium transition-all duration-200 rounded-lg"
+                                            >
+                                                {menu.menus_name}
+                                            </button>
+                                        ) : (
+                                            <a
+                                                href={menu.menus_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="block py-3 px-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 font-medium transition-all duration-200 rounded-lg"
+                                                onClick={closeMobileMenu}
+                                            >
+                                                {menu.menus_name}
+                                            </a>
+                                        )}
                                     </li>
                                 ))}
                             </ul>

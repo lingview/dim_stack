@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import Favicon from 'react-favicon'
 import Home from './pages/Home'
@@ -12,9 +12,13 @@ import FriendLinks from "./components/FriendLinks.jsx";
 import PageNotFound from "./components/PageNotFound.jsx";
 import ForgotPassword from "./components/ForgotPassword.jsx";
 import CustomHtmlPage from "./components/CustomHtmlPage.jsx";
+import MusicPlayer from './components/MusicPlayer';
 
 function App() {
     const [faviconUrl, setFaviconUrl] = useState('/favicon.ico')
+    const location = useLocation()
+
+    const isDashboardRoute = location.pathname.startsWith('/dashboard')
 
     useEffect(() => {
         const setDocumentTitle = async () => {
@@ -73,6 +77,7 @@ function App() {
                 <Route path="*" element={<PageNotFound />} />
                 <Route path="/custom-page/:alias" element={<CustomHtmlPage />} />
             </Routes>
+            {!isDashboardRoute && <MusicPlayer />}
         </>
     )
 }

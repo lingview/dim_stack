@@ -5,7 +5,6 @@ import Hero from './Hero';
 import CategorySidebar from './CategorySidebar';
 import TagSidebar from './TagSidebar';
 import RecommendedArticles from './RecommendedArticles';
-import MusicPlayer from "./MusicPlayer.jsx";
 
 const FriendLinks = () => {
     const [friendLinks, setFriendLinks] = useState([]);
@@ -453,7 +452,6 @@ const FriendLinks = () => {
                     </main>
                 </div>
             </div>
-            <MusicPlayer />
         </div>
     );
 };

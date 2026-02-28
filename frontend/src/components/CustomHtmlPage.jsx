@@ -6,7 +6,6 @@ import Hero from './Hero';
 import CategorySidebar from './CategorySidebar';
 import TagSidebar from './TagSidebar';
 import RecommendedArticles from './RecommendedArticles';
-import MusicPlayer from './MusicPlayer';
 import PageNotFound from './PageNotFound';
 
 const CustomHtmlPage = () => {
@@ -128,8 +127,6 @@ const CustomHtmlPage = () => {
                         </main>
                     </div>
                 </div>
-                {/* 音乐播放器 */}
-                <MusicPlayer/>
             </div>
         );
     }
@@ -171,7 +168,6 @@ const CustomHtmlPage = () => {
                     </main>
                 </div>
             </div>
-            <MusicPlayer/>
         </div>
     );
 };

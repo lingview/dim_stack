@@ -9,7 +9,6 @@ import ArticlePreview from './ArticlePreview.jsx';
 import CommentSection from './CommentSection.jsx';
 import TagSidebar from "./TagSidebar.jsx";
 import TableOfContents from './TableOfContents.jsx';
-import MusicPlayer from './MusicPlayer';
 
 export default function ArticleReader() {
     const { articleId } = useParams();
@@ -124,7 +123,6 @@ export default function ArticleReader() {
                         <span className="ml-3 text-gray-600">加载中...</span>
                     </div>
                 </div>
-                <MusicPlayer/>
             </div>
         );
     }
@@ -138,7 +136,6 @@ export default function ArticleReader() {
                         {error}
                     </div>
                 </div>
-                <MusicPlayer/>
             </div>
         );
     }
@@ -234,7 +231,6 @@ export default function ArticleReader() {
                 </button>
             )}
 
-            <MusicPlayer/>
         </div>
     );
 }
