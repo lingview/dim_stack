@@ -1,5 +1,6 @@
 import { getConfig } from '../utils/config';
 import { Link, useNavigate } from 'react-router-dom';
+import { getCategoryIcon, getTagIcon } from '../utils/IconUtils';
 
 const safeTruncate = (text, maxLength) => {
     if (!text) return '';
@@ -8,7 +9,6 @@ const safeTruncate = (text, maxLength) => {
 
 const renderTags = (tagsString, maxTags = 3, onTagClick) => {
     if (!tagsString) return null;
-
     const tags = tagsString.split(',').map(t => t.trim()).filter(Boolean);
     const displayTags = tags.slice(0, maxTags);
 
@@ -20,9 +20,10 @@ const renderTags = (tagsString, maxTags = 3, onTagClick) => {
                 e.stopPropagation();
                 onTagClick && onTagClick(tag);
             }}
-            className="article-tag inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded hover:bg-gray-200 transition-colors"
+            className="article-tag inline-flex items-center gap-1 bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded hover:bg-gray-200 transition-colors"
         >
-            #{tag}
+            {getTagIcon()}
+            {tag}
         </button>
     ));
 };
@@ -98,8 +99,9 @@ export default function ArticleCard({
                         {safeArticle.category && (
                             <button
                                 onClick={handleCategoryClick}
-                                className="article-category inline-flex items-center text-xs px-2 py-1 rounded bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors shrink-0"
+                                className="article-category inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors shrink-0"
                             >
+                                {getCategoryIcon()}
                                 {safeArticle.category}
                             </button>
                         )}
@@ -157,8 +159,9 @@ export default function ArticleCard({
                     {safeArticle.category && (
                         <button
                             onClick={handleCategoryClick}
-                            className="article-category inline-flex items-center text-xs px-2 py-1 rounded bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors shrink-0"
+                            className="article-category inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors shrink-0"
                         >
+                            {getCategoryIcon()}
                             {safeArticle.category}
                         </button>
                     )}

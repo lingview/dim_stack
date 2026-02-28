@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../utils/axios';
+import { getCategoryIcon } from '../utils/IconUtils';
 
 export default function CategorySidebar({selectedCategory }) {
     const [categories, setCategories] = useState([]);
@@ -71,7 +72,10 @@ export default function CategorySidebar({selectedCategory }) {
                                     : 'text-gray-600 hover:bg-gray-50'
                             }`}
                         >
-                            <span>{category.article_categories}</span>
+                            <span className="inline-flex items-center gap-1">
+                                {getCategoryIcon()}
+                                {category.article_categories}
+                            </span>
                             <span className="bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded-full">
                             {category.articleCount || 0}
                         </span>

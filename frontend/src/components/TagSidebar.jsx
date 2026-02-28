@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../utils/axios';
+import { getTagIcon } from '../utils/IconUtils';
 
 export default function TagSidebar({ selectedTag }) {
     const [tags, setTags] = useState([]);
@@ -70,7 +71,10 @@ export default function TagSidebar({ selectedTag }) {
                                 : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                         }`}
                     >
-                        #{tag.tag_name}
+                        <span className="inline-flex items-center gap-1">
+                            {getTagIcon()}
+                            {tag.tag_name}
+                        </span>
                     </button>
                 ))}
             </div>

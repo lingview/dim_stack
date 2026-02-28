@@ -140,7 +140,7 @@ export default function Home() {
 
                                 <div className="flex items-center space-x-4">
                                     <div
-                                        className="hidden md:flex items-center cursor-pointer group"v
+                                        className="hidden md:flex items-center cursor-pointer group"
                                         onClick={toggleImageDisplay}
                                     >
                         <span className="mr-3 text-sm font-medium text-gray-600 switch-label select-none">
