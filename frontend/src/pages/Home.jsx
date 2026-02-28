@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation, useSearchParams, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Hero from '../components/Hero';
@@ -182,7 +182,6 @@ export default function Home() {
                                     </div>
                                 )}
 
-                                {/* 分页控件 */}
                                 <div className="flex justify-center mt-8 pagination-container">
                                     <button
                                         onClick={() => setPage(p => Math.max(1, p - 1))}

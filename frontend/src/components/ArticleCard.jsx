@@ -6,7 +6,7 @@ const safeTruncate = (text, maxLength) => {
     return text.length > maxLength ? text.slice(0, maxLength) + '...' : text;
 };
 
-const renderTags = (tagsString, maxTags = 3, onTagClick, isMobile = false) => {
+const renderTags = (tagsString, maxTags = 3, onTagClick) => {
     if (!tagsString) return null;
 
     const tags = tagsString.split(',').map(t => t.trim()).filter(Boolean);
@@ -20,11 +20,7 @@ const renderTags = (tagsString, maxTags = 3, onTagClick, isMobile = false) => {
                 e.stopPropagation();
                 onTagClick && onTagClick(tag);
             }}
-            className={
-                isMobile
-                    ? 'text-xs text-gray-800 hover:text-black transition-colors'
-                    : 'inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded hover:bg-gray-200 transition-colors'
-            }
+            className="article-tag inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded hover:bg-gray-200 transition-colors"
         >
             #{tag}
         </button>
@@ -61,8 +57,6 @@ export default function ArticleCard({
         }
     };
 
-
-
     const imageUrl = getFullImageUrl(article.image) || '/image_error.svg';
 
     const formatDate = (d) => {
@@ -89,14 +83,10 @@ export default function ArticleCard({
         return (
             <article
                 onClick={handleCardClick}
-                className="relative rounded-lg overflow-hidden shadow-md h-40 flex w-full cursor-pointer bg-white"
+                className="article-card relative rounded-lg overflow-hidden shadow-md h-40 flex w-full cursor-pointer bg-white"
             >
                 <div className="w-1/3 aspect-square m-2 rounded overflow-hidden bg-gray-100 shrink-0">
-                    <img
-                        src={imageUrl}
-                        alt={safeArticle.title}
-                        className="w-full h-full object-cover"
-                    />
+                    <img src={imageUrl} alt={safeArticle.title} className="w-full h-full object-cover" />
                 </div>
 
                 <div className="flex-1 p-3 flex flex-col">
@@ -104,18 +94,17 @@ export default function ArticleCard({
                         {safeArticle.title}
                     </h2>
 
-                    {/* 分类 + 标签同一行 */}
                     <div className="flex items-center gap-2 flex-wrap mb-1.5">
                         {safeArticle.category && (
                             <button
                                 onClick={handleCategoryClick}
-                                className="inline-flex items-center text-xs px-2 py-1 rounded bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors shrink-0"
+                                className="article-category inline-flex items-center text-xs px-2 py-1 rounded bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors shrink-0"
                             >
                                 {safeArticle.category}
                             </button>
                         )}
                         <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                            {renderTags(safeArticle.tag, 2, handleTagClick, true)}
+                            {renderTags(safeArticle.tag, 2, handleTagClick)}
                         </div>
                     </div>
 
@@ -124,7 +113,7 @@ export default function ArticleCard({
                     </p>
 
                     <div className="mt-auto text-xs text-gray-400 flex items-center gap-2">
-                        <img 
+                        <img
                             src={safeArticle.author_avatar || '/default_avatar.png'}
                             alt={safeArticle.author}
                             className="w-5 h-5 rounded-full object-cover"
@@ -141,30 +130,12 @@ export default function ArticleCard({
     return (
         <article
             onClick={handleCardClick}
-            className="
-                article-card
-                flex flex-col
-                relative group
-                bg-white
-                rounded-lg
-                shadow-md hover:shadow-lg
-                transition-shadow duration-200
-                border border-gray-200
-                cursor-pointer
-                w-full
-                h-full
-            "
+            className="article-card flex flex-col relative group bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 border border-gray-200 cursor-pointer w-full h-full"
         >
             {showImage && (
                 <div className="w-full h-40 overflow-hidden rounded-t-lg shrink-0">
                     <img
-                        className="
-                            w-full h-full object-cover
-                            rounded-t-lg
-                            group-hover:scale-105
-                            group-hover:transition-transform
-                            duration-300
-                        "
+                        className="w-full h-full object-cover rounded-t-lg group-hover:scale-105 transition-transform duration-300"
                         src={imageUrl}
                         alt={safeArticle.title}
                     />
@@ -173,10 +144,7 @@ export default function ArticleCard({
 
             <div className="p-4 flex flex-col grow">
                 <h2 className="text-lg font-bold mb-1 line-clamp-1 text-gray-900" title={safeArticle.title}>
-                    <Link
-                        to={`/article/${safeArticle.alias}`}
-                        onClick={(e) => e.stopPropagation()}
-                    >
+                    <Link to={`/article/${safeArticle.alias}`} onClick={(e) => e.stopPropagation()}>
                         {safeTruncate(safeArticle.title, 30)}
                     </Link>
                 </h2>
@@ -185,12 +153,11 @@ export default function ArticleCard({
                     {safeArticle.excerpt}
                 </p>
 
-                {/* 分类 + 标签同一行 */}
-                <div className="flex items-center gap-1.5 flex-wrap mb-2">
+                <div className="flex items-center gap-1.5 flex-wrap mb-3">
                     {safeArticle.category && (
                         <button
                             onClick={handleCategoryClick}
-                            className="inline-flex items-center text-xs px-2 py-1 rounded bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors shrink-0"
+                            className="article-category inline-flex items-center text-xs px-2 py-1 rounded bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors shrink-0"
                         >
                             {safeArticle.category}
                         </button>
@@ -202,14 +169,14 @@ export default function ArticleCard({
                     )}
                 </div>
 
-                <div className="flex justify-between items-center shrink-0 pt-2 border-t border-gray-100">
+                <div className="flex justify-between items-center shrink-0 pt-2 card-footer">
                     <span className="text-xs text-gray-400 flex items-center gap-2">
-                        <img 
+                        <img
                             src={safeArticle.author_avatar || '/default_avatar.png'}
                             alt={safeArticle.author}
                             className="w-7 h-7 rounded-full object-cover"
                         />
-                        <span>{safeArticle.author}</span>
+                        <span className="author-name">{safeArticle.author}</span>
                         <span>·</span>
                         <span>{formatDate(safeArticle.date)}</span>
                     </span>

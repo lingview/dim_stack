@@ -880,3 +880,63 @@
 .dark .back-to-top-btn:hover {
   background-color: #374151;
 }
+
+
+
+.dark .article-category {
+  background-color: rgba(225, 222, 222, 0.12) !important;
+  color: #edf2f7 !important;
+  border: 1px solid rgba(225, 222, 222, 0.12) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.dark .article-category:hover {
+  background-color: rgba(225, 222, 222, 0.12) !important;
+  border-color: rgba(225, 222, 222, 0.12) !important;
+}
+
+.dark .article-tag {
+  background-color: rgba(225, 222, 222, 0.12) !important;
+  color: #edf2f7 !important;
+  border: 1px solid rgba(225, 222, 222, 0.12) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.dark .article-tag:hover {
+  background-color: rgba(225, 222, 222, 0.12) !important;
+  color: #ffffff !important;
+  border-color: rgba(225, 222, 222, 0.12) !important;
+}
+
+
+
+.dark .filter-title {
+  color: #f3f4f6 !important;
+}
+
+.dark .switch-label {
+  color: #9ca3af !important;
+}
+
+.dark .dark-switch-bg {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dark .bg-blue-500 {
+  background-color: rgba(59, 130, 246, 0.8) !important;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+}
+
+.dark .text-blue-600 {
+  color: #60a5fa !important;
+}
+
+.dark .text-blue-600:hover {
+  color: #93c5fd !important;
+  text-decoration: underline;
+}
