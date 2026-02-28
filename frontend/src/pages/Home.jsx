@@ -163,14 +163,17 @@ export default function Home() {
                                 ) : articles.length > 0 ? (
                                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                         {articles.map(article => (
-                                            <ArticleCard
-                                                key={article.id}
-                                                article={article}
-                                                showImage={showImages}
-                                                forceMobile={forceMobile}
-                                                onCategoryClick={handleCategoryChange}
-                                                onTagClick={handleTagChange}
-                                            />
+                                            <div key={article.id} className="lg:flex lg:justify-center">
+                                                <div className="w-full lg:max-w-sm">
+                                                    <ArticleCard
+                                                        article={article}
+                                                        showImage={showImages}
+                                                        forceMobile={forceMobile}
+                                                        onCategoryClick={handleCategoryChange}
+                                                        onTagClick={handleTagChange}
+                                                    />
+                                                </div>
+                                            </div>
                                         ))}
                                     </div>
                                 ) : (
