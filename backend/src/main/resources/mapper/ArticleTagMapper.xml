@@ -105,6 +105,7 @@
             a.article_cover AS image,
             a.create_time AS date,
             u.username AS author,
+            u.avatar AS author_avatar,
             CASE 
                 WHEN p.article_categories IS NULL THEN c.article_categories
                 ELSE CONCAT(p.article_categories, '/', c.article_categories)
