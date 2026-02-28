@@ -244,9 +244,9 @@ export default function Home() {
                 </main>
             </div>
 
-            <footer className="bg-white mt-auto transition-colors duration-200">
+            <footer className="bg-white mt-auto">
                 <div className="container mx-auto px-4 py-8">
-                    <div className="text-center text-gray-600 transition-colors duration-200">
+                    <div className="text-center text-gray-600">
                         <p>{copyright}</p>
                         {icpRecord && (
                             <p className="mt-2">

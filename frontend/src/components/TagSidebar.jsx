@@ -36,7 +36,7 @@ export default function TagSidebar({ selectedTag }) {
 
     if (loading) {
         return (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6 transition-colors duration-200 border border-gray-200">
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">文章标签</h3>
                 <div className="space-y-2">
                     {[1, 2, 3].map((i) => (
@@ -49,7 +49,7 @@ export default function TagSidebar({ selectedTag }) {
 
     if (error) {
         return (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6 transition-colors duration-200 border border-gray-200">
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">文章标签</h3>
                 <div className="text-red-500 text-center py-4">{error}</div>
             </div>
@@ -57,14 +57,14 @@ export default function TagSidebar({ selectedTag }) {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6 transition-colors duration-200 border border-gray-200">
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
             <h3 className="text-lg font-bold text-gray-900 mb-4">文章标签</h3>
             <div className="flex flex-wrap gap-2 max-h-60 overflow-y-auto pr-2">
                 {tags.map((tag) => (
                     <button
                         key={tag.id}
                         onClick={() => handleTagClick(tag.tag_name)}
-                        className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                        className={`px-3 py-1 text-sm rounded-full ${
                             selectedTag === tag.tag_name
                                 ? 'bg-blue-500 text-white'
                                 : 'bg-gray-100 text-gray-800 hover:bg-gray-200'

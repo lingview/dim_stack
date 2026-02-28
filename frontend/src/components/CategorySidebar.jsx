@@ -37,7 +37,7 @@ export default function CategorySidebar({selectedCategory }) {
 
     if (loading) {
         return (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6 transition-colors duration-200 border border-gray-200">
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">文章分类</h3>
                 <div className="space-y-2">
                     {[1, 2, 3].map((i) => (
@@ -50,7 +50,7 @@ export default function CategorySidebar({selectedCategory }) {
 
     if (error) {
         return (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6 transition-colors duration-200 border border-gray-200">
+            <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">文章分类</h3>
                 <div className="text-red-500 text-center py-4">{error}</div>
             </div>
@@ -58,14 +58,14 @@ export default function CategorySidebar({selectedCategory }) {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6 transition-colors duration-200 border border-gray-200">
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
             <h3 className="text-lg font-bold text-gray-900 mb-4">文章分类</h3>
             <ul className="space-y-2 max-h-60 overflow-y-auto pr-2">
                 {categories.map((category) => (
                     <li key={category.id}>
                         <button
                             onClick={() => handleCategoryClick(category.article_categories)}
-                            className={`flex justify-between items-center w-full text-left transition-colors duration-200 px-2 py-1 rounded ${
+                            className={`flex justify-between items-center w-full text-left px-2 py-1 rounded ${
                                 selectedCategory === category.article_categories
                                     ? 'bg-blue-100 text-blue-800'
                                     : 'text-gray-600 hover:bg-gray-50'
