@@ -1,14 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function ThemeToggle() {
   const [darkMode, setDarkMode] = useState(false);
+  const buttonRef = useRef(null);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const isDark = savedTheme === 'dark';
-
     setDarkMode(isDark);
-
     if (isDark) {
       document.documentElement.classList.add('dark');
     } else {
@@ -18,20 +17,77 @@ export default function ThemeToggle() {
 
   const toggleTheme = () => {
     const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
 
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
+    const rect = buttonRef.current.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+
+    const maxRadius = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y)
+    );
+
+    const applyTheme = () => {
+      setDarkMode(newDarkMode);
+      if (newDarkMode) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+      }
+      window.dispatchEvent(new CustomEvent('theme-change'));
+    };
+
+    if (!document.startViewTransition) {
+      applyTheme();
+      return;
     }
-    window.dispatchEvent(new CustomEvent('theme-change'));
+
+    if (!document.getElementById('ripple-transition-style')) {
+      const style = document.createElement('style');
+      style.id = 'ripple-transition-style';
+      style.textContent = `
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+          animation: none;
+          mix-blend-mode: normal;
+        }
+        ::view-transition-new(root) {
+          animation: theme-ripple 0.5s ease-out forwards;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
+    document.documentElement.style.setProperty('--ripple-x', `${x}px`);
+    document.documentElement.style.setProperty('--ripple-y', `${y}px`);
+    document.documentElement.style.setProperty('--ripple-r', `${maxRadius}px`);
+
+    const style = document.getElementById('ripple-transition-style');
+    style.textContent = `
+      ::view-transition-old(root),
+      ::view-transition-new(root) {
+        animation: none;
+        mix-blend-mode: normal;
+      }
+      ::view-transition-new(root) {
+        clip-path: circle(0px at ${x}px ${y}px);
+        animation: theme-ripple 0.5s ease-out forwards;
+      }
+      @keyframes theme-ripple {
+        to {
+          clip-path: circle(${maxRadius}px at ${x}px ${y}px);
+        }
+      }
+    `;
+
+    document.startViewTransition(applyTheme);
   };
 
   return (
       <button
+          ref={buttonRef}
           onClick={toggleTheme}
           className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all duration-200"
           aria-label="切换暗色模式"
