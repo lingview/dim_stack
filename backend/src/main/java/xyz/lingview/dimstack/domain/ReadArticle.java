@@ -19,6 +19,8 @@ public class ReadArticle {
     private String tag;
     private String category;
     private String alias;
+    private String author;
+    private String avatar;
     private Date create_time;
     private Integer status;
 }

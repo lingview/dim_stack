@@ -717,7 +717,7 @@ export default function SiteSettingsView() {
                                             alt="首页头图预览"
                                             className="max-w-full h-48 object-cover rounded-md"
                                             onError={(e) => {
-                                                e.target.src = '/default-image.png';
+                                                e.target.src = '/image_error.svg';
                                             }}
                                         />
                                     </div>
@@ -761,7 +761,7 @@ export default function SiteSettingsView() {
                                             alt="站点图标预览"
                                             className="w-16 h-16 object-contain rounded-md"
                                             onError={(e) => {
-                                                e.target.src = '/default-icon.png';
+                                                e.target.src = '/image_error.svg';
                                             }}
                                         />
                                     </div>

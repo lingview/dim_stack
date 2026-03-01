@@ -161,7 +161,7 @@ const FriendLinks = () => {
     };
 
     const getFullImageUrl = (url) => {
-        if (!url) return '/default-icon.png';
+        if (!url) return '/image_error.svg';
         if (url.startsWith('http')) return url;
         if (url.startsWith('/')) return url;
         return `/upload/${url}`;
@@ -393,7 +393,7 @@ const FriendLinks = () => {
                                                                 src={getFullImageUrl(link.siteIcon)}
                                                                 alt={link.siteName}
                                                                 className="w-12 h-12 rounded-lg object-cover bg-gray-100 border"
-                                                                onError={(e) => e.target.src = '/default-icon.png'}
+                                                                onError={(e) => e.target.src = '/image_error.svg'}
                                                             />
                                                             <div>
                                                                 <h4 className="font-medium text-gray-800 group-hover:text-blue-600 transition-colors">

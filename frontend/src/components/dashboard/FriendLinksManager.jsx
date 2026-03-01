@@ -175,7 +175,7 @@ export default function FriendLinksManager() {
     };
 
     const getFullImageUrl = (url) => {
-        if (!url) return '/default-icon.png';
+        if (!url) return '/image_error.svg';
 
         if (url.startsWith('http://') || url.startsWith('https://')) {
             return url;
@@ -299,7 +299,7 @@ export default function FriendLinksManager() {
                                                         src={getFullImageUrl(link.siteIcon)}
                                                         alt={link.siteName}
                                                         className="h-10 w-10 rounded-md object-contain"
-                                                        onError={(e) => { e.target.src = '/default-icon.png'; }}
+                                                        onError={(e) => { e.target.src = '/image_error.svg'; }}
                                                     />
                                                 </div>
                                                 <div className="flex flex-col space-y-1">

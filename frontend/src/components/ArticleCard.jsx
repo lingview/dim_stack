@@ -50,12 +50,8 @@ export default function ArticleCard({
 
     const getFullImageUrl = (url) => {
         if (!url) return null;
-        if (url.startsWith('http')) return url;
-        try {
-            return getConfig().getFullUrl(url);
-        } catch {
-            return url.startsWith('/') ? url : `/upload/${url}`;
-        }
+        const config = getConfig();
+        return config.getFullUrl(url);
     };
 
     const imageUrl = getFullImageUrl(article.image) || '/image_error.svg';
@@ -116,7 +112,7 @@ export default function ArticleCard({
 
                     <div className="mt-auto text-xs text-gray-400 flex items-center gap-2">
                         <img
-                            src={safeArticle.author_avatar || '/default_avatar.png'}
+                            src={getFullImageUrl(safeArticle.author_avatar) || '/image_error.svg'}
                             alt={safeArticle.author}
                             className="w-5 h-5 rounded-full object-cover"
                         />
@@ -175,7 +171,7 @@ export default function ArticleCard({
                 <div className="flex justify-between items-center shrink-0 pt-2 card-footer">
                     <span className="text-xs text-gray-400 flex items-center gap-2">
                         <img
-                            src={safeArticle.author_avatar || '/default_avatar.png'}
+                            src={getFullImageUrl(safeArticle.author_avatar) || '/image_error.svg'}
                             alt={safeArticle.author}
                             className="w-7 h-7 rounded-full object-cover"
                         />

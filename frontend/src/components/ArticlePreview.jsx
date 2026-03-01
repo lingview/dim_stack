@@ -8,6 +8,8 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { getConfig } from '../utils/config';
 import ImageLightbox from './ImageLightbox';
+import { useNavigate } from 'react-router-dom';
+import { getCategoryIcon, getTagIcon } from '../utils/IconUtils';
 
 const rehypeSanitizeSchema = {
     tagNames: [
@@ -148,14 +150,6 @@ function useTheme() {
     const [isDark, setIsDark] = useState(false);
 
     useEffect(() => {
-        const checkInitialTheme = () => {
-            const saved = localStorage.getItem('theme');
-            const shouldBeDark = saved === 'dark';
-            const currentIsDark = document.documentElement.classList.contains('dark');
-            setIsDark(currentIsDark);
-        };
-
-        checkInitialTheme();
 
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
@@ -240,6 +234,7 @@ export default function ArticlePreview({ article }) {
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [articleImages, setArticleImages] = useState([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         setRenderKey(prev => prev + 1);
@@ -268,6 +263,15 @@ export default function ArticlePreview({ article }) {
     const syntaxStyle = useMemo(() => {
         return isDark ? oneDark : oneLight;
     }, [isDark]);
+
+    const handleCategoryClick = (categoryName) => {
+        const encodedCategory = encodeURIComponent(categoryName);
+        navigate(`/category?name=${encodedCategory}`);
+    };
+
+    const handleTagClick = (tagName) => {
+        navigate(`/tag/${tagName}`);
+    };
 
     const getFullImageUrl = (url) => {
         if (!url) return null;
@@ -704,23 +708,55 @@ export default function ArticlePreview({ article }) {
             <h1 className="text-3xl font-bold mb-4 text-gray-900">
                 {article.article_name}
             </h1>
-            <div className="text-gray-600 mb-6 border-b border-gray-200 pb-4">
-                <span>发布时间: {new Date(article.create_time).toLocaleDateString()}</span>
-                <span className="mx-2">|</span>
-                <span>阅读量: {article.page_views}</span>
-                {article.category && (
-                    <>
-                        <span className="mx-2">|</span>
-                        <span>分类: {article.category}</span>
-                    </>
-                )}
-                {article.tag && (
-                    <>
-                        <span className="mx-2">|</span>
-                        <span>标签: {article.tag.split(',').map(tag => `#${tag.trim()}`).filter(tag => tag !== '#').join(' ')}</span>
-                    </>
-                )}
-            </div>
+
+            {article.author && (
+                <div className="flex items-center space-x-3 mb-4">
+                    {article.avatar && (
+                        <img 
+                            src={getFullImageUrl(article.avatar)}
+                            alt={article.author}
+                            className="w-10 h-10 rounded-full object-cover"
+                            onError={(e) => {
+                                e.target.src = '/image_error.svg';
+                            }}
+                        />
+                    )}
+                    <div>
+                        <p className="text-gray-700 font-medium">作者: {article.author}</p>
+                        <p className="text-sm text-gray-500">
+                            发布时间: {new Date(article.create_time).toLocaleDateString()} • 
+                            阅读量: {article.page_views}
+                        </p>
+                    </div>
+                </div>
+            )}
+            {(article.category || article.tag) && (
+                <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-4">
+                    {article.category && (
+                        <button
+                            onClick={() => handleCategoryClick(article.category)}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors duration-200 cursor-pointer"
+                        >
+                            <span className="inline-flex items-center gap-1">
+                                {getCategoryIcon()}
+                                {article.category}
+                            </span>
+                        </button>
+                    )}
+                    {article.tag && article.tag.split(',').map((tag, index) => (
+                        <button
+                            key={index}
+                            onClick={() => handleTagClick(tag.trim())}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors duration-200 cursor-pointer"
+                        >
+                            <span className="inline-flex items-center gap-1">
+                                {getTagIcon()}
+                                {tag.trim()}
+                            </span>
+                        </button>
+                    ))}
+                </div>
+            )}
 
             <div className="article-content break-words break-all whitespace-normal">
                 {renderArticleContent(article.article_content)}

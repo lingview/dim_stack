@@ -3,6 +3,7 @@ import Search from './Search'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import apiClient from '../utils/axios.jsx'
+import { getConfig } from '../utils/config';
 
 const escapeHtml = (unsafe) => {
     if (!unsafe) return unsafe;
@@ -15,16 +16,33 @@ const escapeHtml = (unsafe) => {
         .replace(/'/g, "&#039;");
 };
 
+const getFullImageUrl = (url) => {
+    if (!url) return null;
+
+    const config = getConfig();
+    return config.getFullUrl(url);
+};
+
 export default function Header() {
     const navigate = useNavigate()
     const location = useLocation()
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [username, setUsername] = useState('')
+    const [avatar, setAvatar] = useState('')
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [siteName, setSiteName] = useState('')
     const [menus, setMenus] = useState([])
 
-    // 检查登录状态
+    useEffect(() => {
+        const storedIsLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const storedUsername = localStorage.getItem('username') || '';
+        const storedAvatar = localStorage.getItem('avatar') || '';
+
+        setIsLoggedIn(storedIsLoggedIn);
+        setUsername(storedUsername);
+        setAvatar(getFullImageUrl(storedAvatar) || '');
+    }, []);
+
     useEffect(() => {
         const checkLoginStatus = async () => {
             try {
@@ -33,14 +51,18 @@ export default function Header() {
                 if (response.code === 200 && response.data.loggedIn) {
                     setIsLoggedIn(true)
                     setUsername(escapeHtml(response.data.username) || '')
+                    setAvatar(getFullImageUrl(response.data.avatar) || '')
 
                     localStorage.setItem('isLoggedIn', 'true')
                     localStorage.setItem('username', response.data.username || '')
+                    localStorage.setItem('avatar', response.data.avatar || '')
                 } else {
                     setIsLoggedIn(false)
                     setUsername('')
+                    setAvatar('')
                     localStorage.removeItem('isLoggedIn')
                     localStorage.removeItem('username')
+                    localStorage.removeItem('avatar')
                 }
             } catch (error) {
                 setIsLoggedIn(false)
@@ -99,8 +121,10 @@ export default function Header() {
         } finally {
             localStorage.removeItem('isLoggedIn')
             localStorage.removeItem('username')
+            localStorage.removeItem('avatar')
             setIsLoggedIn(false)
             setUsername('')
+            setAvatar('')
             navigate('/login')
             setIsMobileMenuOpen(false)
         }
@@ -191,7 +215,17 @@ export default function Header() {
                         </button>
 
                         {isLoggedIn ? (
-                            <div className="relative group hidden md:flex items-center space-x-4">
+                            <div className="relative group hidden md:flex items-center space-x-3">
+                                {avatar && (
+                                    <img
+                                        src={avatar}
+                                        alt={username}
+                                        className="w-8 h-8 rounded-full object-cover"
+                                        onError={(e) => {
+                                            e.target.src = '/default_avatar.png';
+                                        }}
+                                    />
+                                )}
                                 <span className="text-gray-700 cursor-pointer truncate max-w-[120px]" title={username}>
                                     欢迎, {username}
                                 </span>
@@ -236,7 +270,17 @@ export default function Header() {
                     <nav className="px-4 py-3">
                         {isLoggedIn && (
                             <div className="mb-4 pb-3 border-b border-gray-200">
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                    {avatar && (
+                                        <img
+                                            src={avatar}
+                                            alt={username}
+                                            className="w-10 h-10 rounded-full object-cover"
+                                            onError={(e) => {
+                                                e.target.src = '/default_avatar.png';
+                                            }}
+                                        />
+                                    )}
                                     <span className="text-sm text-gray-600 font-medium truncate">
                                         欢迎, {username}
                                     </span>
