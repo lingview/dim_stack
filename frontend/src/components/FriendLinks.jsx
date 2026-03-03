@@ -179,10 +179,10 @@ const FriendLinks = () => {
                 <Hero />
 
                 <div className="py-8">
-                    <main className="container mx-auto px-4">
-                        <div className="flex flex-col lg:flex-row gap-8">
+                    <main className="max-w-310 mx-auto px-4">
+                        <div className="flex flex-col lg:flex-row gap-6">
 
-                            <div className="lg:w-2/3">
+                            <div className="flex-1 min-w-0">
                                 <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 transition-all">
 
                                     <div className="flex justify-between items-center mb-6">
@@ -440,8 +440,8 @@ const FriendLinks = () => {
                                 </div>
                             </div>
 
-                            <div className="lg:w-1/3">
-                                <div className="sticky top-28 space-y-6">
+                            <div className="lg:w-77.5 shrink-0">
+                                <div className="sticky top-28 space-y-4">
                                     <CategorySidebar />
                                     <TagSidebar />
                                     <RecommendedArticles />
