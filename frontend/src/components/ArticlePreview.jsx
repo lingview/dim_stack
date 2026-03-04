@@ -306,7 +306,22 @@ export default function ArticlePreview({ article }) {
 
         const handleCopyCode = async () => {
             try {
-                await navigator.clipboard.writeText(codeString);
+                // 大坑，navigator.clipboard只有在浏览器安全上下文才能正常使用，所以加入降级策略，真没招了（）（）（）
+                const clipboard = navigator.clipboard || {
+                    writeText: (text) => {
+                        const copyInput = document.createElement('input');
+                        copyInput.value = text;
+                        copyInput.style.position = 'fixed';
+                        copyInput.style.left = '-999999px';
+                        copyInput.style.top = '-999999px';
+                        document.body.appendChild(copyInput);
+                        copyInput.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(copyInput);
+                    }
+                };
+                
+                await clipboard.writeText(codeString);
                 setLocalCopied(true);
                 setTimeout(() => {
                     setLocalCopied(false);
