@@ -110,7 +110,6 @@ java -jar dimstack-1.0-SNAPSHOT.jar
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771940913049-420a6404-abee-4d66-9e09-612db7affbd5.png)
 
 ### systemd自启
-注：此为可选项，不过需要注意systemd配置后会导致系统自己的更新自启动失效，需要手动使用systemd重启
 
 #### 创建服务文件
 ```bash
@@ -128,8 +127,9 @@ User=root
 Group=root
 WorkingDirectory=/root/dimstack
 ExecStart=/usr/bin/java -jar /root/dimstack/dimstack-1.0-SNAPSHOT.jar
-Restart=on-failure
-RestartSec=5
+# 如果启用此配置会导致系统的自动重启出现故障，所以默认注释
+#Restart=on-failure
+#RestartSec=5
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=dimstack
