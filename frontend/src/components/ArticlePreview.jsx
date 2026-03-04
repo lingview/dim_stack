@@ -320,7 +320,7 @@ export default function ArticlePreview({ article }) {
             <div className="my-4 react-syntax-highlighter relative group">
                 <button
                     onClick={handleCopyCode}
-                    className="absolute right-2 top-2 p-2 bg-gray-200 hover:bg-gray-100 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200 z-10"
+                    className="absolute right-2 top-2 p-2 bg-gray-200 hover:bg-gray-100 rounded-md opacity-0 group-hover:opacity-100 focus:opacity-100 active:opacity-100 transition-all duration-200 z-10 md:opacity-0 md:group-hover:opacity-100"
                     title="复制代码"
                 >
                     <div className="relative w-4 h-4">
@@ -750,6 +750,9 @@ export default function ArticlePreview({ article }) {
                             className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors duration-200 cursor-pointer"
                         >
                             <span className="inline-flex items-center gap-1">
+lingview
+2026-03-04 10:23
+待审核
                                 {getTagIcon()}
                                 {tag.trim()}
                             </span>
