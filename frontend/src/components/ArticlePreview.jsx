@@ -320,8 +320,10 @@ export default function ArticlePreview({ article }) {
             <div className="my-4 react-syntax-highlighter relative group">
                 <button
                     onClick={handleCopyCode}
-                    className="absolute right-2 top-2 p-2 bg-gray-200 hover:bg-gray-100 rounded-md opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 z-10"
+                    onMouseEnter={(e) => e.currentTarget.style.pointerEvents = 'auto'}
+                    className="absolute right-2 top-2 p-2 bg-gray-200 hover:bg-gray-100 rounded-md opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 z-10 cursor-pointer"
                     title="复制代码"
+                    type="button"
                 >
                     <div className="relative w-4 h-4">
                         <Copy
