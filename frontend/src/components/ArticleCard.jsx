@@ -20,7 +20,7 @@ const renderTags = (tagsString, maxTags = 3, onTagClick) => {
                 e.stopPropagation();
                 onTagClick && onTagClick(tag);
             }}
-            className="article-tag inline-flex items-center gap-1 bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded hover:bg-gray-200 transition-colors"
+            className="article-tag inline-flex items-center gap-1 bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded hover:bg-gray-200 transition-colors shrink-0"
         >
             {getTagIcon()}
             {tag}
@@ -86,12 +86,12 @@ export default function ArticleCard({
                     <img src={imageUrl} alt={safeArticle.title} className="w-full h-full object-cover" />
                 </div>
 
-                <div className="flex-1 p-3 flex flex-col">
+                <div className="flex-1 p-3 flex flex-col min-w-0">
                     <h2 className="text-sm font-bold mb-1 line-clamp-1 text-gray-900 leading-snug shrink-0">
                         {safeArticle.title}
                     </h2>
 
-                    <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                    <div className="flex items-center gap-1.5 mb-1.5 overflow-hidden" style={{ flexWrap: 'nowrap', maxHeight: '1.625rem' }}>
                         {safeArticle.category && (
                             <button
                                 onClick={handleCategoryClick}
@@ -101,7 +101,7 @@ export default function ArticleCard({
                                 {safeArticle.category}
                             </button>
                         )}
-                        <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                        <div className="flex items-center gap-1.5 overflow-hidden" style={{ flexWrap: 'nowrap' }}>
                             {renderTags(safeArticle.tag, 2, handleTagClick)}
                         </div>
                     </div>
