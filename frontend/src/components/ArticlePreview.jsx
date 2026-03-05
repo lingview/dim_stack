@@ -127,7 +127,7 @@ const sanitizeHtmlContent = (content) => {
         const codeBlock = `<div class="my-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <div class="flex items-center mb-2">
                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        ⚠️ 安全提示: ${label}
+                        安全提示: ${label}
                     </span>
                 </div>
                 <pre class="bg-gray-100 p-3 rounded text-sm overflow-x-auto"><code>${escapedCode}</code></pre>
@@ -147,7 +147,9 @@ const sanitizeHtmlContent = (content) => {
 };
 
 function useTheme() {
-    const [isDark, setIsDark] = useState(false);
+    const [isDark, setIsDark] = useState(
+        () => document.documentElement.classList.contains('dark')
+    );
 
     useEffect(() => {
 
@@ -320,7 +322,7 @@ export default function ArticlePreview({ article }) {
                         document.body.removeChild(copyInput);
                     }
                 };
-                
+
                 await clipboard.writeText(codeString);
                 setLocalCopied(true);
                 setTimeout(() => {
@@ -729,7 +731,7 @@ export default function ArticlePreview({ article }) {
             {article.author && (
                 <div className="flex items-center space-x-3 mb-4">
                     {article.avatar && (
-                        <img 
+                        <img
                             src={getFullImageUrl(article.avatar)}
                             alt={article.author}
                             className="w-10 h-10 rounded-full object-cover"
@@ -741,7 +743,7 @@ export default function ArticlePreview({ article }) {
                     <div>
                         <p className="text-gray-700 font-medium">作者: {article.author}</p>
                         <p className="text-sm text-gray-500">
-                            发布时间: {new Date(article.create_time).toLocaleDateString()} • 
+                            发布时间: {new Date(article.create_time).toLocaleDateString()} •
                             阅读量: {article.page_views}
                         </p>
                     </div>
