@@ -940,3 +940,24 @@
   color: #93c5fd !important;
   text-decoration: underline;
 }
+
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.category-fade-mask-top {
+  background: linear-gradient(to top, transparent, #ffffff);
+}
+
+.category-fade-mask-bottom {
+  background: linear-gradient(to bottom, transparent, #ffffff);
+}
+
+.dark .category-fade-mask-top {
+  background: linear-gradient(to top, transparent, #1f2937);
+}
+
+.dark .category-fade-mask-bottom {
+  background: linear-gradient(to bottom, transparent, #1f2937);
+}
