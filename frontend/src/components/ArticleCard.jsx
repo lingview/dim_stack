@@ -99,7 +99,7 @@ export default function ArticleCard({
                             </p>
                         </div>
 
-                        <div className="mobile-tags-row flex items-center gap-1.5 mt-1.5 overflow-x-auto tags-scroll" style={{ flexWrap: 'nowrap', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+                        <div className="mobile-tags-row flex items-center gap-1.5 mt-1.5 mb-2 overflow-x-auto tags-scroll" style={{ flexWrap: 'nowrap', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
                             {safeArticle.category && (
                                 <button
                                     onClick={handleCategoryClick}
