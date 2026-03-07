@@ -78,50 +78,53 @@ export default function ArticleCard({
 
     if (forceMobile) {
         return (
-            <article
-                onClick={handleCardClick}
-                className="article-card relative rounded-lg overflow-hidden shadow-md h-40 flex w-full cursor-pointer bg-white"
-            >
-                <div className="w-1/3 aspect-square m-2 rounded overflow-hidden bg-gray-100 shrink-0">
-                    <img src={imageUrl} alt={safeArticle.title} className="w-full h-full object-cover" />
-                </div>
+            <>
+                <style>{".tags-scroll::-webkit-scrollbar{display:none}"}</style>
+                <article
+                    onClick={handleCardClick}
+                    className="article-card relative rounded-lg overflow-hidden shadow-md h-40 flex w-full cursor-pointer bg-white"
+                >
+                    <div className="w-1/3 aspect-square m-2 rounded overflow-hidden bg-gray-100 shrink-0">
+                        <img src={imageUrl} alt={safeArticle.title} className="w-full h-full object-cover" />
+                    </div>
 
-                <div className="flex-1 p-3 flex flex-col min-w-0">
-                    <h2 className="text-sm font-bold mb-1 line-clamp-1 text-gray-900 leading-snug shrink-0">
-                        {safeArticle.title}
-                    </h2>
+                    <div className="flex-1 p-3 flex flex-col min-w-0">
+                        <h2 className="text-sm font-bold mb-1 line-clamp-1 text-gray-900 leading-snug shrink-0">
+                            {safeArticle.title}
+                        </h2>
 
-                    <div className="flex items-center gap-1.5 mb-1.5 overflow-hidden" style={{ flexWrap: 'nowrap', maxHeight: '1.625rem' }}>
-                        {safeArticle.category && (
-                            <button
-                                onClick={handleCategoryClick}
-                                className="article-category inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors shrink-0"
-                            >
-                                {getCategoryIcon()}
-                                {safeArticle.category}
-                            </button>
-                        )}
-                        <div className="flex items-center gap-1.5 overflow-hidden" style={{ flexWrap: 'nowrap' }}>
+                        <div className="grow overflow-hidden">
+                            <p className="text-xs leading-relaxed line-clamp-3 text-gray-500">
+                                {safeArticle.excerpt}
+                            </p>
+                        </div>
+
+                        <div className="mobile-tags-row flex items-center gap-1.5 mt-1.5 overflow-x-auto tags-scroll" style={{ flexWrap: 'nowrap', WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+                            {safeArticle.category && (
+                                <button
+                                    onClick={handleCategoryClick}
+                                    className="article-category inline-flex items-center gap-1 text-xs px-2 py-1 rounded bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors shrink-0"
+                                >
+                                    {getCategoryIcon()}
+                                    {safeArticle.category}
+                                </button>
+                            )}
                             {renderTags(safeArticle.tag, 2, handleTagClick)}
                         </div>
-                    </div>
 
-                    <p className="text-xs leading-relaxed line-clamp-2 text-gray-500 grow">
-                        {safeArticle.excerpt}
-                    </p>
-
-                    <div className="mt-auto text-xs text-gray-400 flex items-center gap-2">
-                        <img
-                            src={getFullImageUrl(safeArticle.author_avatar) || '/image_error.svg'}
-                            alt={safeArticle.author}
-                            className="w-5 h-5 rounded-full object-cover"
-                        />
-                        <span>{safeArticle.author}</span>
-                        <span>·</span>
-                        <span>{formatDate(safeArticle.date)}</span>
+                        <div className="mt-auto text-xs text-gray-400 flex items-center gap-2">
+                            <img
+                                src={getFullImageUrl(safeArticle.author_avatar) || '/image_error.svg'}
+                                alt={safeArticle.author}
+                                className="w-5 h-5 rounded-full object-cover"
+                            />
+                            <span>{safeArticle.author}</span>
+                            <span>·</span>
+                            <span>{formatDate(safeArticle.date)}</span>
+                        </div>
                     </div>
-                </div>
-            </article>
+                </article>
+            </>
         );
     }
 
@@ -147,9 +150,11 @@ export default function ArticleCard({
                     </Link>
                 </h2>
 
-                <p className="text-gray-500 text-sm line-clamp-2 mb-2 grow leading-relaxed">
-                    {safeArticle.excerpt}
-                </p>
+                <div className="grow mb-2 overflow-hidden">
+                    <p className="text-gray-500 text-sm line-clamp-2 leading-relaxed">
+                        {safeArticle.excerpt}
+                    </p>
+                </div>
 
                 <div className="flex items-center gap-1.5 flex-wrap mb-3">
                     {safeArticle.category && (
@@ -161,11 +166,7 @@ export default function ArticleCard({
                             {safeArticle.category}
                         </button>
                     )}
-                    {safeArticle.tag && (
-                        <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                            {renderTags(safeArticle.tag, 3, handleTagClick)}
-                        </div>
-                    )}
+                    {renderTags(safeArticle.tag, 3, handleTagClick)}
                 </div>
 
                 <div className="flex justify-between items-center shrink-0 pt-2 card-footer">
