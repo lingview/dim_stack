@@ -44,6 +44,10 @@ export default function Home() {
     }, []);
 
     useEffect(() => {
+        setPage(1);
+    }, [location.search, location.pathname, tagName]);
+
+    useEffect(() => {
         loadArticlesFromUrl();
         loadCopyright();
         loadSiteRecords();
@@ -99,18 +103,15 @@ export default function Home() {
     };
 
     const handleCategoryChange = (category) => {
-        setPage(1);
         navigate(`/category?name=${encodeURIComponent(category)}`);
     };
 
     const handleTagChange = (tag) => {
-        setPage(1);
         navigate(`/tag/${tag}`);
     };
 
     const handleClearFilter = () => {
         navigate('/');
-        setPage(1);
     };
 
     const toggleImageDisplay = () => {
