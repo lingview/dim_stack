@@ -792,7 +792,7 @@ export default function ArticlePreview({ article }) {
                         <div>
                             <p className="text-gray-700 font-medium">作者：{article.author}</p>
                             <p className="text-sm text-gray-500">
-                                发布时间：{new Date(article.create_time).toLocaleDateString()} •
+                                日期：{new Date(article.create_time).toLocaleDateString()} •
                                 阅读量：{article.page_views}
                             </p>
                         </div>
