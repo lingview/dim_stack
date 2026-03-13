@@ -2,14 +2,20 @@ package xyz.lingview.dimstack.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ValueOperations;
+import xyz.lingview.dimstack.domain.Article;
+import xyz.lingview.dimstack.domain.ArticleLike;
 import xyz.lingview.dimstack.domain.ReadArticle;
+import xyz.lingview.dimstack.mapper.ArticleLikeMapper;
+import xyz.lingview.dimstack.mapper.ArticleMapper;
 import xyz.lingview.dimstack.mapper.ReadArticleMapper;
+import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.CacheService;
 import xyz.lingview.dimstack.service.ReadArticleService;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +30,15 @@ public class ReadArticleServiceImpl implements ReadArticleService {
 
     @Autowired
     private CacheService cacheService;
+
+    @Autowired
+    private ArticleMapper articleMapper;
+
+    @Autowired
+    private ArticleLikeMapper articleLikeMapper;
+
+    @Autowired
+    private UserInformationMapper userInformationMapper;
 
     @Override
     public boolean isArticleNeedPassword(String alias) {
@@ -119,6 +134,43 @@ public class ReadArticleServiceImpl implements ReadArticleService {
             log.info("标签sitemap缓存命中，从缓存返回{}个标签", tags.size());
         }
         return tags;
+    }
+
+    @Override
+    public void likeArticle(String username, String articleAlias) {
+        String userId = userInformationMapper.selectUserUUID(username);
+
+        Article article = articleMapper.selectArticleByAlias(articleAlias);
+        if (article == null) {
+            throw new RuntimeException("文章不存在");
+        }
+
+        if (articleLikeMapper.existsLike(userId, article.getArticle_id())) {
+            articleLikeMapper.deleteLike(userId, article.getArticle_id());
+            Long newLikeCount = article.getLike_count() - 1;
+            articleMapper.updateArticleLikeCount(article.getArticle_id(), newLikeCount);
+        } else {
+            ArticleLike like = new ArticleLike();
+            like.setUser_id(userId);
+            like.setArticle_id(article.getArticle_id());
+            like.setCreate_time(LocalDateTime.now());
+            articleLikeMapper.insertLike(like);
+
+            Long newLikeCount = article.getLike_count() + 1;
+            articleMapper.updateArticleLikeCount(article.getArticle_id(), newLikeCount);
+        }
+    }
+
+    @Override
+    public boolean isUserLikedArticle(String username, String articleAlias) {
+        String userId = userInformationMapper.selectUserUUID(username);
+
+        Article article = articleMapper.selectArticleByAlias(articleAlias);
+        if (article == null) {
+            return false;
+        }
+
+        return articleLikeMapper.existsLike(userId, article.getArticle_id());
     }
 
 }

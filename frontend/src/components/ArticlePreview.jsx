@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Music, FileText, Copy, Check } from 'lucide-react';
+import { Music, FileText, Copy, Check, Heart } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -10,6 +10,7 @@ import { getConfig } from '../utils/config';
 import ImageLightbox from './ImageLightbox';
 import { useNavigate } from 'react-router-dom';
 import { getCategoryIcon, getTagIcon } from '../utils/IconUtils';
+import apiClient from '../utils/axios';
 
 const rehypeSanitizeSchema = {
     tagNames: [
@@ -152,7 +153,6 @@ function useTheme() {
     );
 
     useEffect(() => {
-
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
@@ -236,6 +236,9 @@ export default function ArticlePreview({ article }) {
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [articleImages, setArticleImages] = useState([]);
+    const [isLiked, setIsLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(0);
+    const [liking, setLiking] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -262,6 +265,24 @@ export default function ArticlePreview({ article }) {
         }
     }, [article?.article_content]);
 
+    useEffect(() => {
+        if (article) {
+            setLikeCount(article.like_count || 0);
+
+            const fetchLikedStatus = async () => {
+                try {
+                    const response = await apiClient.get(`/article/${article.alias}/liked`);
+                    setIsLiked(response?.data?.liked || false);
+                } catch (error) {
+                    console.error('获取点赞状态失败:', error);
+                    setIsLiked(false);
+                }
+            };
+
+            fetchLikedStatus();
+        }
+    }, [article]);
+
     const syntaxStyle = useMemo(() => {
         return isDark ? oneDark : oneLight;
     }, [isDark]);
@@ -273,6 +294,35 @@ export default function ArticlePreview({ article }) {
 
     const handleTagClick = (tagName) => {
         navigate(`/tag/${tagName}`);
+    };
+
+    const handleLike = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (liking) return;
+
+        try {
+            setLiking(true);
+            const response = await apiClient.post(`/article/${article.alias}/like`);
+
+            if (response.code === 200) {
+                const newIsLiked = !isLiked;
+                setIsLiked(newIsLiked);
+                setLikeCount(prev => newIsLiked ? prev + 1 : prev - 1);
+            } else if (response.message && response.message.includes('登录')) {
+                navigate('/login');
+            } else {
+                console.error('点赞失败:', response.message);
+            }
+        } catch (err) {
+            console.error('点赞失败:', err);
+            if (err.response && err.response.status === 401) {
+                navigate('/login');
+            }
+        } finally {
+            setLiking(false);
+        }
     };
 
     const getFullImageUrl = (url) => {
@@ -729,26 +779,41 @@ export default function ArticlePreview({ article }) {
             </h1>
 
             {article.author && (
-                <div className="flex items-center space-x-3 mb-4">
-                    {article.avatar && (
-                        <img
-                            src={getFullImageUrl(article.avatar)}
-                            alt={article.author}
-                            className="w-10 h-10 rounded-full object-cover"
-                            onError={(e) => {
-                                e.target.src = '/image_error.svg';
-                            }}
-                        />
-                    )}
-                    <div>
-                        <p className="text-gray-700 font-medium">作者: {article.author}</p>
-                        <p className="text-sm text-gray-500">
-                            发布时间: {new Date(article.create_time).toLocaleDateString()} •
-                            阅读量: {article.page_views}
-                        </p>
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                        {article.avatar && (
+                            <img
+                                src={getFullImageUrl(article.avatar)}
+                                alt={article.author}
+                                className="w-10 h-10 rounded-full object-cover"
+                                onError={(e) => { e.target.src = '/image_error.svg'; }}
+                            />
+                        )}
+                        <div>
+                            <p className="text-gray-700 font-medium">作者：{article.author}</p>
+                            <p className="text-sm text-gray-500">
+                                发布时间：{new Date(article.create_time).toLocaleDateString()} •
+                                阅读量：{article.page_views}
+                            </p>
+                        </div>
                     </div>
+
+                    <button
+                        onClick={handleLike}
+                        disabled={liking}
+                        className={`flex items-center gap-2 transition-all duration-200 ${liking ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        title={isLiked ? '取消点赞' : '点赞'}
+                    >
+                        <Heart
+                            className={`w-4 h-4 transition-all duration-200 ${
+                                isLiked ? 'fill-current text-red-500' : 'text-gray-400'
+                            } ${liking ? 'scale-110' : ''}`}
+                        />
+                        <p className="font-medium text-gray-500">{likeCount}</p>
+                    </button>
                 </div>
             )}
+
             {(article.category || article.tag) && (
                 <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 pb-4">
                     {article.category && (
@@ -780,6 +845,7 @@ export default function ArticlePreview({ article }) {
             <div className="article-content break-words break-all whitespace-normal">
                 {renderArticleContent(article.article_content)}
             </div>
+
             {lightboxOpen && (
                 <ImageLightbox
                     images={articleImages}

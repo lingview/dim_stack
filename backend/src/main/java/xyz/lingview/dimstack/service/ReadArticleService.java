@@ -18,4 +18,10 @@ public interface ReadArticleService {
     List<String> listAllCategories();
     List<String> listAllTags();
 
+    // 文章点赞
+    void likeArticle(String username, String articleAlias);
+
+    // 获取用户是否已点赞
+    boolean isUserLikedArticle(String username, String articleAlias);
+
 }
