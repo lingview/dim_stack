@@ -3,6 +3,7 @@ package xyz.lingview.dimstack.controller;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import xyz.lingview.dimstack.annotation.RateLimit;
 import xyz.lingview.dimstack.dto.request.AddCommentRequestDTO;
 import xyz.lingview.dimstack.dto.request.CommentDTO;
 import xyz.lingview.dimstack.service.CommentService;
@@ -25,6 +26,7 @@ public class CommentController {
 
     // 添加评论
     @PostMapping
+    @RateLimit(window = 60, maxRequests = 5)
     public void addComment(@RequestBody AddCommentRequestDTO request, HttpSession session) {
         String username = (String) session.getAttribute("username");
         commentService.addComment(username, request);
@@ -32,6 +34,7 @@ public class CommentController {
 
     // 点赞评论
     @PostMapping("/{commentId}/like")
+    @RateLimit(window = 60, maxRequests = 5)
     public void likeComment(@PathVariable String commentId, HttpSession session) {
         String username = (String) session.getAttribute("username");
         commentService.likeComment(username, commentId);
@@ -39,6 +42,7 @@ public class CommentController {
 
     // 删除评论
     @DeleteMapping("/{commentId}")
+    @RateLimit(window = 60, maxRequests = 5)
     public void deleteComment(@PathVariable String commentId, HttpSession session) {
         String username = (String) session.getAttribute("username");
         commentService.deleteComment(username, commentId);

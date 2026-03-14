@@ -1,5 +1,6 @@
 package xyz.lingview.dimstack.controller;
 
+import xyz.lingview.dimstack.annotation.RateLimit;
 import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.domain.ReadArticle;
 import xyz.lingview.dimstack.service.ReadArticleService;
@@ -64,6 +65,7 @@ public class ReadArticleController {
      * @param session
      * @return
      */
+    @RateLimit(window = 60, maxRequests = 5)
     @PostMapping("/{alias}/like")
     public ApiResponse<Map<String, Object>> likeArticle(@PathVariable String alias, HttpSession session) {
         Map<String, Object> response = new HashMap<>();

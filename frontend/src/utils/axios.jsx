@@ -22,7 +22,11 @@ apiClient.interceptors.response.use(
     return response.data;
   },
   (error) => {
-    if (error.response) {
+    if (error.response?.status === 429) {
+      const message = error.response.data?.message || '请求过于频繁，请稍后再试';
+      alert(message);
+      console.warn('Rate Limited:', message);
+    } else if (error.response) {
       console.error('API Error:', error.response.status, error.response.data);
     } else if (error.request) {
       console.error('Network Error:', error.request);
