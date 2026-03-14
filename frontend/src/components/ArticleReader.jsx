@@ -191,7 +191,7 @@ export default function ArticleReader() {
                             </div>
                         )}
 
-                        <main className="container mx-auto px-4 py-8">
+                        <main className="container mx-auto px-0 lg:px-4 py-8">
                             <div className="flex flex-col lg:flex-row gap-6">
                                 <div className="hidden lg:block lg:w-1/4">
                                     <div className="sticky top-28">
@@ -199,13 +199,13 @@ export default function ArticleReader() {
                                     </div>
                                 </div>
 
-                                <div className="lg:w-1/2">
+                                <div className="w-full lg:w-1/2">
                                     <div className={article.article_cover ? "-mt-20 relative z-10" : ""}>
                                         <ArticlePreview article={article} />
                                         <CommentSection articleAlias={article.alias} />
                                     </div>
                                 </div>
-                                <div className="lg:w-1/4">
+                                <div className="hidden lg:block lg:w-1/4">
                                     <div className="sticky top-28">
                                         <CategorySidebar />
                                         <TagSidebar />
