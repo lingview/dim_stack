@@ -1,6 +1,7 @@
 package xyz.lingview.dimstack.controller;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
@@ -64,7 +65,7 @@ public class UserController {
 
 
     @PutMapping("/update")
-    public ApiResponse<Void> updateUserInfo(@RequestBody UserUpdateDTO userUpdateDTO, HttpSession session) {
+    public ApiResponse<Void> updateUserInfo(@RequestBody @Valid UserUpdateDTO userUpdateDTO, HttpSession session) {
         String currentUsername = (String) session.getAttribute("username");
         return userService.updateUserInfo(userUpdateDTO, currentUsername);
     }

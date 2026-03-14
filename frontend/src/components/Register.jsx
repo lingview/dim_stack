@@ -91,6 +91,11 @@ export default function Register() {
       return setErrorWithTimeout('请输入用户名')
     }
 
+    const usernameRegex = /^[\u4e00-\u9fa5a-zA-Z0-9_]+$/;
+    if (!usernameRegex.test(formData.username)) {
+      return setErrorWithTimeout('用户名只能包含中文、英文、数字和下划线')
+    }
+
     if (!formData.password) {
       return setErrorWithTimeout('请输入密码')
     }

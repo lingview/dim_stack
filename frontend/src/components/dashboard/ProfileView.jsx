@@ -206,10 +206,17 @@ export default function ProfileView() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        const currentUsername = unescapeHtml(user.username);
+        const usernameRegex = /^[\u4e00-\u9fa5a-zA-Z0-9_]+$/;
+        if (!usernameRegex.test(currentUsername)) {
+            showMessage('用户名只能包含中文、英文、数字和下划线', 'error');
+            return;
+        }
+        
         try {
             setSaving(true);
 
-            const currentUsername = unescapeHtml(user.username);
             const originalUnescapedUsername = unescapeHtml(originalUsername);
 
             const updateData = {
