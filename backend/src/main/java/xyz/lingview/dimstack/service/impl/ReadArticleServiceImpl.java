@@ -2,14 +2,24 @@ package xyz.lingview.dimstack.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ValueOperations;
+import xyz.lingview.dimstack.domain.Article;
+import xyz.lingview.dimstack.domain.ArticleLike;
 import xyz.lingview.dimstack.domain.ReadArticle;
+import xyz.lingview.dimstack.domain.UserInformation;
+import xyz.lingview.dimstack.mapper.ArticleLikeMapper;
+import xyz.lingview.dimstack.mapper.ArticleMapper;
 import xyz.lingview.dimstack.mapper.ReadArticleMapper;
+import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.CacheService;
+import xyz.lingview.dimstack.service.MailService;
+import xyz.lingview.dimstack.service.NotificationService;
 import xyz.lingview.dimstack.service.ReadArticleService;
+import xyz.lingview.dimstack.util.SiteConfigUtil;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +34,24 @@ public class ReadArticleServiceImpl implements ReadArticleService {
 
     @Autowired
     private CacheService cacheService;
+
+    @Autowired
+    private ArticleMapper articleMapper;
+
+    @Autowired
+    private ArticleLikeMapper articleLikeMapper;
+
+    @Autowired
+    private UserInformationMapper userInformationMapper;
+
+    @Autowired
+    private SiteConfigUtil siteConfigUtil;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private MailService mailService;
 
     @Override
     public boolean isArticleNeedPassword(String alias) {
@@ -119,6 +147,68 @@ public class ReadArticleServiceImpl implements ReadArticleService {
             log.info("标签sitemap缓存命中，从缓存返回{}个标签", tags.size());
         }
         return tags;
+    }
+
+    @Override
+    public void likeArticle(String username, String articleAlias) {
+        String userId = userInformationMapper.selectUserUUID(username);
+
+        Article article = articleMapper.selectArticleByAlias(articleAlias);
+        if (article == null) {
+            throw new RuntimeException("文章不存在");
+        }
+
+        if (articleLikeMapper.existsLike(userId, article.getArticle_id())) {
+            articleLikeMapper.deleteLike(userId, article.getArticle_id());
+            Long newLikeCount = article.getLike_count() - 1;
+            articleMapper.updateArticleLikeCount(article.getArticle_id(), newLikeCount);
+        } else {
+            ArticleLike like = new ArticleLike();
+            like.setUser_id(userId);
+            like.setArticle_id(article.getArticle_id());
+            like.setCreate_time(LocalDateTime.now());
+            articleLikeMapper.insertLike(like);
+
+            Long newLikeCount = article.getLike_count() + 1;
+            articleMapper.updateArticleLikeCount(article.getArticle_id(), newLikeCount);
+            sendLikeNotification(article, username);
+        }
+    }
+
+    @Override
+    public boolean isUserLikedArticle(String username, String articleAlias) {
+        String userId = userInformationMapper.selectUserUUID(username);
+
+        Article article = articleMapper.selectArticleByAlias(articleAlias);
+        if (article == null) {
+            return false;
+        }
+
+        return articleLikeMapper.existsLike(userId, article.getArticle_id());
+    }
+
+
+    private void sendLikeNotification(Article article, String likerUsername) {
+        try {
+            if (!siteConfigUtil.isNotificationEnabled()) {
+                return;
+            }
+
+            UserInformation articleAuthor = userInformationMapper.selectUserByUUID(article.getUuid());
+            String likerUserId = userInformationMapper.selectUserUUID(likerUsername);
+
+            if (articleAuthor != null && articleAuthor.getEmail() != null &&
+                    likerUserId != null && !articleAuthor.getUuid().equals(likerUserId)) {
+                String siteName = siteConfigUtil.getSiteName();
+                String subject = siteName + " 点赞通知";
+                String content = "用户 " + likerUsername + " 点赞了您的文章《" + article.getArticle_name() + "》";
+
+                mailService.sendSimpleMail(articleAuthor.getEmail(), subject, content);
+                notificationService.sendSystemNotification(articleAuthor.getUsername(), "系统通知", content);
+            }
+        } catch (Exception e) {
+            log.warn("文章点赞通知邮件发送失败{}", String.valueOf(e));
+        }
     }
 
 }

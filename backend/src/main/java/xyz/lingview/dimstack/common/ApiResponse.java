@@ -39,4 +39,8 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> error(int code, String message, T data) {
         return new ApiResponse<>(code, message, data);
     }
+
+    public static <T> ApiResponse<T> rateLimit(String message) {
+        return new ApiResponse<>(429, message, null);
+    }
 }

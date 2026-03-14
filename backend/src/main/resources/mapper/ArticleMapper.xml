@@ -96,4 +96,11 @@
         SELECT uuid FROM article WHERE article_id = #{articleId}
     </select>
 
+    <!-- 更新文章点赞数 -->
+    <update id="updateArticleLikeCount">
+        UPDATE article 
+        SET like_count = #{likeCount}
+        WHERE article_id = #{articleId}
+    </update>
+
 </mapper>
