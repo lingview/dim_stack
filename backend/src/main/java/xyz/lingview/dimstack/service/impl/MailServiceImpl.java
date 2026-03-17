@@ -31,7 +31,10 @@ public class MailServiceImpl implements MailService {
      */
     private JavaMailSender getMailSender() {
         SiteConfig config = siteConfigService.getSiteConfig();
+        return getMailSender(config);
+    }
 
+    private JavaMailSender getMailSender(SiteConfig config) {
         if (config == null ||
             !StringUtils.hasText(config.getMail_username()) ||
             !StringUtils.hasText(config.getMail_password()) ||
@@ -50,9 +53,9 @@ public class MailServiceImpl implements MailService {
         props.put("mail.transport.protocol", config.getMail_protocol() != null ? config.getMail_protocol() : "smtp");
         props.put("mail.smtp.auth", "true");
 
-        if (config.getMail_enable_tls() != null && config.getMail_enable_tls()) {
+        if (Boolean.TRUE.equals(config.getMail_enable_tls())) {
             props.put("mail.smtp.starttls.enable", "true");
-        } else if (config.getMail_enable_ssl() != null && config.getMail_enable_ssl()) {
+        } else if (Boolean.TRUE.equals(config.getMail_enable_ssl())) {
             props.put("mail.smtp.ssl.enable", "true");
         }
 
@@ -178,4 +181,26 @@ public class MailServiceImpl implements MailService {
         String content = "模板邮件内容";
         sendHtmlMail(to, subject, content);
     }
+
+    @Override
+    public void sendTestMailWithConfig(SiteConfig config, String to, String subject, String content) {
+        JavaMailSender mailSender = getMailSender(config);
+        if (mailSender == null) {
+            throw new IllegalArgumentException("邮件配置不完整，无法发送测试邮件");
+        }
+
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(config.getMail_sender_email());
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(content);
+            mailSender.send(message);
+            log.info("SMTP测试邮件发送成功: to={}, subject={}", to, subject);
+        } catch (Exception e) {
+            log.error("SMTP测试邮件发送失败: to={}, subject={}", to, subject, e);
+            throw new RuntimeException("SMTP测试邮件发送失败: " + e.getMessage(), e);
+        }
+    }
+
 }

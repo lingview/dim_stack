@@ -47,6 +47,7 @@ export default function SiteSettingsView() {
     const [activeTab, setActiveTab] = useState('basic');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [testingSmtp, setTestingSmtp] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [iconUploading, setIconUploading] = useState(false);
     const [roles, setRoles] = useState([]);
@@ -94,6 +95,7 @@ export default function SiteSettingsView() {
     });
 
     const [message, setMessage] = useState({ type: '', content: '' });
+    const [testEmail, setTestEmail] = useState('');
 
     const tabs = [
         { id: 'basic', name: '站点信息' },
@@ -410,6 +412,46 @@ export default function SiteSettingsView() {
         } catch (error) {
             console.error('删除音乐失败:', error);
             showMessage('error', '删除音乐时发生错误');
+        }
+    };
+
+    const handleSmtpTest = async () => {
+        if (!testEmail.trim()) {
+            showMessage('error', '请输入测试收件邮箱');
+            return;
+        }
+
+        if (!formData.smtp_host || !formData.mail_username || !formData.mail_sender_email || !formData.mail_password) {
+            showMessage('error', '请先填写完整SMTP配置（主机、账号、密码、发件人邮箱）');
+            return;
+        }
+
+        try {
+            setTestingSmtp(true);
+            const response = await apiClient.post('/site/test-smtp', {
+                smtp_host: unescapeHtml(formData.smtp_host),
+                smtp_port: formData.smtp_port === '' ? null : parseInt(formData.smtp_port, 10),
+                mail_sender_email: unescapeHtml(formData.mail_sender_email),
+                mail_sender_name: unescapeHtml(formData.mail_sender_name) || '系统通知',
+                mail_username: unescapeHtml(formData.mail_username),
+                mail_password: formData.mail_password,
+                mail_protocol: unescapeHtml(formData.mail_protocol),
+                mail_enable_tls: formData.mail_enable_tls,
+                mail_enable_ssl: formData.mail_enable_ssl,
+                test_email: testEmail.trim()
+            });
+
+            if (response.success) {
+                showMessage('success', response.message || '测试邮件发送成功，请检查收件箱');
+            } else {
+                showMessage('error', response.message || '测试邮件发送失败');
+            }
+        } catch (error) {
+            console.error('SMTP测试失败:', error);
+            const errorMessage = error?.response?.data?.message || '测试邮件发送时发生错误';
+            showMessage('error', errorMessage);
+        } finally {
+            setTestingSmtp(false);
         }
     };
 
@@ -1312,6 +1354,36 @@ export default function SiteSettingsView() {
                                         <option value="smtp">SMTP</option>
                                         <option value="smtps">SMTPS</option>
                                     </select>
+                                </div>
+
+                                <div className="md:col-span-2 border-t pt-4">
+                                    <p className="text-sm text-gray-600 mb-2">
+                                        填写一个收件邮箱并点击测试，即可验证SMTP配置，无需退出并重新登录。
+                                    </p>
+                                    <div className="flex flex-col md:flex-row md:items-end gap-3">
+                                        <div className="flex-1">
+                                            <label htmlFor="test_email" className="block text-sm font-medium text-gray-700 mb-1">
+                                                测试收件邮箱
+                                            </label>
+                                            <input
+                                                type="email"
+                                                id="test_email"
+                                                name="test_email"
+                                                value={testEmail}
+                                                onChange={(e) => setTestEmail(e.target.value)}
+                                                placeholder="请输入用于接收测试邮件的邮箱"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={handleSmtpTest}
+                                            disabled={testingSmtp}
+                                            className={`px-4 py-2 rounded-md text-white font-medium ${testingSmtp ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+                                        >
+                                            {testingSmtp ? '测试发送中...' : '测试SMTP配置'}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center space-x-6">
