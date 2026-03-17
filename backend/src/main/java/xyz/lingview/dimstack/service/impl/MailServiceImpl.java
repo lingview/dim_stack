@@ -11,6 +11,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import xyz.lingview.dimstack.domain.SiteConfig;
+import xyz.lingview.dimstack.mapper.SiteConfigMapper;
 import xyz.lingview.dimstack.service.MailService;
 import xyz.lingview.dimstack.service.SiteConfigService;
 
@@ -25,20 +26,20 @@ public class MailServiceImpl implements MailService {
     @Autowired
     private SiteConfigService siteConfigService;
 
+    @Autowired
+    private SiteConfigMapper siteConfigMapper;
     /**
      * 获取邮件发送器
      * @return JavaMailSender
      */
     private JavaMailSender getMailSender() {
         SiteConfig config = siteConfigService.getSiteConfig();
-        return getMailSender(config);
-    }
-
-    private JavaMailSender getMailSender(SiteConfig config) {
+        // 从数据库查询邮件密码（因为内存模式进入邮箱配置页面会导致邮箱密码被污染）
+        String emailPassword = siteConfigMapper.getSiteConfig().getMail_password();
         if (config == null ||
-            !StringUtils.hasText(config.getMail_username()) ||
-            !StringUtils.hasText(config.getMail_password()) ||
-            !StringUtils.hasText(config.getSmtp_host())) {
+                !StringUtils.hasText(config.getMail_username()) ||
+                !StringUtils.hasText(emailPassword) ||
+                !StringUtils.hasText(config.getSmtp_host())) {
             log.warn("邮件配置不完整，无法发送邮件");
             return null;
         }
@@ -47,15 +48,16 @@ public class MailServiceImpl implements MailService {
         mailSender.setHost(config.getSmtp_host());
         mailSender.setPort(config.getSmtp_port() != null ? config.getSmtp_port() : 25);
         mailSender.setUsername(config.getMail_username());
-        mailSender.setPassword(config.getMail_password());
+
+        mailSender.setPassword(emailPassword);
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", config.getMail_protocol() != null ? config.getMail_protocol() : "smtp");
         props.put("mail.smtp.auth", "true");
 
-        if (Boolean.TRUE.equals(config.getMail_enable_tls())) {
+        if (config.getMail_enable_tls() != null && config.getMail_enable_tls()) {
             props.put("mail.smtp.starttls.enable", "true");
-        } else if (Boolean.TRUE.equals(config.getMail_enable_ssl())) {
+        } else if (config.getMail_enable_ssl() != null && config.getMail_enable_ssl()) {
             props.put("mail.smtp.ssl.enable", "true");
         }
 
@@ -181,26 +183,4 @@ public class MailServiceImpl implements MailService {
         String content = "模板邮件内容";
         sendHtmlMail(to, subject, content);
     }
-
-    @Override
-    public void sendTestMailWithConfig(SiteConfig config, String to, String subject, String content) {
-        JavaMailSender mailSender = getMailSender(config);
-        if (mailSender == null) {
-            throw new IllegalArgumentException("邮件配置不完整，无法发送测试邮件");
-        }
-
-        try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(config.getMail_sender_email());
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(content);
-            mailSender.send(message);
-            log.info("SMTP测试邮件发送成功: to={}, subject={}", to, subject);
-        } catch (Exception e) {
-            log.error("SMTP测试邮件发送失败: to={}, subject={}", to, subject, e);
-            throw new RuntimeException("SMTP测试邮件发送失败: " + e.getMessage(), e);
-        }
-    }
-
 }

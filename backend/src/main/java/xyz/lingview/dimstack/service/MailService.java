@@ -54,14 +54,4 @@ public interface MailService {
      */
     @Async
     void sendTemplateMail(String to, String subject, String templateName, Map<String, Object> model) throws MessagingException;
-
-    /**
-     * 使用临时SMTP配置发送测试邮件（同步）
-     * @param config 临时邮件配置
-     * @param to 收件人邮箱
-     * @param subject 邮件主题
-     * @param content 邮件内容
-     */
-    void sendTestMailWithConfig(xyz.lingview.dimstack.domain.SiteConfig config, String to, String subject, String content);
-
 }
