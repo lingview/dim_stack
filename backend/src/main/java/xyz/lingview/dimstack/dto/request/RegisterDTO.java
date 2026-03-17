@@ -13,6 +13,7 @@ import lombok.Data;
 public class RegisterDTO {
 
     @NotBlank(message = "用户名不能为空")
+    @Pattern(regexp = "^[\\u4e00-\\u9fa5a-zA-Z0-9_]+$", message = "用户名只能包含中文、英文、数字和下划线")
     private String username;
 
     private String email;

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import xyz.lingview.dimstack.annotation.RateLimit;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.dto.request.ArticleDetailDTO;
 import xyz.lingview.dimstack.dto.request.UpdateArticleDTO;
@@ -343,6 +344,7 @@ public class EditArticleController {
     ArticleReviewMapper articleReviewMapper;
 
     @PostMapping("/publisharticle")
+    @RateLimit(window = 60, maxRequests = 2)
     @RequiresPermission("post:create")
     public ResponseEntity<Map<String, Object>> publishArticle(
             @RequestBody Map<String, String> payload,
