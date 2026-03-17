@@ -87,7 +87,7 @@ const CommentSection = ({ articleAlias }) => {
       fetchComments();
       setError('');
     } catch (err) {
-      setError('发表评论失败');
+      setError('发表评论失败，请检查是否登录');
       console.error(err);
     } finally {
       setLoading(false);
@@ -112,7 +112,7 @@ const CommentSection = ({ articleAlias }) => {
       fetchComments();
       setError('');
     } catch (err) {
-      setError('回复评论失败');
+      setError('回复评论失败，请检查是否登录');
       console.error(err);
     } finally {
       setLoading(false);
@@ -125,7 +125,7 @@ const CommentSection = ({ articleAlias }) => {
       await apiClient.post(`/comments/${commentId}/like`);
       fetchComments();
     } catch (err) {
-      setError('点赞失败');
+      setError('点赞失败，请检查是否登录');
       console.error(err);
     }
   };
