@@ -4,13 +4,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.domain.Role;
 import xyz.lingview.dimstack.domain.SiteConfig;
 import xyz.lingview.dimstack.dto.request.HeroDTO;
+import xyz.lingview.dimstack.dto.request.SmtpTestRequestDTO;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.SiteConfigService;
+import xyz.lingview.dimstack.service.MailService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -29,6 +32,9 @@ public class SiteConfigController {
 
     @Autowired
     private UserInformationMapper userInformationMapper;
+
+    @Autowired
+    private MailService mailService;
 
     @GetMapping("/hero")
     public HeroDTO getHeroConfig() {
@@ -240,6 +246,41 @@ public class SiteConfigController {
                             "success", false,
                             "message", "更新站点配置时发生错误: " + e.getMessage()
                     ));
+        }
+    }
+
+
+
+    @PostMapping("/test-smtp")
+    @RequiresPermission("system:edit")
+    public ResponseEntity<Map<String, Object>> testSmtpConfig(@Valid @RequestBody SmtpTestRequestDTO request) {
+        log.info("开始测试SMTP配置, to={}", request.getTest_email());
+        try {
+            SiteConfig testConfig = new SiteConfig();
+            testConfig.setSmtp_host(request.getSmtp_host());
+            testConfig.setSmtp_port(request.getSmtp_port());
+            testConfig.setMail_sender_email(request.getMail_sender_email());
+            testConfig.setMail_sender_name(request.getMail_sender_name());
+            testConfig.setMail_username(request.getMail_username());
+            testConfig.setMail_password(request.getMail_password());
+            testConfig.setMail_protocol(request.getMail_protocol());
+            testConfig.setMail_enable_tls(Boolean.TRUE.equals(request.getMail_enable_tls()));
+            testConfig.setMail_enable_ssl(Boolean.TRUE.equals(request.getMail_enable_ssl()));
+
+            String subject = "【DimStack】SMTP配置测试邮件";
+            String content = "这是一封SMTP配置测试邮件。\n\n如果你收到这封邮件，说明当前SMTP配置可用。";
+            mailService.sendTestMailWithConfig(testConfig, request.getTest_email(), subject, content);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "测试邮件发送成功，请检查收件箱"
+            ));
+        } catch (Exception e) {
+            log.error("SMTP配置测试失败", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                    "success", false,
+                    "message", "测试邮件发送失败: " + e.getMessage()
+            ));
         }
     }
 
