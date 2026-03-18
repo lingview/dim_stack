@@ -129,7 +129,7 @@ User=root
 Group=root
 WorkingDirectory=/opt/dim_stack
 
-Environment="JAVA_OPTS=-server -Xms4g -Xmx8g -XX:+UseG1GC -XX:+UseStringDeduplication -Dfile.encoding=UTF-8"
+Environment="JAVA_OPTS=-server -Xms512g -Xmx1g -XX:+UseG1GC -XX:+UseStringDeduplication -Dfile.encoding=UTF-8"
 
 ExecStart=/bin/sh -c 'exec /usr/lib/jvm/java-17-openjdk-amd64/bin/java $JAVA_OPTS -jar dimstack-1.0-SNAPSHOT.jar'
 
