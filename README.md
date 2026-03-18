@@ -142,7 +142,8 @@ StartLimitInterval=600s
 StartLimitBurst=5
 
 ProtectSystem=full
-ProtectHome=false
+# 如果需要访问用户目录下的文件，请改为"ProtectHome=false"
+ProtectHome=true
 PrivateTmp=true
 PrivateDevices=true
 NoNewPrivileges=true
