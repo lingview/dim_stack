@@ -119,23 +119,42 @@ sudo vim /etc/systemd/system/dimstack.service
 #### 写入下面内容（请根据自己服务器情况修改）
 ```bash
 [Unit]
-Description=DimStack Application Service
-After=network.target
+Description=Dim Stack Forum Backend Service
+After=network.target mysql.service redis.service
+Wants=mysql.service redis.service
 
 [Service]
+Type=simple
 User=root
 Group=root
-WorkingDirectory=/root/dimstack
-ExecStart=/usr/bin/java -jar /root/dimstack/dimstack-1.0-SNAPSHOT.jar
-# 如果启用此配置会导致系统的自动重启出现故障，所以默认注释
-#Restart=on-failure
-#RestartSec=5
+WorkingDirectory=/opt/dim_stack
+
+Environment="JAVA_OPTS=-server -Xms4g -Xmx8g -XX:+UseG1GC -XX:+UseStringDeduplication -Dfile.encoding=UTF-8"
+
+ExecStart=/bin/sh -c 'exec /usr/lib/jvm/java-17-openjdk-amd64/bin/java $JAVA_OPTS -jar dimstack-1.0-SNAPSHOT.jar'
+
+SuccessExitStatus=143
+
+Restart=always
+RestartSec=15
+
+StartLimitInterval=600s
+StartLimitBurst=5
+
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+NoNewPrivileges=true
+RestrictSUIDSGID=true   
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+OOMPolicy=continue
+LimitNOFILE=65535
+
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=dimstack
-
-# 可选：设置 JVM 参数（此处开启）
-Environment="JAVA_OPTS=-Xms512m -Xmx1g"
+SyslogIdentifier=dim_stack
 
 [Install]
 WantedBy=multi-user.target
