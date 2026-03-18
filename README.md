@@ -127,11 +127,11 @@ Wants=mysql.service redis.service
 Type=simple
 User=root
 Group=root
-WorkingDirectory=/opt/dim_stack
+WorkingDirectory=/root/dimstack
 
-Environment="JAVA_OPTS=-server -Xms512g -Xmx1g -XX:+UseG1GC -XX:+UseStringDeduplication -Dfile.encoding=UTF-8"
+Environment="JAVA_OPTS=-server -Xms512m -Xmx1g -XX:+UseG1GC -XX:+UseStringDeduplication -Dfile.encoding=UTF-8"
 
-ExecStart=/bin/sh -c 'exec /usr/lib/jvm/java-17-openjdk-amd64/bin/java $JAVA_OPTS -jar dimstack-1.0-SNAPSHOT.jar'
+ExecStart=/bin/sh -c 'exec java $JAVA_OPTS -jar dimstack-1.0-SNAPSHOT.jar'
 
 SuccessExitStatus=143
 
@@ -142,7 +142,7 @@ StartLimitInterval=600s
 StartLimitBurst=5
 
 ProtectSystem=full
-ProtectHome=true
+ProtectHome=false
 PrivateTmp=true
 PrivateDevices=true
 NoNewPrivileges=true
