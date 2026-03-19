@@ -28,7 +28,7 @@ public class MenusController {
     }
 
     @GetMapping("/getmenus")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:menus:management")
     public List<MenusDTO> getMenus() {
         return menusService.getAllMenus();
     }
