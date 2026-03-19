@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.dto.request.ThemeSlugRequestDTO;
 import xyz.lingview.dimstack.dto.response.ThemeDetailResponseDTO;
@@ -46,6 +47,7 @@ public class ExpansionController {
     private static final Pattern THEME_SLUG_PATTERN = Pattern.compile("^[a-zA-Z0-9_-]+$");
 
     @PostMapping("/getthemeslist")
+    @RequiresPermission("system:theme:management")
     public ApiResponse<ThemeListResponseDTO> getThemesList() {
         try {
             // 从数据库获取扩展服务器地址
@@ -72,6 +74,7 @@ public class ExpansionController {
     }
 
     @PostMapping("/gettheme")
+    @RequiresPermission("system:theme:management")
     public ApiResponse<ThemeDetailResponseDTO> getTheme(@RequestBody ThemeSlugRequestDTO request) {
         ThemeDetailResponseDTO responseDTO = new ThemeDetailResponseDTO();
         try {
@@ -135,6 +138,7 @@ public class ExpansionController {
     }
 
     @PostMapping("/deletetheme")
+    @RequiresPermission("system:theme:management")
     public ApiResponse<Void> deleteTheme(@RequestBody ThemeSlugRequestDTO request) {
         try {
             String slug = request.getSlug();

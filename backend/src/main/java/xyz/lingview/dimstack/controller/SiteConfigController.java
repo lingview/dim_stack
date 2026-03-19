@@ -57,7 +57,7 @@ public class SiteConfigController {
     }
 
     @GetMapping("/getsiteconfig")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:config:management")
     public ResponseEntity<Map<String, Object>> getsiteconfig() {
         log.info("获取站点配置信息");
         try {
@@ -86,7 +86,7 @@ public class SiteConfigController {
     }
 
     @PostMapping("/editsiteconfig")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:config:management")
     public ResponseEntity<Map<String, Object>> editsiteconfig(@RequestBody SiteConfig siteConfig) {
         log.info("更新站点配置信息");
         try {
@@ -250,7 +250,7 @@ public class SiteConfigController {
     }
 
     @GetMapping("/roles")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:config:management")
     public ResponseEntity<Map<String, Object>> getAllRoles() {
         log.info("获取所有角色列表");
         try {
@@ -272,7 +272,7 @@ public class SiteConfigController {
 
 
     @PostMapping("/test-smtp")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:config:management")
     public ResponseEntity<Map<String, Object>> testSmtpConfig(@RequestBody TestSmtpRequestDTO testSmtpRequestDTO) {
         String email = testSmtpRequestDTO.getEmail();
         mailService.sendSimpleMail(email, "测试邮件", "这是一封测试邮件");
@@ -285,7 +285,7 @@ public class SiteConfigController {
 
 
     @GetMapping("/article-status-options")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:config:management")
     public ResponseEntity<Map<String, Object>> getArticleStatusOptions() {
         log.info("获取文章状态选项");
 

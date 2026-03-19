@@ -22,21 +22,21 @@ public class UploadController {
     private UploadService uploadService;
 
     @PostMapping("/uploadattachment")
-    @RequiresPermission("post:create")
+    @RequiresPermission("attachment:add")
     public ResponseEntity<Map<String, String>> uploadAttachment(HttpServletRequest request,
                                                                 @RequestParam("file") MultipartFile file) {
         return uploadService.uploadAttachment(request, file);
     }
 
     @PostMapping("/uploadattachment/init")
-    @RequiresPermission("post:create")
+    @RequiresPermission("attachment:add")
     public ResponseEntity<Map<String, String>> initMultipartUpload(HttpServletRequest request,
                                                                    @RequestBody Map<String, String> payload) {
         return uploadService.initMultipartUpload(request, payload);
     }
 
     @PostMapping("/uploadattachment/part")
-    @RequiresPermission("post:create")
+    @RequiresPermission("attachment:add")
     public ResponseEntity<Map<String, String>> uploadChunk(
             HttpServletRequest request,
             @RequestHeader("Upload-Id") String uploadId,
@@ -46,7 +46,7 @@ public class UploadController {
     }
 
     @PostMapping("/uploadattachment/complete")
-    @RequiresPermission("post:create")
+    @RequiresPermission("attachment:add")
     public ResponseEntity<Map<String, String>> completeUpload(
             HttpServletRequest request,
             @RequestBody Map<String, String> payload) {
@@ -54,13 +54,14 @@ public class UploadController {
     }
 
     @PostMapping("/uploadarticle")
-    @RequiresPermission("post:create")
+    @RequiresPermission({"post:add", "post:edit"})
     public ResponseEntity<Map<String, Object>> uploadArticle(HttpServletRequest request,
                                                              @RequestBody UploadArticle uploadArticle) {
         return uploadService.uploadArticle(request, uploadArticle);
     }
 
     @PostMapping("/uploadavatar")
+    @RequiresPermission("useravatar:add")
     public ResponseEntity<Map<String, String>> uploadAvatar(HttpServletRequest request,
                                                             @RequestParam("file") MultipartFile file) {
         return uploadService.uploadAvatar(request, file);
@@ -68,7 +69,7 @@ public class UploadController {
 
     // 用户管理模块修改头像用
     @PostMapping("/admin/uploadavatar")
-    @RequiresPermission("user:management")
+    @RequiresPermission("system:user:management")
     public ResponseEntity<ApiResponse<Map<String, String>>> adminUploadAvatar(
             HttpServletRequest request,
             @RequestParam("file") MultipartFile file) {

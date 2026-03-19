@@ -28,7 +28,7 @@ public class ThemeController {
     private SiteConfigService siteConfigService;
 
     @PostMapping("/switch")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:theme:management")
     public String switchTheme(@RequestParam String themeName) {
         String themesPath = themeProperties.getThemesPath();
         Path themeDir = Path.of(themesPath, themeName);
@@ -53,13 +53,13 @@ public class ThemeController {
     }
 
     @GetMapping("/current")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:theme:management")
     public String getCurrentTheme() {
         return themeProperties.getActiveTheme();
     }
 
     @GetMapping("/list")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:theme:management")
     public String listAvailableThemes() {
         try {
             StringBuilder result = new StringBuilder("Available themes:\n");
@@ -86,7 +86,7 @@ public class ThemeController {
     }
 
     @PostMapping("/validate")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:theme:management")
     public String validateTheme(@RequestParam String themeName) {
         try {
             String themesPath = themeProperties.getThemesPath();
@@ -113,7 +113,7 @@ public class ThemeController {
     }
 
     @GetMapping("/list/json")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:theme:management")
     public ResponseEntity<Map<String, Object>> listAvailableThemesJson() {
         try {
             List<Map<String, Object>> themes = new ArrayList<>();

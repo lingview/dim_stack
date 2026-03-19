@@ -53,7 +53,7 @@ public class EditArticleController {
     private UserPermissionMapper userPermissionMapper;
 
     @GetMapping("/getarticlelist")
-    @RequiresPermission("post:create")
+    @RequiresPermission({"post:view", "post:edit"})
     public ResponseEntity<Map<String, Object>> getArticleList(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -85,7 +85,7 @@ public class EditArticleController {
 
     // 文章更新
     @PostMapping("/updatearticle")
-    @RequiresPermission("post:create")
+    @RequiresPermission({"post:update", "post:edit"})
     public ResponseEntity<Map<String, Object>> updateArticle(
             @RequestBody UpdateArticleDTO updateArticleDTO,
             HttpSession session) {
@@ -195,7 +195,7 @@ public class EditArticleController {
     }
 
     @GetMapping("/getarticle/{articleId}")
-    @RequiresPermission("post:create")
+    @RequiresPermission({"post:details", "post:edit"})
     public ResponseEntity<Map<String, Object>> getArticleDetail(
             @PathVariable String articleId,
             HttpSession session) {
@@ -235,7 +235,7 @@ public class EditArticleController {
     ArticleCategoryMapper articleCategoryMapper;
 
     @PostMapping("/deletearticle")
-    @RequiresPermission("post:create")
+    @RequiresPermission({"post:delete", "post:edit"})
     public ResponseEntity<Map<String, Object>> deleteArticle(
             @RequestBody Map<String, String> payload,
             HttpSession session) {
@@ -289,7 +289,7 @@ public class EditArticleController {
     }
 
     @PostMapping("/unpublisharticle")
-    @RequiresPermission("post:create")
+    @RequiresPermission({"post:unpublish", "post:edit"})
     public ResponseEntity<Map<String, Object>> unpublishArticle(
             @RequestBody Map<String, String> payload,
             HttpSession session) {
@@ -345,7 +345,7 @@ public class EditArticleController {
 
     @PostMapping("/publisharticle")
     @RateLimit(window = 60, maxRequests = 2)
-    @RequiresPermission("post:create")
+    @RequiresPermission({"post:publish", "post:edit"})
     public ResponseEntity<Map<String, Object>> publishArticle(
             @RequestBody Map<String, String> payload,
             HttpSession session) {
@@ -487,7 +487,7 @@ public class EditArticleController {
 
 
     @PostMapping("/removearticlepassword")
-    @RequiresPermission("post:create")
+    @RequiresPermission({"post:removepassword", "post:edit"})
     public ResponseEntity<Map<String, Object>> removeArticlePassword(
             @RequestBody Map<String, String> payload,
             HttpSession session) {

@@ -86,25 +86,25 @@ public class UserController {
 
 
     @GetMapping("/list")
-    @RequiresPermission("user:management")
+    @RequiresPermission("system:user:management")
     public List<UserDTO> getUserEnableList() {
         return userService.getAllEnableUsers();
     }
 
     @GetMapping("/listall")
-    @RequiresPermission("user:management")
+    @RequiresPermission("system:user:management")
     public List<UserDTO> getUserList() {
         return userService.getAllUsers();
     }
 
     @GetMapping("/detail/{id}")
-    @RequiresPermission("user:management")
+    @RequiresPermission("system:user:management")
     public UserDTO getUserDetail(@PathVariable Integer id) {
         return userService.getUserById(id);
     }
 
     @PostMapping("/updateRole")
-    @RequiresPermission("user:management")
+    @RequiresPermission("system:user:management")
     public String updateUserRole(@RequestParam Integer userId, @RequestParam Integer roleId) {
         boolean result = userService.updateUserRole(userId, roleId);
         if (result) {
@@ -115,7 +115,7 @@ public class UserController {
     }
 
     @PostMapping("/updateStatus")
-    @RequiresPermission("user:management")
+    @RequiresPermission("system:user:management")
     public String updateUserStatus(@RequestParam Integer userId, @RequestParam Byte status) {
         boolean result = userService.updateUserStatus(userId, status);
         if (result) {
@@ -126,32 +126,32 @@ public class UserController {
     }
 
     @GetMapping("/roles")
-    @RequiresPermission("user:management")
+    @RequiresPermission("system:user:management")
     public List<Role> getAllRoles() {
         return userService.getAllRoles();
     }
 
     @GetMapping("/permissions/{userId}")
-    @RequiresPermission("user:management")
+    @RequiresPermission("system:user:management")
     public List<String> getUserPermissions(@PathVariable Integer userId) {
         return userService.getUserPermissions(userId);
     }
 
 
     @PostMapping("/add")
-    @RequiresPermission("user:management")
+    @RequiresPermission("system:user:management")
     public ApiResponse<Void> addUser(@RequestBody UserUpdateDTO userUpdateDTO) {
         return userService.addUser(userUpdateDTO);
     }
 
     @PostMapping("/admin/update")
-    @RequiresPermission("user:management")
+    @RequiresPermission("system:user:management")
     public ApiResponse<Void> updateUserByAdmin(@RequestBody UserUpdateDTO userUpdateDTO) {
         return userService.updateUserByAdmin(userUpdateDTO);
     }
 
     @GetMapping("/{userId}/roles")
-    @RequiresPermission("user:management")
+    @RequiresPermission("system:user:management")
     public List<xyz.lingview.dimstack.domain.Role> getUserRoles(@PathVariable Integer userId) {
         return userRoleService.getUserRoles(userId);
     }

@@ -34,7 +34,7 @@ public class MenusController {
     }
 
     @PostMapping("/addmenus")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:menus:management")
     public String addMenus(@RequestBody Menus menus) {
         String username = (String) httpSession.getAttribute("username");
         if (username == null) {
@@ -45,7 +45,7 @@ public class MenusController {
     }
 
     @PostMapping("/editmenus")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:menus:management")
     public String editMenus(@RequestBody Menus menus) {
         String username = (String) httpSession.getAttribute("username");
         if (username == null) {
@@ -56,14 +56,14 @@ public class MenusController {
     }
 
     @PostMapping("/deletemenus")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:menus:management")
     public String deleteMenus(@RequestParam String menus_id) {
         menusService.deleteMenus(menus_id);
         return "success";
     }
 
     @PostMapping("/updatesortorder")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:menus:management")
     public String updateSortOrder(@RequestBody List<Menus> menusList) {
         menusService.updateSortOrder(menusList);
         return "success";

@@ -31,7 +31,7 @@ public class AttachmentManagementController {
      * 分页查询所有附件（管理员接口，仅正常状态）
      */
     @GetMapping("/admin/page")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:attachment:view", "system:attachment:management"})
     public ApiResponse<Map<String, Object>> getAttachments(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -43,7 +43,7 @@ public class AttachmentManagementController {
      * 分页查询所有附件（管理员接口，已删除状态，6小时内）
      */
     @GetMapping("/admin/page-deleted-only")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:attachment:view", "system:attachment:management"})
     public ApiResponse<Map<String, Object>> getDeletedAttachmentsOnly(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -55,7 +55,7 @@ public class AttachmentManagementController {
      * 分页查询所有附件（管理员接口，包含最近删除的6小时内）
      */
     @GetMapping("/admin/page-with-deleted")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:attachment:view", "system:attachment:management"})
     public ApiResponse<Map<String, Object>> getAttachmentsWithDeleted(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -67,7 +67,7 @@ public class AttachmentManagementController {
      * 根据用户UUID分页查询附件（管理员接口，正常状态）
      */
     @GetMapping("/admin/page-by-user")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:attachment:view", "system:attachment:management"})
     public ApiResponse<Map<String, Object>> getAttachmentsByUser(
             @RequestParam String userUuid,
             @RequestParam(defaultValue = "1") int page,
@@ -80,7 +80,7 @@ public class AttachmentManagementController {
      * 根据用户UUID分页查询附件（管理员接口，包含删除状态）
      */
     @GetMapping("/admin/page-by-user-with-deleted")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:attachment:view", "system:attachment:management"})
     public ApiResponse<Map<String, Object>> getAttachmentsByUserWithDeleted(
             @RequestParam String userUuid,
             @RequestParam(defaultValue = "1") int page,
@@ -93,7 +93,7 @@ public class AttachmentManagementController {
      * 根据用户UUID分页查询已删除附件（管理员接口，仅已删除状态，6小时内）
      */
     @GetMapping("/admin/page-deleted-only-by-user")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:attachment:view", "system:attachment:management"})
     public ApiResponse<Map<String, Object>> getDeletedAttachmentsByUserOnly(
             @RequestParam String userUuid,
             @RequestParam(defaultValue = "1") int page,
@@ -122,6 +122,7 @@ public class AttachmentManagementController {
      * 基于UUID分页查询附件（用户接口，仅已删除状态，6小时内）
      */
     @GetMapping("/page-deleted-only")
+    @RequiresPermission({"attachment:view", "attachment:edit"})
     public ApiResponse<Map<String, Object>> getDeletedAttachmentsByUuidOnly(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -138,6 +139,7 @@ public class AttachmentManagementController {
      * 基于UUID分页查询附件（用户接口，包含最近删除的6小时内）
      */
     @GetMapping("/page-with-deleted")
+    @RequiresPermission({"attachment:view", "attachment:edit"})
     public ApiResponse<Map<String, Object>> getAttachmentsByUuidWithDeleted(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -154,7 +156,7 @@ public class AttachmentManagementController {
      * 删除附件（管理员接口）
      */
     @DeleteMapping("/admin/{attachmentId}")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:attachment:delete", "system:attachment:management"})
     public ApiResponse<Void> deleteAttachmentAdmin(
             @PathVariable String attachmentId) {
 
@@ -171,7 +173,7 @@ public class AttachmentManagementController {
      * 撤销删除附件（管理员接口）
      */
     @PostMapping("/admin/{attachmentId}/restore")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:attachment:undelete", "system:attachment:management"})
     public ApiResponse<Void> restoreAttachmentAdmin(
             @PathVariable String attachmentId) {
 
@@ -187,6 +189,7 @@ public class AttachmentManagementController {
      * 普通用户删除附件接口
      */
     @DeleteMapping("/{attachmentId}")
+    @RequiresPermission({"attachment:delete", "attachment:edit"})
     public ApiResponse<Void> deleteAttachment(
             @PathVariable String attachmentId,
             HttpServletRequest request) {
@@ -216,6 +219,7 @@ public class AttachmentManagementController {
      * 普通用户撤销删除附件接口
      */
     @PostMapping("/{attachmentId}/restore")
+    @RequiresPermission({"attachment:undelete", "attachment:edit"})
     public ApiResponse<Void> restoreAttachment(
             @PathVariable String attachmentId,
             HttpServletRequest request) {

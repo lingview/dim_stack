@@ -33,7 +33,7 @@ public class CustomPageController {
      * 创建自定义页面
      */
     @PostMapping
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:custompage:add","system:custompage:management"})
     public ApiResponse<CustomPageResponse> createCustomPage(
             @RequestBody CustomPageRequest request,
             HttpServletRequest httpRequest) {
@@ -50,7 +50,7 @@ public class CustomPageController {
      * 更新自定义页面
      */
     @PutMapping("/{id}")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:custompage:update","system:custompage:management"})
     public ApiResponse<CustomPageResponse> updateCustomPage(
             @PathVariable Integer id,
             @RequestBody CustomPageRequest request,
@@ -68,7 +68,7 @@ public class CustomPageController {
      * 删除自定义页面
      */
     @DeleteMapping("/{id}")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:custompage:delete","system:custompage:management"})
     public ApiResponse<Boolean> deleteCustomPage(
             @PathVariable Integer id,
             HttpServletRequest httpRequest) {
@@ -93,7 +93,7 @@ public class CustomPageController {
      * 获取用户的所有自定义页面
      */
     @GetMapping("/user")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:custompage:view","system:custompage:management"})
     public ApiResponse<List<CustomPageResponse>> getCustomPagesByUser(HttpServletRequest httpRequest) {
 
         String userUuid = getCurrentUserUuid(httpRequest);
@@ -108,7 +108,7 @@ public class CustomPageController {
      * 获取所有自定义页面
      */
     @GetMapping
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:edit","system:custompage:management"})
     public ApiResponse<List<CustomPageResponse>> getAllCustomPages(HttpServletRequest httpRequest) {
         String userUuid = getCurrentUserUuid(httpRequest);
         if (userUuid == null) {

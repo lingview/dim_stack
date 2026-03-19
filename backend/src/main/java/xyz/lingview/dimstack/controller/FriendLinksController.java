@@ -99,7 +99,7 @@ public class FriendLinksController {
 
 
     @GetMapping
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:friendlinks:management")
     public ResponseEntity<Map<String, Object>> getFriendLinks(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -122,7 +122,7 @@ public class FriendLinksController {
 
 
     @PutMapping("/{id}/status")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:friendlinks:management")
     public ResponseEntity<Map<String, Object>> updateFriendLinkStatus(
             @PathVariable Integer id,
             @RequestParam Integer status) {
@@ -152,7 +152,7 @@ public class FriendLinksController {
 
 
     @DeleteMapping("/{id}")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:friendlinks:management")
     public ResponseEntity<Map<String, Object>> deleteFriendLink(@PathVariable Integer id) {
         try {
             boolean result = friendLinkService.deleteFriendLink(id);
@@ -179,7 +179,7 @@ public class FriendLinksController {
     }
 
     @DeleteMapping("/{id}/permanent")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:friendlinks:management")
     public ResponseEntity<Map<String, Object>> deleteFriendLinkPermanent(@PathVariable Integer id) {
         try {
             boolean result = friendLinkService.deleteFriendLinkPermanent(id);
@@ -207,7 +207,7 @@ public class FriendLinksController {
 
     // 友链后台编辑
     @PutMapping("/{id}")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:friendlinks:management")
     public ResponseEntity<Map<String, Object>> updateFriendLink(@PathVariable Integer id, @RequestBody @Valid FriendLinksRequestDTO requestDTO) {
         try {
             boolean result = friendLinkService.updateFriendLink(id, requestDTO);

@@ -64,7 +64,7 @@ public class MusicController {
 
 //    因为某些情况下redis的数据是没有启用悬浮播放器，所以为后台提供不依赖redis的接口
     @GetMapping("/admin/enabled")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:music:management","system:config:management"})
     public ResponseEntity<Map<String, Object>> getAdminEnabledMusics() {
 
         try {
@@ -85,7 +85,7 @@ public class MusicController {
 
     // 添加音乐
     @PostMapping("/add")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:music:management","system:config:management"})
     public ResponseEntity<Map<String, Object>> addMusic(HttpServletRequest request ,@RequestBody Music music) {
         try {
             HttpSession session = request.getSession(false);
@@ -119,7 +119,7 @@ public class MusicController {
 
     // 更新音乐
     @PutMapping("/update/{id}")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:music:management","system:config:management"})
     public ResponseEntity<Map<String, Object>> updateMusic(@PathVariable Integer id, @RequestBody Music music) {
         try {
             music.setId(id);
@@ -172,7 +172,7 @@ public class MusicController {
 
     // 删除音乐（软删除）
     @DeleteMapping("/delete/{id}")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:music:management","system:config:management"})
     public ResponseEntity<Map<String, Object>> deleteMusic(@PathVariable Integer id) {
         try {
             boolean result = musicService.deleteMusic(id);
@@ -200,7 +200,7 @@ public class MusicController {
 
     // 获取所有音乐（包括已删除的）
     @GetMapping("/all")
-    @RequiresPermission("system:edit")
+    @RequiresPermission({"system:music:management", "system:config:management"})
     public ResponseEntity<Map<String, Object>> getAllMusics() {
         try {
             return ResponseEntity.ok(Map.of(

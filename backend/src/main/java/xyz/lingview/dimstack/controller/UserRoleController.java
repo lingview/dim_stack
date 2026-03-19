@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/user-role")
-@RequiresPermission("user:management")
 public class UserRoleController {
 
     @Autowired
@@ -19,6 +18,7 @@ public class UserRoleController {
 
     // 获取用户的所有角色
     @GetMapping("/{userId}/roles")
+    @RequiresPermission("system:user:management")
     public ApiResponse<List<Role>> getUserRoles(@PathVariable Integer userId) {
         List<Role> roles = userRoleService.getUserRoles(userId);
         return ApiResponse.success(roles);
@@ -26,6 +26,7 @@ public class UserRoleController {
 
     // 为用户添加角色
     @PostMapping("/{userId}/role/add")
+    @RequiresPermission("system:user:management")
     public ApiResponse<Void> addUserRole(@PathVariable Integer userId, 
                                          @RequestParam Integer roleId) {
         return userRoleService.addUserRole(userId, roleId);
@@ -33,6 +34,7 @@ public class UserRoleController {
 
     // 从用户移除角色
     @DeleteMapping("/{userId}/role/remove")
+    @RequiresPermission("system:user:management")
     public ApiResponse<Void> removeUserRole(@PathVariable Integer userId, 
                                             @RequestParam Integer roleId) {
         return userRoleService.removeUserRole(userId, roleId);
@@ -40,6 +42,7 @@ public class UserRoleController {
 
     // 设置用户的角色（替换所有现有角色）
     @PostMapping("/{userId}/roles/set")
+    @RequiresPermission("system:user:management")
     public ApiResponse<Void> setUserRoles(@PathVariable Integer userId, 
                                           @RequestBody List<Integer> roleIds) {
         return userRoleService.setUserRoles(userId, roleIds);

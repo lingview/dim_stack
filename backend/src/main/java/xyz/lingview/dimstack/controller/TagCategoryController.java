@@ -26,7 +26,7 @@ public class TagCategoryController {
     private ArticleCategoryService articleCategoryService;
 
     @GetMapping("/tags")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:tags:management")
     public ResponseEntity<Map<String, Object>> getAllTags() {
         try {
             var tags = articleTagService.getAllTags();
@@ -44,7 +44,7 @@ public class TagCategoryController {
     }
 
     @GetMapping("/tags/active")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:tags:management")
     public ResponseEntity<Map<String, Object>> getActiveTags() {
         try {
             var tags = articleTagService.getActiveTags();
@@ -62,7 +62,7 @@ public class TagCategoryController {
     }
 
     @PostMapping("/tags")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:tags:management")
     public ResponseEntity<Map<String, Object>> createTag(@Valid @RequestBody ArticleTagDTO tagDTO, HttpSession session) {
         try {
             String username = (String) session.getAttribute("username");
@@ -89,7 +89,7 @@ public class TagCategoryController {
     }
 
     @PutMapping("/tags/{id}")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:tags:management")
     public ResponseEntity<Map<String, Object>> updateTag(@PathVariable Integer id, @Valid @RequestBody ArticleTagDTO tagDTO) {
         try {
             tagDTO.setId(id);
@@ -115,7 +115,7 @@ public class TagCategoryController {
     }
 
     @DeleteMapping("/tags/{id}")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:tags:management")
     public ResponseEntity<Map<String, Object>> deleteTag(@PathVariable Integer id) {
         try {
             boolean result = articleTagService.deleteTag(id);
@@ -140,7 +140,7 @@ public class TagCategoryController {
     }
 
     @PutMapping("/tags/{id}/activate")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:tags:management")
     public ResponseEntity<Map<String, Object>> activateTag(@PathVariable Integer id) {
         try {
             boolean result = articleTagService.activateTag(id);
@@ -165,7 +165,7 @@ public class TagCategoryController {
     }
 
     @GetMapping("/categories")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:categories:management")
     public ResponseEntity<Map<String, Object>> getAllCategories() {
         try {
             var categories = articleCategoryService.getAllCategories();
@@ -183,7 +183,7 @@ public class TagCategoryController {
     }
 
     @GetMapping("/categories/active")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:categories:management")
     public ResponseEntity<Map<String, Object>> getActiveCategories() {
         try {
             var categories = articleCategoryService.getActiveCategories();
@@ -201,7 +201,7 @@ public class TagCategoryController {
     }
 
     @GetMapping("/categories/tree")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:categories:management")
     public ResponseEntity<Map<String, Object>> getCategoryTree() {
         try {
             var categories = articleCategoryService.getCategoryTree();
@@ -219,7 +219,7 @@ public class TagCategoryController {
     }
 
     @GetMapping("/categories/top-level")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:categories:management")
     public ResponseEntity<Map<String, Object>> getTopLevelCategories() {
         try {
             var categories = articleCategoryService.getTopLevelCategories();
@@ -237,7 +237,7 @@ public class TagCategoryController {
     }
 
     @GetMapping("/categories/children/{parentId}")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:categories:management")
     public ResponseEntity<Map<String, Object>> getChildrenByParentId(@PathVariable Integer parentId) {
         try {
             var categories = articleCategoryService.getChildrenByParentId(parentId);
@@ -255,7 +255,7 @@ public class TagCategoryController {
     }
 
     @PostMapping("/categories")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:categories:management")
     public ResponseEntity<Map<String, Object>> createCategory(@RequestBody ArticleCategoryDTO categoryDTO, HttpSession session) {
         try {
             String username = (String) session.getAttribute("username");
@@ -282,7 +282,7 @@ public class TagCategoryController {
     }
 
     @PutMapping("/categories/{id}")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:categories:management")
     public ResponseEntity<Map<String, Object>> updateCategory(@PathVariable Integer id, @RequestBody ArticleCategoryDTO categoryDTO) {
         try {
             categoryDTO.setId(id);
@@ -308,7 +308,7 @@ public class TagCategoryController {
     }
 
     @DeleteMapping("/categories/{id}")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:categories:management")
     public ResponseEntity<Map<String, Object>> deleteCategory(@PathVariable Integer id) {
         try {
             boolean result = articleCategoryService.deleteCategory(id);
@@ -333,7 +333,7 @@ public class TagCategoryController {
     }
 
     @PutMapping("/categories/{id}/activate")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:categories:management")
     public ResponseEntity<Map<String, Object>> activateCategory(@PathVariable Integer id) {
         try {
             boolean result = articleCategoryService.activateCategory(id);

@@ -31,7 +31,7 @@ public class UpdateController {
 
     // 检查更新接口
     @GetMapping("/check")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:update:management")
     public ApiResponse<Map<String, Object>> checkForUpdates() {
 
         Map<String, Object> response = new HashMap<>();
@@ -71,7 +71,7 @@ public class UpdateController {
 
     // 下载更新包接口
     @PostMapping("/download")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:update:management")
     public ApiResponse<Map<String, Object>> downloadUpdate() {
 
         Map<String, Object> response = new HashMap<>();
@@ -131,7 +131,7 @@ public class UpdateController {
 
     // 执行更新接口
     @PostMapping("/perform")
-    @RequiresPermission("system:edit")
+    @RequiresPermission("system:update:management")
     public ApiResponse<Map<String, Object>> performUpdate(
             @RequestBody PerformUpdateRequestDTO request
     ) {
