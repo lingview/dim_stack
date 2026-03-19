@@ -14,6 +14,7 @@ import xyz.lingview.dimstack.dto.response.UserStatusResponseDTO;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.UserService;
 import xyz.lingview.dimstack.service.UserBlacklistService;
+import xyz.lingview.dimstack.service.UserRoleService;
 
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,8 @@ public class UserController {
     private UserInformationMapper userInformationMapper;
     @Autowired
     private UserBlacklistService userBlacklistService;
+    @Autowired
+    private UserRoleService userRoleService;
 
     @GetMapping("/status")
     public ApiResponse<UserStatusResponseDTO> getUserStatus(HttpSession session) {
@@ -145,5 +148,11 @@ public class UserController {
     @RequiresPermission("user:management")
     public ApiResponse<Void> updateUserByAdmin(@RequestBody UserUpdateDTO userUpdateDTO) {
         return userService.updateUserByAdmin(userUpdateDTO);
+    }
+
+    @GetMapping("/{userId}/roles")
+    @RequiresPermission("user:management")
+    public List<xyz.lingview.dimstack.domain.Role> getUserRoles(@PathVariable Integer userId) {
+        return userRoleService.getUserRoles(userId);
     }
 }

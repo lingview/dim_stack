@@ -10,6 +10,7 @@ import xyz.lingview.dimstack.dto.request.UserDTO;
 import xyz.lingview.dimstack.dto.request.UserUpdateDTO;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
+import xyz.lingview.dimstack.mapper.UserRoleMapper;
 import xyz.lingview.dimstack.service.UserService;
 import xyz.lingview.dimstack.service.UserBlacklistService;
 import xyz.lingview.dimstack.util.RandomUtil;
@@ -30,6 +31,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private SiteConfigMapper siteConfigMapper;
+
+    @Autowired
+    private UserRoleMapper userRoleMapper;
 
     @Override
     public UserInformation getUserByUUID(String uuid) {
@@ -135,8 +139,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean updateUserRole(Integer userId, Integer roleId) {
         try {
-            int result = userInformationMapper.updateUserRole(userId, roleId);
-            return result > 0;
+            int count = userRoleMapper.countUserRole(userId, roleId);
+            if (count > 0) {
+                int result = userRoleMapper.deleteUserRole(userId, roleId);
+                return result > 0;
+            } else {
+                int result = userRoleMapper.insertUserRole(userId, roleId);
+                return result > 0;
+            }
         } catch (Exception e) {
             return false;
         }
@@ -275,7 +285,6 @@ public class UserServiceImpl implements UserService {
         newUser.setGender(dbGender);
 
         int defaultRoleId = siteConfigMapper.getRegisterUserPermission();
-        newUser.setRole_id(defaultRoleId);
         newUser.setStatus((byte) 1);
 
         String hashedPassword = BCrypt.hashpw(userUpdateDTO.getPassword(), BCrypt.gensalt());
@@ -297,6 +306,12 @@ public class UserServiceImpl implements UserService {
         if (result <= 0) {
             return ApiResponse.error(500, "添加用户失败");
         }
+
+        Integer newUserId = newUser.getId();
+        if (newUserId != null) {
+            userRoleMapper.insertUserRole(newUserId, defaultRoleId);
+        }
+        
         return ApiResponse.success("添加用户成功");
     }
 

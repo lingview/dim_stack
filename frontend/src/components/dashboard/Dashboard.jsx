@@ -25,6 +25,7 @@ const FriendLinksManager = lazy(() => import('./FriendLinksManager'));
 const UpdateManager = lazy(() => import('./UpdateManager'));
 const GlobalAttachmentsManager = lazy(() => import('./GlobalAttachmentsManager'));
 const UserAttachmentsManager = lazy(() => import('./UserAttachmentsManager'));
+const RoleManager = lazy(() => import('./RoleManager'));
 
 const FadeIn = ({ children, duration = 200 }) => {
     const [isVisible, setIsVisible] = useState(false);
@@ -478,6 +479,14 @@ export default function Dashboard() {
                             <Suspense fallback={<SimpleLoading />}>
                                 <FadeIn>
                                     <UserAttachmentsManager />
+                                </FadeIn>
+                            </Suspense>
+                        )}
+
+                        {activeTab === 'rbac-editor' && (
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <RoleManager />
                                 </FadeIn>
                             </Suspense>
                         )}

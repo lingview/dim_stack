@@ -3,6 +3,8 @@ package xyz.lingview.dimstack.controller;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import xyz.lingview.dimstack.domain.UserInformation;
+import xyz.lingview.dimstack.mapper.UserRoleMapper;
 import xyz.lingview.dimstack.service.CacheService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,6 +62,9 @@ public class RegisterController {
 
     @Autowired
     private UserInformationMapper userInformationMapper;
+
+    @Autowired
+    private UserRoleMapper userRoleMapper;
 
     /**
      * 用户注册接口
@@ -142,14 +147,17 @@ public class RegisterController {
             register.setPhone(phone);
             register.setUuid(RandomUtil.generateUUID());
             register.setPassword(PasswordUtil.hashPassword(password));
-            Integer userDefaultPermission = siteConfigMapper.getRegisterUserPermission();
-            if (userDefaultPermission == null) {
-                return ApiResponse.error(500, "系统配置错误，请联系管理员");
-            }
-            register.setRole_id(userDefaultPermission);
 
             int insertResult = registerMapper.insertUser(register);
             if (insertResult > 0) {
+                UserInformation newUser = userInformationMapper.getUserByUsername(username);
+                Integer newUserId = newUser != null ? newUser.getId() : null;
+                
+                // 为用户分配默认角色
+                Integer defaultRoleId = siteConfigMapper.getRegisterUserPermission();
+                if (defaultRoleId != null && newUserId != null) {
+                    userRoleMapper.insertUserRole(newUserId, defaultRoleId);
+                }
                 if (siteConfigUtil.isNotificationEnabled()) {
                     Date date = new Date();
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

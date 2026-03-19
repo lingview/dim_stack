@@ -28,7 +28,7 @@ export default function UsersView() {
   const [error, setError] = useState('');
   const [editingUser, setEditingUser] = useState(null);
   const [showRoleModal, setShowRoleModal] = useState(false);
-  const [newRoleId, setNewRoleId] = useState('');
+  const [selectedRoleIds, setSelectedRoleIds] = useState([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -62,7 +62,30 @@ export default function UsersView() {
     try {
       setLoading(true);
       const response = await apiClient.get('/user/list');
-      setUsers(response || []);
+      console.log('原始用户数据:', response);
+      const usersWithRoles = (response || []).map(user => {
+        const parseRoleField = (field) => {
+          if (!field && field !== 0) return [];
+          if (Array.isArray(field)) return field;
+          if (typeof field === 'string') {
+            return field.split(',').map(item => {
+              const trimmed = item.trim();
+              const num = parseInt(trimmed);
+              return isNaN(num) ? trimmed : num;
+            });
+          }
+          return [];
+        };
+        
+        return {
+          ...user,
+          role_ids: parseRoleField(user.role_id),
+          role_names: parseRoleField(user.role_name),
+          role_codes: parseRoleField(user.role_code)
+        };
+      });
+      console.log('处理后的用户数据:', usersWithRoles);
+      setUsers(usersWithRoles);
     } catch (error) {
       console.error('获取用户列表失败:', error);
       setError('获取用户列表失败');
@@ -80,14 +103,13 @@ export default function UsersView() {
     }
   };
 
-  const handleUpdateRole = async (userId, roleId) => {
+  const handleUpdateUserRoles = async (userId, roleIds) => {
     try {
-      await apiClient.post('/user/updateRole', null, {
-        params: { userId, roleId }
-      });
+      await apiClient.post(`/user-role/${userId}/roles/set`, roleIds);
       fetchUsers();
       setShowRoleModal(false);
       setEditingUser(null);
+      setSelectedRoleIds([]);
     } catch (error) {
       console.error('更新用户角色失败:', error);
       setError('更新用户角色失败');
@@ -109,9 +131,25 @@ export default function UsersView() {
   };
 
   const openRoleModal = (user) => {
+    console.log('打开角色管理 - 用户数据:', user);
+    console.log('用户当前角色 IDs:', user.role_ids);
     setEditingUser(user);
-    setNewRoleId(user.role_id);
+    const currentRoleIds = Array.isArray(user.role_ids) 
+      ? user.role_ids.map(id => typeof id === 'string' ? parseInt(id) : id)
+      : [];
+    console.log('准备选中的角色 IDs:', currentRoleIds);
+    setSelectedRoleIds(currentRoleIds);
     setShowRoleModal(true);
+  };
+
+  const handleRoleCheckboxChange = (roleId) => {
+    setSelectedRoleIds(prev => {
+      if (prev.includes(roleId)) {
+        return prev.filter(id => id !== roleId);
+      } else {
+        return [...prev, roleId];
+      }
+    });
   };
 
   const openConfirmModal = (action, title, message) => {
@@ -386,8 +424,21 @@ export default function UsersView() {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{user.role_name || '未分配'}</div>
-                  <div className="text-sm text-gray-500">{user.role_code || ''}</div>
+                  {console.log('渲染用户角色列:', user.username, 'role_names:', user.role_names, 'role_codes:', user.role_codes)}
+                  <div className="flex flex-wrap gap-1">
+                    {(user.role_names || []).length > 0 ? (
+                      user.role_names.map((name, index) => (
+                        <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                          {name}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-500">未分配</span>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    {(user.role_codes || []).join(', ') || ''}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {user.create_time ? new Date(user.create_time).toLocaleDateString() : '未知'}
@@ -406,9 +457,9 @@ export default function UsersView() {
                   </button>
                   <button
                     onClick={() => openRoleModal(user)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
+                    className="text-green-600 hover:text-green-900 mr-4"
                   >
-                    更改角色
+                    管理角色
                   </button>
                   {user.status === 1 && (
                     <button
@@ -716,28 +767,57 @@ export default function UsersView() {
               className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="text-lg font-medium text-gray-900 mb-4">更改用户角色</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">管理用户角色</h3>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  用户: {editingUser.username}
+                  用户：{editingUser.username}
                 </label>
+                <div className="mb-4">
+                  <span className="text-sm text-gray-600">当前角色：</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {(editingUser.role_names || []).length > 0 ? (
+                      editingUser.role_names.map((name, index) => (
+                        <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                          {name}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-400">无</span>
+                    )}
+                  </div>
+                </div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  当前角色: {editingUser.role_name}
+                  选择角色（可多选）：
                 </label>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  选择新角色:
-                </label>
-                <select
-                  value={newRoleId}
-                  onChange={(e) => setNewRoleId(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {roles.map((role) => (
-                    <option key={role.id} value={role.id}>
-                      {role.name} ({role.code})
-                    </option>
-                  ))}
-                </select>
+                <div className="border border-gray-300 rounded-md p-3 max-h-60 overflow-y-auto">
+                  <div className="space-y-2">
+                    {roles.map((role) => (
+                      <label
+                        key={role.id}
+                        className={`flex items-center gap-2 p-2 rounded cursor-pointer transition-colors ${
+                          selectedRoleIds.includes(role.id)
+                            ? 'bg-blue-50 border border-blue-200'
+                            : 'hover:bg-gray-50 border border-transparent'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedRoleIds.includes(role.id)}
+                          onChange={() => handleRoleCheckboxChange(role.id)}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700">
+                          {role.name} ({role.code})
+                        </span>
+                        {role.description && (
+                          <span className="text-xs text-gray-500 ml-auto">
+                            {role.description}
+                          </span>
+                        )}
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
               <div className="flex justify-end space-x-3">
                 <button
@@ -747,8 +827,9 @@ export default function UsersView() {
                   取消
                 </button>
                 <button
-                  onClick={() => handleUpdateRole(editingUser.id, newRoleId)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                  onClick={() => handleUpdateUserRoles(editingUser.id, selectedRoleIds)}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50"
+                  disabled={selectedRoleIds.length === 0}
                 >
                   确认更改
                 </button>

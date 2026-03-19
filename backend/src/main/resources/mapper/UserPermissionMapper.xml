@@ -6,11 +6,12 @@
 
     <!-- 根据用户名查询拥有的所有权限 -->
     <select id="findPermissionCodesByUserName" parameterType="string" resultType="string">
-        SELECT p.code
+        SELECT DISTINCT p.code
         FROM user_information u
-                 JOIN role r ON u.role_id = r.id
-                 JOIN role_permission rp ON r.id = rp.role_id
-                 JOIN permission p ON rp.permission_id = p.id
+                 INNER JOIN user_role ur ON u.id = ur.user_id
+                 INNER JOIN role r ON ur.role_id = r.id
+                 INNER JOIN role_permission rp ON r.id = rp.role_id
+                 INNER JOIN permission p ON rp.permission_id = p.id
         WHERE u.username = #{username}
     </select>
 

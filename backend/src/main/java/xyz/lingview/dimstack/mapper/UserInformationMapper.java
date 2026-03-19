@@ -53,6 +53,8 @@ public interface UserInformationMapper {
 
     int selectUserByUsername(@Param("username") String username);
 
+    UserInformation getUserByUsername(@Param("username") String username);
+
     int selectUserByPhone(@Param("phone") String phone);
 
     int selectUserByEmail(@Param("email") String email);

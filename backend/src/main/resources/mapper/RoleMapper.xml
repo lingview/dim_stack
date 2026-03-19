@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.lingview.dimstack.mapper.RoleMapper">
+
+    <!-- 查询所有角色 -->
+    <select id="selectAllRoles" resultType="xyz.lingview.dimstack.domain.Role">
+        SELECT id, code, name, description, status
+        FROM role
+        ORDER BY id
+    </select>
+
+    <!-- 根据id查询角色 -->
+    <select id="selectRoleById" parameterType="int" resultType="xyz.lingview.dimstack.domain.Role">
+        SELECT id, code, name, description, status
+        FROM role
+        WHERE id = #{id}
+    </select>
+
+    <!-- 根据编码查询角色 -->
+    <select id="selectRoleByCode" parameterType="string" resultType="xyz.lingview.dimstack.domain.Role">
+        SELECT id, code, name, description, status
+        FROM role
+        WHERE code = #{code}
+    </select>
+
+    <!-- 创建新角色 -->
+    <insert id="insertRole" parameterType="xyz.lingview.dimstack.domain.Role" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO role (code, name, description, status)
+        VALUES (#{code}, #{name}, #{description}, #{status})
+    </insert>
+
+    <!-- 更新角色信息 -->
+    <update id="updateRole" parameterType="xyz.lingview.dimstack.domain.Role">
+        UPDATE role
+        <set>
+            <if test="code != null and code != ''">code = #{code},</if>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除角色 -->
+    <delete id="deleteRole" parameterType="int">
+        DELETE FROM role WHERE id = #{id}
+    </delete>
+
+    <!-- 为角色添加权限 -->
+    <insert id="insertRolePermission">
+        INSERT INTO role_permission (role_id, permission_id)
+        VALUES (#{roleId}, #{permissionId})
+    </insert>
+
+    <!-- 移除角色权限 -->
+    <delete id="deleteRolePermission">
+        DELETE FROM role_permission
+        WHERE role_id = #{roleId} AND permission_id = #{permissionId}
+    </delete>
+
+    <!-- 获取角色的所有权限id -->
+    <select id="selectPermissionIdsByRoleId" parameterType="int" resultType="int">
+        SELECT permission_id
+        FROM role_permission
+        WHERE role_id = #{roleId}
+    </select>
+
+    <!-- 获取角色的所有权限码 -->
+    <select id="selectPermissionCodesByRoleId" parameterType="int" resultType="string">
+        SELECT p.code
+        FROM permission p
+                 INNER JOIN role_permission rp ON p.id = rp.permission_id
+        WHERE rp.role_id = #{roleId}
+    </select>
+
+    <!-- 根据权限码获取权限id -->
+    <select id="selectPermissionIdByCode" parameterType="string" resultType="int">
+        SELECT id
+        FROM permission
+        WHERE code = #{code}
+    </select>
+
+    <!-- 插入新权限 -->
+    <insert id="insertPermission" parameterType="xyz.lingview.dimstack.domain.Permission" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO permission (code, name, module, create_time)
+        VALUES (#{code}, #{name}, #{module}, NOW())
+    </insert>
+
+    <!-- 查询所有权限列表 -->
+    <select id="selectAllPermissions" resultType="xyz.lingview.dimstack.domain.Permission">
+        SELECT id, code, name, module, create_time
+        FROM permission
+        ORDER BY id
+    </select>
+
+</mapper>

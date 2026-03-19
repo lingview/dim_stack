@@ -14,7 +14,7 @@ public class UserDTO {
     private String email;
     private String gender;
     private Date birthday;
-    private Integer role_id;
+    private String role_id;
     private String role_name;
     private String role_code;
     private LocalDateTime create_time;

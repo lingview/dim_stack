@@ -15,7 +15,6 @@ public class UserInformation {
     private String gender;
     private String password;
     private Date birthday;
-    private Integer role_id;
     private LocalDateTime create_time;
     private Byte status;
 }

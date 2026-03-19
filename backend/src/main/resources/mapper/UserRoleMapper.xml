@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.lingview.dimstack.mapper.UserRoleMapper">
+
+    <!-- 为用户添加角色 -->
+    <insert id="insertUserRole">
+        INSERT INTO user_role (user_id, role_id)
+        VALUES (#{userId}, #{roleId})
+    </insert>
+
+    <!-- 移除用户的角色 -->
+    <delete id="deleteUserRole">
+        DELETE FROM user_role
+        WHERE user_id = #{userId} AND role_id = #{roleId}
+    </delete>
+
+    <!-- 获取用户的所有角色id -->
+    <select id="selectRoleIdsByUserId" parameterType="int" resultType="int">
+        SELECT role_id
+        FROM user_role
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 获取用户的所有角色 -->
+    <select id="selectRolesByUserId" parameterType="int" resultType="xyz.lingview.dimstack.domain.Role">
+        SELECT r.id, r.code, r.name, r.description, r.status
+        FROM role r
+        INNER JOIN user_role ur ON r.id = ur.role_id
+        WHERE ur.user_id = #{userId}
+    </select>
+
+    <!-- 检查用户是否拥有某个角色 -->
+    <select id="countUserRole" parameterType="int" resultType="int">
+        SELECT COUNT(*)
+        FROM user_role
+        WHERE user_id = #{userId} AND role_id = #{roleId}
+    </select>
+
+</mapper>
