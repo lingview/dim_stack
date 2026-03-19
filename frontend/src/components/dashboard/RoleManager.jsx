@@ -128,6 +128,7 @@ const RoleManager = () => {
     const handleOpenEdit = (role) => {
         setModalMode('edit')
         setFormData({
+            id: role.id,
             code: role.code || '',
             name: role.name || '',
             description: role.description || '',
@@ -145,6 +146,7 @@ const RoleManager = () => {
         try {
             if (modalMode === 'create') {
                 const response = await apiClient.post('/role/create', formData)
+                console.log('创建角色返回:', response)
                 if (response.code === 200) {
                     showMessage('success', '创建成功')
                     fetchRoles()
@@ -153,7 +155,9 @@ const RoleManager = () => {
                     showMessage('error', '创建失败：' + response.message)
                 }
             } else {
+                console.log('更新角色数据:', formData)
                 const response = await apiClient.put('/role/update', formData)
+                console.log('更新角色返回:', response)
                 if (response.code === 200) {
                     showMessage('success', '更新成功')
                     fetchRoles()
@@ -256,7 +260,7 @@ const RoleManager = () => {
                                             ? 'bg-green-100 text-green-800'
                                             : 'bg-red-100 text-red-800'
                                     }`}>
-                                        {role.status === 1 ? '正常' : '已封禁'}
+                                        {role.status === 1 ? '正常' : '已禁用'}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
