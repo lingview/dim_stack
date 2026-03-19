@@ -381,7 +381,7 @@ public class EditArticleController {
             boolean noReviewNotice = false;
             int articleDefault;
             List<String> userPermission = userPermissionMapper.findPermissionCodesByUserName(username);
-            if (userPermission.contains("post:review")){
+            if (userPermission.contains("system:post:review")){
                 if (adminPostNoReview) {
                     // 如果是管理员发布文章无需审核则直接发布
                     noReviewNotice = true;
