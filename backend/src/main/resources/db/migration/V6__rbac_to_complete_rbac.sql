@@ -274,10 +274,17 @@ FROM `user_information` ui
          LEFT JOIN `user_role` ur ON ui.id = ur.user_id
 WHERE ui.role_id IS NOT NULL;
 
--- 删除user_information中的role_id字段
+-- 删除 user_information 中的 role_id 字段
 ALTER TABLE `user_information` DROP FOREIGN KEY `fk_user_role`;
 ALTER TABLE `user_information` DROP INDEX `idx_role_id`;
 ALTER TABLE `user_information` DROP COLUMN `role_id`;
+
+-- 更新 site_config 表中的 register_user_permission 字段，映射到新角色 id
+UPDATE `site_config` sc
+JOIN temp_old_role_mapping old_map ON sc.register_user_permission = old_map.old_role_id
+JOIN `role` r_new ON old_map.code = r_new.code
+SET sc.register_user_permission = r_new.id
+WHERE sc.register_user_permission IS NOT NULL;
 
 -- 最终状态
 SELECT
