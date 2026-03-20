@@ -233,6 +233,7 @@ INSERT INTO `role_permission` VALUES (2, 58);
 INSERT INTO `role_permission` VALUES (1, 59);
 
 -- 创建user_role表
+DROP TABLE IF EXISTS `user_role`;
 CREATE TABLE `user_role` (
                              `user_id` int NOT NULL COMMENT '用户 ID',
                              `role_id` int NOT NULL COMMENT '角色 ID',
