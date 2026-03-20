@@ -56,7 +56,8 @@
     <select id="getEmailsByPermissionCode" parameterType="string" resultType="string">
         SELECT DISTINCT ui.email
         FROM user_information ui
-                 INNER JOIN role r ON ui.role_id = r.id
+                 INNER JOIN user_role ur ON ui.id = ur.user_id
+                 INNER JOIN role r ON ur.role_id = r.id
                  INNER JOIN role_permission rp ON r.id = rp.role_id
                  INNER JOIN permission p ON rp.permission_id = p.id
         WHERE p.code = #{permissionCode}
@@ -67,7 +68,8 @@
     <select id="getUsernamesByPermissionCode" parameterType="string" resultType="string">
         SELECT DISTINCT ui.username
         FROM user_information ui
-                 INNER JOIN role r ON ui.role_id = r.id
+                 INNER JOIN user_role ur ON ui.id = ur.user_id
+                 INNER JOIN role r ON ur.role_id = r.id
                  INNER JOIN role_permission rp ON r.id = rp.role_id
                  INNER JOIN permission p ON rp.permission_id = p.id
         WHERE p.code = #{permissionCode}
@@ -200,11 +202,11 @@
         WHERE u.id = #{id}
     </select>
 
-    <update id="updateUserRole">
-        UPDATE user_information
-        SET role_id = #{roleId}
-        WHERE id = #{userId}
-    </update>
+    <insert id="updateUserRole">
+        INSERT INTO user_role (user_id, role_id)
+        VALUES (#{userId}, #{roleId})
+        ON DUPLICATE KEY UPDATE role_id = #{roleId}
+    </insert>
 
     <update id="updateUserStatus">
         UPDATE user_information

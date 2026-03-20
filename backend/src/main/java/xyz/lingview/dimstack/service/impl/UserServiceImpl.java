@@ -1,5 +1,6 @@
 package xyz.lingview.dimstack.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import java.util.Date;
 import java.util.List;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     @Autowired
@@ -148,6 +150,7 @@ public class UserServiceImpl implements UserService {
                 return result > 0;
             }
         } catch (Exception e) {
+            log.error("更新用户角色失败", e);
             return false;
         }
     }

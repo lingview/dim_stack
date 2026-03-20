@@ -430,11 +430,11 @@ public class EditArticleController {
 
                     String siteName = siteConfigUtil.getSiteName();
 
-                    List<String> emails = userInformationMapper.getEmailsByPermissionCode("post:review");
-                    List<String> usernames = userInformationMapper.getUsernamesByPermissionCode("post:review");
+                    List<String> emails = userInformationMapper.getEmailsByPermissionCode("system:post:review");
+                    List<String> usernames = userInformationMapper.getUsernamesByPermissionCode("system:post:review");
                     String article_name = articleReviewMapper.getArticleNameByArticleId(articleId);
                     if (usernames == null || usernames.isEmpty()){
-                        log.warn("未找到拥有 'post:review' 权限的用户，跳过发送审核通知");
+                        log.warn("未找到拥有 'system:post:review' 权限的用户，跳过发送审核通知");
                     }
                     if (usernames != null) {
                         for (String reviewUsername : usernames) {
@@ -449,7 +449,7 @@ public class EditArticleController {
                     }
 
                     if (emails == null || emails.isEmpty()) {
-                        log.warn("未找到拥有 'post:review' 权限的用户，跳过发送审核通知邮件");
+                        log.warn("未找到拥有 'system:post:review' 权限的用户，跳过发送审核通知邮件");
                     } else {
                         for (String email : emails) {
                             try {

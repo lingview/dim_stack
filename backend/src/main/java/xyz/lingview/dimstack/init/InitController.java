@@ -223,14 +223,31 @@ public class InitController {
     private void updateAdminUser(Connection connection, String newAdminUsername, String newAdminPassword) throws SQLException {
         String hashedPassword = PasswordUtil.hashPassword(newAdminPassword);
 
-        String updateSql = "UPDATE user_information SET username = ?, password = ? WHERE role_id = 4";
+        String selectSql = "SELECT ui.id FROM user_information ui " +
+                          "INNER JOIN user_role ur ON ui.id = ur.user_id " +
+                          "INNER JOIN role r ON ur.role_id = r.id " +
+                          "WHERE r.code = 'ADMIN' LIMIT 1";
+        
+        Integer adminUserId = null;
+        try (PreparedStatement pstmt = connection.prepareStatement(selectSql)) {
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                adminUserId = rs.getInt("id");
+            }
+        }
+        
+        if (adminUserId != null) {
+            String updateSql = "UPDATE user_information SET username = ?, password = ? WHERE id = ?";
+            try (PreparedStatement pstmt = connection.prepareStatement(updateSql)) {
+                pstmt.setString(1, newAdminUsername);
+                pstmt.setString(2, hashedPassword);
+                pstmt.setInt(3, adminUserId);
 
-        try (PreparedStatement pstmt = connection.prepareStatement(updateSql)) {
-            pstmt.setString(1, newAdminUsername);
-            pstmt.setString(2, hashedPassword);
-
-            int affectedRows = pstmt.executeUpdate();
-            log.info("更新了 {} 条管理员用户记录", affectedRows);
+                int affectedRows = pstmt.executeUpdate();
+                log.info("更新了 {} 条管理员用户记录", affectedRows);
+            }
+        } else {
+            log.warn("未找到管理员用户，跳过更新");
         }
     }
 

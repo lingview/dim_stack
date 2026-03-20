@@ -75,10 +75,10 @@ public class FriendLinksServiceImpl implements FriendLinksService {
     public void sendFriendLinkNotification(FriendLinksRequestDTO requestDTO) {
         try {
             String siteName = siteConfigUtil.getSiteName();
-            List<String> emails = userInformationMapper.getEmailsByPermissionCode("post:review");
+            List<String> emails = userInformationMapper.getEmailsByPermissionCode("system:friendlinks:management");
 
             if (emails == null || emails.isEmpty()) {
-                log.warn("未找到拥有 'post:review' 权限的用户，跳过发送审核通知邮件");
+                log.warn("未找到拥有 'system:friendlinks:management' 权限的用户，跳过发送审核通知邮件");
                 return;
             }
 
