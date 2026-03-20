@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.springframework.stereotype.Component;
 import xyz.lingview.dimstack.config.ConfigInfo;
+import xyz.lingview.dimstack.service.CacheService;
 
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
@@ -63,8 +64,11 @@ public class StartServer {
 
         private final Environment environment;
 
-        public ServerInfoPrinter(Environment environment) {
+        private final CacheService cacheService;
+
+        public ServerInfoPrinter(Environment environment, CacheService cacheService) {
             this.environment = environment;
+            this.cacheService = cacheService;
         }
 
         public String getPort() {
@@ -83,6 +87,14 @@ public class StartServer {
                 boolean isInitMode = "init".equals(appMode);
 
                 if (!isInitMode) {
+                    // 清除站点配置缓存，每次重启都从数据库读取
+                    try {
+                        cacheService.delete("dimstack:site_config");
+                        log.info("已清除站点配置缓存，将从数据库重新加载");
+                    } catch (Exception e) {
+                        log.warn("清除站点配置缓存失败", e);
+                    }
+                            
                     String hostAddress = null;
                     try {
                         hostAddress = Inet4Address.getLocalHost().getHostAddress();
