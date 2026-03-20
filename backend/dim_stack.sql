@@ -460,7 +460,7 @@ CREATE TABLE `role`  (
 -- Records of role
 -- ----------------------------
 INSERT INTO `role` VALUES (1, 'ADMIN', '管理员', '系统超级管理员，拥有最高权限，可管理用户、角色、权限、站点配置等所有功能，负责平台整体运行与安全。', 1);
-INSERT INTO `role` VALUES (2, 'OPERATOR ', '操作员', '负责平台运营，拥有部分系统配置权限', 1);
+INSERT INTO `role` VALUES (2, 'OPERATOR', '操作员', '负责平台运营，拥有部分系统配置权限', 1);
 INSERT INTO `role` VALUES (3, 'POST_MANAGER', '文章管理员', '负责内容运营管理的角色，可以审核、发布、修改和删除任何文章，管理评论，维护内容质量和平台秩序。', 1);
 INSERT INTO `role` VALUES (4, 'AUTHOR', '作者', '内容创作者角色，可以创建、编辑、删除自己的文章，并提交文章进入审核流程，等待管理员发布。', 1);
 INSERT INTO `role` VALUES (5, 'READER', '阅读者', '可以浏览和阅读已发布的文章内容，参与评论互动，但无法创建或编辑文章。', 1);
