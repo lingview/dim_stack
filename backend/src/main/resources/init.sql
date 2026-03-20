@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 07/02/2026 11:22:55
+ Date: 19/03/2026 23:55:16
 */
 
 SET NAMES utf8mb4;
@@ -273,24 +273,25 @@ CREATE TABLE `dashboard_menu`  (
 INSERT INTO `dashboard_menu` VALUES (1, '仪表盘', 'dashboard', '/dashboard', NULL, NULL, 10, '2025-09-13 11:12:42', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (2, '个人中心', 'user', '/dashboard/profile', NULL, NULL, 20, '2025-09-13 11:12:42', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (3, '内容', 'content', NULL, NULL, NULL, 30, '2025-09-13 11:12:42', 'sidebar');
-INSERT INTO `dashboard_menu` VALUES (5, '设置', 'settings', NULL, NULL, NULL, 50, '2025-09-13 11:12:42', 'sidebar');
-INSERT INTO `dashboard_menu` VALUES (21, '文章', 'article', '/dashboard/articles', 3, 'post:create', 20, '2025-09-13 11:12:42', 'sidebar');
-INSERT INTO `dashboard_menu` VALUES (22, '文章审核', 'review', '/dashboard/articlesreview', 3, 'post:review', 30, '2025-09-13 11:12:42', 'sidebar');
-INSERT INTO `dashboard_menu` VALUES (24, '评论', 'comment', '/dashboard/comments', 3, 'post:review', 40, '2025-09-13 11:12:42', 'sidebar');
-INSERT INTO `dashboard_menu` VALUES (25, '菜单', 'menus', '/dashboard/menus', 3, 'system:edit', 50, '2025-09-13 11:12:42', 'sidebar');
-INSERT INTO `dashboard_menu` VALUES (42, '用户', 'users', '/dashboard/users', 3, 'user:management', 10, '2025-09-13 11:12:42', 'sidebar');
-INSERT INTO `dashboard_menu` VALUES (43, '站点信息', 'info', '/dashboard/settings', 5, 'system:edit', 10, '2025-09-13 11:12:42', 'sidebar');
-INSERT INTO `dashboard_menu` VALUES (44, '主题管理', 'theme', '/dashboard/themes', 5, 'system:edit', 20, '2025-09-24 16:52:43', 'sidebar');
-INSERT INTO `dashboard_menu` VALUES (45, '自定义页面', 'page', '/dashboard/custom-pages', 3, 'system:edit', 20, '2025-12-04 21:42:15', 'sidebar');
-INSERT INTO `dashboard_menu` VALUES (46, '更新', 'update', '/dashboard/update', 5, 'system:edit', 20, '2025-12-04 21:42:15', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (5, '设置', 'settings', NULL, NULL, 'settings:menus', 50, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (21, '文章', 'article', '/dashboard/articles', 3, 'article:menus', 20, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (22, '文章审核', 'review', '/dashboard/articlesreview', 3, 'articlereview:menus', 30, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (24, '评论', 'comment', '/dashboard/comments', 3, 'comments:menus', 40, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (25, '菜单', 'menus', '/dashboard/menus', 3, 'menus:menus', 50, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (42, '用户', 'users', '/dashboard/users', 3, 'user:menus', 10, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (43, '站点信息', 'info', '/dashboard/settings', 5, 'config:menus', 10, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (44, '主题管理', 'theme', '/dashboard/themes', 5, 'theme:menus', 20, '2025-09-24 16:52:43', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (45, '自定义页面', 'page', '/dashboard/custom-pages', 3, 'custompages:menus', 20, '2025-12-04 21:42:15', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (46, '更新', 'update', '/dashboard/update', 5, 'update:menus', 20, '2025-12-04 21:42:15', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (101, '个人中心', 'user', '/dashboard/profile', NULL, NULL, 10, '2025-09-13 11:12:42', 'quick_action');
-INSERT INTO `dashboard_menu` VALUES (103, '创建文章', 'edit', '/dashboard/articles/create', NULL, 'post:create', 20, '2025-09-13 11:12:42', 'quick_action');
-INSERT INTO `dashboard_menu` VALUES (104, '用户', 'users', '/dashboard/users', NULL, 'system:edit', 30, '2025-09-13 11:12:42', 'quick_action');
-INSERT INTO `dashboard_menu` VALUES (105, '标签管理', 'tag', '/dashboard/tags', 3, 'system:edit', 40, '2025-09-13 11:12:42', 'sidebar');
-INSERT INTO `dashboard_menu` VALUES (106, '分类管理', 'category', '/dashboard/categories', 3, 'system:edit', 40, '2025-09-13 11:12:42', 'sidebar');
-INSERT INTO `dashboard_menu` VALUES (107, '友链管理', 'link', '/dashboard/friendlinks', 3, 'system:edit', 45, '2025-12-04 21:42:15', 'sidebar');
-INSERT INTO `dashboard_menu` VALUES (108, '全局附件管理', 'attachment', '/dashboard/global-attachments', 3, 'system:edit', 46, '2026-02-08 20:50:15', 'sidebar');
-INSERT INTO `dashboard_menu` VALUES (109, '我的附件', 'upload', '/dashboard/my-attachments', 3, NULL, 47, '2026-02-08 20:50:19', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (103, '创建文章', 'edit', '/dashboard/articles/create', NULL, 'article:menus', 20, '2025-09-13 11:12:42', 'quick_action');
+INSERT INTO `dashboard_menu` VALUES (104, '用户', 'users', '/dashboard/users', NULL, 'user:menus', 30, '2025-09-13 11:12:42', 'quick_action');
+INSERT INTO `dashboard_menu` VALUES (105, '标签管理', 'tag', '/dashboard/tags', 3, 'tags:menus', 40, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (106, '分类管理', 'category', '/dashboard/categories', 3, 'categories:menus', 40, '2025-09-13 11:12:42', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (107, '友链管理', 'link', '/dashboard/friendlinks', 3, 'friendlinks:menus', 45, '2025-12-04 21:42:15', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (108, '全局附件管理', 'attachment', '/dashboard/global-attachments', 3, 'globalattachments:menus', 46, '2026-02-08 20:50:15', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (109, '我的附件', 'upload', '/dashboard/my-attachments', 3, 'attachments:menus', 47, '2026-02-08 20:50:19', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (110, '角色编辑', 'permission', '/dashboard/rbac-editor', 3, 'role:menus', 9, '2026-03-19 20:10:22', 'sidebar');
 -- ----------------------------
 -- Table structure for friend_links
 -- ----------------------------
@@ -376,22 +377,70 @@ CREATE TABLE `permission`  (
                                `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                                PRIMARY KEY (`id`) USING BTREE,
                                UNIQUE INDEX `idx_code`(`code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COMMENT = '权限表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 60 CHARACTER SET = utf8mb4 COMMENT = '权限表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of permission
 -- ----------------------------
-INSERT INTO `permission` VALUES (1, 'post:view', '查看文章', 'post', '2025-08-27 09:22:27');
-INSERT INTO `permission` VALUES (2, 'post:create', '创建文章', 'post', '2025-08-27 09:22:27');
-INSERT INTO `permission` VALUES (3, 'post:edit:own', '编辑自己的文章', 'post', '2025-08-27 09:22:27');
-INSERT INTO `permission` VALUES (4, 'post:delete:own', '删除自己的文章', 'post', '2025-08-27 09:22:27');
-INSERT INTO `permission` VALUES (5, 'post:submit', '提交文章发布', 'post', '2025-08-27 09:22:27');
-INSERT INTO `permission` VALUES (6, 'post:edit:any', '编辑所有文章', 'post', '2025-08-27 09:22:27');
-INSERT INTO `permission` VALUES (7, 'post:delete:any', '删除任何文章', 'post', '2025-08-27 09:22:27');
-INSERT INTO `permission` VALUES (8, 'post:publish', '发布文章', 'post', '2025-08-27 09:22:27');
-INSERT INTO `permission` VALUES (9, 'post:review', '审核文章', 'post', '2025-08-27 09:22:27');
-INSERT INTO `permission` VALUES (10, 'system:edit', '系统编辑', 'system', '2025-09-11 15:16:33');
-INSERT INTO `permission` VALUES (11, 'user:management', '用户管理', 'user', '2025-09-11 16:03:13');
+INSERT INTO `permission` VALUES (1, 'system:attachment:view', '查看任意附件', 'attachment', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (2, 'system:attachment:delete', '删除任意附件', 'attachment', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (3, 'system:attachment:undelete', '撤销删除任意附件', 'attachment', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (4, 'system:attachment:management', '系统附件管理完整操作', 'attachment', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (5, 'attachment:add', '添加附件', 'attachment', '2026-03-19 22:16:25');
+INSERT INTO `permission` VALUES (6, 'attachment:view', '查看自己附件', 'attachment', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (7, 'attachment:delete', '删除自己附件', 'attachment', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (8, 'attachment:undelete', '撤销删除自己附件', 'attachment', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (9, 'attachment:edit', '管理自己附件（完整操作）', 'attachment', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (10, 'system:comments:view', '查看任意评论', 'comments', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (11, 'system:comments:edit', '编辑任意评论', 'comments', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (12, 'system:comments:delete', '删除任意评论', 'comments', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (13, 'system:comments:management', '评论管理（完整操作）', 'comments', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (14, 'comments:add', '用户评论', 'comments', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (15, 'comments:delete', '删除自己评论', 'comments', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (16, 'comments:like', '点赞评论', 'comments', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (17, 'comments:edit', '评论完整操作', 'comments', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (18, 'system:post:review', '审核文章', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (19, 'system:custompage:add', '添加自定义页面', 'custompage', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (20, 'system:custompage:update', '更新自定义页面', 'custompage', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (21, 'system:custompage:delete', '删除自定义页面', 'custompage', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (22, 'system:custompage:view', '获取自己的自定义页面', 'custompage', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (23, 'system:custompage:management', '自定义页面完整操作', 'custompage', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (24, 'post:view', '获取文章列表', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (25, 'post:add', '用户创建文章', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (26, 'post:update', '用户更新文章', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (27, 'post:details', '获取文章详情', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (28, 'post:delete', '删除自己文章', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (29, 'post:unpublish', '取消发布文章', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (30, 'post:publish', '发布文章', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (31, 'post:removepassword', '移除文章密码', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (32, 'post:edit', '编辑文章（对自己文章完整操作）', 'post', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (33, 'system:theme:management', '系统主题管理', 'theme', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (34, 'system:friendlinks:management', '系统友链管理', 'friendlinks', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (35, 'system:menus:management', '系统菜单管理', 'menu', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (36, 'system:music:management', '系统音乐管理', 'config', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (37, 'system:role:management', '系统角色管理', 'role', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (38, 'system:config:management', '系统配置管理', 'config', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (39, 'system:tags:management', '系统标签管理', 'tags', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (40, 'system:categories:management', '系统分类管理', 'categories', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (41, 'system:update:management', '系统更新管理', 'update', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (42, 'system:user:management', '管理用户信息', 'user', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (43, 'content:menus', '内容管理菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (44, 'user:menus', '用户管理菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (45, 'custompages:menus', '自定义页面菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (46, 'article:menus', '文章管理菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (47, 'articlereview:menus', '文章审核菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (48, 'comments:menus', '评论管理菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (49, 'tags:menus', '标签管理菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (50, 'categories:menus', '分类管理菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (51, 'friendlinks:menus', '友链管理菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (52, 'globalattachments:menus', '全局附件菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (53, 'attachments:menus', '我的附件菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (54, 'menus:menus', '菜单管理菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (55, 'settings:menus', '系统设置菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (56, 'config:menus', '配置管理菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (57, 'update:menus', '系统更新菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (58, 'theme:menus', '主题管理菜单', 'menus', '2025-08-27 09:22:27');
+INSERT INTO `permission` VALUES (59, 'role:menus', '角色管理菜单', 'menus', '2026-03-19 20:11:55');
 
 -- ----------------------------
 -- Table structure for role
@@ -405,15 +454,16 @@ CREATE TABLE `role`  (
                          `status` tinyint NULL DEFAULT 1 COMMENT '状态：1启用，0禁用',
                          PRIMARY KEY (`id`) USING BTREE,
                          UNIQUE INDEX `idx_code`(`code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COMMENT = '角色表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COMMENT = '角色表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of role
 -- ----------------------------
-INSERT INTO `role` VALUES (1, 'READER', '阅读者', '未注册用户，可以浏览和阅读已发布的文章内容，参与评论互动，但无法创建或编辑文章。', 1);
-INSERT INTO `role` VALUES (2, 'AUTHOR', '作者', '内容创作者角色，可以创建、编辑、删除自己的文章，并提交文章进入审核流程，等待管理员发布。', 1);
+INSERT INTO `role` VALUES (1, 'ADMIN', '管理员', '系统超级管理员，拥有最高权限，可管理用户、角色、权限、站点配置等所有功能，负责平台整体运行与安全。', 1);
+INSERT INTO `role` VALUES (2, 'OPERATOR ', '操作员', '负责平台运营，拥有部分系统配置权限', 1);
 INSERT INTO `role` VALUES (3, 'POST_MANAGER', '文章管理员', '负责内容运营管理的角色，可以审核、发布、修改和删除任何文章，管理评论，维护内容质量和平台秩序。', 1);
-INSERT INTO `role` VALUES (4, 'ADMIN', '管理员', '系统超级管理员，拥有最高权限，可管理用户、角色、权限、站点配置等所有功能，负责平台整体运行与安全。', 1);
+INSERT INTO `role` VALUES (4, 'AUTHOR', '作者', '内容创作者角色，可以创建、编辑、删除自己的文章，并提交文章进入审核流程，等待管理员发布。', 1);
+INSERT INTO `role` VALUES (5, 'READER', '阅读者', '可以浏览和阅读已发布的文章内容，参与评论互动，但无法创建或编辑文章。', 1);
 
 -- ----------------------------
 -- Table structure for role_permission
@@ -431,32 +481,74 @@ CREATE TABLE `role_permission`  (
 -- ----------------------------
 -- Records of role_permission
 -- ----------------------------
-INSERT INTO `role_permission` VALUES (1, 1);
-INSERT INTO `role_permission` VALUES (2, 1);
-INSERT INTO `role_permission` VALUES (3, 1);
-INSERT INTO `role_permission` VALUES (4, 1);
-INSERT INTO `role_permission` VALUES (2, 2);
-INSERT INTO `role_permission` VALUES (3, 2);
-INSERT INTO `role_permission` VALUES (4, 2);
-INSERT INTO `role_permission` VALUES (2, 3);
-INSERT INTO `role_permission` VALUES (3, 3);
-INSERT INTO `role_permission` VALUES (4, 3);
+INSERT INTO `role_permission` VALUES (1, 4);
 INSERT INTO `role_permission` VALUES (2, 4);
-INSERT INTO `role_permission` VALUES (3, 4);
-INSERT INTO `role_permission` VALUES (4, 4);
-INSERT INTO `role_permission` VALUES (2, 5);
-INSERT INTO `role_permission` VALUES (3, 5);
+INSERT INTO `role_permission` VALUES (1, 5);
 INSERT INTO `role_permission` VALUES (4, 5);
-INSERT INTO `role_permission` VALUES (3, 6);
-INSERT INTO `role_permission` VALUES (4, 6);
-INSERT INTO `role_permission` VALUES (3, 7);
-INSERT INTO `role_permission` VALUES (4, 7);
-INSERT INTO `role_permission` VALUES (3, 8);
-INSERT INTO `role_permission` VALUES (4, 8);
-INSERT INTO `role_permission` VALUES (3, 9);
+INSERT INTO `role_permission` VALUES (1, 9);
 INSERT INTO `role_permission` VALUES (4, 9);
-INSERT INTO `role_permission` VALUES (4, 10);
-INSERT INTO `role_permission` VALUES (4, 11);
+INSERT INTO `role_permission` VALUES (1, 13);
+INSERT INTO `role_permission` VALUES (2, 13);
+INSERT INTO `role_permission` VALUES (3, 13);
+INSERT INTO `role_permission` VALUES (5, 16);
+INSERT INTO `role_permission` VALUES (1, 17);
+INSERT INTO `role_permission` VALUES (4, 17);
+INSERT INTO `role_permission` VALUES (5, 17);
+INSERT INTO `role_permission` VALUES (1, 18);
+INSERT INTO `role_permission` VALUES (3, 18);
+INSERT INTO `role_permission` VALUES (1, 23);
+INSERT INTO `role_permission` VALUES (1, 32);
+INSERT INTO `role_permission` VALUES (4, 32);
+INSERT INTO `role_permission` VALUES (1, 33);
+INSERT INTO `role_permission` VALUES (2, 33);
+INSERT INTO `role_permission` VALUES (1, 34);
+INSERT INTO `role_permission` VALUES (2, 34);
+INSERT INTO `role_permission` VALUES (1, 35);
+INSERT INTO `role_permission` VALUES (2, 35);
+INSERT INTO `role_permission` VALUES (1, 36);
+INSERT INTO `role_permission` VALUES (1, 37);
+INSERT INTO `role_permission` VALUES (1, 38);
+INSERT INTO `role_permission` VALUES (1, 39);
+INSERT INTO `role_permission` VALUES (2, 39);
+INSERT INTO `role_permission` VALUES (1, 40);
+INSERT INTO `role_permission` VALUES (2, 40);
+INSERT INTO `role_permission` VALUES (1, 41);
+INSERT INTO `role_permission` VALUES (2, 41);
+INSERT INTO `role_permission` VALUES (1, 42);
+INSERT INTO `role_permission` VALUES (1, 43);
+INSERT INTO `role_permission` VALUES (2, 43);
+INSERT INTO `role_permission` VALUES (3, 43);
+INSERT INTO `role_permission` VALUES (4, 43);
+INSERT INTO `role_permission` VALUES (1, 44);
+INSERT INTO `role_permission` VALUES (1, 45);
+INSERT INTO `role_permission` VALUES (2, 45);
+INSERT INTO `role_permission` VALUES (1, 46);
+INSERT INTO `role_permission` VALUES (4, 46);
+INSERT INTO `role_permission` VALUES (1, 47);
+INSERT INTO `role_permission` VALUES (3, 47);
+INSERT INTO `role_permission` VALUES (1, 48);
+INSERT INTO `role_permission` VALUES (2, 48);
+INSERT INTO `role_permission` VALUES (3, 48);
+INSERT INTO `role_permission` VALUES (1, 49);
+INSERT INTO `role_permission` VALUES (2, 49);
+INSERT INTO `role_permission` VALUES (1, 50);
+INSERT INTO `role_permission` VALUES (2, 50);
+INSERT INTO `role_permission` VALUES (1, 51);
+INSERT INTO `role_permission` VALUES (2, 51);
+INSERT INTO `role_permission` VALUES (1, 52);
+INSERT INTO `role_permission` VALUES (2, 52);
+INSERT INTO `role_permission` VALUES (1, 53);
+INSERT INTO `role_permission` VALUES (4, 53);
+INSERT INTO `role_permission` VALUES (1, 54);
+INSERT INTO `role_permission` VALUES (2, 54);
+INSERT INTO `role_permission` VALUES (1, 55);
+INSERT INTO `role_permission` VALUES (2, 55);
+INSERT INTO `role_permission` VALUES (1, 56);
+INSERT INTO `role_permission` VALUES (1, 57);
+INSERT INTO `role_permission` VALUES (2, 57);
+INSERT INTO `role_permission` VALUES (1, 58);
+INSERT INTO `role_permission` VALUES (2, 58);
+INSERT INTO `role_permission` VALUES (1, 59);
 
 -- ----------------------------
 -- Table structure for site_config
@@ -498,7 +590,7 @@ CREATE TABLE `site_config`  (
 -- ----------------------------
 -- Records of site_config
 -- ----------------------------
-INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 2, '© 2025-2026 次元栈 - Dim Stack. All rights reserved.', 3, 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A3%81%E7%BA%B8/mmexport1769432250836.jpg?sign=KFQ9u-fY83wR52PdfpesYywMJi_0M4Uc66vz7A9Tal0=:0', '欢迎使用次元栈', '欢迎大家在 GitHub 上提交 Issue 或 Pull Request！', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/Image_1721230292906.png?sign=JU30z6z_RsZ3Vv7HB_5D3msYRneiga5NLjhN3EpL-3w=:0', 'default', 'https://dimstackrepo.apilinks.cn/themes.json', 0, '', NULL, '', '系统通知', '', NULL, 'smtp', 0, 1, 'UTF-8', '', '', 1, 0, 0);
+INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 4, '© 2025-2026 次元栈 - Dim Stack. All rights reserved.', 3, 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A3%81%E7%BA%B8/mmexport1769432250836.jpg?sign=KFQ9u-fY83wR52PdfpesYywMJi_0M4Uc66vz7A9Tal0=:0', '欢迎使用次元栈', '欢迎大家在 GitHub 上提交 Issue 或 Pull Request！', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/Image_1721230292906.png?sign=JU30z6z_RsZ3Vv7HB_5D3msYRneiga5NLjhN3EpL-3w=:0', 'default', 'https://dimstackrepo.apilinks.cn/themes.json', 0, '', NULL, '', '系统通知', '', NULL, 'smtp', 0, 1, 'UTF-8', '', '', 1, 0, 1);
 
 -- ----------------------------
 -- Table structure for systematic_notification
@@ -534,19 +626,34 @@ CREATE TABLE `user_information`  (
                                      `gender` enum('male','female','other') CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '性别',
                                      `password` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '密码',
                                      `birthday` date NULL DEFAULT NULL COMMENT '生日',
-                                     `role_id` int NOT NULL DEFAULT 2 COMMENT '角色ID，外键引用 role.id',
                                      `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '用户创建时间',
                                      `status` tinyint NOT NULL COMMENT '用户状态：0=删除, 1=正常, 2=封禁',
                                      PRIMARY KEY (`id`) USING BTREE,
                                      UNIQUE INDEX `uuid`(`uuid` ASC) USING BTREE,
-                                     UNIQUE INDEX `username`(`username` ASC) USING BTREE,
-                                     INDEX `idx_role_id`(`role_id` ASC) USING BTREE,
-                                     CONSTRAINT `fk_user_role` FOREIGN KEY (`role_id`) REFERENCES `role` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT
+                                     UNIQUE INDEX `username`(`username` ASC) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COMMENT = '用户信息表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of user_information
 -- ----------------------------
-INSERT INTO `user_information` VALUES (1, '075eb86f721743e3940f35869154a140175689381296899805858', 'admin', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/-1369486563.jpg?sign=7hdp5soxiEvVYpqvgiWxoJQ2UMJJCcoatm48bajEBkk=:0', NULL, 'official@dimstack.com', NULL, '$2a$10$hNfMxBf3egQkomuMql9LDeMJb2AC9IXkp904GgqX6DAxc8u9i1aAm', NULL, 4, '2025-09-03 18:03:33', 1);
+INSERT INTO `user_information` VALUES (1, '075eb86f721743e3940f35869154a140175689381296899805858', 'admin', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/-1369486563.jpg?sign=7hdp5soxiEvVYpqvgiWxoJQ2UMJJCcoatm48bajEBkk=:0', NULL, 'official@dimstack.com', NULL, '$2a$10$hNfMxBf3egQkomuMql9LDeMJb2AC9IXkp904GgqX6DAxc8u9i1aAm', NULL, '2025-09-03 18:03:33', 1);
+
+-- ----------------------------
+-- Table structure for user_role
+-- ----------------------------
+DROP TABLE IF EXISTS `user_role`;
+CREATE TABLE `user_role`  (
+                              `user_id` int NOT NULL COMMENT '用户 ID',
+                              `role_id` int NOT NULL COMMENT '角色 ID',
+                              PRIMARY KEY (`user_id`, `role_id`) USING BTREE,
+                              INDEX `idx_role_id`(`role_id` ASC) USING BTREE,
+                              CONSTRAINT `fk_ur_role` FOREIGN KEY (`role_id`) REFERENCES `role` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
+                              CONSTRAINT `fk_ur_user` FOREIGN KEY (`user_id`) REFERENCES `user_information` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COMMENT = '用户角色关联表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of user_role
+-- ----------------------------
+INSERT INTO `user_role` VALUES (1, 1);
 
 SET FOREIGN_KEY_CHECKS = 1;
