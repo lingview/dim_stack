@@ -81,6 +81,34 @@
    color: #93c5fd;
 }
 
+/* Toast组件暗色模式 */
+.dark .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.dark .bg-yellow-50 {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+.dark .bg-blue-50 {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+.dark .text-red-800 {
+  color: #fca5a5 !important;
+}
+
+.dark .text-yellow-800 {
+  color: #fcd34d !important;
+}
+
+.dark .text-blue-800 {
+  color: #93c5fd !important;
+}
+
 /* 暗色模式下输入控件文字颜色 */
 .dark input,
 .dark textarea,
