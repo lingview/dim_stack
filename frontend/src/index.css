@@ -1081,3 +1081,47 @@
 .dark .music-table-body .music-table-row { border-bottom-color: #374151; }
 .dark .music-table { border-color: #374151; }
 .dark .music-table-cell { color: #f3f4f6; }
+
+
+
+
+/* 后台目录栏暗色适配 */
+.dark .sidebar-bg {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.dark .sidebar-header-border,
+.dark .sidebar-user-info-border {
+  border-color: #374151;
+}
+
+.dark .sidebar-site-name {
+  color: #93c5fd;
+}
+
+.dark .sidebar-nav-item-text {
+  color: #e5e7eb;
+}
+
+.dark .sidebar-nav-item-hover:hover {
+  background-color: #374151;
+}
+
+.dark .sidebar-nav-item-active {
+  background-color: #1d4ed8;
+  color: #bfdbfe;
+}
+
+.dark .sidebar-user-name {
+  color: #f3f4f6;
+}
+
+.dark .sidebar-icon-button {
+  color: #9ca3af;
+}
+
+.dark .sidebar-icon-button:hover {
+  color: #d1d5db;
+  background-color: #374151;
+}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {getConfig} from "../../utils/config.jsx";
+import ThemeToggle from "../ThemeToggle.jsx";
 
 export default function DashboardHeader({ onToggleSidebar, sidebarOpen, username, avatar, onLogout }) {
     const navigate = useNavigate()
@@ -50,6 +51,7 @@ export default function DashboardHeader({ onToggleSidebar, sidebarOpen, username
                 </div>
 
                 <div className="flex items-center space-x-4">
+                    <ThemeToggle />
 
                     {/*<div className="relative hidden sm:block">*/}
                     {/*    <input*/}
