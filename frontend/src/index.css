@@ -989,3 +989,95 @@
 .dark .category-fade-mask-bottom {
   background: linear-gradient(to bottom, transparent, #1f2937);
 }
+
+
+/*悬浮音乐管理暗色适配*/
+.dark .music-upload-zone {
+  border-color: #374151;
+  background-color: transparent;
+}
+.dark .music-upload-zone:hover {
+  border-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.08);
+}
+.dark .music-upload-zone p {
+  color: #9ca3af;
+}
+
+.dark .music-queue-uploading {
+  border-color: #1e3a5f;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+.dark .music-queue-done {
+  border-color: #14532d;
+  background-color: rgba(22, 163, 74, 0.1);
+}
+.dark .music-queue-error {
+  border-color: #7f1d1d;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+.dark .music-queue-pending {
+  border-color: #374151;
+  background-color: #1f2937;
+}
+
+.dark .music-queue-input {
+  border-color: #374151;
+  background-color: #1f2937;
+  color: #f3f4f6;
+}
+.dark .music-queue-input::placeholder {
+  color: #4b5563;
+}
+.dark .music-queue-input:disabled {
+  background-color: #111827;
+}
+
+.dark .music-spinner {
+  border-color: #1e3a5f;
+  border-top-color: #3b82f6;
+}
+.dark .music-status-uploading { color: #60a5fa; }
+.dark .music-status-done-icon { color: #4ade80; }
+.dark .music-status-done      { color: #4ade80; }
+.dark .music-status-error-icon{ color: #f87171; }
+.dark .music-status-error     { color: #f87171; }
+.dark .music-status-enabled   { color: #4ade80; }
+
+.dark .music-remove-btn       { color: #4b5563; }
+.dark .music-remove-btn:hover { color: #f87171; }
+
+.dark .music-list-card {
+  border-color: #374151;
+  background-color: #1f2937;
+}
+.dark .music-list-card-footer {
+  border-top-color: #374151;
+}
+.dark .music-list-name   { color: #f3f4f6; }
+.dark .music-list-author { color: #d1d5db; }
+.dark .music-list-url    { color: #60a5fa; }
+
+.dark .music-edit-input {
+  border-color: #374151;
+  background-color: #111827;
+  color: #f3f4f6;
+}
+
+.dark .music-btn-edit         { color: #60a5fa; }
+.dark .music-btn-edit:hover   { color: #93c5fd; }
+.dark .music-btn-delete       { color: #f87171; }
+.dark .music-btn-delete:hover { color: #fca5a5; }
+.dark .music-btn-delete-text         { color: #f87171; }
+.dark .music-btn-delete-text:hover   { color: #fca5a5; }
+.dark .music-btn-save-text           { color: #4ade80; }
+.dark .music-btn-save-text:hover     { color: #86efac; }
+.dark .music-btn-cancel-text         { color: #9ca3af; }
+.dark .music-btn-cancel-text:hover   { color: #d1d5db; }
+
+.dark .music-table-head { background-color: #111827; }
+.dark .music-table-head th { color: #6b7280; }
+.dark .music-table-body { background-color: #1f2937; }
+.dark .music-table-body .music-table-row { border-bottom-color: #374151; }
+.dark .music-table { border-color: #374151; }
+.dark .music-table-cell { color: #f3f4f6; }

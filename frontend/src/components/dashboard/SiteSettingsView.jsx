@@ -88,11 +88,7 @@ export default function SiteSettingsView() {
         admin_post_no_review: 0
     });
 
-    const [newMusic, setNewMusic] = useState({
-        musicName: '',
-        musicAuthor: '',
-        musicUrl: ''
-    });
+    const [uploadQueue, setUploadQueue] = useState([]);
 
     const [message, setMessage] = useState({ type: '', content: '' });
     const [testEmail, setTestEmail] = useState('');
@@ -335,63 +331,68 @@ export default function SiteSettingsView() {
             return await normalAudioUpload(file);
         }
     };
-    const handleAudioUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
 
-        if (!file.type.startsWith('audio/')) {
-            showMessage('error', '请选择音频文件');
-            return;
-        }
-        setAudioUploading(true);
-
-        const fileSize = (file.size / (1024 * 1024)).toFixed(2);
-        const uploadMethod = file.size > 10 * 1024 * 1024 ? '（大文件,使用分片上传）' : '（小文件,使用普通上传）';
-
-        try {
-            showMessage('info', `正在上传音频 ${uploadMethod}... (${fileSize}MB)`);
-            const fileUrl = await uploadAudioFile(file);
-
-            setNewMusic(prev => ({
-                ...prev,
-                musicUrl: fileUrl
-            }));
-
-            showMessage('success', `音频上传成功 (${fileSize}MB)`);
-        } catch (error) {
-            console.error('上传音频失败:', error);
-            showMessage('error', '音频上传失败: ' + error.message);
-        } finally {
-            setAudioUploading(false);
-            if (audioFileInputRef.current) {
-                audioFileInputRef.current.value = '';
-            }
-        }
+    const parseFileName = (fileName) => {
+        const base = fileName.replace(/\.[^.]+$/, '');
+        const match = base.match(/^(.+?)\s*[-–—]\s*(.+)$/);
+        if (match) return { musicAuthor: match[1].trim(), musicName: match[2].trim() };
+        return { musicAuthor: '', musicName: base };
     };
 
-    const addMusic = async () => {
-        if (!newMusic.musicName || !newMusic.musicAuthor || !newMusic.musicUrl) {
-            showMessage('error', '请填写完整的音乐信息');
+    const handleAudioUpload = async (e) => {
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
+
+        const audioFiles = files.filter(f => f.type.startsWith('audio/'));
+        const invalidCount = files.length - audioFiles.length;
+        if (invalidCount > 0) showMessage('error', `已跳过 ${invalidCount} 个非音频文件`);
+        if (!audioFiles.length) return;
+
+        const newItems = audioFiles.map((file, i) => ({
+            id: Date.now() + i,
+            file,
+            ...parseFileName(file.name),
+            musicUrl: '',
+            status: 'uploading'
+        }));
+
+        setUploadQueue(prev => [...prev, ...newItems]);
+
+        await Promise.all(newItems.map(async (item) => {
+            try {
+                const url = await uploadAudioFile(item.file);
+                setUploadQueue(prev => prev.map(q =>
+                    q.id === item.id ? { ...q, musicUrl: url, status: 'done' } : q
+                ));
+            } catch (err) {
+                setUploadQueue(prev => prev.map(q =>
+                    q.id === item.id ? { ...q, status: 'error' } : q
+                ));
+            }
+        }));
+
+        if (audioFileInputRef.current) audioFileInputRef.current.value = '';
+    };
+
+    const addAllQueuedMusic = async () => {
+        const readyItems = uploadQueue.filter(q => q.status === 'done' && q.musicName && q.musicAuthor && q.musicUrl);
+        if (!readyItems.length) {
+            showMessage('error', '没有可添加的音乐（请确认上传完成且填写了曲名和歌手名）');
             return;
         }
-
         try {
-            const response = await apiClient.post('/music/add', {
-                musicName: newMusic.musicName,
-                musicAuthor: newMusic.musicAuthor,
-                musicUrl: newMusic.musicUrl
-            });
-
-            if (response.success) {
-                showMessage('success', '音乐添加成功');
-                setNewMusic({ musicName: '', musicAuthor: '', musicUrl: '' });
-                fetchMusics();
-            } else {
-                showMessage('error', response.message || '音乐添加失败');
-            }
+            await Promise.all(readyItems.map(item =>
+                apiClient.post('/music/add', {
+                    musicName: item.musicName,
+                    musicAuthor: item.musicAuthor,
+                    musicUrl: item.musicUrl
+                })
+            ));
+            showMessage('success', `成功添加 ${readyItems.length} 首音乐`);
+            setUploadQueue([]);
+            fetchMusics();
         } catch (error) {
-            console.error('添加音乐失败:', error);
-            showMessage('error', '添加音乐时发生错误');
+            showMessage('error', '部分音乐添加失败');
         }
     };
 
@@ -467,7 +468,6 @@ export default function SiteSettingsView() {
                 mps_record_number: unescapeHtml(formData.mps_record_number),
                 enable_register: formData.enable_register,
                 enable_music: formData.enable_music,
-                admin_post_no_review: formData.admin_post_no_review  // 添加管理员文章审核字段
             };
 
             if (formData.mail_password && formData.mail_password.trim() !== '') {
@@ -815,61 +815,114 @@ export default function SiteSettingsView() {
 
                             <div className="border-t border-gray-200 pt-6">
                                 <h4 className="text-sm font-medium text-gray-700 mb-4">添加新音乐</h4>
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">曲名</label>
-                                        <input
-                                            type="text"
-                                            value={newMusic.musicName}
-                                            onChange={(e) => setNewMusic(prev => ({ ...prev, musicName: e.target.value }))}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="请输入曲名"
-                                        />
-                                    </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">歌手名</label>
-                                        <input
-                                            type="text"
-                                            value={newMusic.musicAuthor}
-                                            onChange={(e) => setNewMusic(prev => ({ ...prev, musicAuthor: e.target.value }))}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="请输入歌手名"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">音乐地址</label>
-                                        <div className="flex flex-col sm:flex-row gap-2">
-                                            <input
-                                                type="text"
-                                                value={newMusic.musicUrl}
-                                                onChange={(e) => setNewMusic(prev => ({ ...prev, musicUrl: e.target.value }))}
-                                                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="请输入音乐地址或上传文件"
-                                            />
-                                            <label className="flex-shrink-0 inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 cursor-pointer transition-colors whitespace-nowrap disabled:opacity-50">
-                                                <input
-                                                    type="file"
-                                                    ref={audioFileInputRef}
-                                                    accept="audio/*"
-                                                    onChange={handleAudioUpload}
-                                                    className="hidden"
-                                                    disabled={audioUploading}
-                                                />
-                                                {audioUploading ? '上传中...' : '上传音频'}
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={addMusic}
-                                        className="w-full sm:w-auto px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 transition-colors"
-                                    >
-                                        添加音乐
-                                    </button>
+                                <div
+                                    onClick={() => audioFileInputRef.current?.click()}
+                                    className="music-upload-zone border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                                >
+                                    <svg className="mx-auto mb-2 w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15m0-3l-3-3m0 0l-3 3m3-3V15" />
+                                    </svg>
+                                    <p className="text-sm text-gray-600">点击选择音频文件</p>
+                                    <p className="text-xs text-gray-400 mt-1">支持一次选择多个文件 · 自动识别歌手名</p>
+                                    <p className="text-xs text-gray-400">文件名格式：歌手 - 曲名.mp3</p>
+                                    <input
+                                        type="file"
+                                        ref={audioFileInputRef}
+                                        accept="audio/*"
+                                        multiple
+                                        onChange={handleAudioUpload}
+                                        className="hidden"
+                                    />
                                 </div>
+
+                                {uploadQueue.length > 0 && (
+                                    <div className="mt-4 space-y-3">
+                                        {uploadQueue.map(item => (
+                                            <div
+                                                key={item.id}
+                                                className={`music-queue-item flex items-center gap-3 p-3 rounded-lg border ${
+                                                    item.status === 'uploading' ? 'border-blue-200 bg-blue-50 music-queue-uploading' :
+                                                        item.status === 'done'      ? 'border-green-200 bg-green-50 music-queue-done' :
+                                                            item.status === 'error'     ? 'border-red-200 bg-red-50 music-queue-error' :
+                                                                'border-gray-200 bg-white music-queue-pending'
+                                                }`}
+                                            >
+                                                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={item.musicName}
+                                                        placeholder="曲名"
+                                                        onChange={e => setUploadQueue(prev => prev.map(q =>
+                                                            q.id === item.id ? { ...q, musicName: e.target.value } : q
+                                                        ))}
+                                                        className="music-queue-input px-2 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        value={item.musicAuthor}
+                                                        placeholder="歌手名"
+                                                        onChange={e => setUploadQueue(prev => prev.map(q =>
+                                                            q.id === item.id ? { ...q, musicAuthor: e.target.value } : q
+                                                        ))}
+                                                        className="music-queue-input px-2 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        value={item.musicUrl}
+                                                        placeholder="上传后自动填充"
+                                                        disabled={item.status === 'uploading'}
+                                                        onChange={e => setUploadQueue(prev => prev.map(q =>
+                                                            q.id === item.id ? { ...q, musicUrl: e.target.value } : q
+                                                        ))}
+                                                        className="music-queue-input sm:col-span-2 px-2 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:opacity-60"
+                                                    />
+                                                </div>
+
+                                                <div className="flex flex-col items-center gap-1 min-w-[52px]">
+                                                    {item.status === 'uploading' && (
+                                                        <>
+                                                            <div className="music-spinner w-5 h-5 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
+                                                            <span className="text-xs text-blue-600 music-status-uploading">上传中</span>
+                                                        </>
+                                                    )}
+                                                    {item.status === 'done' && (
+                                                        <>
+                                                            <svg className="w-5 h-5 text-green-600 music-status-done-icon" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                                                            </svg>
+                                                            <span className="text-xs text-green-600 music-status-done">完成</span>
+                                                        </>
+                                                    )}
+                                                    {item.status === 'error' && (
+                                                        <>
+                                                            <svg className="w-5 h-5 text-red-500 music-status-error-icon" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+                                                            </svg>
+                                                            <span className="text-xs text-red-500 music-status-error">失败</span>
+                                                        </>
+                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setUploadQueue(prev => prev.filter(q => q.id !== item.id))}
+                                                        className="music-remove-btn text-xs text-gray-400 hover:text-red-500 mt-1"
+                                                    >
+                                                        移除
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        <button
+                                            type="button"
+                                            onClick={addAllQueuedMusic}
+                                            disabled={!uploadQueue.some(q => q.status === 'done')}
+                                            className="mt-2 px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                                        >
+                                            全部加入曲库（{uploadQueue.filter(q => q.status === 'done').length} 首就绪）
+                                        </button>
+                                    </div>
+                                )}
                             </div>
 
                             {/* 音乐列表 */}
@@ -881,9 +934,10 @@ export default function SiteSettingsView() {
                                     <div className="text-center py-8 text-gray-500">暂无音乐</div>
                                 ) : (
                                     <div className="space-y-4">
+                                        {/* 移动端卡片 */}
                                         <div className="block md:hidden space-y-4">
                                             {musics.filter(music => music.status === 1).map((music) => (
-                                                <div key={music.id} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                                                <div key={music.id} className="music-list-card border border-gray-200 bg-white rounded-lg p-4 space-y-3">
                                                     <div>
                                                         <label className="text-xs text-gray-500 block mb-1">曲名</label>
                                                         {editingMusic && editingMusic.id === music.id ? (
@@ -891,10 +945,10 @@ export default function SiteSettingsView() {
                                                                 type="text"
                                                                 value={editingMusic.musicName}
                                                                 onChange={(e) => setEditingMusic(prev => ({ ...prev, musicName: e.target.value }))}
-                                                                className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                                className="music-edit-input w-full px-2 py-1 border border-gray-300 bg-white text-gray-900 rounded text-sm"
                                                             />
                                                         ) : (
-                                                            <div className="font-medium">{music.musicName}</div>
+                                                            <div className="font-medium text-gray-900 music-list-name">{music.musicName}</div>
                                                         )}
                                                     </div>
 
@@ -905,10 +959,10 @@ export default function SiteSettingsView() {
                                                                 type="text"
                                                                 value={editingMusic.musicAuthor}
                                                                 onChange={(e) => setEditingMusic(prev => ({ ...prev, musicAuthor: e.target.value }))}
-                                                                className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                                className="music-edit-input w-full px-2 py-1 border border-gray-300 bg-white text-gray-900 rounded text-sm"
                                                             />
                                                         ) : (
-                                                            <div className="text-sm text-gray-700">{music.musicAuthor}</div>
+                                                            <div className="text-sm text-gray-700 music-list-author">{music.musicAuthor}</div>
                                                         )}
                                                     </div>
 
@@ -919,49 +973,25 @@ export default function SiteSettingsView() {
                                                                 type="text"
                                                                 value={editingMusic.musicUrl}
                                                                 onChange={(e) => setEditingMusic(prev => ({ ...prev, musicUrl: e.target.value }))}
-                                                                className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                                                                className="music-edit-input w-full px-2 py-1 border border-gray-300 bg-white text-gray-900 rounded text-sm"
                                                             />
                                                         ) : (
-                                                            <div className="text-sm text-blue-600 break-all">{music.musicUrl}</div>
+                                                            <div className="text-sm text-blue-600 break-all music-list-url">{music.musicUrl}</div>
                                                         )}
                                                     </div>
 
-                                                    <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                                                        <span className="text-xs text-green-600 font-medium">启用</span>
+                                                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 music-list-card-footer">
+                                                        <span className="text-xs text-green-600 font-medium music-status-enabled">启用</span>
                                                         <div className="flex gap-2">
                                                             {editingMusic && editingMusic.id === music.id ? (
                                                                 <>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={saveEditMusic}
-                                                                        className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
-                                                                    >
-                                                                        保存
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={cancelEditMusic}
-                                                                        className="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600"
-                                                                    >
-                                                                        取消
-                                                                    </button>
+                                                                    <button type="button" onClick={saveEditMusic} className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">保存</button>
+                                                                    <button type="button" onClick={cancelEditMusic} className="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600">取消</button>
                                                                 </>
                                                             ) : (
                                                                 <>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => startEditMusic(music)}
-                                                                        className="px-3 py-1 text-blue-600 text-sm hover:bg-blue-50 rounded"
-                                                                    >
-                                                                        编辑
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => deleteMusic(music.id)}
-                                                                        className="px-3 py-1 text-red-600 text-sm hover:bg-red-50 rounded"
-                                                                    >
-                                                                        删除
-                                                                    </button>
+                                                                    <button type="button" onClick={() => startEditMusic(music)} className="px-3 py-1 text-blue-600 text-sm hover:bg-blue-50 rounded music-btn-edit">编辑</button>
+                                                                    <button type="button" onClick={() => deleteMusic(music.id)} className="px-3 py-1 text-red-600 text-sm hover:bg-red-50 rounded music-btn-delete">删除</button>
                                                                 </>
                                                             )}
                                                         </div>
@@ -970,9 +1000,10 @@ export default function SiteSettingsView() {
                                             ))}
                                         </div>
 
+                                        {/* 桌面端表格 */}
                                         <div className="hidden md:block overflow-x-auto">
-                                            <table className="min-w-full divide-y divide-gray-200">
-                                                <thead className="bg-gray-50">
+                                            <table className="min-w-full divide-y divide-gray-200 music-table">
+                                                <thead className="bg-gray-50 music-table-head">
                                                 <tr>
                                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">曲名</th>
                                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">歌手</th>
@@ -981,82 +1012,39 @@ export default function SiteSettingsView() {
                                                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                                                 </tr>
                                                 </thead>
-                                                <tbody className="bg-white divide-y divide-gray-200">
+                                                <tbody className="bg-white divide-y divide-gray-200 music-table-body">
                                                 {musics.filter(music => music.status === 1).map((music) => (
-                                                    <tr key={music.id}>
-                                                        <td className="px-4 py-3 whitespace-nowrap">
+                                                    <tr key={music.id} className="music-table-row">
+                                                        <td className="px-4 py-3 whitespace-nowrap text-gray-900 music-table-cell">
                                                             {editingMusic && editingMusic.id === music.id ? (
-                                                                <input
-                                                                    type="text"
-                                                                    value={editingMusic.musicName}
-                                                                    onChange={(e) => setEditingMusic(prev => ({ ...prev, musicName: e.target.value }))}
-                                                                    className="w-full px-2 py-1 border border-gray-300 rounded"
-                                                                />
+                                                                <input type="text" value={editingMusic.musicName} onChange={(e) => setEditingMusic(prev => ({ ...prev, musicName: e.target.value }))} className="music-edit-input w-full px-2 py-1 border border-gray-300 bg-white text-gray-900 rounded" />
+                                                            ) : music.musicName}
+                                                        </td>
+                                                        <td className="px-4 py-3 whitespace-nowrap text-gray-900 music-table-cell">
+                                                            {editingMusic && editingMusic.id === music.id ? (
+                                                                <input type="text" value={editingMusic.musicAuthor} onChange={(e) => setEditingMusic(prev => ({ ...prev, musicAuthor: e.target.value }))} className="music-edit-input w-full px-2 py-1 border border-gray-300 bg-white text-gray-900 rounded" />
+                                                            ) : music.musicAuthor}
+                                                        </td>
+                                                        <td className="px-4 py-3 music-table-cell">
+                                                            {editingMusic && editingMusic.id === music.id ? (
+                                                                <input type="text" value={editingMusic.musicUrl} onChange={(e) => setEditingMusic(prev => ({ ...prev, musicUrl: e.target.value }))} className="music-edit-input w-full px-2 py-1 border border-gray-300 bg-white text-gray-900 rounded" />
                                                             ) : (
-                                                                music.musicName
+                                                                <div className="max-w-xs truncate text-blue-600 music-list-url">{music.musicUrl}</div>
                                                             )}
                                                         </td>
-                                                        <td className="px-4 py-3 whitespace-nowrap">
-                                                            {editingMusic && editingMusic.id === music.id ? (
-                                                                <input
-                                                                    type="text"
-                                                                    value={editingMusic.musicAuthor}
-                                                                    onChange={(e) => setEditingMusic(prev => ({ ...prev, musicAuthor: e.target.value }))}
-                                                                    className="w-full px-2 py-1 border border-gray-300 rounded"
-                                                                />
-                                                            ) : (
-                                                                music.musicAuthor
-                                                            )}
+                                                        <td className="px-4 py-3 whitespace-nowrap music-table-cell">
+                                                            <span className="font-medium text-green-600 music-status-enabled">启用</span>
                                                         </td>
-                                                        <td className="px-4 py-3">
-                                                            {editingMusic && editingMusic.id === music.id ? (
-                                                                <input
-                                                                    type="text"
-                                                                    value={editingMusic.musicUrl}
-                                                                    onChange={(e) => setEditingMusic(prev => ({ ...prev, musicUrl: e.target.value }))}
-                                                                    className="w-full px-2 py-1 border border-gray-300 rounded"
-                                                                />
-                                                            ) : (
-                                                                <div className="max-w-xs truncate text-blue-600">{music.musicUrl}</div>
-                                                            )}
-                                                        </td>
-                                                        <td className="px-4 py-3 whitespace-nowrap">
-                                                            <span className="font-medium">启用</span>
-                                                        </td>
-                                                        <td className="px-4 py-3 whitespace-nowrap">
+                                                        <td className="px-4 py-3 whitespace-nowrap music-table-cell">
                                                             {editingMusic && editingMusic.id === music.id ? (
                                                                 <div className="flex gap-2">
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={saveEditMusic}
-                                                                        className="text-green-600 hover:text-green-900"
-                                                                    >
-                                                                        保存
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={cancelEditMusic}
-                                                                        className="text-gray-600 hover:text-gray-900"
-                                                                    >
-                                                                        取消
-                                                                    </button>
+                                                                    <button type="button" onClick={saveEditMusic} className="text-green-600 hover:text-green-900 music-btn-save-text">保存</button>
+                                                                    <button type="button" onClick={cancelEditMusic} className="text-gray-600 hover:text-gray-900 music-btn-cancel-text">取消</button>
                                                                 </div>
                                                             ) : (
                                                                 <div className="flex gap-2">
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => startEditMusic(music)}
-                                                                        className="text-blue-600 hover:text-blue-900"
-                                                                    >
-                                                                        编辑
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => deleteMusic(music.id)}
-                                                                        className="text-red-600 hover:text-red-900"
-                                                                    >
-                                                                        删除
-                                                                    </button>
+                                                                    <button type="button" onClick={() => startEditMusic(music)} className="text-blue-600 hover:text-blue-900 music-btn-edit">编辑</button>
+                                                                    <button type="button" onClick={() => deleteMusic(music.id)} className="text-red-600 hover:text-red-900 music-btn-delete-text">删除</button>
                                                                 </div>
                                                             )}
                                                         </td>
