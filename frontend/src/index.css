@@ -395,6 +395,26 @@
   background-color: #4b5563;
 }
 
+/* 移动端菜单链接暗色模式 */
+.dark .mobile-menu-link {
+  color: #d1d5db;
+}
+
+.dark .mobile-menu-link:hover {
+  color: #60a5fa;
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* 移动端登出按钮暗色模式 */
+.dark .mobile-menu-link-logout {
+  color: #f87171;
+}
+
+.dark .mobile-menu-link-logout:hover {
+  color: #fca5a5;
+  background-color: rgba(239, 68, 68, 0.15);
+}
+
 
 
 

@@ -298,7 +298,7 @@ export default function Header() {
                                                     navigate(menu.menus_url);
                                                     closeMobileMenu();
                                                 }}
-                                                className="block w-full text-left py-3 px-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 font-medium transition-all duration-200 rounded-lg"
+                                                className="block w-full text-left py-3 px-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 font-medium transition-all duration-200 rounded-lg mobile-menu-link"
                                             >
                                                 {menu.menus_name}
                                             </button>
@@ -307,7 +307,7 @@ export default function Header() {
                                                 href={menu.menus_url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="block py-3 px-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 font-medium transition-all duration-200 rounded-lg"
+                                                className="block py-3 px-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 font-medium transition-all duration-200 rounded-lg mobile-menu-link"
                                                 onClick={closeMobileMenu}
                                             >
                                                 {menu.menus_name}
@@ -336,13 +336,13 @@ export default function Header() {
                                             navigate('/dashboard')
                                             closeMobileMenu()
                                         }}
-                                        className="w-full py-3 px-2 text-left text-gray-600 hover:text-blue-600 hover:bg-blue-50 font-medium transition-all duration-200 rounded-lg"
+                                        className="w-full py-3 px-2 text-left text-gray-600 hover:text-blue-600 hover:bg-blue-50 font-medium transition-all duration-200 rounded-lg mobile-menu-link"
                                     >
                                         进入控制台
                                     </button>
                                     <button
                                         onClick={handleLogout}
-                                        className="w-full py-3 px-2 text-left text-red-600 hover:text-red-700 hover:bg-red-50 font-medium transition-all duration-200 rounded-lg"
+                                        className="w-full py-3 px-2 text-left text-red-600 hover:text-red-700 hover:bg-red-50 font-medium transition-all duration-200 rounded-lg mobile-menu-link-logout"
                                     >
                                         登出
                                     </button>
