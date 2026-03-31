@@ -34,12 +34,12 @@
 ---
 
 ## 🛠 技术栈
-| 层级 | 技术选型 |
-| --- | --- |
+| 层级 | 技术选型                                   |
+| --- |----------------------------------------|
 | **后端** | Java 17+，Spring Boot 4，MySQL5.7+，Redis |
-| **前端** | React 19，Vite，Tailwind CSS |
-| **构建** | Maven (后端)，npm(前端) |
-| **部署** | Docker，Linux，Windows |
+| **前端** | React 19，Vite，Tailwind CSS v4           |
+| **构建** | Maven (后端)，npm(前端)                     |
+| **部署** | Docker，Linux，Windows                   |
 
 
 ---
