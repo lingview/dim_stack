@@ -12,4 +12,7 @@ public interface LLMService {
 
     // 审核文章内容
     AiReviewResult reviewArticle(String articleContent);
+    
+    // 生成文章
+    String generateArticle(String description);
 }

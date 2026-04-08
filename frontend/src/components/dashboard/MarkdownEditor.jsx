@@ -93,6 +93,9 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const [selectedTextInfo, setSelectedTextInfo] = useState(null);
     const [detectedFormats, setDetectedFormats] = useState(null);
     const [syncScrollEnabled, setSyncScrollEnabled] = useState(false);
+    const [showAiDialog, setShowAiDialog] = useState(false);
+    const [aiDescription, setAiDescription] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const historyManagerRef = useRef(new HistoryManager());
     const isProcessingHistoryRef = useRef(false);
@@ -509,6 +512,11 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     };
 
     const handleToolbarClick = (buttonType) => {
+        if (buttonType === 'ai-generate') {
+            setShowAiDialog(true);
+            return;
+        }
+
         if (buttonType === 'image' || buttonType === 'video' || buttonType === 'audio' || buttonType === 'archive') {
             handleFileSelect(buttonType);
             return;
@@ -850,6 +858,48 @@ ${cleanText}
         setDetectedFormats(null);
     };
 
+    const handleAiGenerate = async () => {
+        if (!aiDescription.trim()) {
+            alert('请输入文章描述');
+            return;
+        }
+
+        setIsGenerating(true);
+        try {
+            const response = await apiClient.post('/llm/generate', {
+                description: aiDescription
+            });
+
+            if (response.success && response.data) {
+                const textarea = textareaRef.current;
+                const insertPosition = textarea ? textarea.selectionStart : content.length;
+                
+                const beforeText = content.substring(0, insertPosition);
+                const afterText = content.substring(insertPosition);
+                const newContent = beforeText + '\n' + response.data + '\n' + afterText;
+                
+                setContent(newContent);
+                setShowAiDialog(false);
+                setAiDescription('');
+                
+                setTimeout(() => {
+                    if (textarea) {
+                        const newPos = insertPosition + response.data.length + 2;
+                        textarea.setSelectionRange(newPos, newPos);
+                        textarea.focus();
+                    }
+                }, 0);
+            } else {
+                alert(response.message || 'AI生成失败，请重试');
+            }
+        } catch (error) {
+            console.error('AI生成错误:', error);
+            alert(error.response?.data?.message || error.message || 'AI生成失败，请重试');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-50 bg-white flex flex-col">
             <div className="border-b border-gray-200 p-4 flex items-center justify-between bg-white">
@@ -947,6 +997,50 @@ ${cleanText}
                     onCancel={() => setShowArticleInfo(false)}
                     uploading={isSaving}
                 />
+            )}
+
+            {showAiDialog && (
+                <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-[60]">
+                    <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+                        <h3 className="text-lg font-semibold mb-4">AI写作助手</h3>
+                        <textarea
+                            value={aiDescription}
+                            onChange={(e) => setAiDescription(e.target.value)}
+                            placeholder="请输入文章的主题、要求或描述..."
+                            className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                            disabled={isGenerating}
+                        />
+                        <div className="flex justify-end space-x-3 mt-4">
+                            <button
+                                onClick={() => {
+                                    setShowAiDialog(false);
+                                    setAiDescription('');
+                                }}
+                                disabled={isGenerating}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50"
+                            >
+                                取消
+                            </button>
+                            <button
+                                onClick={handleAiGenerate}
+                                disabled={isGenerating || !aiDescription.trim()}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center"
+                            >
+                                {isGenerating ? (
+                                    <>
+                                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        生成中...
+                                    </>
+                                ) : (
+                                    '生成'
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

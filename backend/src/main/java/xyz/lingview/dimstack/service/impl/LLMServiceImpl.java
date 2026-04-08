@@ -108,4 +108,58 @@ public class LLMServiceImpl implements LLMService {
             return null;
         }
     }
+
+    @Override
+    public String generateArticle(String description) {
+        try {
+            LlmConfig llmConfig = llmConfigService.getLlmConfig();
+            if (llmConfig == null || llmConfig.getApi_key() == null || llmConfig.getApi_key().trim().isEmpty()) {
+                log.warn("LLM配置不存在或API密钥未配置，无法生成文章");
+                return null;
+            }
+
+            LlmPromptConfig promptConfig = llmPromptConfigService.getPromptByName("article_create");
+            if (promptConfig == null || promptConfig.getPrompt_content() == null || promptConfig.getPrompt_content().trim().isEmpty()) {
+                log.warn("文章生成提示词不存在，无法生成文章");
+                return null;
+            }
+
+            String systemContent = promptConfig.getPrompt_content();
+
+            String response = LargeLanguageModelsUtil.callDashscopeAPI(
+                    llmConfig.getApi_key(),
+                    llmConfig.getApi_url(),
+                    llmConfig.getModel(),
+                    systemContent,
+                    description
+            );
+
+            return parseGeneratedContent(response);
+
+        } catch (Exception e) {
+            log.error("文章生成失败", e);
+            return null;
+        }
+    }
+
+    private String parseGeneratedContent(String response) {
+        try {
+            JsonNode rootNode = objectMapper.readTree(response);
+            
+            JsonNode choices = rootNode.get("choices");
+            if (choices != null && choices.isArray() && choices.size() > 0) {
+                JsonNode message = choices.get(0).get("message");
+                if (message != null) {
+                    return message.get("content").asText();
+                }
+            }
+            
+            log.warn("无法解析生成的文章内容: {}", response);
+            return null;
+            
+        } catch (Exception e) {
+            log.error("解析生成的文章内容失败", e);
+            return null;
+        }
+    }
 }
