@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.lingview.dimstack.mapper.LlmPromptConfigMapper">
+
+    <select id="getPromptByName" resultType="xyz.lingview.dimstack.domain.LlmPromptConfig">
+        SELECT id, prompt_name, prompt_content, create_time, status
+        FROM llm_prompt_config
+        WHERE prompt_name = #{promptName}
+    </select>
+
+    <update id="updatePrompt">
+        UPDATE llm_prompt_config
+        SET prompt_content = #{prompt_content}
+        WHERE prompt_name = #{prompt_name}
+    </update>
+
+</mapper>

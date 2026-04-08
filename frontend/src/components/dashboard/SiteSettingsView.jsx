@@ -102,6 +102,13 @@ export default function SiteSettingsView() {
     const [loadingLlmConfig, setLoadingLlmConfig] = useState(false);
     const [savingLlmConfig, setSavingLlmConfig] = useState(false);
     const [llmConfigExpanded, setLlmConfigExpanded] = useState(false);
+    const [promptModal, setPromptModal] = useState({
+        show: false,
+        promptName: '',
+        promptContent: '',
+        loading: false,
+        saving: false
+    });
 
     const tabs = [
         { id: 'basic', name: '站点信息' },
@@ -270,6 +277,64 @@ export default function SiteSettingsView() {
             showMessage('error', '保存LLM配置时发生错误');
         } finally {
             setSavingLlmConfig(false);
+        }
+    };
+
+    const openPromptModal = async (promptName) => {
+        try {
+            setPromptModal(prev => ({ ...prev, show: true, promptName, loading: true }));
+            const response = await apiClient.get(`/llm/prompt/${promptName}`);
+            
+            if (response.code === 200) {
+                setPromptModal(prev => ({
+                    ...prev,
+                    promptContent: response.data.prompt_content || '',
+                    loading: false
+                }));
+            } else {
+                showMessage('error', response.message || '获取提示词失败');
+                setPromptModal(prev => ({ ...prev, show: false, loading: false }));
+            }
+        } catch (error) {
+            console.error('获取提示词失败:', error);
+            showMessage('error', '获取提示词时发生错误');
+            setPromptModal(prev => ({ ...prev, show: false, loading: false }));
+        }
+    };
+
+    const closePromptModal = () => {
+        setPromptModal({
+            show: false,
+            promptName: '',
+            promptContent: '',
+            loading: false,
+            saving: false
+        });
+    };
+
+    const savePrompt = async () => {
+        if (!promptModal.promptContent.trim()) {
+            showMessage('error', '提示词内容不能为空');
+            return;
+        }
+
+        try {
+            setPromptModal(prev => ({ ...prev, saving: true }));
+            const response = await apiClient.put(`/llm/prompt/${promptModal.promptName}`, {
+                prompt_content: promptModal.promptContent
+            });
+
+            if (response.code === 200) {
+                showMessage('success', response.message || '提示词更新成功');
+                closePromptModal();
+            } else {
+                showMessage('error', response.message || '提示词更新失败');
+            }
+        } catch (error) {
+            console.error('保存提示词失败:', error);
+            showMessage('error', '保存提示词时发生错误');
+        } finally {
+            setPromptModal(prev => ({ ...prev, saving: false }));
         }
     };
 
@@ -1519,6 +1584,15 @@ export default function SiteSettingsView() {
                                     </div>
                                     <p className="mt-1 text-xs text-gray-500">
                                         用户上传文章后，自动使用AI进行内容审核
+                                        {formData.enable_llm_article_review === 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => openPromptModal('article_review')}
+                                                className="ml-2 text-blue-600 hover:text-blue-800 underline"
+                                            >
+                                                查看&修改提示词
+                                            </button>
+                                        )}
                                     </p>
                                 </div>
 
@@ -1546,6 +1620,15 @@ export default function SiteSettingsView() {
                                     </div>
                                     <p className="mt-1 text-xs text-gray-500">
                                         允许用户使用AI辅助创作和生成文章内容
+                                        {formData.enable_llm_create_article === 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => openPromptModal('article_create')}
+                                                className="ml-2 text-blue-600 hover:text-blue-800 underline"
+                                            >
+                                                查看&修改提示词
+                                            </button>
+                                        )}
                                     </p>
                                 </div>
                             </div>
@@ -1686,6 +1769,77 @@ export default function SiteSettingsView() {
                     </button>
                 </div>
             </form>
+
+            {/* 提示词编辑模态框 */}
+            {promptModal.show && (
+                <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                                {promptModal.promptName === 'article_review' ? '文章审核提示词' : '文章生成提示词'}
+                            </h3>
+                            <button
+                                type="button"
+                                onClick={closePromptModal}
+                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6">
+                            {promptModal.loading ? (
+                                <div className="flex justify-center items-center py-12">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                                </div>
+                            ) : (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        提示词内容
+                                    </label>
+                                    <textarea
+                                        value={promptModal.promptContent}
+                                        onChange={(e) => setPromptModal(prev => ({ ...prev, promptContent: e.target.value }))}
+                                        rows={20}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                                        placeholder="请输入提示词内容..."
+                                    />
+                                    <p className="mt-2 text-xs text-gray-500">
+                                        提示词将直接影响AI的输出质量，请谨慎修改
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
+                            <button
+                                type="button"
+                                onClick={closePromptModal}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                取消
+                            </button>
+                            <button
+                                type="button"
+                                onClick={savePrompt}
+                                disabled={promptModal.saving || promptModal.loading}
+                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                {promptModal.saving ? (
+                                    <>
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        <span>保存中...</span>
+                                    </>
+                                ) : (
+                                    <span>保存</span>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
