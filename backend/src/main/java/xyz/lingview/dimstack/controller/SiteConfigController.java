@@ -225,6 +225,19 @@ public class SiteConfigController {
             if (siteConfig.getAdmin_post_no_review() != null) {
                 currentConfig.setAdmin_post_no_review(siteConfig.getAdmin_post_no_review());
             }
+
+            if (siteConfig.getEnable_llm() != null) {
+                currentConfig.setEnable_llm(siteConfig.getEnable_llm());
+            }
+
+            if (siteConfig.getEnable_llm_article_review() != null) {
+                currentConfig.setEnable_llm_article_review(siteConfig.getEnable_llm_article_review());
+            }
+
+            if (siteConfig.getEnable_llm_create_article() != null) {
+                currentConfig.setEnable_llm_create_article(siteConfig.getEnable_llm_create_article());
+            }
+
             boolean result = siteConfigService.updateSiteConfig(currentConfig);
 
             if (result) {
@@ -346,6 +359,60 @@ public class SiteConfigController {
                     .body(Map.of(
                             "success", false,
                             "message", "获取管理员文章审核状态失败: " + e.getMessage()
+                    ));
+        }
+    }
+
+    @GetMapping("/enable-llm")
+    public ResponseEntity<Map<String, Object>> getEnableLlmStatus() {
+        try {
+            Integer enableLlm = siteConfigService.getEnableLlm();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "data", Map.of("enableLlm", enableLlm != null && enableLlm == 1)
+            ));
+        } catch (Exception e) {
+            log.error("获取LLM启用状态失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "获取LLM启用状态失败: " + e.getMessage()
+                    ));
+        }
+    }
+
+    @GetMapping("/enable-llm-article-review")
+    public ResponseEntity<Map<String, Object>> getEnableLlmArticleReviewStatus() {
+        try {
+            Integer enableLlmArticleReview = siteConfigService.getEnableLlmArticleReview();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "data", Map.of("enableLlmArticleReview", enableLlmArticleReview != null && enableLlmArticleReview == 1)
+            ));
+        } catch (Exception e) {
+            log.error("获取LLM自动审核文章状态失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "获取LLM自动审核文章状态失败: " + e.getMessage()
+                    ));
+        }
+    }
+
+    @GetMapping("/enable-llm-create-article")
+    public ResponseEntity<Map<String, Object>> getEnableLlmCreateArticleStatus() {
+        try {
+            Integer enableLlmCreateArticle = siteConfigService.getEnableLlmCreateArticle();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "data", Map.of("enableLlmCreateArticle", enableLlmCreateArticle != null && enableLlmCreateArticle == 1)
+            ));
+        } catch (Exception e) {
+            log.error("获取LLM生成文章状态失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "获取LLM生成文章状态失败: " + e.getMessage()
                     ));
         }
     }

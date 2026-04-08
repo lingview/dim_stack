@@ -17,6 +17,9 @@ public interface SiteConfigService {
     String getMpsRecordNumber();
     Integer getEnableRegister();
     Integer getAdminPostNoReview();
+    Integer getEnableLlm();
+    Integer getEnableLlmArticleReview();
+    Integer getEnableLlmCreateArticle();
 
     default xyz.lingview.dimstack.domain.MailConfig getMailConfig() {
         SiteConfig siteConfig = getSiteConfig();

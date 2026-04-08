@@ -31,4 +31,7 @@ public class SiteConfig {
     private Integer enable_register;
     private Integer enable_music;
     private Integer admin_post_no_review;
+    private Integer enable_llm;
+    private Integer enable_llm_article_review;
+    private Integer enable_llm_create_article;
 }

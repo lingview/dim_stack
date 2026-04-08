@@ -33,7 +33,10 @@
             mps_record_number as mps_record_number,
             enable_register as enable_register,
             enable_music as enable_music,
-            admin_post_no_review as admin_post_no_review
+            admin_post_no_review as admin_post_no_review,
+            enable_llm as enable_llm,
+            enable_llm_article_review as enable_llm_article_review,
+            enable_llm_create_article as enable_llm_create_article
         FROM site_config
         WHERE id = 1
     </select>
@@ -101,7 +104,10 @@
             mps_record_number = #{mps_record_number},
             enable_register = #{enable_register},
             enable_music = #{enable_music},
-            admin_post_no_review = #{admin_post_no_review}
+            admin_post_no_review = #{admin_post_no_review},
+            enable_llm = #{enable_llm},
+            enable_llm_article_review = #{enable_llm_article_review},
+            enable_llm_create_article = #{enable_llm_create_article}
         WHERE id = 1
     </update>
 

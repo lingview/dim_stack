@@ -59,7 +59,6 @@ export default function SiteSettingsView() {
     const audioFileInputRef = useRef(null);
 
     const [editingMusic, setEditingMusic] = useState(null);
-    const [audioUploading, setAudioUploading] = useState(false);
 
     const [formData, setFormData] = useState({
         site_name: '',
@@ -85,13 +84,24 @@ export default function SiteSettingsView() {
         mps_record_number: '',
         enable_register: 1,
         enable_music: 0,
-        admin_post_no_review: 0
+        admin_post_no_review: 0,
+        enable_llm: 0,
+        enable_llm_article_review: 0,
+        enable_llm_create_article: 0
     });
 
     const [uploadQueue, setUploadQueue] = useState([]);
 
     const [message, setMessage] = useState({ type: '', content: '' });
     const [testEmail, setTestEmail] = useState('');
+    const [llmConfig, setLlmConfig] = useState({
+        api_key: '',
+        api_url: '',
+        model: ''
+    });
+    const [loadingLlmConfig, setLoadingLlmConfig] = useState(false);
+    const [savingLlmConfig, setSavingLlmConfig] = useState(false);
+    const [llmConfigExpanded, setLlmConfigExpanded] = useState(false);
 
     const tabs = [
         { id: 'basic', name: '站点信息' },
@@ -100,6 +110,7 @@ export default function SiteSettingsView() {
         { id: 'filing', name: '备案信息' },
         { id: 'user', name: '用户权限' },
         { id: 'notification', name: '通知服务' },
+        { id: 'llm', name: '大模型配置' },
         { id: 'extension', name: '扩展设置' }
     ];
 
@@ -108,7 +119,8 @@ export default function SiteSettingsView() {
             fetchSiteConfig(),
             fetchRoles(),
             fetchArticleStatusOptions(),
-            fetchMusics()
+            fetchMusics(),
+            fetchLlmConfig()
         ]).finally(() => {
             setLoading(false);
         });
@@ -140,7 +152,10 @@ export default function SiteSettingsView() {
                     mps_record_number: escapeHtml(response.data.mps_record_number) || '',
                     enable_register: response.data.enable_register !== undefined ? response.data.enable_register : 1,
                     enable_music: response.data.enable_music !== undefined ? response.data.enable_music : 0,
-                    admin_post_no_review: response.data.admin_post_no_review !== undefined ? response.data.admin_post_no_review : 0
+                    admin_post_no_review: response.data.admin_post_no_review !== undefined ? response.data.admin_post_no_review : 0,
+                    enable_llm: response.data.enable_llm !== undefined ? response.data.enable_llm : 0,
+                    enable_llm_article_review: response.data.enable_llm_article_review !== undefined ? response.data.enable_llm_article_review : 0,
+                    enable_llm_create_article: response.data.enable_llm_create_article !== undefined ? response.data.enable_llm_create_article : 0
                 };
                 setFormData(escapedData);
             } else {
@@ -197,6 +212,64 @@ export default function SiteSettingsView() {
             showMessage('error', '获取音乐列表时发生错误');
         } finally {
             setLoadingMusics(false);
+        }
+    };
+
+    const fetchLlmConfig = async () => {
+        try {
+            setLoadingLlmConfig(true);
+            const response = await apiClient.get('/llm/config');
+
+            if (response.code === 200) {
+                setLlmConfig({
+                    api_key: response.data.api_key || '',
+                    api_url: response.data.api_url || '',
+                    model: response.data.model || ''
+                });
+            } else {
+                showMessage('error', response.message || '获取LLM配置失败');
+            }
+        } catch (error) {
+            console.error('获取LLM配置失败:', error);
+            showMessage('error', '获取LLM配置时发生错误');
+        } finally {
+            setLoadingLlmConfig(false);
+        }
+    };
+
+    const handleLlmConfigChange = (e) => {
+        const { name, value } = e.target;
+        setLlmConfig(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const handleSaveLlmConfig = async () => {
+        if (!llmConfig.api_url.trim()) {
+            showMessage('error', 'API地址不能为空');
+            return;
+        }
+        if (!llmConfig.model.trim()) {
+            showMessage('error', '模型名称不能为空');
+            return;
+        }
+
+        try {
+            setSavingLlmConfig(true);
+            const response = await apiClient.post('/llm/config', llmConfig);
+
+            if (response.code === 200) {
+                showMessage('success', response.message || 'LLM配置保存成功');
+                fetchLlmConfig();
+            } else {
+                showMessage('error', response.message || 'LLM配置保存失败');
+            }
+        } catch (error) {
+            console.error('保存LLM配置失败:', error);
+            showMessage('error', '保存LLM配置时发生错误');
+        } finally {
+            setSavingLlmConfig(false);
         }
     };
 
@@ -468,6 +541,9 @@ export default function SiteSettingsView() {
                 mps_record_number: unescapeHtml(formData.mps_record_number),
                 enable_register: formData.enable_register,
                 enable_music: formData.enable_music,
+                enable_llm: formData.enable_llm,
+                enable_llm_article_review: formData.enable_llm_article_review,
+                enable_llm_create_article: formData.enable_llm_create_article
             };
 
             if (formData.mail_password && formData.mail_password.trim() !== '') {
@@ -1384,6 +1460,190 @@ export default function SiteSettingsView() {
                                         </button>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 大模型配置 */}
+                    {activeTab === 'llm' && (
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        启用大模型接入
+                                    </label>
+                                    <div className="flex items-center">
+                                        <input
+                                            id="enable_llm"
+                                            name="enable_llm"
+                                            type="checkbox"
+                                            checked={formData.enable_llm === 1}
+                                            onChange={(e) => {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    enable_llm: e.target.checked ? 1 : 0
+                                                }));
+                                            }}
+                                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <label htmlFor="enable_llm" className="ml-2 block text-sm text-gray-700">
+                                            启用系统大模型功能
+                                        </label>
+                                    </div>
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        总开关，关闭后所有大模型相关功能将不可用
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        文章自动审核
+                                    </label>
+                                    <div className="flex items-center">
+                                        <input
+                                            id="enable_llm_article_review"
+                                            name="enable_llm_article_review"
+                                            type="checkbox"
+                                            checked={formData.enable_llm_article_review === 1}
+                                            onChange={(e) => {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    enable_llm_article_review: e.target.checked ? 1 : 0
+                                                }));
+                                            }}
+                                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <label htmlFor="enable_llm_article_review" className="ml-2 block text-sm text-gray-700">
+                                            启用大模型自动审核文章
+                                        </label>
+                                    </div>
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        用户上传文章后，自动使用AI进行内容审核
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        AI文章生成
+                                    </label>
+                                    <div className="flex items-center">
+                                        <input
+                                            id="enable_llm_create_article"
+                                            name="enable_llm_create_article"
+                                            type="checkbox"
+                                            checked={formData.enable_llm_create_article === 1}
+                                            onChange={(e) => {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    enable_llm_create_article: e.target.checked ? 1 : 0
+                                                }));
+                                            }}
+                                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <label htmlFor="enable_llm_create_article" className="ml-2 block text-sm text-gray-700">
+                                            启用大模型生成文章
+                                        </label>
+                                    </div>
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        允许用户使用AI辅助创作和生成文章内容
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="border-t border-gray-200 pt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => setLlmConfigExpanded(!llmConfigExpanded)}
+                                    className="w-full flex items-center justify-between text-left hover:bg-gray-50 p-3 rounded-lg transition-colors"
+                                >
+                                    <h4 className="text-base font-semibold text-gray-900">LLM详细配置</h4>
+                                    <svg
+                                        className={`w-5 h-5 text-gray-500 transform transition-transform ${llmConfigExpanded ? 'rotate-180' : ''}`}
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                
+                                {llmConfigExpanded && (
+                                    <div className="mt-4 space-y-4">
+                                        {loadingLlmConfig ? (
+                                            <div className="flex justify-center items-center py-8">
+                                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div>
+                                                    <label htmlFor="api_key" className="block text-sm font-medium text-gray-700 mb-1">
+                                                        API密钥
+                                                    </label>
+                                                    <input
+                                                        type="password"
+                                                        id="api_key"
+                                                        name="api_key"
+                                                        value={llmConfig.api_key}
+                                                        onChange={handleLlmConfigChange}
+                                                        placeholder="留空表示不修改，首次配置时必填"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    />
+                                                    <p className="mt-1 text-xs text-gray-500">
+                                                        已配置的密钥不会显示，如需修改请输入新密钥
+                                                    </p>
+                                                </div>
+
+                                                <div>
+                                                    <label htmlFor="api_url" className="block text-sm font-medium text-gray-700 mb-1">
+                                                        API地址
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        id="api_url"
+                                                        name="api_url"
+                                                        value={llmConfig.api_url}
+                                                        onChange={handleLlmConfigChange}
+                                                        placeholder="例如: https://api.openai.com/v1"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-1">
+                                                        模型名称
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        id="model"
+                                                        name="model"
+                                                        value={llmConfig.model}
+                                                        onChange={handleLlmConfigChange}
+                                                        placeholder="例如: gpt-3.5-turbo, gpt-4"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    />
+                                                </div>
+
+                                                <div className="flex justify-end">
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleSaveLlmConfig}
+                                                        disabled={savingLlmConfig}
+                                                        className="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-wait flex items-center gap-2"
+                                                    >
+                                                        {savingLlmConfig ? (
+                                                            <>
+                                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                                                <span>保存中...</span>
+                                                            </>
+                                                        ) : (
+                                                            <span>保存LLM配置</span>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

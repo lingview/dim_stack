@@ -160,4 +160,31 @@ public class SiteConfigServiceImpl implements SiteConfigService {
         }
         return null;
     }
+
+    @Override
+    public Integer getEnableLlm() {
+        SiteConfig config = getSiteConfig();
+        if (config != null) {
+            return config.getEnable_llm();
+        }
+        return null;
+    }
+
+    @Override
+    public Integer getEnableLlmArticleReview() {
+        SiteConfig config = getSiteConfig();
+        if (config != null) {
+            return config.getEnable_llm_article_review();
+        }
+        return null;
+    }
+
+    @Override
+    public Integer getEnableLlmCreateArticle() {
+        SiteConfig config = getSiteConfig();
+        if (config != null) {
+            return config.getEnable_llm_create_article();
+        }
+        return null;
+    }
 }
