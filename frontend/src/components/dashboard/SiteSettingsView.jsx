@@ -606,6 +606,7 @@ export default function SiteSettingsView() {
                 mps_record_number: unescapeHtml(formData.mps_record_number),
                 enable_register: formData.enable_register,
                 enable_music: formData.enable_music,
+                admin_post_no_review: formData.admin_post_no_review,
                 enable_llm: formData.enable_llm,
                 enable_llm_article_review: formData.enable_llm_article_review,
                 enable_llm_create_article: formData.enable_llm_create_article
