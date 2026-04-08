@@ -36,4 +36,8 @@ public interface EditArticleMapper {
     int insertArticleTagRelation(@Param("articleId") String articleId, @Param("tagName") String tagName);
 
     String getCategoryByArticleId(@Param("article_id") String article_id);
+    
+    String getArticleContentById(@Param("articleId") String articleId);
+
+    int updateArticleStatus(@Param("articleId") String articleId, @Param("status") Integer status);
 }

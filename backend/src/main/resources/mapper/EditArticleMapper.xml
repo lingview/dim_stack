@@ -172,4 +172,18 @@
         WHERE a.article_id = #{article_id}
     </select>
 
+    <!-- 获取文章内容 -->
+    <select id="getArticleContentById" parameterType="string" resultType="string">
+        SELECT article_content
+        FROM article
+        WHERE article_id = #{articleId}
+    </select>
+
+    <!-- 更新文章状态 -->
+    <update id="updateArticleStatus">
+        UPDATE article
+        SET status = #{status}
+        WHERE article_id = #{articleId}
+    </update>
+
 </mapper>

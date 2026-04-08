@@ -247,4 +247,14 @@ public class EditArticleServiceImpl implements EditArticleService {
     public String getArticleUuid(String articleId) {
         return editArticleMapper.getUuidByArticleId(articleId);
     }
+
+    @Override
+    public String getArticleContent(String articleId) {
+        try {
+            return editArticleMapper.getArticleContentById(articleId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }

@@ -17,4 +17,6 @@ public interface EditArticleService {
     boolean unpublishArticle(String articleId, String sessionUsername);
     boolean publishArticle(String articleId, String sessionUsername);
     String getArticleUuid(String articleId);
+
+    String getArticleContent(String articleId);
 }
