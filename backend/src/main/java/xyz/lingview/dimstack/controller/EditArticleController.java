@@ -401,7 +401,7 @@ public class EditArticleController {
             boolean aiReviewEnabled = (enableLlm != null && enableLlm == 1 && enableLlmArticleReview != null && enableLlmArticleReview == 1);
             
             if (!noReviewNotice && aiReviewEnabled) {
-                log.info("文章 {} 启用AI审核，先设置为待审核状态", articleId);
+                log.info("文章 {} 使用大模型审核，设为待审核状态", articleId);
                 articleDefault = 3;
 
                 String articleContent = editArticleService.getArticleContent(articleId);
@@ -426,7 +426,7 @@ public class EditArticleController {
 
                     asyncAiReview(context);
                 } else {
-                    log.warn("文章 {} 内容为空，跳过AI审核，保持待审核状态", articleId);
+                    log.warn("文章 {} 内容为空，跳过大模型审核，保持待审核状态", articleId);
                 }
             }
 
@@ -513,16 +513,16 @@ public class EditArticleController {
             notificationService.sendSystemNotification(
                 authorUsername, 
                 "系统通知", 
-                "您的文章：《" + articleName + "》经AI审核发现违规内容，已被标记为违规"
+                "您的文章：《" + articleName + "》经大模型审核发现违规内容，已被标记为违规"
             );
             
             mailService.sendSimpleMail(
                 email,
                 siteName + " 文章审核",
-                "您的文章：《" + articleName + "》经AI审核发现违规内容，已被标记为违规，请联系管理员处理"
+                "您的文章：《" + articleName + "》经大模型审核发现违规内容，已被标记为违规，请联系管理员处理"
             );
             
-            log.warn("用户 {} 的文章《{}》AI审核不通过，标记为违规，时间：{}", authorUsername, articleName, formattedDate);
+            log.warn("用户 {} 的文章《{}》大模型审核不通过，标记为违规，时间：{}", authorUsername, articleName, formattedDate);
         } catch (Exception e) {
             log.error("发送违规通知失败，文章ID: {}, 作者: {}", articleId, authorUsername, e);
         }
@@ -658,23 +658,23 @@ public class EditArticleController {
     private void asyncAiReview(ReviewContext context) {
         new Thread(() -> {
             try {
-                log.info("开始对文章 {} 进行异步AI审核", context.articleId);
+                log.debug("开始对文章 {} 进行异步大模型审核", context.articleId);
                 AiReviewResult reviewResult = llmService.reviewArticle(context.articleContent);
                 
                 if (reviewResult == AiReviewResult.PASS) {
-                    log.info("文章 {} AI审核通过，自动发布", context.articleId);
+                    log.info("文章 {} 大模型审核通过，自动发布", context.articleId);
                     editArticleMapper.updateArticleStatus(context.articleId, 1);
                     sendAutoApprovalNotificationWithInfo(context);
                 } else if (reviewResult == AiReviewResult.REJECT) {
-                    log.warn("文章 {} AI审核不通过，标记为违规", context.articleId);
+                    log.warn("文章 {} 大模型审核不通过，标记为违规", context.articleId);
                     editArticleMapper.updateArticleStatus(context.articleId, 4);
                     sendViolationNotificationWithInfo(context);
                 } else {
-                    log.warn("文章 {} AI审核异常，保持待审核状态，等待人工审核", context.articleId);
+                    log.warn("文章 {} 大模型审核异常，保持待审核状态，等待人工审核", context.articleId);
                     sendReviewNotificationWithInfo(context);
                 }
             } catch (Exception e) {
-                log.error("文章 {} AI审核发生未预期异常，保持待审核状态，等待人工审核", context.articleId, e);
+                log.error("文章 {} 大模型审核发生未预期异常，保持待审核状态，等待人工审核", context.articleId, e);
                 sendReviewNotificationWithInfo(context);
             }
         }).start();
@@ -722,16 +722,16 @@ public class EditArticleController {
             notificationService.sendSystemNotification(
                 context.authorUsername, 
                 "系统通知", 
-                "您的文章：《" + context.articleName + "》经AI审核发现违规内容，已被标记为违规"
+                "您的文章：《" + context.articleName + "》经大模型审核发现违规内容，已被标记为违规"
             );
             
             mailService.sendSimpleMail(
                 context.authorEmail,
                 context.siteName + " 文章审核",
-                "您的文章：《" + context.articleName + "》经AI审核发现违规内容，已被标记为违规，请联系管理员处理"
+                "您的文章：《" + context.articleName + "》经大模型审核发现违规内容，已被标记为违规，请联系管理员处理"
             );
             
-            log.warn("用户 {} 的文章《{}》AI审核不通过，标记为违规，时间：{}", context.authorUsername, context.articleName, formattedDate);
+            log.warn("用户 {} 的文章《{}》大模型审核不通过，标记为违规，时间：{}", context.authorUsername, context.articleName, formattedDate);
         } catch (Exception e) {
             log.error("发送违规通知失败，文章ID: {}, 作者: {}", context.articleId, context.authorUsername, e);
         }
