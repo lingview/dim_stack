@@ -1687,7 +1687,7 @@ export default function SiteSettingsView() {
                                                         name="api_url"
                                                         value={llmConfig.api_url}
                                                         onChange={handleLlmConfigChange}
-                                                        placeholder="例如: https://api.openai.com/v1"
+                                                        placeholder="例如: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
                                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                     />
                                                 </div>
@@ -1702,7 +1702,7 @@ export default function SiteSettingsView() {
                                                         name="model"
                                                         value={llmConfig.model}
                                                         onChange={handleLlmConfigChange}
-                                                        placeholder="例如: gpt-3.5-turbo, gpt-4"
+                                                        placeholder="例如: qwen3.6-plus"
                                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                     />
                                                 </div>
