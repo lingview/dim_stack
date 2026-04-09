@@ -12,6 +12,7 @@ import xyz.lingview.dimstack.service.CacheService;
 import xyz.lingview.dimstack.service.LLMService;
 import xyz.lingview.dimstack.service.LlmConfigService;
 import xyz.lingview.dimstack.service.LlmPromptConfigService;
+import xyz.lingview.dimstack.service.SiteConfigService;
 import xyz.lingview.dimstack.util.LargeLanguageModelsUtil;
 
 /**
@@ -32,6 +33,9 @@ public class LLMServiceImpl implements LLMService {
 
     @Autowired
     private CacheService cacheService;
+
+    @Autowired
+    private SiteConfigService siteConfigService;
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -112,6 +116,14 @@ public class LLMServiceImpl implements LLMService {
     @Override
     public String generateArticle(String description) {
         try {
+            Integer enableLlm = siteConfigService.getEnableLlm();
+            Integer enableLlmCreateArticle = siteConfigService.getEnableLlmCreateArticle();
+            
+            if (enableLlm == null || enableLlm != 1 || enableLlmCreateArticle == null || enableLlmCreateArticle != 1) {
+                log.warn("管理员未开启大模型生成功能");
+                return null;
+            }
+
             LlmConfig llmConfig = llmConfigService.getLlmConfig();
             if (llmConfig == null || llmConfig.getApi_key() == null || llmConfig.getApi_key().trim().isEmpty()) {
                 log.warn("LLM配置不存在或API密钥未配置，无法生成文章");
