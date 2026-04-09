@@ -97,6 +97,8 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const [aiDescription, setAiDescription] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
 
+    const abortControllerRef = useRef(null);
+
     const historyManagerRef = useRef(new HistoryManager());
     const isProcessingHistoryRef = useRef(false);
 
@@ -864,10 +866,13 @@ ${cleanText}
             return;
         }
 
+        abortControllerRef.current = new AbortController();
         setIsGenerating(true);
         try {
             const response = await apiClient.post('/llm/generate', {
                 description: aiDescription
+            }, {
+                signal: abortControllerRef.current.signal
             });
 
             if (response.success && response.data) {
@@ -893,11 +898,25 @@ ${cleanText}
                 alert(response.message || 'AI生成失败，请重试');
             }
         } catch (error) {
+            if (error.name === 'CanceledError' || error.name === 'AbortError') {
+                console.log('AI生成已取消');
+                return;
+            }
             console.error('AI生成错误:', error);
             alert(error.response?.data?.message || error.message || 'AI生成失败，请重试');
         } finally {
             setIsGenerating(false);
+            abortControllerRef.current = null;
         }
+    };
+
+    const handleCancelAiGeneration = () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        setShowAiDialog(false);
+        setAiDescription('');
+        setIsGenerating(false);
     };
 
     return (
@@ -1012,12 +1031,8 @@ ${cleanText}
                         />
                         <div className="flex justify-end space-x-3 mt-4">
                             <button
-                                onClick={() => {
-                                    setShowAiDialog(false);
-                                    setAiDescription('');
-                                }}
-                                disabled={isGenerating}
-                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50"
+                                onClick={handleCancelAiGeneration}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
                             >
                                 取消
                             </button>
