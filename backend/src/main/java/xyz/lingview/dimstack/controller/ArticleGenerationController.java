@@ -21,7 +21,7 @@ public class ArticleGenerationController {
     private LLMService llmService;
 
     @PostMapping("/generate")
-    @RequiresPermission("post:add")
+    @RequiresPermission({"post:add","post:edit"})
     @RateLimit(window = 60, maxRequests = 3)
     public ResponseEntity<Map<String, Object>> generateArticle(
             @RequestBody Map<String, String> request,
