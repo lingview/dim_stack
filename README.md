@@ -34,17 +34,15 @@
 ---
 
 ## 🛠 技术栈
-| 层级 | 技术选型                                   |
-| --- |----------------------------------------|
+| 层级 | 技术选型 |
+| --- | --- |
 | **后端** | Java 17+，Spring Boot 4，MySQL5.7+，Redis |
-| **前端** | React 19，Vite，Tailwind CSS v4           |
-| **构建** | Maven (后端)，npm(前端)                     |
-| **部署** | Docker，Linux，Windows                   |
+| **前端** | React 19，Vite，Tailwind CSS v4 |
+| **构建** | Maven (后端)，npm(前端) |
+| **部署** | Docker，Linux，Windows |
 
 
 ---
-
-
 
 ## 宝塔面板部署
 请移步b站查看部署视频
@@ -84,7 +82,7 @@ java -jar dimstack-1.0-SNAPSHOT.jar --server.port=2223
 http://localhost:2223/init/setup
 ```
 
-![](img.png)![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771939967216-cf2e1778-f2b1-402a-9770-9645247e35ec.png)
+![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771939967216-cf2e1778-f2b1-402a-9770-9645247e35ec.png)
 
 
 
@@ -110,7 +108,6 @@ java -jar dimstack-1.0-SNAPSHOT.jar
 ![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771940913049-420a6404-abee-4d66-9e09-612db7affbd5.png)
 
 ### systemd自启
-
 #### 创建服务文件
 ```bash
 sudo vim /etc/systemd/system/dimstack.service
@@ -200,6 +197,30 @@ v77->v84+
 注：mysql5的兼容更新脚本只支持到5.7，其他版本请自行处理（建议数据库尽快升级至mysql8+）（v82+版本已逐步放弃mysql5.x支持，所以mysql5版本的系统请不要升级）
 ```
 
+## 大模型相关功能
+> 次元栈目前已支持大模型文章内容审核以及文章内容生成
+>
+
+### 大模型配置&使用
+
+![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1775735807997-9a04f9fa-0a89-45e1-a0b2-891f5672081c.png)
+
+#### 文章审核模块的默认提示词
+大模型审核开启后，所有新发布的文章都会优先进行大模型分析，如果审核通过将直接发布，审核违规将直接违规不会通知管理员审核（如果文章作者认为模型判断有误可以自行联系管理员），如果是系统调用出现问题会自动降级到通知有审核权限人员对文章进行审核
+
+![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1775735849836-f7708d71-62c4-44c1-9180-3102c0b5416f.png)
+
+#### 文章生成默认提示词
+文章生成模块开启后用户可以在文章编辑器快捷调用大模型生成文章
+
+![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1775736109003-cc3df008-5aae-4a46-ad51-adda8b7676ef.png)
+
+![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1775736400068-a3b0c8c8-ca3f-47b3-b2d5-ccaf77f0d812.png)
+
+![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1775736278788-b925709a-0f5f-4ac3-901d-057fbe60b960.png)
+
+![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1775736311719-f6967e16-b926-4cdb-8f17-1a0c2acfb185.png)
+
 ## SEO相关
 > 文章内容页已支持SSR并且适配主流搜索引擎，使用动态生成的 robots.txt 以及 sitemap.xml
 >
@@ -217,7 +238,7 @@ v77->v84+
   - Googlebot、Bingbot、Baiduspider、DuckDuckBot、Sogou、360Spider 等
 
 ### SEO优化
-<font style="color:rgba(6, 10, 38, 0.7) !important;">支持动态生成 Sitemap 和 Robots.txt，智能处理反向代理头</font>
+支持动态生成 Sitemap 和 Robots.txt，智能处理反向代理头
 
 针对Google、Bing等主流搜索引擎的爬虫进行了独立优化（未覆盖百度，百度爬虫仅能获取基础信息）
 
