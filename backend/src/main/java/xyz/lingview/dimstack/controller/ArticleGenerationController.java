@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import xyz.lingview.dimstack.annotation.RateLimit;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.service.LLMService;
 
@@ -21,6 +22,7 @@ public class ArticleGenerationController {
 
     @PostMapping("/generate")
     @RequiresPermission("post:add")
+    @RateLimit(window = 60, maxRequests = 3)
     public ResponseEntity<Map<String, Object>> generateArticle(
             @RequestBody Map<String, String> request,
             HttpSession session) {
