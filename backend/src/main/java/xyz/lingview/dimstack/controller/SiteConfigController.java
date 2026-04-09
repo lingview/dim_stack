@@ -63,10 +63,13 @@ public class SiteConfigController {
         try {
             SiteConfig config = siteConfigService.getSiteConfig();
             if (config != null) {
-                config.setMail_password(null);
+                // 创建副本以避免修改内存缓存中的原始对象
+                SiteConfig configCopy = new SiteConfig();
+                org.springframework.beans.BeanUtils.copyProperties(config, configCopy);
+                configCopy.setMail_password(null);
                 return ResponseEntity.ok(Map.of(
                         "success", true,
-                        "data", config
+                        "data", configCopy
                 ));
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -90,8 +93,9 @@ public class SiteConfigController {
     public ResponseEntity<Map<String, Object>> editsiteconfig(@RequestBody SiteConfig siteConfig) {
         log.info("更新站点配置信息");
         try {
-            SiteConfig currentConfig = siteConfigService.getSiteConfig();
-            if (currentConfig == null) {
+            // 从数据库获取最新配置，避免内存缓存模式下的密码被污染
+            SiteConfig dbConfig = siteConfigMapper.getSiteConfig();
+            if (dbConfig == null) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(Map.of(
                                 "success", false,
@@ -99,6 +103,10 @@ public class SiteConfigController {
                         ));
             }
 
+            // 保存原始的邮箱密码，防止内存缓存模式下异常覆盖
+            String originalMailPassword = dbConfig.getMail_password();
+            SiteConfig currentConfig = dbConfig;
+            
             if (siteConfig.getSite_name() != null && !siteConfig.getSite_name().trim().isEmpty()) {
                 currentConfig.setSite_name(siteConfig.getSite_name());
             } else if (currentConfig.getSite_name() == null || currentConfig.getSite_name().trim().isEmpty()) {
@@ -189,8 +197,14 @@ public class SiteConfigController {
             }
 
             if (siteConfig.getMail_password() != null && !siteConfig.getMail_password().isEmpty()) {
+                log.debug("前端提供了新密码，将更新密码");
                 currentConfig.setMail_password(siteConfig.getMail_password());
+            } else {
+                log.debug("前端未提供密码，保留原始密码: {}", originalMailPassword != null ? "***已设置***" : "NULL");
+                currentConfig.setMail_password(originalMailPassword);
             }
+            
+            log.debug("最终用于更新的密码: {}", currentConfig.getMail_password() != null ? "***已设置***" : "NULL");
 
             if (siteConfig.getMail_protocol() != null) {
                 currentConfig.setMail_protocol(siteConfig.getMail_protocol());
