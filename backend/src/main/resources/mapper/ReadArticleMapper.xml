@@ -116,6 +116,13 @@
         WHERE alias = #{alias}
     </update>
 
+    <!-- 批量更新文章阅读量 -->
+    <update id="batchUpdatePageViews">
+        UPDATE article
+        SET page_views = page_views + #{count}
+        WHERE alias = #{alias}
+    </update>
+
     <!--seo用-->
     <!-- 获取所有文章列表（仅别名） -->
     <select id="listAllArticles" resultMap="readArticleMap">

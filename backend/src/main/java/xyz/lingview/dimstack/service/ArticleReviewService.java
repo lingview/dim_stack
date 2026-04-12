@@ -5,6 +5,7 @@ import xyz.lingview.dimstack.dto.response.ArticleReviewListResponseDTO;
 import xyz.lingview.dimstack.dto.response.ArticleReviewStatusResponseDTO;
 import xyz.lingview.dimstack.mapper.ArticleReviewMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
+import xyz.lingview.dimstack.mapper.ReadArticleMapper;
 import xyz.lingview.dimstack.domain.Article;
 import xyz.lingview.dimstack.dto.request.ArticleReviewDTO;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class ArticleReviewService {
 
@@ -36,6 +40,15 @@ public class ArticleReviewService {
 
     @Autowired
     MailService mailService;
+
+    @Autowired
+    private CacheService cacheService;
+
+    @Autowired
+    private ReadArticleMapper readArticleMapper;
+
+    @Autowired
+    private PageViewCounterService pageViewCounterService;
 
     public ArticleReviewListResponseDTO getUnreviewedArticles(Integer page, Integer size) {
         int offset = (page - 1) * size;
@@ -86,6 +99,9 @@ public class ArticleReviewService {
 
     public ArticleReviewStatusResponseDTO updateArticleStatus(String articleId, Byte status) {
         articleReviewMapper.updateArticleStatus(articleId, status);
+        
+        invalidateArticleCache(articleId);
+        
         ArticleReviewStatusResponseDTO result = new ArticleReviewStatusResponseDTO();
         result.setSuccess(true);
         result.setMessage("文章状态更新成功");
@@ -111,5 +127,19 @@ public class ArticleReviewService {
             notificationService.sendSystemNotification(username, "系统通知", "您的文章：" + "《" + article_name + "》" +" 于 " + formattedDate + " 完成审核，审核结果为：" + statusDescription);
         }
         return result;
+    }
+
+    private void invalidateArticleCache(String articleId) {
+        try {
+            xyz.lingview.dimstack.domain.ReadArticle article = readArticleMapper.selectByArticleId(articleId);
+            if (article != null && article.getAlias() != null) {
+                String cacheKey = "dimstack:article:" + article.getAlias();
+                cacheService.delete(cacheKey);
+                pageViewCounterService.removePageView(article.getAlias());
+                log.info("审核操作已清除文章缓存和浏览量计数器: {}", cacheKey);
+            }
+        } catch (Exception e) {
+            log.warn("清除文章缓存失败，articleId: {}", articleId, e);
+        }
     }
 }

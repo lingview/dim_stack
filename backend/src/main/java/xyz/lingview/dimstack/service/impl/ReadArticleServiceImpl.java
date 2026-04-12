@@ -14,6 +14,7 @@ import xyz.lingview.dimstack.service.CacheService;
 import xyz.lingview.dimstack.service.MailService;
 import xyz.lingview.dimstack.service.NotificationService;
 import xyz.lingview.dimstack.service.ReadArticleService;
+import xyz.lingview.dimstack.service.PageViewCounterService;
 import xyz.lingview.dimstack.util.SiteConfigUtil;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,9 @@ public class ReadArticleServiceImpl implements ReadArticleService {
     @Autowired
     private MailService mailService;
 
+    @Autowired
+    private PageViewCounterService pageViewCounterService;
+
     @Override
     public boolean isArticleNeedPassword(String alias) {
         return readArticleMapper.isArticleNeedPassword(alias);
@@ -60,7 +64,37 @@ public class ReadArticleServiceImpl implements ReadArticleService {
 
     @Override
     public ReadArticle getArticleByAlias(String alias, String password) throws Exception {
-        ReadArticle article = readArticleMapper.selectByAlias(alias);
+        String cacheKey = "dimstack:article:" + alias;
+        ReadArticle article = cacheService.get(cacheKey, ReadArticle.class);
+        
+        if (article != null) {
+            log.debug("文章缓存命中: {}", alias);
+            if (article.getPassword() != null && !article.getPassword().isEmpty()) {
+                if (password == null) {
+                    throw new Exception("文章密码错误");
+                }
+                if (!BCrypt.checkpw(password, article.getPassword())) {
+                    throw new Exception("文章密码错误");
+                }
+            }
+            
+            Long currentPageViews = pageViewCounterService.getPageView(alias);
+            if (currentPageViews == null) {
+                pageViewCounterService.initializePageView(alias, article.getPage_views());
+            }
+            pageViewCounterService.incrementPageView(alias);
+            
+            ReadArticle result = new ReadArticle();
+            org.springframework.beans.BeanUtils.copyProperties(article, result);
+            Long pageViews = pageViewCounterService.getPageView(alias);
+            if (pageViews != null) {
+                result.setPage_views(pageViews);
+            }
+            return result;
+        }
+        
+        log.info("文章缓存未命中，从数据库加载: {}", alias);
+        article = readArticleMapper.selectByAlias(alias);
         if (article == null) {
             throw new Exception("文章不存在");
         }
@@ -73,14 +107,26 @@ public class ReadArticleServiceImpl implements ReadArticleService {
                 throw new Exception("文章密码错误");
             }
         }
-        readArticleMapper.updatePageViews(alias);
+        
+        pageViewCounterService.initializePageView(alias, article.getPage_views());
+        pageViewCounterService.incrementPageView(alias);
+        
+        ReadArticle result = new ReadArticle();
+        org.springframework.beans.BeanUtils.copyProperties(article, result);
+        Long pageViews = pageViewCounterService.getPageView(alias);
+        if (pageViews != null) {
+            result.setPage_views(pageViews);
+        }
+        
+        cacheService.set(cacheKey, article, 30, TimeUnit.MINUTES);
+        log.info("文章已缓存: {}, 键: {}", alias, cacheKey);
 
-        return article;
+        return result;
     }
 
     @Override
     public void updatePageViews(String alias) {
-        readArticleMapper.updatePageViews(alias);
+        pageViewCounterService.incrementPageView(alias);
     }
 
 
@@ -173,6 +219,11 @@ public class ReadArticleServiceImpl implements ReadArticleService {
             articleMapper.updateArticleLikeCount(article.getArticle_id(), newLikeCount);
             sendLikeNotification(article, username);
         }
+        
+        String cacheKey = "dimstack:article:" + articleAlias;
+        cacheService.delete(cacheKey);
+        pageViewCounterService.removePageView(articleAlias);
+        log.info("点赞操作已清除文章缓存和浏览量计数器: {}", cacheKey);
     }
 
     @Override

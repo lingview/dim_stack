@@ -18,6 +18,7 @@ public interface ReadArticleMapper {
 
     void updatePageViews(@Param("alias") String alias);
 
+    void batchUpdatePageViews(@Param("alias") String alias, @Param("count") Long count);
     // seo优化用
     List<ReadArticle> listAllArticles();
     List<String> listAllCategories();

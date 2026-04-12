@@ -60,6 +60,15 @@ public class EditArticleServiceImpl implements EditArticleService {
     @Autowired
     private UserPermissionMapper userPermissionMapper;
 
+    @Autowired
+    private ReadArticleMapper readArticleMapper;
+
+    @Autowired
+    private CacheService cacheService;
+
+    @Autowired
+    private PageViewCounterService pageViewCounterService;
+
     @Override
     public Map<String, Object> getArticleListByUsername(String username, Integer page, Integer size) {
         Map<String, Object> result = new HashMap<>();
@@ -322,6 +331,7 @@ public class EditArticleServiceImpl implements EditArticleService {
 
             if (result) {
                 log.info("文章更新成功，article_id: {}", updateArticleDTO.getArticle_id());
+                invalidateArticleCache(updateArticleDTO.getArticle_id());
                 sendUpdateNotification(sessionUsername, updateArticleDTO.getArticle_id());
                 
                 return ArticleOperationResult.builder()
@@ -351,6 +361,7 @@ public class EditArticleServiceImpl implements EditArticleService {
             if (result) {
                 String articleCategory = articleCategoryMapper.getCategoryByArticleId(articleId);
                 articleCategoryMapper.decrementCount(articleCategory);
+                invalidateArticleCache(articleId);
                 sendDeleteNotification(sessionUsername, articleId);
                 
                 return ArticleOperationResult.builder()
@@ -388,6 +399,7 @@ public class EditArticleServiceImpl implements EditArticleService {
             boolean result = unpublishArticle(articleId, sessionUsername);
 
             if (result) {
+                invalidateArticleCache(articleId);
                 return ArticleOperationResult.builder()
                     .success(true)
                     .message("文章已取消发布")
@@ -470,6 +482,7 @@ public class EditArticleServiceImpl implements EditArticleService {
             }
 
             if (result > 0) {
+                invalidateArticleCache(articleId);
                 return ArticleOperationResult.builder()
                     .success(true)
                     .message("文章已发布")
@@ -515,6 +528,7 @@ public class EditArticleServiceImpl implements EditArticleService {
             int result = editArticleMapper.removeArticlePassword(params);
 
             if (result > 0) {
+                invalidateArticleCache(articleId);
                 return ArticleOperationResult.builder()
                     .success(true)
                     .message("文章密码已移除")
@@ -732,10 +746,12 @@ public class EditArticleServiceImpl implements EditArticleService {
                 if (reviewResult == AiReviewResult.PASS) {
                     log.info("文章 {} 大模型审核通过，自动发布", context.articleId);
                     editArticleMapper.updateArticleStatus(context.articleId, 1);
+                    invalidateArticleCache(context.articleId);
                     sendAutoApprovalNotificationWithInfo(context);
                 } else if (reviewResult == AiReviewResult.REJECT) {
                     log.warn("文章 {} 大模型审核不通过，标记为违规", context.articleId);
                     editArticleMapper.updateArticleStatus(context.articleId, 4);
+                    invalidateArticleCache(context.articleId);
                     sendViolationNotificationWithInfo(context);
                 } else {
                     log.warn("文章 {} 大模型审核异常，保持待审核状态，等待人工审核", context.articleId);
@@ -849,6 +865,20 @@ public class EditArticleServiceImpl implements EditArticleService {
             }
         } catch (Exception e) {
             log.error("发送审核通知失败，文章ID: {}, 作者: {}", context.articleId, context.authorUsername, e);
+        }
+    }
+
+    private void invalidateArticleCache(String articleId) {
+        try {
+            xyz.lingview.dimstack.domain.ReadArticle article = readArticleMapper.selectByArticleId(articleId);
+            if (article != null && article.getAlias() != null) {
+                String cacheKey = "dimstack:article:" + article.getAlias();
+                cacheService.delete(cacheKey);
+                pageViewCounterService.removePageView(article.getAlias());
+                log.info("已清除文章缓存和浏览量计数器: {}", cacheKey);
+            }
+        } catch (Exception e) {
+            log.warn("清除文章缓存失败，articleId: {}", articleId, e);
         }
     }
 }
