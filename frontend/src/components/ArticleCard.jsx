@@ -62,7 +62,7 @@ export default function ArticleCard({
         return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     };
 
-    const handleCardClick = () => navigate(`/article/${safeArticle.alias}`);
+    const handleCardClick = () => navigate(`/article/${safeArticle.alias}`, { state: { needPassword: safeArticle.password } });
 
     const handleTagClick = (tag) => {
         onTagClick ? onTagClick(tag) : navigate(`/tag/${encodeURIComponent(tag)}`);

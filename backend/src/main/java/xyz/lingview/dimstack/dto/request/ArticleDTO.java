@@ -16,4 +16,5 @@ public class ArticleDTO {
     private String category;
     private String tag;
     private String alias;
+    private Boolean password;
 }

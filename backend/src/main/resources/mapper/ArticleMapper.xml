@@ -15,6 +15,7 @@
         <result property="category" column="category"/>
         <result property="tag" column="tag"/>
         <result property="alias" column="alias"/>
+        <result property="password" column="password"/>
     </resultMap>
 
     <!-- 查询首页文章列表 -->
@@ -34,7 +35,8 @@
         ELSE CONCAT(p.article_categories, '/', c.article_categories)
         END AS category,
         a.alias,
-        t.tag
+        t.tag,
+        CASE WHEN a.password IS NOT NULL AND a.password != '' THEN true ELSE false END AS password
         FROM (
         SELECT id, category_id
         FROM article
@@ -54,7 +56,7 @@
         LIMIT #{param1}, #{param2}
         ) page
         JOIN article a ON page.id = a.id
-        JOIN user_information u ON a.uuid = u.uuid  <!-- 确保此处关联的是用户唯一标识 -->
+        JOIN user_information u ON a.uuid = u.uuid
         LEFT JOIN article_categories c ON a.category_id = c.id
         LEFT JOIN article_categories p ON c.parent_id = p.id
         LEFT JOIN (

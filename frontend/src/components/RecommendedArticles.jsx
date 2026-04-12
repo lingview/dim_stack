@@ -118,7 +118,7 @@ export default function RecommendedArticles() {
                         hotArticles.map((article) => (
                             <li key={article.id} className="group">
                                 <button
-                                    onClick={() => navigate(`/article/${article.alias}`)}
+                                    onClick={() => navigate(`/article/${article.alias}`, { state: { needPassword: article.password } })}
                                     className="block w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-all duration-200 ease-in-out"
                                 >
                                     <h4 className="font-medium text-gray-900 group-hover:text-blue-600 line-clamp-2 break-words">

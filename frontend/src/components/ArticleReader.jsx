@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { getConfig } from '../utils/config';
 import apiClient from '../utils/axios';
 import Header from './Header';
@@ -12,6 +12,7 @@ import TableOfContents from './TableOfContents.jsx';
 
 export default function ArticleReader() {
     const { articleId } = useParams();
+    const location = useLocation();
     const [article, setArticle] = useState(null);
     const [needPassword, setNeedPassword] = useState(false);
     const [password, setPassword] = useState('');
@@ -39,7 +40,16 @@ export default function ArticleReader() {
     };
 
     useEffect(() => {
-        checkPasswordRequirement();
+        const needPwd = location.state?.needPassword;
+        if (needPwd === true) {
+            setNeedPassword(true);
+            setShowPasswordInput(true);
+            setLoading(false);
+        } else if (needPwd === false) {
+            fetchArticleContent();
+        } else {
+            checkPasswordRequirement();
+        }
     }, [articleId]);
 
     useEffect(() => {
