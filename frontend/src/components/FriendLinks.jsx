@@ -27,9 +27,15 @@ const FriendLinks = () => {
 
     const [isFetchingIcon, setIsFetchingIcon] = useState(false);
     const [iconLoadError, setIconLoadError] = useState(false);
+    const [globalHeadCode, setGlobalHeadCode] = useState('');
+    const [footerCode, setFooterCode] = useState('');
+    const [copyright, setCopyright] = useState('');
+    const [icpRecord, setIcpRecord] = useState('');
+    const [mpsRecord, setMpsRecord] = useState('');
 
     useEffect(() => {
         loadFriendLinks();
+        loadSiteInfo();
     }, [currentPage]);
 
     const fetchSiteIcon = async (siteUrl) => {
@@ -125,6 +131,31 @@ const FriendLinks = () => {
         }
     };
 
+    const loadSiteInfo = async () => {
+        try {
+            const globalHeadResponse = await apiClient.get('/site/global-head-code');
+            if (globalHeadResponse?.data?.globalHeadCode) {
+                setGlobalHeadCode(globalHeadResponse.data.globalHeadCode);
+            }
+
+            const footerResponse = await apiClient.get('/site/footer-code');
+            if (footerResponse?.data?.footerCode) {
+                setFooterCode(footerResponse.data.footerCode);
+            }
+
+            const copyrightResponse = await apiClient.get('/site/copyright');
+            if (copyrightResponse) setCopyright(copyrightResponse);
+
+            const icpResponse = await apiClient.get('/site/icp-record');
+            if (icpResponse) setIcpRecord(icpResponse);
+
+            const mpsResponse = await apiClient.get('/site/mps-record');
+            if (mpsResponse) setMpsRecord(mpsResponse);
+        } catch (error) {
+            console.error('加载站点信息失败:', error);
+        }
+    };
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
@@ -171,8 +202,42 @@ const FriendLinks = () => {
         if (newPage >= 1 && newPage <= totalPages) setCurrentPage(newPage);
     };
 
+    useEffect(() => {
+        if (globalHeadCode) {
+            const container = document.createElement('div');
+            container.innerHTML = globalHeadCode;
+            
+            const scripts = container.querySelectorAll('script');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                Array.from(script.attributes).forEach(attr => {
+                    newScript.setAttribute(attr.name, attr.value);
+                });
+                newScript.textContent = script.textContent;
+                document.head.appendChild(newScript);
+            });
+
+            const styles = container.querySelectorAll('style');
+            styles.forEach(style => {
+                const newStyle = document.createElement('style');
+                Array.from(style.attributes).forEach(attr => {
+                    newStyle.setAttribute(attr.name, attr.value);
+                });
+                newStyle.textContent = style.textContent;
+                document.head.appendChild(newStyle);
+            });
+
+            const otherElements = container.querySelectorAll(':not(script):not(style)');
+            otherElements.forEach(element => {
+                if (element.parentElement === container) {
+                    document.head.appendChild(element.cloneNode(true));
+                }
+            });
+        }
+    }, [globalHeadCode]);
+
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen bg-gray-50">
             <Header />
 
             <div className="pt-20">
@@ -452,6 +517,41 @@ const FriendLinks = () => {
                     </main>
                 </div>
             </div>
+
+            <footer className="bg-white mt-auto">
+                <div className="container mx-auto px-4 py-8">
+                    <div className="text-center text-gray-600">
+                        <p>{copyright}</p>
+                        {icpRecord && (
+                            <p className="mt-2">
+                                <a
+                                    href="https://beian.miit.gov.cn"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-600 hover:text-blue-600 text-sm"
+                                >
+                                    {icpRecord}
+                                </a>
+                            </p>
+                        )}
+                        {mpsRecord && (
+                            <p className="mt-1">
+                                <a
+                                    href="http://www.beian.gov.cn"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-gray-600 hover:text-blue-600 text-sm"
+                                >
+                                    {mpsRecord}
+                                </a>
+                            </p>
+                        )}
+                        {footerCode && (
+                            <div dangerouslySetInnerHTML={{ __html: footerCode }} />
+                        )}
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 };

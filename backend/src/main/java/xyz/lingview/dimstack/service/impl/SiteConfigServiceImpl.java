@@ -187,4 +187,31 @@ public class SiteConfigServiceImpl implements SiteConfigService {
         }
         return null;
     }
+
+    @Override
+    public String getGlobalHeadCode() {
+        SiteConfig config = getSiteConfig();
+        if (config != null) {
+            return config.getGlobal_head_code();
+        }
+        return null;
+    }
+
+    @Override
+    public String getContentHeadCode() {
+        SiteConfig config = getSiteConfig();
+        if (config != null) {
+            return config.getContent_head_code();
+        }
+        return null;
+    }
+
+    @Override
+    public String getFooterCode() {
+        SiteConfig config = getSiteConfig();
+        if (config != null) {
+            return config.getFooter_code();
+        }
+        return null;
+    }
 }

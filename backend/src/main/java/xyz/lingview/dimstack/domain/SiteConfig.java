@@ -34,4 +34,7 @@ public class SiteConfig {
     private Integer enable_llm;
     private Integer enable_llm_article_review;
     private Integer enable_llm_create_article;
+    private String global_head_code;
+    private String content_head_code;
+    private String footer_code;
 }

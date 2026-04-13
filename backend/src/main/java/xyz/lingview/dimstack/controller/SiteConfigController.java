@@ -36,6 +36,9 @@ public class SiteConfigController {
     @Autowired
     private MailService mailService;
 
+    @Autowired
+    private xyz.lingview.dimstack.service.CacheService cacheService;
+
     @GetMapping("/hero")
     public HeroDTO getHeroConfig() {
         return siteConfigService.getHeroConfig();
@@ -252,6 +255,18 @@ public class SiteConfigController {
                 currentConfig.setEnable_llm_create_article(siteConfig.getEnable_llm_create_article());
             }
 
+            if (siteConfig.getGlobal_head_code() != null) {
+                currentConfig.setGlobal_head_code(siteConfig.getGlobal_head_code());
+            }
+
+            if (siteConfig.getContent_head_code() != null) {
+                currentConfig.setContent_head_code(siteConfig.getContent_head_code());
+            }
+
+            if (siteConfig.getFooter_code() != null) {
+                currentConfig.setFooter_code(siteConfig.getFooter_code());
+            }
+
             boolean result = siteConfigService.updateSiteConfig(currentConfig);
 
             if (result) {
@@ -427,6 +442,60 @@ public class SiteConfigController {
                     .body(Map.of(
                             "success", false,
                             "message", "获取LLM生成文章状态失败: " + e.getMessage()
+                    ));
+        }
+    }
+
+    @GetMapping("/global-head-code")
+    public ResponseEntity<Map<String, Object>> getGlobalHeadCode() {
+        try {
+            String globalHeadCode = siteConfigService.getGlobalHeadCode();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "data", Map.of("globalHeadCode", globalHeadCode != null ? globalHeadCode : "")
+            ));
+        } catch (Exception e) {
+            log.error("获取全局Head代码失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "获取全局Head代码失败: " + e.getMessage()
+                    ));
+        }
+    }
+
+    @GetMapping("/content-head-code")
+    public ResponseEntity<Map<String, Object>> getContentHeadCode() {
+        try {
+            String contentHeadCode = siteConfigService.getContentHeadCode();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "data", Map.of("contentHeadCode", contentHeadCode != null ? contentHeadCode : "")
+            ));
+        } catch (Exception e) {
+            log.error("获取内容页Head代码失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "获取内容页Head代码失败: " + e.getMessage()
+                    ));
+        }
+    }
+
+    @GetMapping("/footer-code")
+    public ResponseEntity<Map<String, Object>> getFooterCode() {
+        try {
+            String footerCode = siteConfigService.getFooterCode();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "data", Map.of("footerCode", footerCode != null ? footerCode : "")
+            ));
+        } catch (Exception e) {
+            log.error("获取页脚代码失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "获取页脚代码失败: " + e.getMessage()
                     ));
         }
     }

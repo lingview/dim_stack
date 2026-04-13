@@ -147,4 +147,34 @@ public class SiteConfigUtil {
         }
         return false;
     }
+
+    public String getGlobalHeadCode() {
+        try {
+            SiteConfig siteConfig = cacheService.get("dimstack:site_config", SiteConfig.class);
+            return siteConfig != null ? siteConfig.getGlobal_head_code() : null;
+        } catch (Exception e) {
+            log.warn("获取全局Head代码时发生异常", e);
+            return null;
+        }
+    }
+
+    public String getContentHeadCode() {
+        try {
+            SiteConfig siteConfig = cacheService.get("dimstack:site_config", SiteConfig.class);
+            return siteConfig != null ? siteConfig.getContent_head_code() : null;
+        } catch (Exception e) {
+            log.warn("获取内容页Head代码时发生异常", e);
+            return null;
+        }
+    }
+
+    public String getFooterCode() {
+        try {
+            SiteConfig siteConfig = cacheService.get("dimstack:site_config", SiteConfig.class);
+            return siteConfig != null ? siteConfig.getFooter_code() : null;
+        } catch (Exception e) {
+            log.warn("获取页脚代码时发生异常", e);
+            return null;
+        }
+    }
 }

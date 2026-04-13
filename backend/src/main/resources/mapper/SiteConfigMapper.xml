@@ -36,7 +36,10 @@
             admin_post_no_review as admin_post_no_review,
             enable_llm as enable_llm,
             enable_llm_article_review as enable_llm_article_review,
-            enable_llm_create_article as enable_llm_create_article
+            enable_llm_create_article as enable_llm_create_article,
+            global_head_code as global_head_code,
+            content_head_code as content_head_code,
+            footer_code as footer_code
         FROM site_config
         WHERE id = 1
     </select>
@@ -107,7 +110,10 @@
             admin_post_no_review = #{admin_post_no_review},
             enable_llm = #{enable_llm},
             enable_llm_article_review = #{enable_llm_article_review},
-            enable_llm_create_article = #{enable_llm_create_article}
+            enable_llm_create_article = #{enable_llm_create_article},
+            global_head_code = #{global_head_code},
+            content_head_code = #{content_head_code},
+            footer_code = #{footer_code}
         WHERE id = 1
     </update>
 

@@ -20,6 +20,9 @@ public interface SiteConfigService {
     Integer getEnableLlm();
     Integer getEnableLlmArticleReview();
     Integer getEnableLlmCreateArticle();
+    String getGlobalHeadCode();
+    String getContentHeadCode();
+    String getFooterCode();
 
     default xyz.lingview.dimstack.domain.MailConfig getMailConfig() {
         SiteConfig siteConfig = getSiteConfig();

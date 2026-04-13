@@ -19,6 +19,8 @@ export default function Home() {
     const [icpRecord, setIcpRecord] = useState('');
     const [mpsRecord, setMpsRecord] = useState('');
     const [showImages, setShowImages] = useState(true);
+    const [globalHeadCode, setGlobalHeadCode] = useState('');
+    const [footerCode, setFooterCode] = useState('');
     const [forceMobile, setForceMobile] = useState(() => {
         if (typeof window !== 'undefined') return window.innerWidth < 768;
         return false;
@@ -51,6 +53,7 @@ export default function Home() {
         loadArticlesFromUrl();
         loadCopyright();
         loadSiteRecords();
+        loadCodeInjection();
     }, [location.search, location.pathname, page, tagName]);
 
     useEffect(() => {
@@ -101,6 +104,56 @@ export default function Home() {
             console.error('加载备案信息失败:', error);
         }
     };
+
+    const loadCodeInjection = async () => {
+        try {
+            const globalHeadResponse = await apiClient.get('/site/global-head-code');
+            if (globalHeadResponse?.data?.globalHeadCode) {
+                setGlobalHeadCode(globalHeadResponse.data.globalHeadCode);
+            }
+
+            const footerResponse = await apiClient.get('/site/footer-code');
+            if (footerResponse?.data?.footerCode) {
+                setFooterCode(footerResponse.data.footerCode);
+            }
+        } catch (error) {
+            console.error('加载代码注入配置失败:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (globalHeadCode) {
+            const container = document.createElement('div');
+            container.innerHTML = globalHeadCode;
+            
+            const scripts = container.querySelectorAll('script');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                Array.from(script.attributes).forEach(attr => {
+                    newScript.setAttribute(attr.name, attr.value);
+                });
+                newScript.textContent = script.textContent;
+                document.head.appendChild(newScript);
+            });
+
+            const styles = container.querySelectorAll('style');
+            styles.forEach(style => {
+                const newStyle = document.createElement('style');
+                Array.from(style.attributes).forEach(attr => {
+                    newStyle.setAttribute(attr.name, attr.value);
+                });
+                newStyle.textContent = style.textContent;
+                document.head.appendChild(newStyle);
+            });
+
+            const otherElements = container.querySelectorAll(':not(script):not(style)');
+            otherElements.forEach(element => {
+                if (element.parentElement === container) {
+                    document.head.appendChild(element.cloneNode(true));
+                }
+            });
+        }
+    }, [globalHeadCode]);
 
     const handleCategoryChange = (category) => {
         navigate(`/category?name=${encodeURIComponent(category)}`);
@@ -260,6 +313,9 @@ export default function Home() {
                                     {mpsRecord}
                                 </a>
                             </p>
+                        )}
+                        {footerCode && (
+                            <div dangerouslySetInnerHTML={{ __html: footerCode }} />
                         )}
                     </div>
                 </div>

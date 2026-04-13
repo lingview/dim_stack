@@ -87,7 +87,10 @@ export default function SiteSettingsView() {
         admin_post_no_review: 0,
         enable_llm: 0,
         enable_llm_article_review: 0,
-        enable_llm_create_article: 0
+        enable_llm_create_article: 0,
+        global_head_code: '',
+        content_head_code: '',
+        footer_code: ''
     });
 
     const [uploadQueue, setUploadQueue] = useState([]);
@@ -118,7 +121,8 @@ export default function SiteSettingsView() {
         { id: 'user', name: '用户权限' },
         { id: 'notification', name: '通知服务' },
         { id: 'llm', name: '大模型配置' },
-        { id: 'extension', name: '扩展设置' }
+        { id: 'extension', name: '扩展设置' },
+        { id: 'codeinjection', name: '代码注入' }
     ];
 
     useEffect(() => {
@@ -146,6 +150,9 @@ export default function SiteSettingsView() {
                     hero_subtitle: escapeHtml(response.data.hero_subtitle) || '',
                     hero_image: response.data.hero_image || '',
                     site_icon: response.data.site_icon || '',
+                    global_head_code: escapeHtml(response.data.global_head_code) || '',
+                    content_head_code: escapeHtml(response.data.content_head_code) || '',
+                    footer_code: escapeHtml(response.data.footer_code) || '',
                     enable_notification: response.data.enable_notification !== undefined ? response.data.enable_notification : false,
                     smtp_host: escapeHtml(response.data.smtp_host) || '',
                     mail_sender_email: escapeHtml(response.data.mail_sender_email) || '',
@@ -590,6 +597,9 @@ export default function SiteSettingsView() {
                 hero_subtitle: unescapeHtml(formData.hero_subtitle),
                 hero_image: formData.hero_image,
                 site_icon: formData.site_icon,
+                global_head_code: unescapeHtml(formData.global_head_code),
+                content_head_code: unescapeHtml(formData.content_head_code),
+                footer_code: unescapeHtml(formData.footer_code),
                 register_user_permission: parseInt(formData.register_user_permission, 10),
                 article_status: parseInt(formData.article_status, 10),
                 expansion_server: unescapeHtml(formData.expansion_server),
@@ -1748,6 +1758,70 @@ export default function SiteSettingsView() {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     placeholder="请输入扩展服务器地址"
                                 />
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'codeinjection' && (
+                        <div className="space-y-6">
+                            <div className="bg-blue-50 p-3 rounded-md">
+                                <p className="text-sm text-blue-700">
+                                    <strong>说明：</strong>以下配置项支持输入HTML代码，可用于注入统计代码、SEO标签、自定义脚本等内容
+                                </p>
+                            </div>
+
+                            <div>
+                                <label htmlFor="global_head_code" className="block text-sm font-medium text-gray-700 mb-1">
+                                    全局 Head 标签
+                                </label>
+                                <textarea
+                                    id="global_head_code"
+                                    name="global_head_code"
+                                    value={unescapeHtml(formData.global_head_code)}
+                                    onChange={handleInputChange}
+                                    rows={8}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                                    placeholder="注入代码到所有页面的 head 标签部分，例如统计代码、SEO标签等"
+                                />
+                                <p className="mt-1 text-xs text-gray-500">
+                                    提示：可以输入HTML代码，将注入到所有页面的 &lt;head&gt; 标签中
+                                </p>
+                            </div>
+
+                            <div>
+                                <label htmlFor="content_head_code" className="block text-sm font-medium text-gray-700 mb-1">
+                                    内容页 Head 标签
+                                </label>
+                                <textarea
+                                    id="content_head_code"
+                                    name="content_head_code"
+                                    value={unescapeHtml(formData.content_head_code)}
+                                    onChange={handleInputChange}
+                                    rows={8}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                                    placeholder="注入代码到文章页面和自定义页面的 head 标签部分"
+                                />
+                                <p className="mt-1 text-xs text-gray-500">
+                                    提示：可以输入HTML代码，将注入到文章页面和自定义页面的 &lt;head&gt; 标签中
+                                </p>
+                            </div>
+
+                            <div>
+                                <label htmlFor="footer_code" className="block text-sm font-medium text-gray-700 mb-1">
+                                    页脚
+                                </label>
+                                <textarea
+                                    id="footer_code"
+                                    name="footer_code"
+                                    value={unescapeHtml(formData.footer_code)}
+                                    onChange={handleInputChange}
+                                    rows={8}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                                    placeholder="注入代码到所有页面的页脚部分，例如备案信息、自定义脚本等"
+                                />
+                                <p className="mt-1 text-xs text-gray-500">
+                                    提示：可以输入HTML代码，将注入到所有页面的页脚部分
+                                </p>
                             </div>
                         </div>
                     )}
