@@ -32,6 +32,7 @@ export default function Header() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [siteName, setSiteName] = useState('')
     const [menus, setMenus] = useState([])
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
     useEffect(() => {
         const storedIsLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -145,11 +146,14 @@ export default function Header() {
             if (isMobileMenuOpen && !event.target.closest('header')) {
                 setIsMobileMenuOpen(false)
             }
+            if (isUserMenuOpen && !event.target.closest('.user-menu-container')) {
+                setIsUserMenuOpen(false)
+            }
         }
 
         document.addEventListener('click', handleClickOutside)
         return () => document.removeEventListener('click', handleClickOutside)
-    }, [isMobileMenuOpen])
+    }, [isMobileMenuOpen, isUserMenuOpen])
 
     return (
         <header className="bg-white shadow border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
@@ -215,25 +219,37 @@ export default function Header() {
                         </button>
 
                         {isLoggedIn ? (
-                            <div className="relative group hidden md:flex items-center space-x-3">
-                                {avatar && (
-                                    <img
-                                        src={avatar}
-                                        alt={username}
-                                        className="w-8 h-8 rounded-full object-cover"
-                                        onError={(e) => {
-                                            e.target.src = '/default_avatar.png';
-                                        }}
-                                    />
-                                )}
-                                <span className="text-gray-700 cursor-pointer truncate max-w-[120px]" title={username}>
-                                    欢迎, {username}
-                                </span>
-                                <div className="absolute top-full right-0 mt-2 w-48 bg-white shadow-lg rounded-md overflow-hidden opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200 z-50 border border-gray-200">
+                            <div 
+                                className="relative group user-menu-container hidden md:flex items-center space-x-3"
+                                onMouseEnter={() => setIsUserMenuOpen(true)}
+                                onMouseLeave={() => setIsUserMenuOpen(false)}
+                            >
+                                <button
+                                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                                    className="flex items-center space-x-3 focus:outline-none"
+                                >
+                                    {avatar && (
+                                        <img
+                                            src={avatar}
+                                            alt={username}
+                                            className="w-8 h-8 rounded-full object-cover"
+                                            onError={(e) => {
+                                                e.target.src = '/default_avatar.png';
+                                            }}
+                                        />
+                                    )}
+                                    <span className="text-gray-700 cursor-pointer truncate max-w-[120px]" title={username}>
+                                        欢迎, {username}
+                                    </span>
+                                </button>
+                                <div className={`absolute top-full right-0 mt-2 w-48 bg-white shadow-lg rounded-md overflow-hidden transition-all duration-200 z-50 border border-gray-200 ${
+                                    isUserMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+                                }`}>
                                     <button
                                         onClick={() => {
                                             navigate('/dashboard')
                                             closeMobileMenu()
+                                            setIsUserMenuOpen(false)
                                         }}
                                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                     >
