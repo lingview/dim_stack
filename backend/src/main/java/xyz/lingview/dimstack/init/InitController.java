@@ -56,6 +56,7 @@ public class InitController {
             @RequestParam(required = false) String uploadDir,
             @RequestParam(required = false) String logRoot,
             @RequestParam(defaultValue = "false") boolean onlyGenerateConfig,
+            @RequestParam(defaultValue = "false") boolean enableVirtualThreads,
             Model model) {
 
         try {
@@ -63,7 +64,7 @@ public class InitController {
             generateApplicationYml(adminUsername, adminPassword, serverPort,
                     mysqlHost, mysqlPort, mysqlDatabase, mysqlUser, mysqlPassword,
                     enableRedis, redisHost, redisPort, redisPassword, redisDatabase,
-                    hasAdvanced, logLevel, dataRoot, uploadDir, logRoot);
+                    hasAdvanced, logLevel, dataRoot, uploadDir, logRoot, enableVirtualThreads);
 
             if (!onlyGenerateConfig) {
                 // 初始化数据库
@@ -257,7 +258,8 @@ public class InitController {
                                         String mysqlUser, String mysqlPassword,
                                         boolean enableRedis, String redisHost, Integer redisPort, String redisPassword,
                                         Integer redisDatabase, boolean hasAdvanced,
-                                        String logLevel, String dataRoot, String uploadDir, String logRoot) throws IOException {
+                                        String logLevel, String dataRoot, String uploadDir, String logRoot,
+                                        boolean enableVirtualThreads) throws IOException {
 
         StringBuilder ymlContent = new StringBuilder();
 
@@ -267,6 +269,11 @@ public class InitController {
 
         // Spring配置
         ymlContent.append("spring:\n");
+        if (enableVirtualThreads) {
+            ymlContent.append("  threads:\n");
+            ymlContent.append("    virtual:\n");
+            ymlContent.append("      enabled: true\n");
+        }
         ymlContent.append("  jackson:\n");
         ymlContent.append("    time-zone: GMT+8\n");
         ymlContent.append("    date-format: yyyy-MM-dd HH:mm:ss\n");
