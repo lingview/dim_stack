@@ -5,7 +5,10 @@ export default function TableOfContents({ article }) {
     const [headings, setHeadings] = useState([]);
     const [activeId, setActiveId] = useState('');
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [showBottomGradient, setShowBottomGradient] = useState(false);
+    const [showTopGradient, setShowTopGradient] = useState(false);
     const headingElementsRef = useRef([]);
+    const listRef = useRef(null);
     const isScrollingRef = useRef(false);
 
     const cleanHeadingText = (html) => {
@@ -97,6 +100,29 @@ export default function TableOfContents({ article }) {
     }, [article]);
 
     useEffect(() => {
+        const el = listRef.current;
+        if (!el) return;
+
+        const checkScroll = () => {
+            const canScroll = el.scrollHeight > el.clientHeight;
+            const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 4;
+            const atTop = el.scrollTop <= 4;
+            setShowBottomGradient(canScroll && !atBottom);
+            setShowTopGradient(canScroll && !atTop);
+        };
+
+        checkScroll();
+        el.addEventListener('scroll', checkScroll);
+        const ro = new ResizeObserver(checkScroll);
+        ro.observe(el);
+
+        return () => {
+            el.removeEventListener('scroll', checkScroll);
+            ro.disconnect();
+        };
+    }, [headings]);
+
+    useEffect(() => {
         if (headings.length === 0) return;
 
         const updateHeadingElements = () => {
@@ -186,7 +212,12 @@ export default function TableOfContents({ article }) {
                     </div>
                 </div>
                 <div className="p-4">
-                    <nav className="space-y-1 max-h-96 overflow-y-auto toc-nav">
+                    <nav className="space-y-1 max-h-96 overflow-y-auto toc-nav"
+                         style={{
+                             scrollbarWidth: 'none',
+                             msOverflowStyle: 'none',
+                         }}
+                    >
                         <button
                             onClick={toggleCollapse}
                             className="w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-center justify-between text-sm text-gray-800 font-medium hover:bg-gray-50 toc-title-btn"
@@ -218,55 +249,74 @@ export default function TableOfContents({ article }) {
             </div>
 
             <div className="p-4">
-                <nav className="space-y-1 max-h-96 overflow-y-auto toc-nav">
-                    <button
-                        onClick={toggleCollapse}
-                        className="w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-center justify-between text-sm text-gray-800 font-medium hover:bg-gray-50 toc-title-btn"
+                <div className="relative">
+                    <div
+                        className="category-fade-mask-top absolute top-0 left-0 right-0 h-10 pointer-events-none transition-opacity duration-300 z-10"
+                        style={{ opacity: showTopGradient ? 1 : 0 }}
+                    />
+
+                    <nav
+                        ref={listRef}
+                        className="space-y-1 max-h-96 overflow-y-auto toc-nav hide-scrollbar"
+                        style={{
+                            scrollbarWidth: 'none',
+                            msOverflowStyle: 'none',
+                        }}
                     >
-                    <span className="leading-5 break-words line-clamp-2">
-                        {article?.article_name || '文章名称'}
-                    </span>
-                        {isCollapsed ? <ChevronDown className="h-4 w-4 text-gray-500" /> : <ChevronUp className="h-4 w-4 text-gray-500" />}
-                    </button>
+                        <button
+                            onClick={toggleCollapse}
+                            className="w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-center justify-between text-sm text-gray-800 font-medium hover:bg-gray-50 toc-title-btn"
+                        >
+                        <span className="leading-5 break-words line-clamp-2">
+                            {article?.article_name || '文章名称'}
+                        </span>
+                            {isCollapsed ? <ChevronDown className="h-4 w-4 text-gray-500" /> : <ChevronUp className="h-4 w-4 text-gray-500" />}
+                        </button>
 
-                    {isCollapsed ? (
-                        <div className="text-center text-gray-500 py-4 text-sm toc-collapsed-tip">
-                            目录已收起
-                        </div>
-                    ) : (
-                        <>
-                            {headings.map((heading, index) => {
-                                const isActive = activeId === heading.id;
-                                const indent = (heading.level - 1) * 12;
+                        {isCollapsed ? (
+                            <div className="text-center text-gray-500 py-4 text-sm toc-collapsed-tip">
+                                目录已收起
+                            </div>
+                        ) : (
+                            <>
+                                {headings.map((heading, index) => {
+                                    const isActive = activeId === heading.id;
+                                    const indent = (heading.level - 1) * 12;
 
-                                return (
-                                    <button
-                                        key={heading.id}
-                                        onClick={() => scrollToHeading(index)}
-                                        className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-start group text-sm ${
-                                            isActive
-                                                ? 'bg-blue-50 text-blue-700 font-medium'
-                                                : 'text-gray-600 hover:bg-gray-50 hover:text-blue-600'
-                                        } toc-heading-item`}
-                                        style={{ paddingLeft: `${12 + indent}px` }}
-                                        title={heading.text}
-                                    >
-                                        <ChevronRight
-                                            className={`h-4 w-4 mt-0.5 mr-2 flex-shrink-0 transition-transform ${
+                                    return (
+                                        <button
+                                            key={heading.id}
+                                            onClick={() => scrollToHeading(index)}
+                                            className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-start group text-sm ${
                                                 isActive
-                                                    ? 'text-blue-600 transform rotate-90'
-                                                    : 'text-gray-400 group-hover:text-blue-600'
-                                            }`}
-                                        />
-                                        <span className="leading-5 break-words line-clamp-2">
-                                            {heading.text}
-                                        </span>
-                                    </button>
-                                );
-                            })}
-                        </>
-                    )}
-                </nav>
+                                                    ? 'bg-blue-50 text-blue-700 font-medium'
+                                                    : 'text-gray-600 hover:bg-gray-50 hover:text-blue-600'
+                                            } toc-heading-item`}
+                                            style={{ paddingLeft: `${12 + indent}px` }}
+                                            title={heading.text}
+                                        >
+                                            <ChevronRight
+                                                className={`h-4 w-4 mt-0.5 mr-2 flex-shrink-0 transition-transform ${
+                                                    isActive
+                                                        ? 'text-blue-600 transform rotate-90'
+                                                        : 'text-gray-400 group-hover:text-blue-600'
+                                                }`}
+                                            />
+                                            <span className="leading-5 break-words line-clamp-2">
+                                                {heading.text}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </>
+                        )}
+                    </nav>
+
+                    <div
+                        className="category-fade-mask-bottom absolute bottom-0 left-0 right-0 h-10 pointer-events-none transition-opacity duration-300"
+                        style={{ opacity: showBottomGradient ? 1 : 0 }}
+                    />
+                </div>
             </div>
         </div>
     );
