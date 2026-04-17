@@ -171,7 +171,7 @@ export default function SiteSettingsView() {
                     enable_llm: response.data.enable_llm !== undefined ? response.data.enable_llm : 0,
                     enable_llm_article_review: response.data.enable_llm_article_review !== undefined ? response.data.enable_llm_article_review : 0,
                     enable_llm_create_article: response.data.enable_llm_create_article !== undefined ? response.data.enable_llm_create_article : 0,
-                    enable_image_compression: response.data.enable_image_compression !== undefined ? response.data.enable_image_compression : 1
+                    enable_image_compression: response.data.enable_image_compression != null ? response.data.enable_image_compression : 0
                 };
                 setFormData(escapedData);
             } else {
