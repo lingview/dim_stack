@@ -214,4 +214,13 @@ public class SiteConfigServiceImpl implements SiteConfigService {
         }
         return null;
     }
+
+    @Override
+    public Integer getEnableImageCompression() {
+        SiteConfig config = getSiteConfig();
+        if (config != null) {
+            return config.getEnable_image_compression();
+        }
+        return null;
+    }
 }

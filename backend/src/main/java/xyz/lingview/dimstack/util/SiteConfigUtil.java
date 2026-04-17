@@ -177,4 +177,17 @@ public class SiteConfigUtil {
             return null;
         }
     }
+
+    public Integer getEnableImageCompression() {
+        try {
+            SiteConfig siteConfig = cacheService.get("dimstack:site_config", SiteConfig.class);
+            if (siteConfig != null) {
+                Integer enableCompression = siteConfig.getEnable_image_compression();
+                return enableCompression != null ? enableCompression : 1;
+            }
+        } catch (Exception e) {
+            log.warn("获取图片压缩设置时发生异常", e);
+        }
+        return null;
+    }
 }

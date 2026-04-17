@@ -90,7 +90,8 @@ export default function SiteSettingsView() {
         enable_llm_create_article: 0,
         global_head_code: '',
         content_head_code: '',
-        footer_code: ''
+        footer_code: '',
+        enable_image_compression: 1
     });
 
     const [uploadQueue, setUploadQueue] = useState([]);
@@ -169,7 +170,8 @@ export default function SiteSettingsView() {
                     admin_post_no_review: response.data.admin_post_no_review !== undefined ? response.data.admin_post_no_review : 0,
                     enable_llm: response.data.enable_llm !== undefined ? response.data.enable_llm : 0,
                     enable_llm_article_review: response.data.enable_llm_article_review !== undefined ? response.data.enable_llm_article_review : 0,
-                    enable_llm_create_article: response.data.enable_llm_create_article !== undefined ? response.data.enable_llm_create_article : 0
+                    enable_llm_create_article: response.data.enable_llm_create_article !== undefined ? response.data.enable_llm_create_article : 0,
+                    enable_image_compression: response.data.enable_image_compression !== undefined ? response.data.enable_image_compression : 1
                 };
                 setFormData(escapedData);
             } else {
@@ -619,7 +621,8 @@ export default function SiteSettingsView() {
                 admin_post_no_review: formData.admin_post_no_review,
                 enable_llm: formData.enable_llm,
                 enable_llm_article_review: formData.enable_llm_article_review,
-                enable_llm_create_article: formData.enable_llm_create_article
+                enable_llm_create_article: formData.enable_llm_create_article,
+                enable_image_compression: formData.enable_image_compression
             };
 
             if (formData.mail_password && formData.mail_password.trim() !== '') {
@@ -944,6 +947,25 @@ export default function SiteSettingsView() {
                                         />
                                     </div>
                                 )}
+                            </div>
+
+                            <div className="border-t border-gray-200 pt-6">
+                                <div>
+                                    <label className="flex items-center space-x-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.enable_image_compression === 1}
+                                            onChange={(e) => {
+                                                setFormData(prev => ({ ...prev, enable_image_compression: e.target.checked ? 1 : 0 }));
+                                            }}
+                                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <span className="text-sm font-medium text-gray-700">启用图片压缩</span>
+                                    </label>
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        启用后，首次访问图片时将自动压缩并保存，后续访问优先返回压缩版本以提升加载速度
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     )}

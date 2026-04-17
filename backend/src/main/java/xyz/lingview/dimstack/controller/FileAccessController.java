@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.lingview.dimstack.domain.UploadAttachment;
 import xyz.lingview.dimstack.mapper.UploadMapper;
+import xyz.lingview.dimstack.service.ImageCompressionService;
+import xyz.lingview.dimstack.service.SiteConfigService;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -34,6 +36,12 @@ public class FileAccessController {
 
     @Autowired
     private UploadMapper uploadMapper;
+
+    @Autowired
+    private ImageCompressionService imageCompressionService;
+
+    @Autowired
+    private SiteConfigService siteConfigService;
 
     @Value("${file.data-root:.}")
     private String dataRoot;
@@ -68,11 +76,34 @@ public class FileAccessController {
                 return ResponseEntity.notFound().build();
             }
 
-            Resource resource = new FileSystemResource(filePath.toFile());
-
             String contentType = Files.probeContentType(filePath);
             if (contentType == null) {
                 contentType = "application/octet-stream";
+            }
+
+            boolean isImage = contentType.startsWith("image/");
+            Resource resource;
+            
+            if (isImage && !download) {
+                Integer enableCompression = siteConfigService.getEnableImageCompression();
+                boolean shouldCompress = enableCompression != null && enableCompression == 1;
+                
+                if (shouldCompress) {
+                    Path compressedPath = getCompressedImagePath(filePath);
+                    if (Files.exists(compressedPath)) {
+                        log.debug("使用压缩图片: {}", compressedPath);
+                        resource = new FileSystemResource(compressedPath.toFile());
+                    } else {
+                        log.debug("压缩图片不存在，使用原图并触发异步压缩: {}", filePath);
+                        resource = new FileSystemResource(filePath.toFile());
+                        imageCompressionService.compressImageAsync(filePath.toString());
+                    }
+                } else {
+                    log.debug("图片压缩已禁用，使用原图: {}", filePath);
+                    resource = new FileSystemResource(filePath.toFile());
+                }
+            } else {
+                resource = new FileSystemResource(filePath.toFile());
             }
 
             String filename = filePath.getFileName().toString();
@@ -104,5 +135,21 @@ public class FileAccessController {
             log.error("编码文件名失败: {}", filename, e);
             return filename;
         }
+    }
+
+    private Path getCompressedImagePath(Path originalPath) {
+        Path parentDir = originalPath.getParent();
+        String fileName = originalPath.getFileName().toString();
+        int dotIndex = fileName.lastIndexOf('.');
+        
+        String baseName;
+        if (dotIndex > 0) {
+            baseName = fileName.substring(0, dotIndex);
+        } else {
+            baseName = fileName;
+        }
+        
+        String compressedFileName = baseName + "_compressed.jpg";
+        return parentDir.resolve("compressor").resolve(compressedFileName);
     }
 }

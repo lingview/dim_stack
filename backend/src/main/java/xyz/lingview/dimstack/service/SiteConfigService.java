@@ -23,6 +23,7 @@ public interface SiteConfigService {
     String getGlobalHeadCode();
     String getContentHeadCode();
     String getFooterCode();
+    Integer getEnableImageCompression();
 
     default xyz.lingview.dimstack.domain.MailConfig getMailConfig() {
         SiteConfig siteConfig = getSiteConfig();

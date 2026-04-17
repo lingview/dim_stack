@@ -267,6 +267,10 @@ public class SiteConfigController {
                 currentConfig.setFooter_code(siteConfig.getFooter_code());
             }
 
+            if (siteConfig.getEnable_image_compression() != null) {
+                currentConfig.setEnable_image_compression(siteConfig.getEnable_image_compression());
+            }
+
             boolean result = siteConfigService.updateSiteConfig(currentConfig);
 
             if (result) {
