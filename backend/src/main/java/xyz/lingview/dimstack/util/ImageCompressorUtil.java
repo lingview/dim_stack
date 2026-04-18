@@ -5,6 +5,7 @@ import net.coobird.thumbnailator.Thumbnails;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
 /**
  * @Author: lingview
@@ -24,9 +25,15 @@ public class ImageCompressorUtil {
         
         String fileName = inputFile.getName().toLowerCase();
         boolean isJpeg = fileName.endsWith(".jpg") || fileName.endsWith(".jpeg");
+        boolean isWebp = fileName.endsWith(".webp");
+        
+        if (isWebp) {
+            Files.copy(inputFile.toPath(), new File(outputPath).toPath());
+            return;
+        }
         
         if (isJpeg && originalSize <= 1_000_000) {
-            java.nio.file.Files.copy(inputFile.toPath(), new File(outputPath).toPath());
+            Files.copy(inputFile.toPath(), new File(outputPath).toPath());
             return;
         }
         

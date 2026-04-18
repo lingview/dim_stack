@@ -190,4 +190,17 @@ public class SiteConfigUtil {
         }
         return null;
     }
+
+    public Integer getImageCompressionThreads() {
+        try {
+            SiteConfig siteConfig = cacheService.get("dimstack:site_config", SiteConfig.class);
+            if (siteConfig != null) {
+                Integer threads = siteConfig.getImage_compression_threads();
+                return threads != null && threads > 0 ? threads : 5;
+            }
+        } catch (Exception e) {
+            log.warn("获取图片压缩线程数时发生异常", e);
+        }
+        return 5;
+    }
 }

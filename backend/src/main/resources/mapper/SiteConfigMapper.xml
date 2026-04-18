@@ -40,7 +40,8 @@
             global_head_code as global_head_code,
             content_head_code as content_head_code,
             footer_code as footer_code,
-            enable_image_compression as enable_image_compression
+            enable_image_compression as enable_image_compression,
+            image_compression_threads as image_compression_threads
         FROM site_config
         WHERE id = 1
     </select>
@@ -115,7 +116,8 @@
             global_head_code = #{global_head_code},
             content_head_code = #{content_head_code},
             footer_code = #{footer_code},
-            enable_image_compression = #{enable_image_compression}
+            enable_image_compression = #{enable_image_compression},
+            image_compression_threads = #{image_compression_threads}
         WHERE id = 1
     </update>
 

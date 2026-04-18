@@ -223,4 +223,13 @@ public class SiteConfigServiceImpl implements SiteConfigService {
         }
         return null;
     }
+
+    @Override
+    public Integer getImageCompressionThreads() {
+        SiteConfig config = getSiteConfig();
+        if (config != null) {
+            return config.getImage_compression_threads();
+        }
+        return 5;
+    }
 }

@@ -15,6 +15,7 @@ import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.MailService;
 import xyz.lingview.dimstack.service.SiteConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
+import xyz.lingview.dimstack.service.impl.ImageCompressionServiceImpl;
 
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,9 @@ public class SiteConfigController {
 
     @Autowired
     private xyz.lingview.dimstack.service.CacheService cacheService;
+
+    @Autowired
+    private ImageCompressionServiceImpl imageCompressionService;
 
     @GetMapping("/hero")
     public HeroDTO getHeroConfig() {
@@ -271,9 +275,19 @@ public class SiteConfigController {
                 currentConfig.setEnable_image_compression(siteConfig.getEnable_image_compression());
             }
 
+            if (siteConfig.getImage_compression_threads() != null) {
+                currentConfig.setImage_compression_threads(siteConfig.getImage_compression_threads());
+            }
+
             boolean result = siteConfigService.updateSiteConfig(currentConfig);
 
             if (result) {
+                try {
+                    imageCompressionService.updateWorkerThreads();
+                } catch (Exception e) {
+                    log.warn("更新图片压缩线程数失败", e);
+                }
+                
                 return ResponseEntity.ok(Map.of(
                         "success", true,
                         "message", "站点配置更新成功"

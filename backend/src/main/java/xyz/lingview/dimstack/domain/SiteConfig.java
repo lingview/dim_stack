@@ -38,4 +38,5 @@ public class SiteConfig {
     private String content_head_code;
     private String footer_code;
     private Integer enable_image_compression;
+    private Integer image_compression_threads;
 }

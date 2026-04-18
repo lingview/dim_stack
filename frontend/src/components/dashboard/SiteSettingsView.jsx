@@ -91,7 +91,8 @@ export default function SiteSettingsView() {
         global_head_code: '',
         content_head_code: '',
         footer_code: '',
-        enable_image_compression: 1
+        enable_image_compression: 1,
+        image_compression_threads: 5
     });
 
     const [uploadQueue, setUploadQueue] = useState([]);
@@ -171,7 +172,8 @@ export default function SiteSettingsView() {
                     enable_llm: response.data.enable_llm !== undefined ? response.data.enable_llm : 0,
                     enable_llm_article_review: response.data.enable_llm_article_review !== undefined ? response.data.enable_llm_article_review : 0,
                     enable_llm_create_article: response.data.enable_llm_create_article !== undefined ? response.data.enable_llm_create_article : 0,
-                    enable_image_compression: response.data.enable_image_compression != null ? response.data.enable_image_compression : 0
+                    enable_image_compression: response.data.enable_image_compression != null ? response.data.enable_image_compression : 0,
+                    image_compression_threads: response.data.image_compression_threads != null ? response.data.image_compression_threads : 5
                 };
                 setFormData(escapedData);
             } else {
@@ -622,7 +624,8 @@ export default function SiteSettingsView() {
                 enable_llm: formData.enable_llm,
                 enable_llm_article_review: formData.enable_llm_article_review,
                 enable_llm_create_article: formData.enable_llm_create_article,
-                enable_image_compression: formData.enable_image_compression
+                enable_image_compression: formData.enable_image_compression,
+                image_compression_threads: parseInt(formData.image_compression_threads, 10)
             };
 
             if (formData.mail_password && formData.mail_password.trim() !== '') {
@@ -967,6 +970,27 @@ export default function SiteSettingsView() {
                                     </p>
                                 </div>
                             </div>
+
+                            {formData.enable_image_compression === 1 && (
+                                <div className="border-t border-gray-200 pt-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">压缩处理线程数</label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={formData.image_compression_threads}
+                                            onChange={(e) => {
+                                                const value = Math.max(1, parseInt(e.target.value, 10) || 1);
+                                                setFormData(prev => ({ ...prev, image_compression_threads: value }));
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        />
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            同时处理的图片数量，建议根据服务器实际CPU核心数和内存大小设置（推荐4-8），默认5
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
