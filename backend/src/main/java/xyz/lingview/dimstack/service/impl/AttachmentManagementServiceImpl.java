@@ -10,6 +10,7 @@ import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.AttachmentManagementService;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -257,6 +258,8 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
                 boolean fileDeleted = deletePhysicalFile(filePath);
                 
                 if (fileDeleted) {
+                    deleteCompressedFile(filePath);
+                    
                     int result = attachmentManagementMapper.physicallyDeleteAttachment(attachment.getAttachment_id());
                     if (result > 0) {
                         cleanedCount++;
@@ -270,6 +273,27 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
         
         log.info("附件清理任务完成，共清理 {} 个附件", cleanedCount);
         return cleanedCount;
+    }
+
+    private void deleteCompressedFile(String originalFilePath) {
+        try {
+            Path originalPath = Path.of(dataRoot, originalFilePath.replace('\\', '/')).toAbsolutePath().normalize();
+            Path parentDir = originalPath.getParent();
+            String fileName = originalPath.getFileName().toString();
+            
+            int dotIndex = fileName.lastIndexOf('.');
+            String baseName = dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
+            String compressedFileName = baseName + "_compressed.jpg";
+            
+            Path compressedPath = parentDir.resolve("compressor").resolve(compressedFileName);
+            
+            if (Files.exists(compressedPath)) {
+                Files.delete(compressedPath);
+                log.info("成功删除压缩文件: {}", compressedPath);
+            }
+        } catch (Exception e) {
+            log.warn("删除压缩文件失败: {}", e.getMessage());
+        }
     }
 
     private boolean deletePhysicalFile(String filePath) {
