@@ -43,6 +43,17 @@ export default function ImageCropper({ image, onCropComplete, onCancel, onSkipCr
     const handleMouseDown = (e, handle = null) => {
         e.preventDefault();
         e.stopPropagation();
+        startInteraction(e.clientX, e.clientY, handle);
+    };
+
+    const handleTouchStart = (e, handle = null) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const touch = e.touches[0];
+        startInteraction(touch.clientX, touch.clientY, handle);
+    };
+
+    const startInteraction = (clientX, clientY, handle) => {
         if (handle) {
             setResizeHandle(handle);
         } else {
@@ -50,8 +61,8 @@ export default function ImageCropper({ image, onCropComplete, onCancel, onSkipCr
         }
         const rect = containerRef.current.getBoundingClientRect();
         setDragStart({
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
+            x: clientX - rect.left,
+            y: clientY - rect.top
         });
     };
 
@@ -61,6 +72,20 @@ export default function ImageCropper({ image, onCropComplete, onCancel, onSkipCr
         const rect = containerRef.current.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
+        updateCrop(mouseX, mouseY);
+    };
+
+    const handleTouchMove = (e) => {
+        if (!isDragging && !resizeHandle) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = containerRef.current.getBoundingClientRect();
+        const mouseX = touch.clientX - rect.left;
+        const mouseY = touch.clientY - rect.top;
+        updateCrop(mouseX, mouseY);
+    };
+
+    const updateCrop = (mouseX, mouseY) => {
 
         if (isDragging) {
             const dx = mouseX - dragStart.x;
@@ -109,6 +134,11 @@ export default function ImageCropper({ image, onCropComplete, onCancel, onSkipCr
     };
 
     const handleMouseUp = () => {
+        setIsDragging(false);
+        setResizeHandle(null);
+    };
+
+    const handleTouchEnd = () => {
         setIsDragging(false);
         setResizeHandle(null);
     };
@@ -171,6 +201,8 @@ export default function ImageCropper({ image, onCropComplete, onCancel, onSkipCr
                                 onMouseMove={handleMouseMove}
                                 onMouseUp={handleMouseUp}
                                 onMouseLeave={handleMouseUp}
+                                onTouchMove={handleTouchMove}
+                                onTouchEnd={handleTouchEnd}
                             >
                                 <img
                                     src={image}
@@ -180,7 +212,7 @@ export default function ImageCropper({ image, onCropComplete, onCancel, onSkipCr
                                     draggable={false}
                                 />
                                 <div
-                                    className="absolute border-2 border-blue-500 cursor-move"
+                                    className="absolute border-2 border-blue-500 cursor-move touch-none"
                                     style={{
                                         left: crop.x,
                                         top: crop.y,
@@ -188,17 +220,22 @@ export default function ImageCropper({ image, onCropComplete, onCancel, onSkipCr
                                         height: crop.height,
                                     }}
                                     onMouseDown={(e) => handleMouseDown(e)}
+                                    onTouchStart={(e) => handleTouchStart(e)}
                                 >
                                     <div className="absolute inset-0 border border-dashed border-white opacity-70"></div>
 
-                                    <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border border-blue-500 rounded-sm cursor-nw-resize"
-                                         onMouseDown={(e) => handleMouseDown(e, 'nw')} />
-                                    <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border border-blue-500 rounded-sm cursor-ne-resize"
-                                         onMouseDown={(e) => handleMouseDown(e, 'ne')} />
-                                    <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border border-blue-500 rounded-sm cursor-sw-resize"
-                                         onMouseDown={(e) => handleMouseDown(e, 'sw')} />
-                                    <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border border-blue-500 rounded-sm cursor-se-resize"
-                                         onMouseDown={(e) => handleMouseDown(e, 'se')} />
+                                    <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border border-blue-500 rounded-sm cursor-nw-resize touch-none"
+                                         onMouseDown={(e) => handleMouseDown(e, 'nw')}
+                                         onTouchStart={(e) => handleTouchStart(e, 'nw')} />
+                                    <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border border-blue-500 rounded-sm cursor-ne-resize touch-none"
+                                         onMouseDown={(e) => handleMouseDown(e, 'ne')}
+                                         onTouchStart={(e) => handleTouchStart(e, 'ne')} />
+                                    <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border border-blue-500 rounded-sm cursor-sw-resize touch-none"
+                                         onMouseDown={(e) => handleMouseDown(e, 'sw')}
+                                         onTouchStart={(e) => handleTouchStart(e, 'sw')} />
+                                    <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border border-blue-500 rounded-sm cursor-se-resize touch-none"
+                                         onMouseDown={(e) => handleMouseDown(e, 'se')}
+                                         onTouchStart={(e) => handleTouchStart(e, 'se')} />
                                 </div>
                             </div>
                         </div>
