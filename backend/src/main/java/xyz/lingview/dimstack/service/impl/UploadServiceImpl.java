@@ -672,12 +672,12 @@ public class UploadServiceImpl implements UploadService {
                     .body(Map.of("error", "文件为空"));
         }
 
-        // 头像文件大小限制为5MB
-        long MAX_AVATAR_SIZE = 5 * 1024 * 1024;
+        // 头像文件大小限制为50MB
+        long MAX_AVATAR_SIZE = 50 * 1024 * 1024;
         if (file.getSize() > MAX_AVATAR_SIZE) {
             log.warn("尝试上传过大的头像文件: {} 字节", file.getSize());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "头像文件过大，最大支持5MB"));
+                    .body(Map.of("error", "头像文件过大，最大支持50MB"));
         }
 
         String username = getUsername(request);
@@ -785,12 +785,12 @@ public class UploadServiceImpl implements UploadService {
                     .body(Map.of("error", "文件为空"));
         }
 
-        // 头像文件大小限制为5MB
-        long MAX_AVATAR_SIZE = 5 * 1024 * 1024;
+        // 头像文件大小限制为50MB
+        long MAX_AVATAR_SIZE = 50 * 1024 * 1024;
         if (file.getSize() > MAX_AVATAR_SIZE) {
             log.warn("尝试上传过大的头像文件: {} 字节", file.getSize());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "头像文件过大，最大支持5MB"));
+                    .body(Map.of("error", "头像文件过大，最大支持50MB"));
         }
 
         String username = getUsername(request);
