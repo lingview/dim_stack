@@ -18,5 +18,23 @@ export const getConfig = () => ({
         }
 
         return url;
+    },
+    isSameOrigin: (url) => {
+        if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) {
+            return true;
+        }
+        
+        try {
+            const urlObj = new URL(url);
+            const currentOrigin = window.location.origin;
+            
+            if (isDevelopment) {
+                return urlObj.origin === backendUrl || urlObj.origin === currentOrigin;
+            }
+            
+            return urlObj.origin === currentOrigin;
+        } catch (e) {
+            return false;
+        }
     }
 });

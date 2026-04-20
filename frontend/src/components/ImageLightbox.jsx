@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getConfig } from '../utils/config';
 
 const ImageLightbox = ({ images, currentIndex, onClose, onNavigate }) => {
   const [loaded, setLoaded] = useState(false);
@@ -182,28 +183,33 @@ const ImageLightbox = ({ images, currentIndex, onClose, onNavigate }) => {
             </svg>
           </button>
 
-          {images.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-3 bg-white bg-opacity-80 text-gray-800 px-4 py-2 rounded-full text-sm backdrop-blur-sm z-50 shadow-lg">
-                <span>{currentIndex + 1} / {images.length}</span>
-                <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const downloadUrl = currentImage.src.includes('?') 
-                        ? `${currentImage.src}&download=true` 
-                        : `${currentImage.src}?download=true`;
-                      window.open(downloadUrl, '_blank');
-                    }}
-                    className="flex items-center space-x-1 hover:text-blue-600 transition-colors"
-                    aria-label="下载原图"
-                    title="下载原图"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  <span>下载原图</span>
-                </button>
-              </div>
-          )}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-3 bg-white bg-opacity-80 text-gray-800 px-4 py-2 rounded-full text-sm backdrop-blur-sm z-50 shadow-lg">
+            {images.length > 1 && (
+              <span>{currentIndex + 1} / {images.length}</span>
+            )}
+            <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const config = getConfig();
+                  if (config.isSameOrigin(currentImage.src)) {
+                    const downloadUrl = currentImage.src.includes('?') 
+                      ? `${currentImage.src}&download=true` 
+                      : `${currentImage.src}?download=true`;
+                    window.open(downloadUrl, '_blank');
+                  } else {
+                    window.open(currentImage.src, '_blank');
+                  }
+                }}
+                className="flex items-center space-x-1 hover:text-blue-600 transition-colors"
+                aria-label="下载原图"
+                title="下载原图"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>下载原图</span>
+            </button>
+          </div>
         </div>
       </div>
   );
