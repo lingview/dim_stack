@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../utils/axios.jsx';
 import { getConfig } from '../../utils/config';
+import ImageCropper from '../ImageCropper.jsx';
 
 const getFullImageUrl = (url) => {
     if (!url) return null;
@@ -62,6 +63,10 @@ export default function ProfileView() {
     const [message, setMessage] = useState('');
     const [messageType, setMessageType] = useState('');
     const [previewAvatar, setPreviewAvatar] = useState('/image_error.svg');
+    const [showCropper, setShowCropper] = useState(false);
+    const [imageToCrop, setImageToCrop] = useState(null);
+    const [originalFile, setOriginalFile] = useState(null);
+    const [cropperKey, setCropperKey] = useState(0);
 
     useEffect(() => {
         fetchUserProfile();
@@ -130,28 +135,64 @@ export default function ProfileView() {
         const file = e.target.files[0];
         if (!file) return;
 
-        // 验证文件类型
         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
             showMessage('请选择有效的图片文件 (JPG, JPEG, PNG, GIF, WebP)', 'error');
             return;
         }
 
-        // 验证文件大小(最大5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            showMessage('文件大小不能超过5MB', 'error');
+        if (file.size > 50 * 1024 * 1024) {
+            showMessage('文件大小不能超过50MB', 'error');
             return;
         }
 
-        // 创建预览
+        setOriginalFile(file);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            setCropperKey(prev => prev + 1);
+            setImageToCrop(e.target.result);
+            setShowCropper(true);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleCropComplete = async (croppedFile) => {
         const reader = new FileReader();
         reader.onload = (e) => {
             setPreviewAvatar(e.target.result);
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(croppedFile);
+        
+        await uploadAvatar(croppedFile);
+        
+        setShowCropper(false);
+        setImageToCrop(null);
+        setOriginalFile(null);
+        setCropperKey(0);
+    };
 
-        // 上传文件
-        await uploadAvatar(file);
+    const handleCropCancel = () => {
+        setShowCropper(false);
+        setImageToCrop(null);
+        setOriginalFile(null);
+        setCropperKey(0);
+    };
+
+    const handleSkipCrop = async () => {
+        if (originalFile) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setPreviewAvatar(e.target.result);
+            };
+            reader.readAsDataURL(originalFile);
+            
+            await uploadAvatar(originalFile);
+        }
+        
+        setShowCropper(false);
+        setImageToCrop(null);
+        setOriginalFile(null);
+        setCropperKey(0);
     };
 
     const uploadAvatar = async (file) => {
@@ -339,10 +380,11 @@ export default function ProfileView() {
                                         className="hidden"
                                         accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                                         onChange={handleAvatarChange}
+                                        onClick={(e) => e.target.value = ''}
                                     />
                                 </label>
                                 <p className="mt-2 text-gray-500 text-xs">
-                                    支持 JPG, JPEG, PNG, GIF, WebP 格式，最大5MB
+                                    支持 JPG, JPEG, PNG, GIF, WebP 格式，最大50MB
                                 </p>
                             </div>
                         </div>
@@ -435,6 +477,16 @@ export default function ProfileView() {
                     </button>
                 </div>
             </form>
+
+            {showCropper && imageToCrop && (
+                <ImageCropper
+                    key={cropperKey}
+                    image={imageToCrop}
+                    onCropComplete={handleCropComplete}
+                    onCancel={handleCropCancel}
+                    onSkipCrop={handleSkipCrop}
+                />
+            )}
         </div>
     );
 }

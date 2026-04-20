@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../utils/axios.jsx';
 import {getConfig} from "../../utils/config.jsx";
+import ImageCropper from '../ImageCropper.jsx';
 
 const getFullImageUrl = (url) => {
   if (!url) return null;
@@ -52,6 +53,10 @@ export default function UsersView() {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState(null);
+  const [originalFile, setOriginalFile] = useState(null);
+  const [cropperKey, setCropperKey] = useState(0);
 
   useEffect(() => {
     fetchUsers();
@@ -280,19 +285,64 @@ export default function UsersView() {
 
   const handleAvatarChange = (event) => {
     const file = event.target.files[0];
-    if (file) {
-      setSelectedAvatar(file);
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('请选择有效的图片文件 (JPG, JPEG, PNG, GIF, WebP)');
+      return;
     }
+
+    if (file.size > 50 * 1024 * 1024) {
+      setError('文件大小不能超过50MB');
+      return;
+    }
+
+    setOriginalFile(file);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setCropperKey(prev => prev + 1);
+      setImageToCrop(e.target.result);
+      setShowCropper(true);
+    };
+    reader.readAsDataURL(file);
   };
 
-  const uploadAvatar = async () => {
-    if (!selectedAvatar) {
+  const handleCropComplete = async (croppedFile) => {
+    setSelectedAvatar(croppedFile);
+    await uploadAvatarWithFile(croppedFile);
+    setShowCropper(false);
+    setImageToCrop(null);
+    setOriginalFile(null);
+    setCropperKey(0);
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setImageToCrop(null);
+    setOriginalFile(null);
+    setCropperKey(0);
+  };
+
+  const handleSkipCrop = async () => {
+    if (originalFile) {
+      setSelectedAvatar(originalFile);
+      await uploadAvatarWithFile(originalFile);
+    }
+    setShowCropper(false);
+    setImageToCrop(null);
+    setOriginalFile(null);
+    setCropperKey(0);
+  };
+
+  const uploadAvatarWithFile = async (file) => {
+    if (!file) {
       setError('请选择头像文件');
       return;
     }
 
     const formData = new FormData();
-    formData.append('file', selectedAvatar);
+    formData.append('file', file);
     formData.append('targetUserUUID', editingUser.uuid);
 
     try {
@@ -307,7 +357,7 @@ export default function UsersView() {
         fetchUsers();
         setShowAvatarModal(false);
         setSelectedAvatar(null);
-        setError('');  // 清除错误状态
+        setError('');
       } else {
         setError(response.message || '头像上传失败');
       }
@@ -321,6 +371,15 @@ export default function UsersView() {
     } finally {
       setUploading(false);
     }
+  };
+
+  const uploadAvatar = async () => {
+    if (!selectedAvatar) {
+      setError('请选择头像文件');
+      return;
+    }
+
+    await uploadAvatarWithFile(selectedAvatar);
   };
 
   const getStatusText = (status) => {
@@ -515,7 +574,12 @@ export default function UsersView() {
         <>
           <div
             className="fixed inset-0 backdrop-blur-sm bg-transparent z-40"
-            onClick={() => setShowAvatarModal(false)}
+            onClick={() => {
+              setShowAvatarModal(false);
+              setShowCropper(false);
+              setImageToCrop(null);
+              setOriginalFile(null);
+            }}
           ></div>
           <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
             <div
@@ -529,10 +593,11 @@ export default function UsersView() {
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
                     onChange={handleAvatarChange}
                     className="hidden"
                     id="avatar-upload"
+                    onClick={(e) => e.target.value = ''}
                   />
                   <label htmlFor="avatar-upload" className="cursor-pointer">
                     {selectedAvatar ? (
@@ -563,7 +628,7 @@ export default function UsersView() {
                           点击选择头像文件
                         </p>
                         <p className="text-xs text-gray-500">
-                          支持 JPG, PNG, GIF 格式，最大 5MB
+                          支持 JPG, PNG, GIF, WebP 格式，最大 50MB
                         </p>
                       </div>
                     )}
@@ -572,7 +637,12 @@ export default function UsersView() {
               </div>
               <div className="flex justify-end space-x-3 mt-6">
                 <button
-                  onClick={() => setShowAvatarModal(false)}
+                  onClick={() => {
+                    setShowAvatarModal(false);
+                    setShowCropper(false);
+                    setImageToCrop(null);
+                    setOriginalFile(null);
+                  }}
                   className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                   disabled={uploading}
                 >
@@ -589,6 +659,16 @@ export default function UsersView() {
             </div>
           </div>
         </>
+      )}
+
+      {showCropper && imageToCrop && (
+        <ImageCropper
+          key={cropperKey}
+          image={imageToCrop}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          onSkipCrop={handleSkipCrop}
+        />
       )}
 
       {/* 添加用户 */}
