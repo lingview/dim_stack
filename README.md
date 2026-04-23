@@ -2,7 +2,7 @@
 > 基于 Spring Boot + React 的现代化个人博客系统
 >
 
-![](https://img.shields.io/badge/Spring_Boot-4.0.2-green.svg)
+![](https://img.shields.io/badge/Spring_Boot-4.0.5-green.svg)
 
 ![](https://img.shields.io/badge/React-19.1.1-%2361DAFB.svg)
 
@@ -82,17 +82,17 @@ java -jar dimstack-1.0-SNAPSHOT.jar --server.port=2223
 http://localhost:2223/init/setup
 ```
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771939967216-cf2e1778-f2b1-402a-9770-9645247e35ec.png)
+![](./images/initialization_setup_page.png)
 
 
 
 按照初始化向导的提示填写：管理员用户名、密码、站点运行端口、日志级别、mysql信息以及redis信息等（默认信息不懂的话不要动）
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771939997662-94df1978-192b-4ac6-8193-6a15787adb98.png)
+![](./images/initialization_wizard_form.png)
 
 填写完后点击确认（系统会自动按照填写的信息完成初始化，导入sql、配置文件生成等），出现下面界面即为成功，重启即可
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1768055855648-4337108c-4ef7-41cc-981a-f7c7675f1d3e.png)
+![](./images/initialization_success_page.png)
 
 
 
@@ -105,7 +105,7 @@ java -jar dimstack-1.0-SNAPSHOT.jar
 
 运行后能看到主页正常加载即为成功
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771940913049-420a6404-abee-4d66-9e09-612db7affbd5.png)
+![](./images/homepage_loaded_successfully.png)
 
 ### systemd自启
 #### 创建服务文件
@@ -158,31 +158,31 @@ SyslogIdentifier=dim_stack
 WantedBy=multi-user.target
 ```
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771941575477-4a3a488d-95fc-4d9e-a43d-a0c13b9efa02.png)
+![](./images/systemd_service_file_config.png)
 
 #### 重载systemd配置
 ```bash
 systemctl daemon-reload 
 ```
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771941635847-feeaa633-f9ce-4413-b8cc-e28263106eb8.png)
+![](./images/systemd_daemon_reload_command.png)
 
 #### 启动服务
 ```bash
 sudo systemctl start dimstack
 ```
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771943203827-d4fa1370-22d1-41ed-a188-ee2a428815fa.png)
+![](./images/start_dimstack_service_command.png)
 
 #### 检查状态
 ```bash
 sudo systemctl status dimstack
 ```
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771943255079-76fd2faa-02f6-406a-8eba-8cd0f521c9fc.png)
+![](./images/check_dimstack_service_status_command.png)
 
 #### 设置开机自启
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771943292424-f8aa57ab-aca6-44e3-b24d-fb672406045e.png)
+![](./images/enable_dimstack_autostart_command.png)
 
 ## 老版本相关
 注：v84以下的版本没有一键更新系统，所以需要手动完整数据库更新
@@ -203,23 +203,23 @@ v77->v84+
 
 ### 大模型配置&使用
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1775735807997-9a04f9fa-0a89-45e1-a0b2-891f5672081c.png)
+![](./images/large_model_configuration_interface.png)
 
 #### 文章审核模块的默认提示词（请谨慎修改提示词）
 大模型审核开启后，所有新发布的文章都会优先进行大模型分析，如果审核通过将直接发布，审核违规将直接违规不会通知管理员审核（如果文章作者认为模型判断有误可以自行联系管理员），如果是系统调用出现问题会自动降级到通知有审核权限人员对文章进行审核
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1775735849836-f7708d71-62c4-44c1-9180-3102c0b5416f.png)
+![](./images/article_review_default_prompt.png)
 
 #### 文章生成默认提示词（请谨慎修改提示词）
 文章生成模块开启后用户可以在文章编辑器快捷调用大模型生成文章
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1775736109003-cc3df008-5aae-4a46-ad51-adda8b7676ef.png)
+![](./images/article_generation_default_prompt.png)
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1775736400068-a3b0c8c8-ca3f-47b3-b2d5-ccaf77f0d812.png)
+![](./images/article_generation_demo_1.png)
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1775736278788-b925709a-0f5f-4ac3-901d-057fbe60b960.png)
+![](./images/article_generation_demo_2.png)
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1775736311719-f6967e16-b926-4cdb-8f17-1a0c2acfb185.png)
+![](./images/article_generation_demo_3.png)
 
 
 
@@ -227,7 +227,7 @@ v77->v84+
 > 系统提供图片智能压缩功能，可以在系统配置中开启
 >
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1776672100478-74766f97-78d9-41a4-aa50-cc881d760dae.png)
+![](./images/smart_image_compression_config.png)
 
 ### 压缩规则
 注：对于小于1MB的jpg/png图片会跳过压缩，webp图片也不会压缩（因为足够小）
@@ -254,7 +254,7 @@ https://apilinks.cn/file/5561656e3db242a6bf342714f08855ab?download=true
 
 为了方便操作系统也在文章阅读器的图片查看功能中添加了**下载原图**功能：
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1776673041969-3262d0cf-4bc6-4ee0-97b8-74270e65b1dc.png)
+![](./images/article_reader_download_original_image.png)
 
 ## 代码注入相关
 > 系统提供自定义全局head、内容页head以及页脚自定义
@@ -266,7 +266,7 @@ https://apilinks.cn/file/5561656e3db242a6bf342714f08855ab?download=true
 全局head以及页脚自定义在除了后台的所有页面生效，内容页head自定义只有在文章页生效
 
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1776222738961-fb0739b4-7311-4e7c-87d3-c155983a87fa.png)
+![](./images/custom_code_injection_config.png)
 
 ## SEO相关
 > 文章内容页已支持SSR并且适配主流搜索引擎，使用动态生成的 robots.txt 以及 sitemap.xml
@@ -289,24 +289,24 @@ https://apilinks.cn/file/5561656e3db242a6bf342714f08855ab?download=true
 
 针对Google、Bing等主流搜索引擎的爬虫进行了独立优化（未覆盖百度，百度爬虫仅能获取基础信息）
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771940427421-d51eba44-e781-43f6-9359-6dd69eec331a.png)
+![](./images/seo_optimization_support.png)
 
 ### 大模型读取
 文章内容可以被大部分网页AI直接读取（密码文章无法读取）
 
-![](https://cdn.nlark.com/yuque/0/2026/png/53238627/1771940630986-7aa68429-8aa0-4c46-a37b-3a7912a4525f.png)
+![](./images/llm_article_content_reading_support.png)
 
 
 
 ## 系统启动相关
 ### 流程图
-![](https://cdn.nlark.com/yuque/__mermaid_v3/59224c171ab9c2e4029a61dfa6212a6c.svg)
+![](./images/start_up_flowchart.svg)
 
 
 
 ## 缓存模式相关
 ### 流程图
-![](https://cdn.nlark.com/yuque/__mermaid_v3/1253db148446cf9d1b6cedd8e49eeffb.svg)
+![](./images/memory_mode.svg)
 
 ## 贡献者
 感谢所有参与本项目的贡献者（按字母顺序排列）：
