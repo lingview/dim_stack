@@ -2,7 +2,7 @@
 > 基于 Spring Boot + React 的现代化个人博客系统
 >
 
-![](https://img.shields.io/badge/Spring_Boot-4.0.5-green.svg)
+![](https://img.shields.io/badge/Spring_Boot-4.0.6-green.svg)
 
 ![](https://img.shields.io/badge/React-19.1.1-%2361DAFB.svg)
 
