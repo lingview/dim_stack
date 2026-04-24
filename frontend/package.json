@@ -12,7 +12,7 @@
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.12",
     "axios": "1.15.0",
-    "dompurify": "^3.2.6",
+    "dompurify": "3.4.0",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.542.0",
     "react": "^19.1.1",
