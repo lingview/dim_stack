@@ -67,6 +67,20 @@ public class RedisCacheServiceImpl implements CacheService {
     }
 
     @Override
+    public void deleteByPrefix(String prefix) {
+        if (!redisAvailable) return;
+        try {
+            java.util.Set<String> keys = redisTemplate.keys(prefix + "*");
+            if (keys != null && !keys.isEmpty()) {
+                redisTemplate.delete(keys);
+                log.info("已清除 {} 个以 {} 开头的缓存键", keys.size(), prefix);
+            }
+        } catch (Exception e) {
+            log.error("按前缀清除缓存失败: {}", prefix, e);
+        }
+    }
+
+    @Override
     public void addToSet(String key, Object value) {
         if (redisAvailable) {
             redisTemplate.opsForSet().add(key, value);

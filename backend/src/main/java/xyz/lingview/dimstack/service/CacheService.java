@@ -13,6 +13,7 @@ public interface  CacheService {
     void set(String key, Object value, long timeout, TimeUnit unit);
     <T> T get(String key, Class<T> type);
     void delete(String key);
+    void deleteByPrefix(String prefix);
 
     void addToSet(String key, Object value);
     void removeFromSet(String key, Object value);

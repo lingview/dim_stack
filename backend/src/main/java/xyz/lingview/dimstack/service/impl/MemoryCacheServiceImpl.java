@@ -64,6 +64,20 @@ public class MemoryCacheServiceImpl implements CacheService {
     }
 
     @Override
+    public void deleteByPrefix(String prefix) {
+        try {
+            cache.asMap().keySet().stream()
+                .filter(key -> key.startsWith(prefix))
+                .forEach(key -> {
+                    cache.invalidate(key);
+                    atomicCounters.invalidate(key);
+                });
+        } catch (Exception e) {
+
+        }
+    }
+
+    @Override
     public void addToSet(String key, Object value) {
         @SuppressWarnings("unchecked")
         Set<Object> set = (Set<Object>) cache.get(key, k -> ConcurrentHashMap.newKeySet());

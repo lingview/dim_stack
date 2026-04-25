@@ -114,6 +114,8 @@ export default function SiteSettingsView() {
         loading: false,
         saving: false
     });
+    const [clearingCache, setClearingCache] = useState(false);
+    const [selectedCacheKeys, setSelectedCacheKeys] = useState([]);
 
     const tabs = [
         { id: 'basic', name: '站点信息' },
@@ -124,7 +126,8 @@ export default function SiteSettingsView() {
         { id: 'notification', name: '通知服务' },
         { id: 'llm', name: '大模型配置' },
         { id: 'extension', name: '扩展设置' },
-        { id: 'codeinjection', name: '代码注入' }
+        { id: 'codeinjection', name: '代码注入' },
+        { id: 'cache', name: '缓存管理' }
     ];
 
     useEffect(() => {
@@ -738,6 +741,88 @@ export default function SiteSettingsView() {
         setTimeout(() => {
             setMessage({ type: '', content: '' });
         }, 3000);
+    };
+
+    const cacheOptions = [
+        { key: 'dimstack:site_config', label: '站点配置缓存' },
+        { key: 'dimstack:article:', label: '所有文章缓存', isPrefix: true },
+        { key: 'dimstack:user:blacklist', label: '用户黑名单缓存' },
+        { key: 'dimstack:hot_articles', label: '热门文章缓存' },
+        { key: 'dimstack:sitemap:articles', label: '站点地图文章缓存' },
+        { key: 'dimstack:sitemap:categories', label: '站点地图分类缓存' },
+        { key: 'dimstack:llm_config', label: 'LLM配置缓存' },
+        { key: 'dimstack:sitemap:tags', label: '站点地图标签缓存' }
+    ];
+
+    const handleCacheKeyToggle = (key) => {
+        setSelectedCacheKeys(prev => 
+            prev.includes(key) 
+                ? prev.filter(k => k !== key)
+                : [...prev, key]
+        );
+    };
+
+    const handleSelectAllCache = () => {
+        if (selectedCacheKeys.length === cacheOptions.length) {
+            setSelectedCacheKeys([]);
+        } else {
+            setSelectedCacheKeys(cacheOptions.map(opt => opt.key));
+        }
+    };
+
+    const handleClearSelectedCache = async () => {
+        if (selectedCacheKeys.length === 0) {
+            showMessage('error', '请至少选择一个缓存项');
+            return;
+        }
+
+        try {
+            setClearingCache(true);
+            
+            const keysToClear = selectedCacheKeys.map(key => {
+                const option = cacheOptions.find(opt => opt.key === key);
+                return option && option.isPrefix ? key : key;
+            });
+            
+            const response = await apiClient.post('/cache/clear/batch', {
+                keys: keysToClear
+            });
+
+            if (response.success || response.code === 200) {
+                showMessage('success', `成功清除 ${response.data?.count || selectedCacheKeys.length} 个缓存`);
+                setSelectedCacheKeys([]);
+            } else {
+                showMessage('error', response.message || '清除缓存失败');
+            }
+        } catch (error) {
+            console.error('清除缓存失败:', error);
+            showMessage('error', '清除缓存时发生错误');
+        } finally {
+            setClearingCache(false);
+        }
+    };
+
+    const handleClearAllCache = async () => {
+        if (!window.confirm('确定要清除所有缓存吗？')) {
+            return;
+        }
+
+        try {
+            setClearingCache(true);
+            const response = await apiClient.post('/cache/clear/all');
+
+            if (response.success || response.code === 200) {
+                showMessage('success', `成功清除 ${response.data?.count || 7} 个缓存`);
+                setSelectedCacheKeys([]);
+            } else {
+                showMessage('error', response.message || '清除缓存失败');
+            }
+        } catch (error) {
+            console.error('清除所有缓存失败:', error);
+            showMessage('error', '清除缓存时发生错误');
+        } finally {
+            setClearingCache(false);
+        }
     };
 
     if (loading) {
@@ -1871,24 +1956,92 @@ export default function SiteSettingsView() {
                             </div>
                         </div>
                     )}
+
+                    {activeTab === 'cache' && (
+                        <div className="space-y-6">
+
+                            <div>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h4 className="text-sm font-medium text-gray-700">选择要清除的缓存<strong>（实验性功能）</strong></h4>
+                                    <button
+                                        type="button"
+                                        onClick={handleSelectAllCache}
+                                        className="text-sm text-blue-600 hover:text-blue-800"
+                                    >
+                                        {selectedCacheKeys.length === cacheOptions.length ? '取消全选' : '全选'}
+                                    </button>
+                                </div>
+
+                                <div className="space-y-2">
+                                    {cacheOptions.map((option) => (
+                                        <label key={option.key} className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedCacheKeys.includes(option.key)}
+                                                onChange={() => handleCacheKeyToggle(option.key)}
+                                                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                            />
+                                            <span className="text-sm text-gray-700">{option.label}</span>
+                                            <span className="text-xs text-gray-400 font-mono ml-auto">{option.key}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="border-t border-gray-200 pt-6 flex justify-end gap-3">
+                                <button
+                                    type="button"
+                                    onClick={handleClearSelectedCache}
+                                    disabled={clearingCache || selectedCacheKeys.length === 0}
+                                    className="px-4 py-2.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                >
+                                    {clearingCache ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                            <span>清除中...</span>
+                                        </>
+                                    ) : (
+                                        <span>清除选中缓存 ({selectedCacheKeys.length})</span>
+                                    )}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleClearAllCache}
+                                    disabled={clearingCache}
+                                    className="px-4 py-2.5 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                >
+                                    {clearingCache ? (
+                                        <>
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                            <span>清除中...</span>
+                                        </>
+                                    ) : (
+                                        <span>清除所有缓存</span>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                <div className="border-t border-gray-200 px-4 md:px-6 py-4 bg-gray-50 flex justify-end gap-3">
-                    <button
-                        type="submit"
-                        disabled={saving}
-                        className="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-wait flex items-center gap-2"
-                    >
-                        {saving ? (
-                            <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                <span>保存中...</span>
-                            </>
-                        ) : (
-                            <span>保存全部设置</span>
-                        )}
-                    </button>
-                </div>
+                {activeTab !== 'cache' && (
+                    <div className="border-t border-gray-200 px-4 md:px-6 py-4 bg-gray-50 flex justify-end gap-3">
+                        <button
+                            type="submit"
+                            disabled={saving}
+                            className="px-6 py-2.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-wait flex items-center gap-2"
+                        >
+                            {saving ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    <span>保存中...</span>
+                                </>
+                            ) : (
+                                <span>保存全部设置</span>
+                            )}
+                        </button>
+                    </div>
+                )}
             </form>
 
             {/* 提示词编辑模态框 */}
