@@ -31,6 +31,8 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.net.InetAddress.getByName;
+
 /**
  * @Author: lingview
  * @Date: 2025/11/12 16:09:36
@@ -919,6 +921,34 @@ public class UploadServiceImpl implements UploadService {
                 return ResponseEntity.badRequest().body(Map.of("error", "只支持HTTP/HTTPS协议"));
             }
 
+            String clientIp = request.getRemoteAddr();
+            boolean isLocalhostRequest = isLocalhost(clientIp);
+
+            URL resourceUrl = new URL(url);
+            String host = resourceUrl.getHost();
+            
+            if (host == null || host.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "无效的URL"));
+            }
+
+            boolean isTargetLocalhost = isLocalhost(host);
+            boolean isTargetPrivateIP = isPrivateIP(host);
+            
+            if (!isLocalhostRequest) {
+                if (isTargetLocalhost) {
+                    log.warn("非本地请求尝试访问localhost: {}, 客户端IP: {}", url, clientIp);
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("error", "禁止访问本地地址"));
+                }
+
+                boolean isClientPublicIP = !isLocalhost(clientIp) && !isPrivateIP(clientIp);
+                if (isClientPublicIP && isTargetPrivateIP) {
+                    log.warn("公网请求尝试访问内网地址: {}, 客户端IP: {}", url, clientIp);
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("error", "禁止访问内网地址"));
+                }
+            }
+
             String username = getUsername(request);
             if (username == null) {
                 log.warn("未授权的下载尝试");
@@ -933,7 +963,6 @@ public class UploadServiceImpl implements UploadService {
                         .body(Map.of("error", "未找到用户"));
             }
 
-            URL resourceUrl = new URL(url);
             HttpURLConnection connection = (HttpURLConnection) resourceUrl.openConnection();
 
             connection.setRequestMethod("GET");
@@ -943,6 +972,33 @@ public class UploadServiceImpl implements UploadService {
             connection.setRequestProperty("Accept", "image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
             connection.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
             connection.setInstanceFollowRedirects(true);
+
+            if (!isLocalhostRequest) {
+                try {
+                    java.net.InetAddress resolvedAddress = getByName(host);
+                    String resolvedHost = resolvedAddress.getHostAddress();
+                    
+                    if (isLocalhost(resolvedHost)) {
+                        log.warn("DNS重绑定攻击检测：域名 {} 解析到localhost: {}", host, resolvedHost);
+                        connection.disconnect();
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body(Map.of("error", "禁止访问本地地址"));
+                    }
+                    
+                    boolean isClientPublicIP = !isLocalhost(clientIp) && !isPrivateIP(clientIp);
+                    if (isClientPublicIP && isPrivateIP(resolvedHost)) {
+                        log.warn("DNS重绑定攻击检测：公网请求域名 {} 解析到内网IP: {}", host, resolvedHost);
+                        connection.disconnect();
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body(Map.of("error", "禁止访问内网地址"));
+                    }
+                } catch (Exception e) {
+                    log.error("DNS解析失败: {}", host, e);
+                    connection.disconnect();
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Map.of("error", "DNS解析失败"));
+                }
+            }
             
             int responseCode = connection.getResponseCode();
             if (responseCode != HttpURLConnection.HTTP_OK) {
@@ -1061,6 +1117,55 @@ public class UploadServiceImpl implements UploadService {
             log.error("下载并上传外部资源失败: {}", url, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "处理失败: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * 判断是否为localhost地址
+     */
+    private boolean isLocalhost(String host) {
+        if (host == null) {
+            return false;
+        }
+
+        if ("localhost".equalsIgnoreCase(host) || "127.0.0.1".equals(host) || "::1".equals(host)) {
+            return true;
+        }
+
+        if (host.toLowerCase().endsWith(".localhost")) {
+            return true;
+        }
+
+        if (host.startsWith("127.")) {
+            return true;
+        }
+        
+        try {
+            java.net.InetAddress address = getByName(host);
+            return address.isLoopbackAddress();
+        } catch (Exception e) {
+            log.debug("无法解析主机: {}", host);
+            return false;
+        }
+    }
+
+    /**
+     * 判断是否为私有IP地址
+     */
+    private boolean isPrivateIP(String host) {
+        if (host == null) {
+            return false;
+        }
+        
+        try {
+            java.net.InetAddress address = getByName(host);
+
+            return address.isSiteLocalAddress() ||
+                   address.isLinkLocalAddress() ||
+                   address.isLoopbackAddress();
+        } catch (Exception e) {
+            log.debug("无法解析主机: {}", host);
+            return false;
         }
     }
 
