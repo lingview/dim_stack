@@ -1180,7 +1180,7 @@ ${cleanText}
             {showAiDialog && (
                 <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-[60]">
                     <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
-                        <h3 className="text-lg font-semibold mb-4">AI写作助手</h3>
+                        <h3 className="text-lg font-semibold mb-4 text-gray-600">AI写作助手</h3>
                         <textarea
                             value={aiDescription}
                             onChange={(e) => setAiDescription(e.target.value)}
@@ -1221,7 +1221,7 @@ ${cleanText}
                 <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-[60]">
                     <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl mx-4 max-h-[80vh] overflow-hidden flex flex-col">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold">外部资源本地化</h3>
+                            <h3 className="text-lg font-semibold text-gray-600">外部资源本地化</h3>
                             <button
                                 onClick={() => {
                                     setShowLocalizeDialog(false);

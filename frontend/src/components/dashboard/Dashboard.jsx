@@ -495,7 +495,7 @@ export default function Dashboard() {
             </div>
 
             {showEditor && (
-                <Suspense fallback={<div className="fixed inset-0 z-50 bg-white flex items-center justify-center">加载编辑器中...</div>}>
+                <Suspense fallback={<div className="fixed inset-0 z-50 bg-white flex items-center justify-center"><p className="text-gray-600">加载编辑器中...</p></div>}>
                     <FadeIn duration={250}>
                         <MarkdownEditor
                             onSave={handleEditorSave}
