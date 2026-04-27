@@ -28,6 +28,12 @@ export function useFileUpload(apiClient, getConfig) {
     const [uploading, setUploading] = useState(false);
     const uploadingFiles = useRef(new Set());
     const uploadPositionsRef = useRef(new Map());
+    const [toastMessage, setToastMessage] = useState(null);
+
+    const showToast = (message, type = 'error') => {
+        setToastMessage({ message, type });
+        setTimeout(() => setToastMessage(null), 3000);
+    };
 
     const normalUpload = async (file) => {
         const formData = new FormData();
@@ -80,7 +86,7 @@ export function useFileUpload(apiClient, getConfig) {
         if (!file || !isFileSupported(file.type)) {
             if (file && !isFileSupported(file.type)) {
                 const errorMessage = `不支持的文件类型: ${file.type}\n\n仅支持: ${Object.values(SUPPORTED_FILE_TYPES).flat().join(', ')}`;
-                alert(errorMessage);
+                showToast(errorMessage, 'warning');
             }
             return null;
         }
@@ -115,7 +121,7 @@ export function useFileUpload(apiClient, getConfig) {
             }
             return null;
         } catch (error) {
-            alert('文件上传失败: ' + error.message);
+            showToast('文件上传失败: ' + error.message, 'error');
             return null;
         } finally {
             uploadingFiles.current.delete(fileKey);
@@ -130,6 +136,7 @@ export function useFileUpload(apiClient, getConfig) {
     return {
         uploading,
         processFile,
-        SUPPORTED_FILE_TYPES
+        SUPPORTED_FILE_TYPES,
+        toastMessage
     };
 }

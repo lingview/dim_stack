@@ -21,6 +21,8 @@ import xyz.lingview.dimstack.util.RandomUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -901,6 +903,165 @@ public class UploadServiceImpl implements UploadService {
         }
 
         return ResponseEntity.ok(Map.of("fileUrl", fileUrl, "message", "头像上传成功"));
+    }
+
+    @Override
+    public ResponseEntity<Map<String, String>> downloadAndUploadExternalResource(HttpServletRequest request, String url) {
+        try {
+            log.info("开始下载并上传外部资源: {}", url);
+
+            if (url == null || url.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "URL不能为空"));
+            }
+
+            if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                log.warn("不支持的URL协议: {}", url);
+                return ResponseEntity.badRequest().body(Map.of("error", "只支持HTTP/HTTPS协议"));
+            }
+
+            String username = getUsername(request);
+            if (username == null) {
+                log.warn("未授权的下载尝试");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "用户未登录或用户名无效"));
+            }
+
+            String userUUID = getUserUUID(username);
+            if (userUUID == null) {
+                log.error("未找到用户名 {} 的UUID", username);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "未找到用户"));
+            }
+
+            URL resourceUrl = new URL(url);
+            HttpURLConnection connection = (HttpURLConnection) resourceUrl.openConnection();
+
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(30000);
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+            connection.setRequestProperty("Accept", "image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
+            connection.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
+            connection.setInstanceFollowRedirects(true);
+            
+            int responseCode = connection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                log.error("下载失败，HTTP状态码: {}, URL: {}", responseCode, url);
+                connection.disconnect();
+                return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                        .body(Map.of("error", "下载失败，HTTP状态码: " + responseCode));
+            }
+
+            byte[] data = connection.getInputStream().readAllBytes();
+            String contentType = connection.getContentType();
+            connection.disconnect();
+            
+            log.info("外部资源下载成功，大小: {} bytes, Content-Type: {}, URL: {}", data.length, contentType, url);
+
+            String extension = "";
+            if (contentType != null) {
+                if (contentType.contains("jpeg") || contentType.contains("jpg")) {
+                    extension = ".jpg";
+                } else if (contentType.contains("png")) {
+                    extension = ".png";
+                } else if (contentType.contains("gif")) {
+                    extension = ".gif";
+                } else if (contentType.contains("webp")) {
+                    extension = ".webp";
+                } else if (contentType.contains("svg")) {
+                    extension = ".svg";
+                } else if (contentType.contains("mp4")) {
+                    extension = ".mp4";
+                } else if (contentType.contains("webm")) {
+                    extension = ".webm";
+                } else if (contentType.contains("ogg")) {
+                    extension = ".ogg";
+                } else if (contentType.contains("mp3") || contentType.contains("mpeg")) {
+                    extension = ".mp3";
+                } else if (contentType.contains("wav")) {
+                    extension = ".wav";
+                } else if (contentType.contains("flac")) {
+                    extension = ".flac";
+                }
+            }
+
+            if (extension.isEmpty()) {
+                String urlPath = url.split("\\?")[0];
+                if (urlPath.contains(".")) {
+                    String urlExt = urlPath.substring(urlPath.lastIndexOf(".")).toLowerCase();
+                    if (isExtensionAllowed(urlExt)) {
+                        extension = urlExt;
+                    }
+                }
+            }
+
+            if (extension.isEmpty()) {
+                extension = ".jpg";
+            }
+
+            String mimeType = getMimeTypeByExtension(extension);
+            if (!isMimeAllowed(mimeType)) {
+                log.warn("不支持的文件类型: {}", mimeType);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "文件类型不被允许"));
+            }
+            
+            String subFolder = getFolderByMime(mimeType);
+            Path uploadPath = buildFileSystemPath(username, "attachment", subFolder);
+            Path allowedRoot = getBasePath();
+
+            if (!uploadPath.startsWith(allowedRoot)) {
+                log.error("检测到无效的上传路径: {}", uploadPath);
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "上传路径无效"));
+            }
+
+            try {
+                Files.createDirectories(uploadPath);
+                log.debug("创建目录: {}", uploadPath);
+            } catch (IOException e) {
+                log.error("创建目录失败: {}", uploadPath, e);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("error", "创建目录失败"));
+            }
+
+            String fileUUID = RandomUtil.generateUUID();
+            String fileName = fileUUID + extension;
+            String accessKey = UUID.randomUUID().toString().replace("-", "");
+            Path filePath = uploadPath.resolve(fileName);
+
+            UploadAttachment uploadFile = new UploadAttachment();
+            uploadFile.setUuid(userUUID);
+            uploadFile.setAttachment_id(fileUUID);
+            uploadFile.setOriginal_filename("external_resource" + extension);
+            uploadFile.setAttachment_path(buildDatabasePath(username, "attachment", subFolder, fileName));
+            uploadFile.setAccess_key(accessKey);
+            
+            int insertResult = uploadMapper.insertUploadAttachment(uploadFile);
+            if (insertResult != 1) {
+                log.error("插入附件记录到数据库失败。文件: {}", fileName);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("error", "插入数据库失败"));
+            }
+
+            try {
+                Files.write(filePath, data);
+                log.info("文件保存成功。路径: {}", filePath);
+            } catch (IOException e) {
+                log.error("保存文件失败: {}", filePath, e);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("error", "保存文件失败"));
+            }
+
+            String fileUrl = "/file/" + accessKey;
+            log.info("外部资源上传完成。URL: {}", fileUrl);
+            return ResponseEntity.ok(Map.of("fileUrl", fileUrl));
+                    
+        } catch (Exception e) {
+            log.error("下载并上传外部资源失败: {}", url, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "处理失败: " + e.getMessage()));
+        }
     }
 
 }

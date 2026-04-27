@@ -5,8 +5,9 @@ import MarkdownTextarea from './MarkdownTextarea';
 import MarkdownPreview from './MarkdownPreview';
 import ArticleInfoForm from './ArticleInfoForm';
 import TextSelectionToolbar from './TextSelectionToolbar';
+import Toast from '../Toast';
 import { useFileUpload } from '../../hooks/useFileUpload';
-import { isSafeUrl } from '../../utils/markdownUtils';
+import { isSafeUrl, detectExternalMedia, generateMediaMarkdown } from '../../utils/markdownUtils';
 import { detectTextFormats, detectContextFormats, determineFormatAction } from '../../utils/formatDetectionUtils';
 import apiClient from '../../utils/axios';
 import { getConfig } from '../../utils/config';
@@ -96,6 +97,11 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const [showAiDialog, setShowAiDialog] = useState(false);
     const [aiDescription, setAiDescription] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
+    const [showLocalizeDialog, setShowLocalizeDialog] = useState(false);
+    const [externalResources, setExternalResources] = useState([]);
+    const [localizingResources, setLocalizingResources] = useState(new Set());
+    const [localizeProgress, setLocalizeProgress] = useState({ current: 0, total: 0 });
+    const [toast, setToast] = useState(null);
 
     const abortControllerRef = useRef(null);
 
@@ -108,7 +114,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const savedSelectionRef = useRef({ start: 0, end: 0 });
     const isSyncingScrollRef = useRef(false);
 
-    const { uploading, processFile, SUPPORTED_FILE_TYPES } = useFileUpload(apiClient, getConfig);
+    const { uploading, processFile, SUPPORTED_FILE_TYPES, toastMessage: uploadToast } = useFileUpload(apiClient, getConfig);
 
     useEffect(() => {
         if (initialData) {
@@ -280,7 +286,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
 
     const handleSave = () => {
         if (!title.trim() || !content.trim()) {
-            alert('标题和内容不能为空');
+            setToast({ message: '标题和内容不能为空', type: 'warning' });
             return;
         }
 
@@ -353,7 +359,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             } else if (error.message && error.message !== '请重试') {
                 errorMessage = error.message;
             }
-            alert(`保存失败: ${errorMessage}`);
+            setToast({ message: `保存失败: ${errorMessage}`, type: 'error' });
         } finally {
             setIsSaving(false);
         }
@@ -516,6 +522,11 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const handleToolbarClick = (buttonType) => {
         if (buttonType === 'ai-generate') {
             setShowAiDialog(true);
+            return;
+        }
+
+        if (buttonType === 'localize-media') {
+            handleDetectExternalMedia();
             return;
         }
 
@@ -862,7 +873,7 @@ ${cleanText}
 
     const handleAiGenerate = async () => {
         if (!aiDescription.trim()) {
-            alert('请输入文章描述');
+            setToast({ message: '请输入文章描述', type: 'warning' });
             return;
         }
 
@@ -895,7 +906,7 @@ ${cleanText}
                     }
                 }, 0);
             } else {
-                alert(response.message || 'AI生成失败，请重试');
+                setToast({ message: response.message || 'AI生成失败，请重试', type: 'error' });
             }
         } catch (error) {
             if (error.name === 'CanceledError' || error.name === 'AbortError') {
@@ -903,7 +914,7 @@ ${cleanText}
                 return;
             }
             console.error('AI生成错误:', error);
-            alert(error.response?.data?.message || error.message || 'AI生成失败，请重试');
+            setToast({ message: error.response?.data?.message || error.message || 'AI生成失败，请重试', type: 'error' });
         } finally {
             setIsGenerating(false);
             abortControllerRef.current = null;
@@ -917,6 +928,136 @@ ${cleanText}
         setShowAiDialog(false);
         setAiDescription('');
         setIsGenerating(false);
+    };
+
+    // 检测外部媒体资源
+    const handleDetectExternalMedia = () => {
+        const resources = detectExternalMedia(content);
+        setExternalResources(resources);
+        setShowLocalizeDialog(true);
+    };
+
+    const downloadAndUploadResource = async (resource) => {
+        try {
+            const response = await apiClient.post('/download-external-resource', {
+                url: resource.url
+            });
+
+            const fileUrl = response.data?.fileUrl || response.fileUrl;
+            if (fileUrl) {
+                const fullUrl = getConfig().getFullUrl(fileUrl);
+
+                let filename = 'external_resource';
+                try {
+                    const urlObj = new URL(resource.url);
+                    const pathname = urlObj.pathname;
+                    const parts = pathname.split('/');
+                    const lastPart = parts[parts.length - 1];
+                    if (lastPart && lastPart.includes('.')) {
+                        filename = lastPart;
+                    }
+                } catch (e) {
+                }
+                
+                return {
+                    success: true,
+                    originalUrl: resource.url,
+                    newUrl: fullUrl,
+                    markdown: generateMediaMarkdown(resource.type, filename, fullUrl, resource.alt || '')
+                };
+            }
+            return { success: false, error: '上传失败' };
+        } catch (error) {
+            console.error('资源处理失败:', error);
+            return {
+                success: false,
+                error: error.response?.data?.error || error.message || '下载或上传失败'
+            };
+        }
+    };
+
+    // 本地化所有外部资源
+    const handleLocalizeAllResources = async () => {
+        if (externalResources.length === 0) return;
+
+        setLocalizingResources(new Set(externalResources.map((_, idx) => idx)));
+        setLocalizeProgress({ current: 0, total: externalResources.length });
+
+        const results = [];
+        let newContent = content;
+
+        for (let i = 0; i < externalResources.length; i++) {
+            const resource = externalResources[i];
+            
+            try {
+                const result = await downloadAndUploadResource(resource);
+                
+                if (result.success) {
+                    newContent = newContent.replace(resource.markdown, result.markdown);
+                    results.push(result);
+                } else {
+                    results.push({ ...result, originalUrl: resource.url });
+                }
+            } catch (error) {
+                results.push({
+                    success: false,
+                    originalUrl: resource.url,
+                    error: error.message
+                });
+            }
+
+            setLocalizeProgress({ current: i + 1, total: externalResources.length });
+        }
+
+        setContent(newContent);
+
+        const successCount = results.filter(r => r.success).length;
+        const failCount = results.filter(r => !r.success).length;
+        
+        if (failCount === 0) {
+            setToast({ message: `成功本地化 ${successCount} 个资源`, type: 'info' });
+        } else {
+            setToast({ 
+                message: `完成！成功: ${successCount}, 失败: ${failCount}`, 
+                type: 'warning',
+                duration: 5000
+            });
+        }
+
+        setShowLocalizeDialog(false);
+        setLocalizingResources(new Set());
+        setLocalizeProgress({ current: 0, total: 0 });
+    };
+
+    // 本地化单个资源
+    const handleLocalizeSingleResource = async (index) => {
+        const resource = externalResources[index];
+        
+        setLocalizingResources(prev => new Set([...prev, index]));
+
+        try {
+            const result = await downloadAndUploadResource(resource);
+            
+            if (result.success) {
+                const newContent = content.replace(resource.markdown, result.markdown);
+                setContent(newContent);
+
+                const updatedResources = externalResources.filter((_, idx) => idx !== index);
+                setExternalResources(updatedResources);
+                
+                setToast({ message: '资源本地化成功', type: 'info' });
+            } else {
+                setToast({ message: `本地化失败: ${result.error}`, type: 'error' });
+            }
+        } catch (error) {
+            setToast({ message: `本地化失败: ${error.message}`, type: 'error' });
+        } finally {
+            setLocalizingResources(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(index);
+                return newSet;
+            });
+        }
     };
 
     return (
@@ -1001,6 +1142,24 @@ ${cleanText}
                 onChange={handleFileInputChange}
             />
 
+            {uploadToast && (
+                <Toast
+                    message={uploadToast.message}
+                    type={uploadToast.type}
+                    onClose={() => {}}
+                    duration={3000}
+                />
+            )}
+
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                    duration={toast.duration || 3000}
+                />
+            )}
+
             <TextSelectionToolbar
                 isVisible={showSelectionToolbar}
                 position={selectionPosition}
@@ -1054,6 +1213,137 @@ ${cleanText}
                                 )}
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {showLocalizeDialog && (
+                <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-[60]">
+                    <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl mx-4 max-h-[80vh] overflow-hidden flex flex-col">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold">外部资源本地化</h3>
+                            <button
+                                onClick={() => {
+                                    setShowLocalizeDialog(false);
+                                    setExternalResources([]);
+                                    setLocalizingResources(new Set());
+                                    setLocalizeProgress({ current: 0, total: 0 });
+                                }}
+                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                        
+                        {externalResources.length === 0 ? (
+                            <div className="text-center py-8 text-gray-500">
+                                <p>未检测到外部媒体资源</p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="mb-4 text-sm text-gray-600">
+                                    <p>检测到 {externalResources.length} 个外部资源，点击“全部本地化”将它们下载到本地服务器</p>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto mb-4 border border-gray-200 rounded-md">
+                                    <table className="w-full">
+                                        <thead className="bg-gray-50 sticky top-0">
+                                            <tr>
+                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">类型</th>
+                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">URL</th>
+                                                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-200">
+                                            {externalResources.map((resource, index) => (
+                                                <tr key={index} className="hover:bg-gray-50">
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                            resource.type === 'image' ? 'bg-green-100 text-green-800' :
+                                                            resource.type === 'video' ? 'bg-blue-100 text-blue-800' :
+                                                            'bg-purple-100 text-purple-800'
+                                                        }`}>
+                                                            {resource.type === 'image' ? '图片' :
+                                                             resource.type === 'video' ? '视频' : '音频'}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="text-sm text-gray-900 truncate max-w-xs" title={resource.url}>
+                                                            {resource.url}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                        <button
+                                                            onClick={() => handleLocalizeSingleResource(index)}
+                                                            disabled={localizingResources.has(index)}
+                                                            className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 text-sm flex items-center"
+                                                        >
+                                                            {localizingResources.has(index) ? (
+                                                                <>
+                                                                    <svg className="animate-spin -ml-1 mr-2 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                    </svg>
+                                                                    处理中
+                                                                </>
+                                                            ) : (
+                                                                '本地化'
+                                                            )}
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {localizeProgress.total > 0 && (
+                                    <div className="mb-4">
+                                        <div className="flex justify-between text-sm text-gray-600 mb-1">
+                                            <span>进度: {localizeProgress.current} / {localizeProgress.total}</span>
+                                            <span>{Math.round((localizeProgress.current / localizeProgress.total) * 100)}%</span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                            <div
+                                                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                                style={{ width: `${(localizeProgress.current / localizeProgress.total) * 100}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="flex justify-end space-x-3">
+                                    <button
+                                        onClick={() => {
+                                            setShowLocalizeDialog(false);
+                                            setExternalResources([]);
+                                            setLocalizingResources(new Set());
+                                            setLocalizeProgress({ current: 0, total: 0 });
+                                        }}
+                                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                                    >
+                                        取消
+                                    </button>
+                                    <button
+                                        onClick={handleLocalizeAllResources}
+                                        disabled={localizingResources.size > 0 || externalResources.length === 0}
+                                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center"
+                                    >
+                                        {localizingResources.size > 0 ? (
+                                            <>
+                                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                处理中...
+                                            </>
+                                        ) : (
+                                            '全部本地化'
+                                        )}
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}

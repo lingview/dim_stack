@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import {
     Bold, Italic, Heading, Link as LinkIcon,
-    Image, List, Code, Video, Music, FileText, Sparkles
+    Image, List, Code, Video, Music, FileText, Sparkles, Download
 } from 'lucide-react';
 
 const TOOLBAR_BUTTONS = [
@@ -15,7 +15,8 @@ const TOOLBAR_BUTTONS = [
     { type: 'archive', icon: FileText, title: '插入压缩包', isFile: true },
     { type: 'list', icon: List, title: '列表' },
     { type: 'code', icon: Code, title: '代码 (Ctrl+E)' },
-    { type: 'ai-generate', icon: Sparkles, title: 'AI生成文章' }
+    { type: 'ai-generate', icon: Sparkles, title: 'AI生成文章' },
+    { type: 'localize-media', icon: Download, title: '本地化外部资源' }
 ];
 
 export default function MarkdownToolbar({

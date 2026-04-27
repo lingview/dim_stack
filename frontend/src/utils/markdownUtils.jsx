@@ -1,3 +1,5 @@
+import { getConfig } from './config';
+
 export const preprocessMarkdown = (text) => {
     if (!text) return '';
 
@@ -57,3 +59,70 @@ export const preprocessMarkdown = (text) => {
 export const isSafeUrl = (url) =>
     typeof url === 'string' &&
     (url.startsWith('http://') || url.startsWith('https://'));
+
+// 检测md编辑器中的外部媒体资源
+export const detectExternalMedia = (content) => {
+    if (!content) return [];
+
+    const externalResources = [];
+    const config = getConfig();
+
+    const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+    let match;
+    while ((match = imageRegex.exec(content)) !== null) {
+        const url = match[2];
+        if (isSafeUrl(url) && !config.isSameOrigin(url)) {
+            externalResources.push({
+                type: 'image',
+                alt: match[1],
+                url: url,
+                markdown: match[0],
+                startIndex: match.index,
+                endIndex: match.index + match[0].length
+            });
+        }
+    }
+
+    const videoRegex = /<video[^>]*src=["']([^"']+)["'][^>]*>/gi;
+    while ((match = videoRegex.exec(content)) !== null) {
+        const url = match[1];
+        if (isSafeUrl(url) && !config.isSameOrigin(url)) {
+            externalResources.push({
+                type: 'video',
+                url: url,
+                markdown: match[0],
+                startIndex: match.index,
+                endIndex: match.index + match[0].length
+            });
+        }
+    }
+
+    const audioRegex = /<audio[^>]*src=["']([^"']+)["'][^>]*>/gi;
+    while ((match = audioRegex.exec(content)) !== null) {
+        const url = match[1];
+        if (isSafeUrl(url) && !config.isSameOrigin(url)) {
+            externalResources.push({
+                type: 'audio',
+                url: url,
+                markdown: match[0],
+                startIndex: match.index,
+                endIndex: match.index + match[0].length
+            });
+        }
+    }
+
+    return externalResources;
+};
+
+export const generateMediaMarkdown = (type, filename, url, alt = '') => {
+    switch(type) {
+        case 'image':
+            return `![${alt || filename}](${url})`;
+        case 'video':
+            return `<video src="${url}" controls style="width: 400px;"></video>`;
+        case 'audio':
+            return `<audio src="${url}?filename=${encodeURIComponent(filename)}" controls preload="metadata" data-filename="${filename}"></audio>`;
+        default:
+            return '';
+    }
+};

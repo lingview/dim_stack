@@ -90,6 +90,15 @@ public class UploadController {
         }
     }
 
+    // 代理下载外部资源
+    @PostMapping("/download-external-resource")
+    @RequiresPermission("attachment:add")
+    public ResponseEntity<Map<String, String>> downloadExternalResource(
+            HttpServletRequest request,
+            @RequestBody Map<String, String> payload) {
+        String url = payload.get("url");
+        return uploadService.downloadAndUploadExternalResource(request, url);
+    }
 
 
 }
