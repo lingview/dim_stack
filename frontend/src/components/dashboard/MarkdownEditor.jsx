@@ -985,6 +985,7 @@ ${cleanText}
 
         const results = [];
         let newContent = content;
+        let hasConfigError = false;
 
         for (let i = 0; i < externalResources.length; i++) {
             const resource = externalResources[i];
@@ -996,17 +997,38 @@ ${cleanText}
                     newContent = newContent.replace(resource.markdown, result.markdown);
                     results.push(result);
                 } else {
+                    if (result.error && result.error.includes('未启用')) {
+                        hasConfigError = true;
+                        break;
+                    }
                     results.push({ ...result, originalUrl: resource.url });
                 }
             } catch (error) {
+                const errorMsg = error.response?.data?.error || error.message;
+                if (errorMsg && errorMsg.includes('未启用')) {
+                    hasConfigError = true;
+                    break;
+                }
                 results.push({
                     success: false,
                     originalUrl: resource.url,
-                    error: error.message
+                    error: errorMsg
                 });
             }
 
             setLocalizeProgress({ current: i + 1, total: externalResources.length });
+        }
+
+        if (hasConfigError) {
+            setToast({ 
+                message: '外部资源代理下载功能未启用，请在后台【站点配置】-【媒体设置】中开启', 
+                type: 'error',
+                duration: 5000
+            });
+            setShowLocalizeDialog(false);
+            setLocalizingResources(new Set());
+            setLocalizeProgress({ current: 0, total: 0 });
+            return;
         }
 
         setContent(newContent);

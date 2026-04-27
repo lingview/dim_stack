@@ -14,6 +14,7 @@ import xyz.lingview.dimstack.domain.UserInformation;
 import xyz.lingview.dimstack.mapper.ArticleCategoryMapper;
 import xyz.lingview.dimstack.mapper.UploadMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
+import xyz.lingview.dimstack.service.SiteConfigService;
 import xyz.lingview.dimstack.service.UploadService;
 import xyz.lingview.dimstack.util.CategoryPathUtil;
 import xyz.lingview.dimstack.util.RandomUtil;
@@ -54,6 +55,9 @@ public class UploadServiceImpl implements UploadService {
 
     @Autowired
     private CategoryPathUtil categoryPathUtil;
+
+    @Autowired
+    private SiteConfigService siteConfigService;
 
     // 注入配置属性
     @Value("${file.data-root:.}")
@@ -911,6 +915,14 @@ public class UploadServiceImpl implements UploadService {
     public ResponseEntity<Map<String, String>> downloadAndUploadExternalResource(HttpServletRequest request, String url) {
         try {
             log.info("开始下载并上传外部资源: {}", url);
+
+            // 检查是否启用外部资源代理下载功能
+            Integer proxyEnabled = siteConfigService.getProxyResourceDownload();
+            if (proxyEnabled == null || proxyEnabled != 1) {
+                log.warn("外部资源代理下载功能未启用");
+                return ResponseEntity.status(400)
+                        .body(Map.of("error", "外部资源代理下载功能未启用"));
+            }
 
             if (url == null || url.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "URL不能为空"));

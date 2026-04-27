@@ -279,6 +279,10 @@ public class SiteConfigController {
                 currentConfig.setImage_compression_threads(siteConfig.getImage_compression_threads());
             }
 
+            if (siteConfig.getProxy_resource_download() != null) {
+                currentConfig.setProxy_resource_download(siteConfig.getProxy_resource_download());
+            }
+
             boolean result = siteConfigService.updateSiteConfig(currentConfig);
 
             if (result) {

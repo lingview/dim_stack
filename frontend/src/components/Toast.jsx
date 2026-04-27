@@ -31,7 +31,7 @@ const Toast = ({ message, type = 'error', onClose, duration = 3000 }) => {
 
     return (
         <div 
-            className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-lg border shadow-lg ${bgColors[type]} ${textColors[type]}`}
+            className={`fixed top-4 right-4 z-[9999] flex items-center gap-2 px-4 py-3 rounded-lg border shadow-lg ${bgColors[type]} ${textColors[type]}`}
             style={{
                 animation: 'slide-in-right 0.3s ease-out',
                 transform: 'translateX(0)',

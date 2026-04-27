@@ -39,4 +39,5 @@ public class SiteConfig {
     private String footer_code;
     private Integer enable_image_compression;
     private Integer image_compression_threads;
+    private Integer proxy_resource_download;
 }

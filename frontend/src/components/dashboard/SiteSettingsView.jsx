@@ -92,7 +92,8 @@ export default function SiteSettingsView() {
         content_head_code: '',
         footer_code: '',
         enable_image_compression: 1,
-        image_compression_threads: 5
+        image_compression_threads: 5,
+        proxy_resource_download: 0
     });
 
     const [uploadQueue, setUploadQueue] = useState([]);
@@ -176,7 +177,8 @@ export default function SiteSettingsView() {
                     enable_llm_article_review: response.data.enable_llm_article_review !== undefined ? response.data.enable_llm_article_review : 0,
                     enable_llm_create_article: response.data.enable_llm_create_article !== undefined ? response.data.enable_llm_create_article : 0,
                     enable_image_compression: response.data.enable_image_compression != null ? response.data.enable_image_compression : 0,
-                    image_compression_threads: response.data.image_compression_threads != null ? response.data.image_compression_threads : 5
+                    image_compression_threads: response.data.image_compression_threads != null ? response.data.image_compression_threads : 5,
+                    proxy_resource_download: response.data.proxy_resource_download != null ? response.data.proxy_resource_download : 0
                 };
                 setFormData(escapedData);
             } else {
@@ -628,7 +630,8 @@ export default function SiteSettingsView() {
                 enable_llm_article_review: formData.enable_llm_article_review,
                 enable_llm_create_article: formData.enable_llm_create_article,
                 enable_image_compression: formData.enable_image_compression,
-                image_compression_threads: parseInt(formData.image_compression_threads, 10)
+                image_compression_threads: parseInt(formData.image_compression_threads, 10),
+                proxy_resource_download: formData.proxy_resource_download
             };
 
             if (formData.mail_password && formData.mail_password.trim() !== '') {
@@ -1076,6 +1079,25 @@ export default function SiteSettingsView() {
                                     </div>
                                 </div>
                             )}
+
+                            <div className="border-t border-gray-200 pt-6">
+                                <div>
+                                    <label className="flex items-center space-x-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.proxy_resource_download === 1}
+                                            onChange={(e) => {
+                                                setFormData(prev => ({ ...prev, proxy_resource_download: e.target.checked ? 1 : 0 }));
+                                            }}
+                                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <span className="text-sm font-medium text-gray-700">启用外部资源代理下载</span>
+                                    </label>
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        启用后，Markdown编辑器可一键将外部图片、视频、音频下载到本地服务器并替换为本地链接
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     )}
 

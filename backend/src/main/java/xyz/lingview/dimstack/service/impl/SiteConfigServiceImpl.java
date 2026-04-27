@@ -232,4 +232,13 @@ public class SiteConfigServiceImpl implements SiteConfigService {
         }
         return 5;
     }
+
+    @Override
+    public Integer getProxyResourceDownload() {
+        SiteConfig config = getSiteConfig();
+        if (config != null) {
+            return config.getProxy_resource_download();
+        }
+        return 0;
+    }
 }

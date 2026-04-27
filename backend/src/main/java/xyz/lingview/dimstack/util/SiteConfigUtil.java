@@ -203,4 +203,17 @@ public class SiteConfigUtil {
         }
         return 5;
     }
+
+    public Integer getProxyResourceDownload() {
+        try {
+            SiteConfig siteConfig = cacheService.get("dimstack:site_config", SiteConfig.class);
+            if (siteConfig != null) {
+                Integer proxyDownload = siteConfig.getProxy_resource_download();
+                return proxyDownload != null ? proxyDownload : 0;
+            }
+        } catch (Exception e) {
+            log.warn("获取外部资源代理设置时发生异常", e);
+        }
+        return 0;
+    }
 }
