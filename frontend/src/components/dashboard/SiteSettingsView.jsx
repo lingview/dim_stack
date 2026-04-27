@@ -1091,7 +1091,7 @@ export default function SiteSettingsView() {
                                             }}
                                             className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                         />
-                                        <span className="text-sm font-medium text-gray-700">启用外部资源代理下载</span>
+                                        <span className="text-sm font-medium text-gray-700">启用外部资源代理下载<strong>（实验性功能）</strong></span>
                                     </label>
                                     <p className="mt-1 text-xs text-gray-500">
                                         启用后，Markdown编辑器可一键将外部图片、视频、音频下载到本地服务器并替换为本地链接
