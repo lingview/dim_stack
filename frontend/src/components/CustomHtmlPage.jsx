@@ -200,9 +200,9 @@ const CustomHtmlPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 flex flex-col">
             <Header />
-            <div className="pt-20">
+            <div className="pt-20 flex-grow">
                 <Hero />
                 <div className="py-8">
                     <main className="max-w-310 mx-auto px-4">

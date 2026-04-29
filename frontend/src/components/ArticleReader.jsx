@@ -266,9 +266,9 @@ export default function ArticleReader() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 flex flex-col">
             <Header />
-            <div className="pt-20">
+            <div className="pt-20 flex-grow">
                 {showPasswordInput ? (
                     <div className="container mx-auto px-4 py-8">
                         <div className="max-w-md mx-auto mt-10">
