@@ -256,6 +256,32 @@ https://apilinks.cn/file/5561656e3db242a6bf342714f08855ab?download=true
 
 ![](./images/article_reader_download_original_image.png)
 
+## 外部资源本地化
+> 系统支持导入其他博客或笔记软件文章的功能，并且可以将文章内的图片、视频外链转化为本地
+> 
+
+### 安全防护规则
+系统实施了严格的IP来源分类与访问控制策略：来自localhost（包括127.0.0.1、localhost）的请求可访问所有地址（含localhost、内网和公网）；而非localhost请求（如局域网客户端）则禁止访问服务器自身的localhost或127.x.x.x地址，以防止对本地服务的探测。对于公网请求（即客户端IP不属于任何私有网段），系统进一步限制其不得访问任何私有IP地址（如10.x.x.x、172.16–31.x.x、192.168.x.x、169.254.x.x等），仅允许访问公网地址。在域名检测方面，系统将localhost、127.0.0.1、任意*.localhost子域、127.x.x.x网段，以及DNS解析结果为回环地址的域名均视为本地回环资源。为防范DNS重绑定攻击，系统在建立HTTP连接前会重新解析域名，并验证所得IP是否符合上述安全策略，从而阻止攻击者通过动态DNS将域名指向内网地址。此外，系统仅支持HTTP和HTTPS协议，明确拒绝ftp、file等其他协议。真实客户端IP的获取依赖于Spring Boot的server.forward-headers-strategy: native配置，自动从X-Forwarded-For等标准代理头中提取原始IP，无需手动解析HTTP头信息。
+
+### 功能说明
+使用此功能需要在站点配置中开启（默认关闭）
+
+![](./images/localization_of_external_resources_1.png)
+
+点击快捷工具栏中的下载图标即可打开本功能操作页面
+
+![](./images/localization_of_external_resources_2.png)
+
+一般来说直接点击“全部本地化”即可
+
+![](./images/localization_of_external_resources_3.png)
+
+后台操作完后会自动关闭对话框，并且可以看到已经转化为内部链接了
+
+![](./images/localization_of_external_resources_4.png)
+
+注：本项目外部资源本地化功能默认关闭，使用者请勿将本项目部署至香港及境外服务器后开启资源本地化功能，严禁利用本功能爬取、存储、传播色情、暴力、赌博、涉政等任何违法违规内容，任何个人或组织私自部署、修改、滥用本功能所产生的一切法律责任，均由使用者自行承担，与项目作者无关
+
 ## 代码注入相关
 > 系统提供自定义全局head、内容页head以及页脚自定义
 >
