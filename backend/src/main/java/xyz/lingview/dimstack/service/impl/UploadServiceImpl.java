@@ -1104,6 +1104,15 @@ public class UploadServiceImpl implements UploadService {
             String accessKey = UUID.randomUUID().toString().replace("-", "");
             Path filePath = uploadPath.resolve(fileName);
 
+            try {
+                Files.write(filePath, data);
+                log.info("文件保存成功。路径: {}", filePath);
+            } catch (IOException e) {
+                log.error("保存文件失败: {}", filePath, e);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("error", "保存文件失败"));
+            }
+
             UploadAttachment uploadFile = new UploadAttachment();
             uploadFile.setUuid(userUUID);
             uploadFile.setAttachment_id(fileUUID);
@@ -1114,17 +1123,9 @@ public class UploadServiceImpl implements UploadService {
             int insertResult = uploadMapper.insertUploadAttachment(uploadFile);
             if (insertResult != 1) {
                 log.error("插入附件记录到数据库失败。文件: {}", fileName);
+                try { Files.deleteIfExists(filePath); } catch (IOException ignored) {}
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                         .body(Map.of("error", "插入数据库失败"));
-            }
-
-            try {
-                Files.write(filePath, data);
-                log.info("文件保存成功。路径: {}", filePath);
-            } catch (IOException e) {
-                log.error("保存文件失败: {}", filePath, e);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("error", "保存文件失败"));
             }
 
             String fileUrl = "/file/" + accessKey;
