@@ -7,8 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.domain.FriendLinks;
+import xyz.lingview.dimstack.domain.FriendLinksConfig;
 import xyz.lingview.dimstack.dto.request.FriendLinksRequestDTO;
 import xyz.lingview.dimstack.service.FriendLinksService;
+import xyz.lingview.dimstack.service.FriendLinksConfigService;
 
 import jakarta.validation.Valid;
 import java.util.List;
@@ -26,6 +28,9 @@ public class FriendLinksController {
 
     @Autowired
     private FriendLinksService friendLinkService;
+
+    @Autowired
+    private FriendLinksConfigService friendLinksConfigService;
 
 
     @PostMapping("/apply")
@@ -201,6 +206,51 @@ public class FriendLinksController {
                     .body(Map.of(
                             "success", false,
                             "message", "彻底删除友链失败: " + e.getMessage()
+                    ));
+        }
+    }
+
+    @GetMapping("/site-info")
+    public ResponseEntity<Map<String, Object>> getSiteFriendLinkInfo() {
+        try {
+            FriendLinksConfig config = friendLinksConfigService.getActiveConfig();
+            Map<String, Object> response = new java.util.HashMap<>();
+            response.put("success", true);
+            response.put("data", config);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("获取本站友链信息失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "获取本站友链信息失败: " + e.getMessage()
+                    ));
+        }
+    }
+
+    @PutMapping("/site-info")
+    @RequiresPermission("system:friendlinks:management")
+    public ResponseEntity<Map<String, Object>> updateSiteFriendLinkInfo(@RequestBody FriendLinksConfig config) {
+        try {
+            boolean result = friendLinksConfigService.updateConfig(config);
+            if (result) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "本站友链信息更新成功"
+                ));
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of(
+                                "success", false,
+                                "message", "本站友链信息更新失败"
+                        ));
+            }
+        } catch (Exception e) {
+            log.error("更新本站友链信息失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "更新本站友链信息失败: " + e.getMessage()
                     ));
         }
     }

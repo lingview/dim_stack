@@ -19,6 +19,16 @@ export default function FriendLinksManager() {
         contact: ''
     });
 
+    const [showSiteConfigModal, setShowSiteConfigModal] = useState(false);
+    const [siteConfigForm, setSiteConfigForm] = useState({
+        siteName: '',
+        siteUrl: '',
+        siteLogo: '',
+        description: '',
+        applyRules: ''
+    });
+    const [loadingSiteConfig, setLoadingSiteConfig] = useState(false);
+
     useEffect(() => {
         loadFriendLinks();
     }, [currentPage, filterStatus]);
@@ -204,9 +214,65 @@ export default function FriendLinksManager() {
             });
     };
 
+    const openSiteConfigModal = async () => {
+        try {
+            setLoadingSiteConfig(true);
+            const response = await apiClient.get('/friend-links/site-info');
+            if (response?.success && response?.data) {
+                setSiteConfigForm({
+                    siteName: response.data.siteName || '',
+                    siteUrl: response.data.siteUrl || '',
+                    siteLogo: response.data.siteLogo || '',
+                    description: response.data.description || '',
+                    applyRules: response.data.applyRules || ''
+                });
+            }
+            setShowSiteConfigModal(true);
+        } catch (error) {
+            console.error('获取本站友链配置失败:', error);
+            showMessage('error', '获取配置失败');
+        } finally {
+            setLoadingSiteConfig(false);
+        }
+    };
+
+    const closeSiteConfigModal = () => {
+        setShowSiteConfigModal(false);
+        setSiteConfigForm({
+            siteName: '',
+            siteUrl: '',
+            siteLogo: '',
+            description: '',
+            applyRules: ''
+        });
+    };
+
+    const saveSiteConfig = async () => {
+        try {
+            const response = await apiClient.put('/friend-links/site-info', siteConfigForm);
+            if (response?.success) {
+                showMessage('success', response.message || '配置保存成功');
+                closeSiteConfigModal();
+            } else {
+                showMessage('error', response.message || '保存失败');
+            }
+        } catch (error) {
+            console.error('保存本站友链配置失败:', error);
+            showMessage('error', '保存失败');
+        }
+    };
+
     return (
         <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900">友链管理</h2>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">友链管理</h2>
+                <button
+                    onClick={openSiteConfigModal}
+                    className="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                >
+                    配置本站友链信息
+                </button>
+            </div>
 
             {message.content && (
                 <div className={`mb-6 p-4 rounded-lg ${
@@ -501,6 +567,127 @@ export default function FriendLinksManager() {
             ) : (
                 <div className="text-center py-12">
                     <div className="text-gray-500">暂无友链数据</div>
+                </div>
+            )}
+
+            {showSiteConfigModal && (
+                <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-semibold text-gray-900">配置本站友链信息</h3>
+                                <button
+                                    onClick={closeSiteConfigModal}
+                                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            {loadingSiteConfig ? (
+                                <div className="flex justify-center items-center py-12">
+                                    <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent"></div>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            站点名称 <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={siteConfigForm.siteName}
+                                            onChange={(e) => setSiteConfigForm({...siteConfigForm, siteName: e.target.value})}
+                                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            placeholder="请输入站点名称"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            站点 URL <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="url"
+                                            value={siteConfigForm.siteUrl}
+                                            onChange={(e) => setSiteConfigForm({...siteConfigForm, siteUrl: e.target.value})}
+                                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            placeholder="https://example.com/"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            站点 Logo URL
+                                        </label>
+                                        <input
+                                            type="url"
+                                            value={siteConfigForm.siteLogo}
+                                            onChange={(e) => setSiteConfigForm({...siteConfigForm, siteLogo: e.target.value})}
+                                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            placeholder="https://example.com/favicon.ico"
+                                        />
+                                        {siteConfigForm.siteLogo && (
+                                            <div className="mt-3">
+                                                <p className="text-xs text-gray-500 mb-2">预览：</p>
+                                                <img
+                                                    src={siteConfigForm.siteLogo}
+                                                    alt="Logo预览"
+                                                    className="w-16 h-16 rounded-lg object-cover border"
+                                                    onError={(e) => e.target.src = '/image_error.svg'}
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            站点描述
+                                        </label>
+                                        <textarea
+                                            value={siteConfigForm.description}
+                                            onChange={(e) => setSiteConfigForm({...siteConfigForm, description: e.target.value})}
+                                            rows={4}
+                                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm resize-none"
+                                            placeholder="请输入站点描述，用于友链交换展示"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            友链交换规则
+                                        </label>
+                                        <textarea
+                                            value={siteConfigForm.applyRules}
+                                            onChange={(e) => setSiteConfigForm({...siteConfigForm, applyRules: e.target.value})}
+                                            rows={6}
+                                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm resize-none"
+                                            placeholder={'例如：\n1. 请先将本站链接添加到您的网站\n2. 网站内容健康向上，无违法违规信息\n3. 网站能正常访问，非临时性页面\n4. 不接受赌博、色情等违法网站'}
+                                        />
+                                        <p className="mt-1 text-xs text-gray-500">此规则将在前端友链申请页面显示，指导用户如何申请友链</p>
+                                    </div>
+
+                                    <div className="px-6 py-4 flex justify-end space-x-3">
+                                        <button
+                                            onClick={closeSiteConfigModal}
+                                            className="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                        >
+                                            取消
+                                        </button>
+                                        <button
+                                            onClick={saveSiteConfig}
+                                            disabled={!siteConfigForm.siteName || !siteConfigForm.siteUrl}
+                                            className="bg-blue-600 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            保存配置
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

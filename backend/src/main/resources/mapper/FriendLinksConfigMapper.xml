@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xyz.lingview.dimstack.mapper.FriendLinksConfigMapper">
+
+    <resultMap id="FriendLinksConfigMap" type="xyz.lingview.dimstack.domain.FriendLinksConfig">
+        <id property="id" column="id"/>
+        <result property="siteName" column="site_name"/>
+        <result property="siteUrl" column="site_url"/>
+        <result property="siteLogo" column="site_logo"/>
+        <result property="description" column="description"/>
+        <result property="applyRules" column="apply_rules"/>
+        <result property="createTime" column="create_time"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <select id="selectActiveConfig" resultMap="FriendLinksConfigMap">
+        SELECT * FROM friend_links_config
+        WHERE status = 1
+        LIMIT 1
+    </select>
+
+    <update id="updateConfig" parameterType="xyz.lingview.dimstack.domain.FriendLinksConfig">
+        UPDATE friend_links_config
+        SET site_name = #{siteName},
+            site_url = #{siteUrl},
+            site_logo = #{siteLogo},
+            description = #{description},
+            apply_rules = #{applyRules}
+        WHERE id = #{id}
+    </update>
+
+    <insert id="insertConfig" parameterType="xyz.lingview.dimstack.domain.FriendLinksConfig">
+        INSERT INTO friend_links_config (
+            site_name,
+            site_url,
+            site_logo,
+            description,
+            apply_rules,
+            status
+        ) VALUES (
+                     #{siteName},
+                     #{siteUrl},
+                     #{siteLogo},
+                     #{description},
+                     #{applyRules},
+                     #{status}
+                 )
+    </insert>
+
+</mapper>

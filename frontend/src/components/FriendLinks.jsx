@@ -10,6 +10,7 @@ const FriendLinks = () => {
     const [friendLinks, setFriendLinks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showApplyForm, setShowApplyForm] = useState(false);
+    const [siteInfo, setSiteInfo] = useState(null);
     const [formData, setFormData] = useState({
         siteName: '',
         siteUrl: '',
@@ -36,6 +37,7 @@ const FriendLinks = () => {
     useEffect(() => {
         loadFriendLinks();
         loadSiteInfo();
+        loadSiteFriendLinkInfo();
     }, [currentPage]);
 
     const fetchSiteIcon = async (siteUrl) => {
@@ -153,6 +155,19 @@ const FriendLinks = () => {
             if (mpsResponse) setMpsRecord(mpsResponse);
         } catch (error) {
             console.error('加载站点信息失败:', error);
+        }
+    };
+
+    const loadSiteFriendLinkInfo = async () => {
+        try {
+            const response = await apiClient.get('/friend-links/site-info');
+            console.log('友链配置数据:', response);
+            if (response?.success && response?.data) {
+                setSiteInfo(response.data);
+                console.log('设置 siteInfo:', response.data);
+            }
+        } catch (error) {
+            console.error('加载本站友链信息失败:', error);
         }
     };
 
@@ -500,6 +515,69 @@ const FriendLinks = () => {
                                     ) : (
                                         <div className="text-center text-gray-500 py-10">
                                             暂无友链
+                                        </div>
+                                    )}
+
+                                    {siteInfo && (
+                                        <div className="mt-10 pt-8 border-t border-gray-200">
+                                            <h3 className="text-lg font-semibold text-gray-800 mb-6">本站信息</h3>
+                                            <div className="group block p-5 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-300 transition-all">
+                                                <div className="flex items-center gap-5">
+                                                    <div className="flex-shrink-0">
+                                                        <img
+                                                            src={siteInfo.siteLogo || '/image_error.svg'}
+                                                            alt={siteInfo.siteName}
+                                                            className="w-20 h-20 rounded-xl object-contain bg-gray-50 border border-gray-200"
+                                                            onError={(e) => e.target.src = '/image_error.svg'}
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="mb-2">
+                                                            <span className="text-sm font-medium text-gray-500">站点名称：</span>
+                                                            <span className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                                                {siteInfo.siteName}
+                                                            </span>
+                                                        </div>
+                                                        {siteInfo.description && (
+                                                            <div className="mb-3">
+                                                                <span className="text-sm font-medium text-gray-500">站点描述：</span>
+                                                                <p className="text-gray-600 leading-relaxed inline">
+                                                                    {siteInfo.description}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                        <div>
+                                                            <span className="text-sm font-medium text-gray-500">站点地址：</span>
+                                                            <a
+                                                                href={siteInfo.siteUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium break-all ml-1"
+                                                            >
+                                                                <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                                                </svg>
+                                                                <span className="break-all">{siteInfo.siteUrl}</span>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {siteInfo.applyRules && (
+                                                    <div className="mt-5 pt-4 border-t border-gray-200">
+                                                        <div className="flex items-start gap-2">
+                                                            <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                            </svg>
+                                                            <div>
+                                                                <p className="text-sm font-medium text-gray-700 mb-1">交换友链规则：</p>
+                                                                <p className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">
+                                                                    {siteInfo.applyRules}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
