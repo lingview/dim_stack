@@ -9,6 +9,8 @@ import CustomPageManager from "./CustomPageManager.jsx";
 import Sidebar from './Sidebar';
 import DashboardHeader from './DashboardHeader';
 
+import {showToast} from "../../utils/toastManager.jsx";
+
 const DashboardView = lazy(() => import('./DashboardView'));
 const ArticlesView = lazy(() => import('./ArticlesView'));
 const MarkdownEditor = lazy(() => import('./MarkdownEditor'));
@@ -271,11 +273,11 @@ export default function Dashboard() {
                 setShowEditor(true);
             } else {
                 console.error('获取文章详情失败:', response.message);
-                alert('获取文章详情失败: ' + response.message);
+                showToast('获取文章详情失败: ' + response.message);
             }
         } catch (error) {
             console.error('获取文章详情错误:', error);
-            alert('获取文章详情时发生错误');
+            showToast('获取文章详情时发生错误');
         }
     };
 

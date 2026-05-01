@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { showToast } from '../utils/toastManager';
 
 const SUPPORTED_FILE_TYPES = {
     image: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp'],
@@ -28,12 +29,6 @@ export function useFileUpload(apiClient, getConfig) {
     const [uploading, setUploading] = useState(false);
     const uploadingFiles = useRef(new Set());
     const uploadPositionsRef = useRef(new Map());
-    const [toastMessage, setToastMessage] = useState(null);
-
-    const showToast = (message, type = 'error') => {
-        setToastMessage({ message, type });
-        setTimeout(() => setToastMessage(null), 3000);
-    };
 
     const normalUpload = async (file) => {
         const formData = new FormData();
@@ -136,7 +131,6 @@ export function useFileUpload(apiClient, getConfig) {
     return {
         uploading,
         processFile,
-        SUPPORTED_FILE_TYPES,
-        toastMessage
+        SUPPORTED_FILE_TYPES
     };
 }

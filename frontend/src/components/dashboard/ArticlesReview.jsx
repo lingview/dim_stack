@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../utils/axios.jsx';
+import {showToast} from "../../utils/toastManager.jsx";
 
 const MediaPreviewModal = ({ mediaItem, onClose }) => {
     if (!mediaItem) return null;
@@ -216,7 +217,7 @@ export default function ArticlesReview() {
                     setArticleDetail(prev => ({ ...prev, status }));
                 }
 
-                alert('文章状态更新成功');
+                showToast('文章状态更新成功');
 
                 if (status !== 3) {
                     setShowDetail(false);
@@ -229,7 +230,7 @@ export default function ArticlesReview() {
             }
         } catch (error) {
             console.error('更新文章状态失败:', error);
-            alert('更新文章状态失败');
+            showToast('更新文章状态失败');
         }
     };
 

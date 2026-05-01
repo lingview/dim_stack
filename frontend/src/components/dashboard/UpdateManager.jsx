@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import apiClient from '../../utils/axios.jsx';
+import {showToast} from "../../utils/toastManager.jsx";
 
 export default function UpdateManager() {
   const [currentVersion, setCurrentVersion] = useState('');
@@ -126,7 +127,7 @@ export default function UpdateManager() {
 
           if (restartAfterUpdate) {
             setTimeout(() => {
-              alert('应用正在重启，请稍候...页面将在5秒后刷新');
+              showToast('应用正在重启，请稍候...页面将在5秒后刷新');
               setTimeout(() => {
                 window.location.reload();
               }, 5000);

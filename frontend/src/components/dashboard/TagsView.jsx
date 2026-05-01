@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../utils/axios';
+import {showToast} from "../../utils/toastManager.jsx";
 
 export default function TagsView() {
     const [tags, setTags] = useState([]);
@@ -56,13 +57,13 @@ export default function TagsView() {
                 const response = await apiClient.delete(`/tags-categories/tags/${id}`);
                 if (response.success) {
                     fetchTags();
-                    alert('标签禁用成功');
+                    showToast('标签禁用成功');
                 } else {
-                    alert('标签禁用失败: ' + response.message);
+                    showToast('标签禁用失败: ' + response.message);
                 }
             } catch (error) {
                 console.error('禁用标签失败:', error);
-                alert('禁用标签失败');
+                showToast('禁用标签失败');
             }
         }
     };
@@ -72,13 +73,13 @@ export default function TagsView() {
             const response = await apiClient.put(`/tags-categories/tags/${id}/activate`);
             if (response.success) {
                 fetchTags();
-                alert('标签激活成功');
+                showToast('标签激活成功');
             } else {
-                alert('标签激活失败: ' + response.message);
+                showToast('标签激活失败: ' + response.message);
             }
         } catch (error) {
             console.error('激活标签失败:', error);
-            alert('激活标签失败');
+            showToast('激活标签失败');
         }
     };
 
@@ -109,13 +110,13 @@ export default function TagsView() {
             if (response.success) {
                 fetchTags();
                 setShowModal(false);
-                alert(editingTag ? '标签更新成功' : '标签创建成功');
+                showToast(editingTag ? '标签更新成功' : '标签创建成功');
             } else {
-                alert(editingTag ? '标签更新失败: ' + response.message : '标签创建失败: ' + response.message);
+                showToast(editingTag ? '标签更新失败: ' + response.message : '标签创建失败: ' + response.message);
             }
         } catch (error) {
             console.error('保存标签失败:', error);
-            alert('保存标签失败');
+            showToast('保存标签失败');
         }
     };
 

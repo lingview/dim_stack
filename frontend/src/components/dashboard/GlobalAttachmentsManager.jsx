@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import apiClient from '../../utils/axios.jsx';
 import { getConfig } from "../../utils/config.jsx";
 import { FileArchive, FileText, File, Download } from 'lucide-react';
+import {showToast} from "../../utils/toastManager.jsx";
 
 const GlobalAttachmentsManager = () => {
     const [attachments, setAttachments] = useState([]);
@@ -80,14 +81,14 @@ const GlobalAttachmentsManager = () => {
             const response = await apiClient.delete(`/attachments/admin/${attachmentId}`);
 
             if (response.code === 200) {
-                alert('删除成功');
+                showToast('删除成功');
                 fetchAttachments();
             } else {
-                alert('删除失败: ' + response.message);
+                showToast('删除失败: ' + response.message);
             }
         } catch (error) {
             console.error('删除附件错误:', error);
-            alert('删除失败');
+            showToast('删除失败');
         }
     };
 
@@ -100,14 +101,14 @@ const GlobalAttachmentsManager = () => {
             const response = await apiClient.post(`/attachments/admin/${attachmentId}/restore`);
 
             if (response.code === 200) {
-                alert('撤销删除成功');
+                showToast('撤销删除成功');
                 fetchAttachments();
             } else {
-                alert('撤销删除失败: ' + response.message);
+                showToast('撤销删除失败: ' + response.message);
             }
         } catch (error) {
             console.error('撤销删除附件错误:', error);
-            alert('撤销删除失败');
+            showToast('撤销删除失败');
         }
     };
 

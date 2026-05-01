@@ -1,30 +1,11 @@
 import axios from 'axios';
-import { createRoot } from 'react-dom/client';
-import Toast from '../components/Toast';
+import { showToast } from './toastManager';
 
 const apiClient = axios.create({
   baseURL: '/api',
   timeout: 0,
   withCredentials: true // 允许携带cookies
 });
-
-const showToast = (message, type = 'error') => {
-  const container = document.createElement('div');
-  container.id = 'toast-container';
-  document.body.appendChild(container);
-
-  const root = createRoot(container);
-  root.render(
-    <Toast
-      message={message}
-      type={type}
-      onClose={() => {
-        root.unmount();
-        document.body.removeChild(container);
-      }}
-    />
-  );
-};
 
 // 请求拦截器
 apiClient.interceptors.request.use(

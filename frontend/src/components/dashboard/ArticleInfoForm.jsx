@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import apiClient from '../../utils/axios';
 import { getConfig } from '../../utils/config';
+import {showToast} from "../../utils/toastManager.jsx";
 
 export default function ArticleInfoForm({ articleData, onSave, onCancel, uploading }) {
     const [formData, setFormData] = useState({
@@ -84,12 +85,12 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
 
         const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
-            alert('仅支持 JPG、PNG、GIF、WebP 格式的图片');
+            showToast('仅支持 JPG、PNG、GIF、WebP 格式的图片');
             return;
         }
 
         if (file.size > 5 * 1024 * 1024) {
-            alert('封面图片大小不能超过 5MB');
+            showToast('封面图片大小不能超过 5MB');
             return;
         }
 
@@ -110,7 +111,7 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
             }));
         } catch (error) {
             console.error('封面上传失败:', error);
-            alert('封面上传失败: ' + (error.response?.data?.error || error.message));
+            showToast('封面上传失败: ' + (error.response?.data?.error || error.message));
         } finally {
             setCoverUploading(false);
         }
@@ -130,12 +131,12 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
 
     const handleSubmit = () => {
         if (!formData.title.trim()) {
-            alert('请输入文章标题');
+            showToast('请输入文章标题');
             return;
         }
 
         if (!formData.category) {
-            alert('请选择文章分类');
+            showToast('请选择文章分类');
             return;
         }
 

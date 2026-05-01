@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../utils/axios.jsx';
 import { getConfig } from "../../utils/config.jsx";
+import {showToast} from "../../utils/toastManager.jsx";
 
 export default function CommentsView() {
     const [comments, setComments] = useState([]);
@@ -122,9 +123,9 @@ export default function CommentsView() {
         try {
             await apiClient.delete(`/backentcomments/${comment_id}`);
             setComments(comments.filter(comment => comment.comment_id !== comment_id));
-            alert('评论删除成功');
+            showToast('评论删除成功');
         } catch (err) {
-            alert('删除评论失败: ' + (err.message || '未知错误'));
+            showToast('删除评论失败: ' + (err.message || '未知错误'));
             console.error('删除评论失败:', err);
         }
     };
@@ -137,7 +138,7 @@ export default function CommentsView() {
 
     const saveEditComment = async () => {
         if (!editContent.trim()) {
-            alert('评论内容不能为空');
+            showToast('评论内容不能为空');
             return;
         }
         try {
@@ -150,9 +151,9 @@ export default function CommentsView() {
             ));
             setEditingComment(null);
             setEditContent('');
-            alert('评论更新成功');
+            showToast('评论更新成功');
         } catch (err) {
-            alert('更新评论失败: ' + (err.message || '未知错误'));
+            showToast('更新评论失败: ' + (err.message || '未知错误'));
             console.error('更新评论失败:', err);
         }
     };

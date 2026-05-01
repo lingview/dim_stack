@@ -5,7 +5,7 @@ import MarkdownTextarea from './MarkdownTextarea';
 import MarkdownPreview from './MarkdownPreview';
 import ArticleInfoForm from './ArticleInfoForm';
 import TextSelectionToolbar from './TextSelectionToolbar';
-import Toast from '../Toast';
+import { showToast } from '../../utils/toastManager';
 import { useFileUpload } from '../../hooks/useFileUpload';
 import { isSafeUrl, detectExternalMedia, generateMediaMarkdown } from '../../utils/markdownUtils';
 import { detectTextFormats, detectContextFormats, determineFormatAction } from '../../utils/formatDetectionUtils';
@@ -101,7 +101,6 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const [externalResources, setExternalResources] = useState([]);
     const [localizingResources, setLocalizingResources] = useState(new Set());
     const [localizeProgress, setLocalizeProgress] = useState({ current: 0, total: 0 });
-    const [toast, setToast] = useState(null);
 
     const abortControllerRef = useRef(null);
 
@@ -286,7 +285,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
 
     const handleSave = () => {
         if (!title.trim() || !content.trim()) {
-            setToast({ message: '标题和内容不能为空', type: 'warning' });
+            showToast({ message: '标题和内容不能为空', type: 'warning' });
             return;
         }
 
@@ -359,7 +358,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             } else if (error.message && error.message !== '请重试') {
                 errorMessage = error.message;
             }
-            setToast({ message: `保存失败: ${errorMessage}`, type: 'error' });
+            showToast({ message: `保存失败: ${errorMessage}`, type: 'error' });
         } finally {
             setIsSaving(false);
         }
@@ -873,7 +872,7 @@ ${cleanText}
 
     const handleAiGenerate = async () => {
         if (!aiDescription.trim()) {
-            setToast({ message: '请输入文章描述', type: 'warning' });
+            showToast({ message: '请输入文章描述', type: 'warning' });
             return;
         }
 
@@ -906,7 +905,7 @@ ${cleanText}
                     }
                 }, 0);
             } else {
-                setToast({ message: response.message || 'AI生成失败，请重试', type: 'error' });
+                showToast({ message: response.message || 'AI生成失败，请重试', type: 'error' });
             }
         } catch (error) {
             if (error.name === 'CanceledError' || error.name === 'AbortError') {
@@ -914,7 +913,7 @@ ${cleanText}
                 return;
             }
             console.error('AI生成错误:', error);
-            setToast({ message: error.response?.data?.message || error.message || 'AI生成失败，请重试', type: 'error' });
+            showToast({ message: error.response?.data?.message || error.message || 'AI生成失败，请重试', type: 'error' });
         } finally {
             setIsGenerating(false);
             abortControllerRef.current = null;
@@ -1020,7 +1019,7 @@ ${cleanText}
         }
 
         if (hasConfigError) {
-            setToast({ 
+            showToast({
                 message: '外部资源代理下载功能未启用，请在后台【站点配置】-【媒体设置】中开启', 
                 type: 'error',
                 duration: 5000
@@ -1037,9 +1036,9 @@ ${cleanText}
         const failCount = results.filter(r => !r.success).length;
         
         if (failCount === 0) {
-            setToast({ message: `成功本地化 ${successCount} 个资源`, type: 'info' });
+            showToast({ message: `成功本地化 ${successCount} 个资源`, type: 'info' });
         } else {
-            setToast({ 
+            showToast({
                 message: `完成！成功: ${successCount}, 失败: ${failCount}`, 
                 type: 'warning',
                 duration: 5000
@@ -1066,13 +1065,13 @@ ${cleanText}
 
                 const updatedResources = externalResources.filter((_, idx) => idx !== index);
                 setExternalResources(updatedResources);
-                
-                setToast({ message: '资源本地化成功', type: 'info' });
+
+                showToast({ message: '资源本地化成功', type: 'info' });
             } else {
-                setToast({ message: `本地化失败: ${result.error}`, type: 'error' });
+                showToast({ message: `本地化失败: ${result.error}`, type: 'error' });
             }
         } catch (error) {
-            setToast({ message: `本地化失败: ${error.message}`, type: 'error' });
+            showToast({ message: `本地化失败: ${error.message}`, type: 'error' });
         } finally {
             setLocalizingResources(prev => {
                 const newSet = new Set(prev);
@@ -1163,24 +1162,6 @@ ${cleanText}
                 className="hidden"
                 onChange={handleFileInputChange}
             />
-
-            {uploadToast && (
-                <Toast
-                    message={uploadToast.message}
-                    type={uploadToast.type}
-                    onClose={() => {}}
-                    duration={3000}
-                />
-            )}
-
-            {toast && (
-                <Toast
-                    message={toast.message}
-                    type={toast.type}
-                    onClose={() => setToast(null)}
-                    duration={toast.duration || 3000}
-                />
-            )}
 
             <TextSelectionToolbar
                 isVisible={showSelectionToolbar}

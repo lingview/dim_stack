@@ -1,7 +1,7 @@
 import { Plus, Edit, Trash2, EyeOff, Send, Upload } from 'lucide-react';
 import apiClient from "../../utils/axios.jsx";
 import React, { useState, useEffect, useRef } from 'react';
-
+import { showToast } from "../../utils/toastManager";
 export default function ArticlesView({ onNewArticle, onEditArticle, onImportArticle, articles: externalArticles, shouldRefresh, setShouldRefresh }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10);
@@ -66,13 +66,13 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
         if (!file) return;
 
         if (!file.name.endsWith('.md') && !file.name.endsWith('.markdown')) {
-            alert('请选择 Markdown 文件（.md 或 .markdown）');
+            showToast('请选择 Markdown 文件（.md 或 .markdown）', 'warning');
             e.target.value = '';
             return;
         }
 
         if (file.size > 5 * 1024 * 1024) {
-            alert('文件大小不能超过 5MB');
+            showToast('文件大小不能超过 5MB', 'warning');
             e.target.value = '';
             return;
         }
@@ -109,7 +109,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
 
         } catch (error) {
             console.error('导入文件失败:', error);
-            alert('导入文件失败: ' + error.message);
+            showToast('导入文件失败: ' + error.message, 'error');
         } finally {
             e.target.value = '';
         }
@@ -189,14 +189,14 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
             const response = await apiClient.post('/deletearticle', { article_id: articleId });
 
             if (response.success) {
-                alert('文章删除成功');
+                showToast('文章删除成功', 'info');
                 fetchArticles(currentPage, pageSize);
             } else {
-                alert(response.message || '删除失败');
+                showToast(response.message || '删除失败', 'error');
             }
         } catch (error) {
             console.error('删除文章时出错:', error);
-            alert('删除文章时出错');
+            showToast('删除文章时出错', 'error');
         }
     };
 
@@ -209,14 +209,14 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
             const response = await apiClient.post('/unpublisharticle', { article_id: articleId });
 
             if (response.success) {
-                alert('文章已取消发布');
+                showToast('文章已取消发布', 'info');
                 fetchArticles(currentPage, pageSize);
             } else {
-                alert(response.message || '取消发布失败');
+                showToast(response.message || '取消发布失败', 'error');
             }
         } catch (error) {
             console.error('取消发布文章时出错:', error);
-            alert('取消发布文章时出错');
+            showToast('取消发布文章时出错', 'error');
         }
     };
 
@@ -229,14 +229,14 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
             const response = await apiClient.post('/publisharticle', { article_id: articleId });
 
             if (response.success) {
-                alert('文章已发布');
+                showToast('文章已发布', 'info');
                 fetchArticles(currentPage, pageSize);
             } else {
-                alert(response.message || '发布失败');
+                showToast(response.message || '发布失败', 'error');
             }
         } catch (error) {
             console.error('发布文章时出错:', error);
-            alert('发布文章时出错');
+            showToast('发布文章时出错', 'error');
         }
     };
 
@@ -249,14 +249,14 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
             const response = await apiClient.post('/removearticlepassword', { article_id: articleId });
 
             if (response.success) {
-                alert('文章密码已移除');
+                showToast('文章密码已移除', 'info');
                 fetchArticles(currentPage, pageSize);
             } else {
-                alert(response.message || '移除密码失败');
+                showToast(response.message || '移除密码失败', 'error');
             }
         } catch (error) {
             console.error('移除文章密码时出错:', error);
-            alert('移除文章密码时出错');
+            showToast('移除文章密码时出错', 'error');
         }
     };
 

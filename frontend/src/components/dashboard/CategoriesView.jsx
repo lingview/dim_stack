@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../utils/axios';
+import {showToast} from "../../utils/toastManager.jsx";
 
 export default function CategoryManagement() {
     const [categories, setCategories] = useState([]);
@@ -58,7 +59,7 @@ export default function CategoryManagement() {
 
     const handleCreateSubCategory = (parentCategory) => {
         if (parentCategory.parent_id !== null) {
-            alert('只能创建一级子分类，不能创建三级分类');
+            showToast('只能创建一级子分类，不能创建三级分类');
             return;
         }
 
@@ -89,13 +90,13 @@ export default function CategoryManagement() {
                 const response = await apiClient.delete(`/tags-categories/categories/${id}`);
                 if (response.success) {
                     fetchCategories();
-                    alert('分类禁用成功\n\n已同步禁用所有相关子分类');
+                    showToast('分类禁用成功\n\n已同步禁用所有相关子分类');
                 } else {
-                    alert('分类禁用失败: ' + response.message);
+                    showToast('分类禁用失败: ' + response.message);
                 }
             } catch (error) {
                 console.error('禁用分类失败:', error);
-                alert('禁用分类失败');
+                showToast('禁用分类失败');
             }
         }
     };
@@ -105,13 +106,13 @@ export default function CategoryManagement() {
             const response = await apiClient.put(`/tags-categories/categories/${id}/activate`);
             if (response.success) {
                 fetchCategories();
-                alert('分类激活成功');
+                showToast('分类激活成功');
             } else {
-                alert('分类激活失败: ' + response.message);
+                showToast('分类激活失败: ' + response.message);
             }
         } catch (error) {
             console.error('激活分类失败:', error);
-            alert('激活分类失败');
+            showToast('激活分类失败');
         }
     };
 
@@ -143,13 +144,13 @@ export default function CategoryManagement() {
                 fetchCategories();
                 fetchTopLevelCategories();
                 setShowModal(false);
-                alert(editingCategory ? '分类更新成功' : '分类创建成功');
+                showToast(editingCategory ? '分类更新成功' : '分类创建成功');
             } else {
-                alert(editingCategory ? '分类更新失败: ' + response.message : '分类创建失败: ' + response.message);
+                showToast(editingCategory ? '分类更新失败: ' + response.message : '分类创建失败: ' + response.message);
             }
         } catch (error) {
             console.error('保存分类失败:', error);
-            alert('保存分类失败');
+            showToast('保存分类失败');
         }
     };
 
