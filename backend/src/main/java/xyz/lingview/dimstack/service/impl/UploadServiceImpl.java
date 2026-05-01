@@ -44,6 +44,7 @@ import static java.net.InetAddress.getByName;
 @Service
 public class UploadServiceImpl implements UploadService {
 
+    private static final int MAX_EXTERNAL_SIZE = 100 * 1024 * 1024;
     @Autowired
     private UploadMapper uploadMapper;
 
@@ -1021,6 +1022,11 @@ public class UploadServiceImpl implements UploadService {
             }
 
             byte[] data = connection.getInputStream().readAllBytes();
+            int contentLength = connection.getContentLength();
+            if (contentLength > MAX_EXTERNAL_SIZE) {
+                log.warn("外部资源过大");
+                return ResponseEntity.badRequest().body(Map.of("error", "外部资源过大"));
+            }
             String contentType = connection.getContentType();
             connection.disconnect();
             
