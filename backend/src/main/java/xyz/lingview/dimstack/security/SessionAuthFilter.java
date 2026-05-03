@@ -56,7 +56,8 @@ public class SessionAuthFilter implements Filter {
             "/api/forgot-password/verify",
             "/api/custom-pages/**",
             "/api/proxy/**",
-            "/api/music/enabled"
+            "/api/music/enabled",
+            "/api/friend-links/site-info"
     ));
 
     @Override
