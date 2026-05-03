@@ -1,6 +1,4 @@
-﻿set -e
-
-Set-StrictMode -Version Latest
+﻿Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 function Get-MajorVersion {
