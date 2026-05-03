@@ -20,6 +20,5 @@ RUN wget -O dimstack-1.0-SNAPSHOT.jar https://update.apilinks.cn/dimstack/dimsta
 
 USER dimstack
 
-EXPOSE 2222
-
-CMD ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "dimstack-1.0-SNAPSHOT.jar", "--server.port=2222"]
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "dimstack-1.0-SNAPSHOT.jar"]
+CMD ["--server.port=2222"]
