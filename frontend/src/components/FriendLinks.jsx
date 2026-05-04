@@ -432,16 +432,16 @@ const FriendLinks = () => {
                                         <div className="mt-10 pt-8 border-t border-gray-200">
                                             <h3 className="text-lg font-semibold text-gray-800 mb-6">本站信息</h3>
                                             <div className="group block p-5 rounded-xl bg-white border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-300 transition-all">
-                                                <div className="flex items-center gap-5">
-                                                    <div className="flex-shrink-0">
+                                                <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-5">
+                                                    <div className="flex-shrink-0 mx-auto md:mx-0">
                                                         <img
                                                             src={siteInfo.siteLogo || '/image_error.svg'}
                                                             alt={siteInfo.siteName}
-                                                            className="w-20 h-20 rounded-xl object-contain bg-gray-50 border border-gray-200"
+                                                            className="w-20 h-20 md:w-20 md:h-20 rounded-xl object-contain bg-gray-50 border border-gray-200"
                                                             onError={(e) => e.target.src = '/image_error.svg'}
                                                         />
                                                     </div>
-                                                    <div className="flex-1 min-w-0">
+                                                    <div className="flex-1 min-w-0 text-center md:text-left">
                                                         <div className="mb-2">
                                                             <span className="text-sm font-medium text-gray-500">站点名称：</span>
                                                             <span className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
@@ -454,6 +454,22 @@ const FriendLinks = () => {
                                                                 <p className="text-gray-600 leading-relaxed inline">
                                                                     {siteInfo.description}
                                                                 </p>
+                                                            </div>
+                                                        )}
+                                                        {siteInfo.siteLogo && (
+                                                            <div className="mb-3">
+                                                                <span className="text-sm font-medium text-gray-500">图标地址：</span>
+                                                                <a
+                                                                    href={siteInfo.siteLogo}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium break-all ml-1"
+                                                                >
+                                                                    <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                                                    </svg>
+                                                                    <span className="break-all">{siteInfo.siteLogo}</span>
+                                                                </a>
                                                             </div>
                                                         )}
                                                         <div>
