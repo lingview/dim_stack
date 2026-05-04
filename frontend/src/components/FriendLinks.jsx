@@ -26,7 +26,6 @@ const FriendLinks = () => {
     const [totalItems, setTotalItems] = useState(0);
     const pageSize = 12;
 
-    const [isFetchingIcon, setIsFetchingIcon] = useState(false);
     const [iconLoadError, setIconLoadError] = useState(false);
     const [globalHeadCode, setGlobalHeadCode] = useState('');
     const [footerCode, setFooterCode] = useState('');
@@ -40,60 +39,7 @@ const FriendLinks = () => {
         loadSiteFriendLinkInfo();
     }, [currentPage]);
 
-    const fetchSiteIcon = async (siteUrl) => {
-        if (!siteUrl) return '';
 
-        try {
-            setIsFetchingIcon(true);
-
-            let validUrl;
-            try {
-                validUrl = new URL(siteUrl);
-            } catch (e) {
-                showMessage('error', '请输入有效的网站URL');
-                return '';
-            }
-
-            const origin = validUrl.origin;
-
-            const proxyUrl = `/proxy/favicon?url=${encodeURIComponent(`${origin}/favicon.ico`)}`;
-
-            try {
-                const response = await apiClient.get(proxyUrl);
-                if (response) {
-                    return `${origin}/favicon.ico`;
-                }
-            } catch (error) {
-                console.error('主图标获取失败:', error);
-            }
-
-            const commonPaths = [
-                '/favicon.png',
-                '/apple-touch-icon.png',
-                '/apple-touch-icon-precomposed.png'
-            ];
-
-            for (const path of commonPaths) {
-                try {
-                    const proxyPathUrl = `/proxy/favicon?url=${encodeURIComponent(origin + path)}`;
-                    const res = await apiClient.get(proxyPathUrl);
-                    if (res) {
-                        return origin + path;
-                    }
-                } catch (err) {
-                    console.error(`路径 ${path} 获取失败:`, err);
-                    continue;
-                }
-            }
-
-            return '';
-        } catch (error) {
-            console.error('获取网站图标失败:', error);
-            return '';
-        } finally {
-            setIsFetchingIcon(false);
-        }
-    };
 
     useEffect(() => {
         if (formData.siteIcon) {
@@ -310,43 +256,8 @@ const FriendLinks = () => {
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     {[
                                                         { id: 'siteName', label: '站点名称 *', type: 'text', required: true },
-                                                        {
-                                                            id: 'siteUrl',
-                                                            label: '站点 URL *',
-                                                            type: 'url',
-                                                            required: true,
-                                                            placeholder: 'https://example.com',
-                                                            actionButton: (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={async () => {
-                                                                        if (!formData.siteUrl) {
-                                                                            showMessage('error', '请先输入站点URL');
-                                                                            return;
-                                                                        }
-                                                                        const iconUrl = await fetchSiteIcon(formData.siteUrl);
-                                                                        if (iconUrl) {
-                                                                            setFormData(prev => ({
-                                                                                ...prev,
-                                                                                siteIcon: iconUrl
-                                                                            }));
-                                                                            showMessage('success', '网站图标获取成功');
-                                                                        } else {
-                                                                            showMessage('error', '未能找到网站图标，请手动填写url地址');
-                                                                        }
-                                                                    }}
-                                                                    disabled={!formData.siteUrl || isFetchingIcon}
-                                                                    className="ml-2 px-3 py-2 text-xs font-medium rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                                                                >
-                                                                    {isFetchingIcon ? '获取中...' : '获取图标'}
-                                                                </button>
-                                                            )
-                                                        },
-                                                        {
-                                                            id: 'siteIcon',
-                                                            label: '站点图标 URL',
-                                                            type: 'url'
-                                                        },
+                                                        { id: 'siteUrl', label: '站点 URL *', type: 'url', required: true, placeholder: 'https://example.com' },
+                                                        { id: 'siteIcon', label: '站点图标 URL', type: 'url', description: '请手动输入图标地址' },
                                                         { id: 'webmasterName', label: '站长名称 *', type: 'text', required: true },
                                                     ].map((item) => (
                                                         <div key={item.id} className="relative">
@@ -356,7 +267,7 @@ const FriendLinks = () => {
                                                             {item.description && (
                                                                 <p className="text-xs text-gray-500 mb-1">{item.description}</p>
                                                             )}
-                                                            <div className="flex">
+                                                            <div>
                                                                 <input
                                                                     type={item.type}
                                                                     id={item.id}
@@ -365,9 +276,8 @@ const FriendLinks = () => {
                                                                     placeholder={item.placeholder}
                                                                     value={formData[item.id]}
                                                                     onChange={handleInputChange}
-                                                                    className="flex-1 px-3 py-2 rounded-l-lg border border-gray-300 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                                                                    className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
                                                                 />
-                                                                {item.actionButton}
                                                             </div>
                                                         </div>
                                                     ))}
