@@ -1,5 +1,5 @@
 # 次元栈 · Dim Stack
-> 基于 Spring Boot + React 的现代化个人博客系统
+> 一个简单且易于使用的个人博客系统
 >
 
 ![](https://img.shields.io/badge/Spring_Boot-4.0.6-green.svg)
