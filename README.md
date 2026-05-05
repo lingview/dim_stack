@@ -197,6 +197,57 @@ v77->v84+
 注：mysql5的兼容更新脚本只支持到5.7，其他版本请自行处理（建议数据库尽快升级至mysql8+）（v82+版本已逐步放弃mysql5.x支持，所以mysql5版本的系统请不要升级）
 ```
 
+## 构建脚本
+项目提供跨平台构建脚本，支持一键完成前后端构建与打包。
+
+**注：需要将scripts目录下的对应构建脚本复制到项目根目录**
+
+![](./images/scripts.png)
+
+### 环境要求
++ **Java 17+**
++ **Maven**
++ **Node.js 22+**
++ **npm**
+
+### 使用方法
+#### Linux
+```bash
+# 赋予执行权限
+chmod +x build_release.sh
+
+# 执行构建
+./build_release.sh
+```
+
+#### Windows
+以管理员身份运行 PowerShell：
+
+```powershell
+# 设置执行策略（首次运行需要）
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# 执行构建脚本
+.\build_release.ps1
+```
+
+linux和windows构建脚本执行完成后，jar 包将位于项目根目录。
+
+### Docker 一键部署
+项目还提供 Docker 部署脚本，支持自动检测首次运行并完成初始化：
+
+**注：新手还是比较推荐上面的原生部署，docker部署对于新手来说并不是很友好**
+```bash
+# 赋予执行权限
+chmod +x docker-run.sh
+
+# 启动服务（默认端口 2222）
+./docker-run.sh
+
+# 启动服务（自定义端口号）（宿主机端口:容器端口）
+./docker-run.sh 8080 2222
+```
+
 ## 大模型相关功能
 > 次元栈目前已支持大模型文章内容审核以及文章内容生成
 >
