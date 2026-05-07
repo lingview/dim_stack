@@ -749,6 +749,7 @@ export default function SiteSettingsView() {
     const cacheOptions = [
         { key: 'dimstack:site_config', label: '站点配置缓存' },
         { key: 'dimstack:article:', label: '所有文章缓存', isPrefix: true },
+        { key: 'article:home:', label: '文章列表分页缓存', isPrefix: true },
         { key: 'dimstack:user:blacklist', label: '用户黑名单缓存' },
         { key: 'dimstack:hot_articles', label: '热门文章缓存' },
         { key: 'dimstack:sitemap:articles', label: '站点地图文章缓存' },
