@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import xyz.lingview.dimstack.domain.ReadArticle;
 import xyz.lingview.dimstack.dto.request.ArticleDetailDTO;
 import xyz.lingview.dimstack.dto.request.UpdateArticleDTO;
 import xyz.lingview.dimstack.dto.request.EditArticleDTO;
@@ -65,6 +66,9 @@ public class EditArticleServiceImpl implements EditArticleService {
 
     @Autowired
     private CacheService cacheService;
+
+    @Autowired
+    private ArticleService articleService;
 
     @Autowired
     private PageViewCounterService pageViewCounterService;
@@ -196,6 +200,8 @@ public class EditArticleServiceImpl implements EditArticleService {
                         articleCategoryMapper.incrementCount(newFullPath);
                     }
                 }
+                
+                articleService.clearArticleCache();
             }
 
             return result > 0;
@@ -226,6 +232,11 @@ public class EditArticleServiceImpl implements EditArticleService {
             params.put("uuid", articleUuid);
 
             int result = editArticleMapper.deleteArticle(params);
+            
+            if (result > 0) {
+                articleService.clearArticleCache();
+            }
+            
             return result > 0;
 
         } catch (Exception e) {
@@ -252,6 +263,11 @@ public class EditArticleServiceImpl implements EditArticleService {
             params.put("uuid", articleUuid);
 
             int result = editArticleMapper.unpublishArticle(params);
+            
+            if (result > 0) {
+                articleService.clearArticleCache();
+            }
+            
             return result > 0;
 
         } catch (Exception e) {
@@ -278,6 +294,11 @@ public class EditArticleServiceImpl implements EditArticleService {
             params.put("uuid", articleUuid);
 
             int result = editArticleMapper.publishArticle(params);
+            
+            if (result > 0) {
+                articleService.clearArticleCache();
+            }
+            
             return result > 0;
 
         } catch (Exception e) {
@@ -483,6 +504,7 @@ public class EditArticleServiceImpl implements EditArticleService {
 
             if (result > 0) {
                 invalidateArticleCache(articleId);
+                articleService.clearArticleCache();
                 return ArticleOperationResult.builder()
                     .success(true)
                     .message("文章已发布")
@@ -747,6 +769,7 @@ public class EditArticleServiceImpl implements EditArticleService {
                     log.info("文章 {} 大模型审核通过，自动发布", context.articleId);
                     editArticleMapper.updateArticleStatus(context.articleId, 1);
                     invalidateArticleCache(context.articleId);
+                    articleService.clearArticleCache();
                     sendAutoApprovalNotificationWithInfo(context);
                 } else if (reviewResult == AiReviewResult.REJECT) {
                     log.warn("文章 {} 大模型审核不通过，标记为违规", context.articleId);
@@ -870,7 +893,7 @@ public class EditArticleServiceImpl implements EditArticleService {
 
     private void invalidateArticleCache(String articleId) {
         try {
-            xyz.lingview.dimstack.domain.ReadArticle article = readArticleMapper.selectByArticleId(articleId);
+            ReadArticle article = readArticleMapper.selectByArticleId(articleId);
             if (article != null && article.getAlias() != null) {
                 String cacheKey = "dimstack:article:" + article.getAlias();
                 cacheService.delete(cacheKey);

@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.service.CacheService;
+import xyz.lingview.dimstack.service.ArticleService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +19,27 @@ public class CacheManagementController {
 
     @Autowired
     private CacheService cacheService;
+
+    @Autowired
+    private ArticleService articleService;
+
+    @PostMapping("/clear/article-list")
+    @RequiresPermission("system:config:management")
+    public ApiResponse<Map<String, Object>> clearArticleListCache() {
+        log.info("执行清除文章列表分页缓存操作");
+        try {
+            articleService.clearArticleCache();
+            
+            Map<String, Object> result = new HashMap<>();
+            result.put("message", "已清除所有文章列表分页缓存");
+            result.put("prefix", "article:home:");
+            
+            return ApiResponse.success(result);
+        } catch (Exception e) {
+            log.error("清除文章列表分页缓存失败", e);
+            return ApiResponse.error(500, "清除文章列表分页缓存失败: " + e.getMessage());
+        }
+    }
 
     @PostMapping("/clear/all")
     @RequiresPermission("system:config:management")
@@ -33,6 +55,9 @@ public class CacheManagementController {
                 "dimstack:llm_config",
                 "dimstack:sitemap:tags"
             };
+
+            cacheService.deleteByPrefix("article:home:");
+            log.info("已清除所有文章列表分页缓存");
 
             for (String key : cacheKeys) {
                 cacheService.delete(key);

@@ -50,6 +50,9 @@ public class ArticleReviewService {
     @Autowired
     private PageViewCounterService pageViewCounterService;
 
+    @Autowired
+    private ArticleService articleService;
+
     public ArticleReviewListResponseDTO getUnreviewedArticles(Integer page, Integer size) {
         int offset = (page - 1) * size;
         List<ArticleReviewDTO> articles = articleReviewMapper.selectUnreviewedArticles(offset, size);
@@ -101,6 +104,13 @@ public class ArticleReviewService {
         articleReviewMapper.updateArticleStatus(articleId, status);
         
         invalidateArticleCache(articleId);
+        
+        try {
+            articleService.clearArticleCache();
+            log.info("文章状态变更为{}，已清除首页文章列表缓存", status);
+        } catch (Exception e) {
+            log.warn("清除首页文章列表缓存失败", e);
+        }
         
         ArticleReviewStatusResponseDTO result = new ArticleReviewStatusResponseDTO();
         result.setSuccess(true);
