@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import apiClient from '../utils/axios';
 import { getTagIcon } from '../utils/IconUtils';
 
@@ -11,6 +11,7 @@ export default function TagSidebar({ selectedTag }) {
     const [showTopGradient, setShowTopGradient] = useState(false);
     const listRef = useRef(null);
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     useEffect(() => {
         const fetchTags = async () => {
@@ -55,7 +56,9 @@ export default function TagSidebar({ selectedTag }) {
 
     const handleTagClick = (tagName) => {
         if (selectedTag === tagName) {
-            navigate('/');
+            const newParams = new URLSearchParams(searchParams);
+            newParams.delete('page');
+            setSearchParams(newParams);
         } else {
             navigate(`/tag/${tagName}`);
         }

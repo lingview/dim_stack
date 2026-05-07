@@ -11,9 +11,15 @@ import { fetchArticles } from '../Api.jsx';
 import apiClient from '../utils/axios';
 
 export default function Home() {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const { tagName } = useParams();
+    const categoryName = searchParams.get('name');
+    const pageParam = parseInt(searchParams.get('page')) || 1;
+    const navigate = useNavigate();
+    const location = useLocation();
+
     const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [copyright, setCopyright] = useState('');
     const [icpRecord, setIcpRecord] = useState('');
@@ -25,12 +31,6 @@ export default function Home() {
         if (typeof window !== 'undefined') return window.innerWidth < 768;
         return false;
     });
-
-    const [searchParams] = useSearchParams();
-    const { tagName } = useParams();
-    const categoryName = searchParams.get('name');
-    const navigate = useNavigate();
-    const location = useLocation();
 
     useEffect(() => {
         const checkMobile = () => setForceMobile(window.innerWidth < 768);
@@ -46,15 +46,11 @@ export default function Home() {
     }, []);
 
     useEffect(() => {
-        setPage(1);
-    }, [location.search, location.pathname, tagName]);
-
-    useEffect(() => {
         loadArticlesFromUrl();
         loadCopyright();
         loadSiteRecords();
         loadCodeInjection();
-    }, [location.search, location.pathname, page, tagName]);
+    }, [location.search, location.pathname, pageParam, tagName]);
 
     useEffect(() => {
         localStorage.setItem('showImages', JSON.stringify(showImages));
@@ -66,11 +62,11 @@ export default function Home() {
             let result;
 
             if (categoryName) {
-                result = await apiClient.get(`/categories/articles?category=${encodeURIComponent(categoryName)}&page=${page}&size=6`);
+                result = await apiClient.get(`/categories/articles?category=${encodeURIComponent(categoryName)}&page=${pageParam}&size=6`);
             } else if (tagName) {
-                result = await apiClient.get(`/tags/${tagName}/articles?page=${page}&size=6`);
+                result = await apiClient.get(`/tags/${tagName}/articles?page=${pageParam}&size=6`);
             } else {
-                result = await fetchArticles(page, 6);
+                result = await fetchArticles(pageParam, 6);
             }
 
             setArticles(Array.isArray(result.data) ? result.data : []);
@@ -156,7 +152,10 @@ export default function Home() {
     }, [globalHeadCode]);
 
     const handleCategoryChange = (category) => {
-        navigate(`/category?name=${encodeURIComponent(category)}`);
+        const newParams = new URLSearchParams(searchParams);
+        newParams.set('name', category);
+        newParams.delete('page');
+        setSearchParams(newParams);
     };
 
     const handleTagChange = (tag) => {
@@ -164,7 +163,7 @@ export default function Home() {
     };
 
     const handleClearFilter = () => {
-        navigate('/');
+        setSearchParams({});
     };
 
     const toggleImageDisplay = () => {
@@ -253,18 +252,34 @@ export default function Home() {
                             )}
                             <div className="flex justify-center mt-12 pagination-container">
                                 <button
-                                    onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo(0, 0); }}
-                                    disabled={page === 1}
+                                    onClick={() => { 
+                                        const newPage = Math.max(1, pageParam - 1);
+                                        const newParams = new URLSearchParams(searchParams);
+                                        if (newPage > 1) {
+                                            newParams.set('page', newPage);
+                                        } else {
+                                            newParams.delete('page');
+                                        }
+                                        setSearchParams(newParams);
+                                        window.scrollTo(0, 0); 
+                                    }}
+                                    disabled={pageParam === 1}
                                     className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button"
                                 >
                                     上一页
                                 </button>
                                 <span className="px-4 py-2 mx-1 pagination-info text-gray-600">
-                    {page} / {totalPages}
+                    {pageParam} / {totalPages}
                 </span>
                                 <button
-                                    onClick={() => { setPage(p => Math.min(totalPages, p + 1)); window.scrollTo(0, 0); }}
-                                    disabled={page === totalPages}
+                                    onClick={() => { 
+                                        const newPage = Math.min(totalPages, pageParam + 1);
+                                        const newParams = new URLSearchParams(searchParams);
+                                        newParams.set('page', newPage);
+                                        setSearchParams(newParams);
+                                        window.scrollTo(0, 0); 
+                                    }}
+                                    disabled={pageParam === totalPages}
                                     className="px-4 py-2 mx-1 bg-gray-200 rounded disabled:opacity-50 pagination-button"
                                 >
                                     下一页
