@@ -100,7 +100,7 @@ public class EditArticleServiceImpl implements EditArticleService {
             return result;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("获取文章列表失败", e);
             result.put("articles", List.of());
             result.put("total", 0);
             result.put("page", page);
@@ -129,7 +129,7 @@ public class EditArticleServiceImpl implements EditArticleService {
             return editArticleMapper.getArticleDetailById(articleId);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("获取文章详情失败", e);
             return null;
         }
     }
@@ -207,7 +207,7 @@ public class EditArticleServiceImpl implements EditArticleService {
             return result > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("更新文章失败", e);
             return false;
         }
     }
@@ -240,7 +240,7 @@ public class EditArticleServiceImpl implements EditArticleService {
             return result > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("删除文章失败", e);
             return false;
         }
     }
@@ -271,7 +271,7 @@ public class EditArticleServiceImpl implements EditArticleService {
             return result > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("取消发布文章失败", e);
             return false;
         }
     }
@@ -302,7 +302,7 @@ public class EditArticleServiceImpl implements EditArticleService {
             return result > 0;
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("发布文章失败", e);
             return false;
         }
     }
@@ -317,7 +317,7 @@ public class EditArticleServiceImpl implements EditArticleService {
         try {
             return editArticleMapper.getArticleContentById(articleId);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("获取文章内容失败", e);
             return null;
         }
     }

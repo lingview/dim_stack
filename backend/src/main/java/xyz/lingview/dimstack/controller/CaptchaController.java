@@ -1,5 +1,6 @@
 package xyz.lingview.dimstack.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @RestController
+@Slf4j
 @RequestMapping("/api")
 public class CaptchaController {
 
@@ -50,7 +52,7 @@ public class CaptchaController {
             return ApiResponse.success(responseData);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("验证码生成失败", e);
             ApiResponse<Map<String, String>> response = new ApiResponse<>();
             response.setCode(500);
             response.setMessage("验证码生成失败");
