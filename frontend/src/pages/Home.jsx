@@ -163,7 +163,11 @@ export default function Home() {
     };
 
     const handleClearFilter = () => {
-        setSearchParams({});
+        if (tagName) {
+            navigate('/');
+        } else {
+            setSearchParams({});
+        }
     };
 
     const toggleImageDisplay = () => {

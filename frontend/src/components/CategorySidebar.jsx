@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../utils/axios';
 import { getCategoryIcon } from '../utils/IconUtils';
 
@@ -10,7 +10,7 @@ export default function CategorySidebar({ selectedCategory }) {
     const [showBottomGradient, setShowBottomGradient] = useState(false);
     const [showTopGradient, setShowTopGradient] = useState(false);
     const listRef = useRef(null);
-    const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -55,15 +55,9 @@ export default function CategorySidebar({ selectedCategory }) {
 
     const handleCategoryClick = (categoryName) => {
         if (selectedCategory === categoryName) {
-            const newParams = new URLSearchParams(searchParams);
-            newParams.delete('name');
-            newParams.delete('page');
-            setSearchParams(newParams);
+            navigate('/');
         } else {
-            const newParams = new URLSearchParams(searchParams);
-            newParams.set('name', categoryName);
-            newParams.delete('page');
-            setSearchParams(newParams);
+            navigate(`/?name=${encodeURIComponent(categoryName)}`);
         }
     };
 
