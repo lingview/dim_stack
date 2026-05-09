@@ -107,7 +107,7 @@ java -jar dimstack-1.0-SNAPSHOT.jar
 
 ![](./images/homepage_loaded_successfully.png)
 
-### systemd自启
+### systemd自启（仅linux）
 #### 创建服务文件
 ```bash
 sudo vim /etc/systemd/system/dimstack.service
