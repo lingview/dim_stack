@@ -209,7 +209,7 @@ v77->v84+
 ![](./images/scripts.png)
 
 ### 环境要求
-+ **Java 17+**
++ **Java 17+（推荐21+）**
 + **Maven**
 + **Node.js 22+**
 + **npm**
