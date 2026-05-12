@@ -34,9 +34,18 @@ public class SitemapController {
         return scheme + "://" + host;
     }
 
+    private String escapeXml10(String input) {
+        if (input == null) return null;
+        return input.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&apos;");
+    }
+
     @GetMapping(value = "/sitemap-index.xml", produces = "application/xml;charset=UTF-8")
     public String sitemapIndex(HttpServletRequest request) {
-        String domain = getDomain(request);
+        String domain = escapeXml10(getDomain(request));
 
         return """
                 <?xml version="1.0" encoding="UTF-8"?>
@@ -59,7 +68,7 @@ public class SitemapController {
 
     @GetMapping(value = "/sitemap.xml", produces = "application/xml;charset=UTF-8")
     public String sitemap(HttpServletRequest request) {
-        String domain = getDomain(request);
+        String domain = escapeXml10(getDomain(request));
 
         return """
                 <?xml version="1.0" encoding="UTF-8"?>
@@ -73,8 +82,7 @@ public class SitemapController {
 
     @GetMapping(value = "/sitemap-article.xml", produces = "application/xml;charset=UTF-8")
     public String sitemapArticle(HttpServletRequest request) {
-
-        String domain = getDomain(request);
+        String domain = escapeXml10(getDomain(request));
         List<ReadArticle> articles = readArticleService.listAllArticles();
 
         StringBuilder xml = new StringBuilder("""
@@ -83,23 +91,17 @@ public class SitemapController {
                 """);
 
         for (ReadArticle a : articles) {
-            xml.append(buildUrl(
-                    domain + "/article/" + url(a.getAlias()),
-                    "weekly",
-                    "0.9",
-                    a.getCreate_time()
-            ));
+            String urlPath = domain + "/article/" + url(a.getAlias());
+            xml.append(buildUrl(urlPath, "weekly", "0.9", a.getCreate_time()));
         }
 
         xml.append("</urlset>");
-
         return xml.toString();
     }
 
     @GetMapping(value = "/sitemap-category.xml", produces = "application/xml;charset=UTF-8")
     public String sitemapCategory(HttpServletRequest request) {
-
-        String domain = getDomain(request);
+        String domain = escapeXml10(getDomain(request));
         List<String> categories = readArticleService.listAllCategories();
 
         StringBuilder xml = new StringBuilder("""
@@ -108,23 +110,17 @@ public class SitemapController {
                 """);
 
         for (String c : categories) {
-            xml.append(buildUrl(
-                    domain + "/category/" + url(c),
-                    "weekly",
-                    "0.6",
-                    null
-            ));
+            String urlPath = domain + "/category/" + url(c);
+            xml.append(buildUrl(urlPath, "weekly", "0.6", null));
         }
 
         xml.append("</urlset>");
-
         return xml.toString();
     }
 
     @GetMapping(value = "/sitemap-tag.xml", produces = "application/xml;charset=UTF-8")
     public String sitemapTag(HttpServletRequest request) {
-
-        String domain = getDomain(request);
+        String domain = escapeXml10(getDomain(request));
         List<String> tags = readArticleService.listAllTags();
 
         StringBuilder xml = new StringBuilder("""
@@ -133,24 +129,20 @@ public class SitemapController {
                 """);
 
         for (String t : tags) {
-            xml.append(buildUrl(
-                    domain + "/tag/" + url(t),
-                    "weekly",
-                    "0.5",
-                    null
-            ));
+            String urlPath = domain + "/tag/" + url(t);
+            xml.append(buildUrl(urlPath, "weekly", "0.5", null));
         }
 
         xml.append("</urlset>");
-
         return xml.toString();
     }
 
     private String buildUrl(String loc, String changefreq, String priority, Date lastmod) {
+        String escapedLoc = escapeXml10(loc);
 
         StringBuilder sb = new StringBuilder();
         sb.append("<url>");
-        sb.append("<loc>").append(loc).append("</loc>");
+        sb.append("<loc>").append(escapedLoc).append("</loc>");
         sb.append("<changefreq>").append(changefreq).append("</changefreq>");
         sb.append("<priority>").append(priority).append("</priority>");
 
@@ -158,7 +150,7 @@ public class SitemapController {
             LocalDateTime ldt = toLocalDateTime(lastmod);
             String formatted = ldt.atOffset(ZoneOffset.ofHours(8))
                     .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-            sb.append("<lastmod>").append(formatted).append("</lastmod>");
+            sb.append("<lastmod>").append(escapeXml10(formatted)).append("</lastmod>");
         }
 
         sb.append("</url>");
