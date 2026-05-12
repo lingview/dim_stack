@@ -58,6 +58,10 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onCl
     const handleClick = () => {
         navigate('/dashboard/profile');
     };
+
+    const handleSiteNameClick = () => {
+        navigate('/');
+    };
     return (
         <>
             {/* 移动端遮罩层 */}
@@ -95,7 +99,10 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onCl
                 <div className="p-4 border-b border-gray-200 sidebar-header-border">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                            <div className="text-2xl font-bold text-blue-600 sidebar-site-name">
+                            <div 
+                                onClick={handleSiteNameClick}
+                                className="text-2xl font-bold text-blue-600 sidebar-site-name cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                            >
                                 {isOpen ? siteName : (siteName?.charAt(0) || 'D')}
                             </div>
                         </div>
