@@ -116,6 +116,63 @@ const MediaPreviewModal = ({ mediaItem, onClose }) => {
                             </div>
                         </div>
                     )}
+
+                    {type === 'document' && (
+                        <div className="text-center py-10">
+                            <div className="mx-auto bg-gray-100 p-6 rounded-lg max-w-md">
+                                {(() => {
+                                    const fileExtension = filename.toLowerCase().split('.').pop();
+                                    const isPdf = fileExtension === 'pdf';
+                                    const isWord = ['doc', 'docx'].includes(fileExtension);
+                                    
+                                    let iconColor = 'text-purple-500';
+                                    let fileTypeLabel = '文档文件';
+                                    
+                                    if (isPdf) {
+                                        iconColor = 'text-red-500';
+                                        fileTypeLabel = 'PDF文档';
+                                    } else if (isWord) {
+                                        iconColor = 'text-blue-500';
+                                        fileTypeLabel = 'Word文档';
+                                    }
+                                    
+                                    return (
+                                        <>
+                                            <svg xmlns="http://www.w3.org/2000/svg" className={`h-16 w-16 mx-auto ${iconColor} mb-4`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            <h4 className="text-lg font-medium text-gray-900 mb-2">{fileTypeLabel}</h4>
+                                            <p className="text-gray-600 mb-4 truncate">{filename}</p>
+                                            {(isPdf || isWord) && (
+                                                <a
+                                                    href={`https://docs.google.com/gview?url=${encodeURIComponent(window.location.origin + src)}&embedded=true`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors mb-2 mr-2"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    在线预览
+                                                </a>
+                                            )}
+                                            <a
+                                                href={src}
+                                                download
+                                                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                </svg>
+                                                下载文件
+                                            </a>
+                                        </>
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -286,6 +343,16 @@ export default function ArticlesReview() {
         while ((match = archiveRegex.exec(content)) !== null) {
             mediaItems.push({
                 type: 'archive',
+                src: match[1],
+                filename: match[2]
+            });
+        }
+
+        // 文档格式
+        const documentRegex = /<document\s+src=["']([^"']+)["']\s+data-filename=["']([^"']+)["']\s*\/?>/gi;
+        while ((match = documentRegex.exec(content)) !== null) {
+            mediaItems.push({
+                type: 'document',
                 src: match[1],
                 filename: match[2]
             });
@@ -759,10 +826,34 @@ export default function ArticlesReview() {
                                                             )}
 
                                                             {item.type === 'archive' && (
-                                                                <div className="w-16 h-16 bg-purple-100 rounded overflow-hidden flex items-center justify-center">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                <div className="w-16 h-16 bg-orange-100 rounded overflow-hidden flex items-center justify-center">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                                                                     </svg>
+                                                                </div>
+                                                            )}
+
+                                                            {item.type === 'document' && (
+                                                                <div className="w-16 h-16 bg-purple-100 rounded overflow-hidden flex items-center justify-center">
+                                                                    {(() => {
+                                                                        const fileExtension = item.filename.toLowerCase().split('.').pop();
+                                                                        const isPdf = fileExtension === 'pdf';
+                                                                        const isWord = ['doc', 'docx'].includes(fileExtension);
+                                                                        
+                                                                        let iconColor = 'text-purple-500';
+                                                                        
+                                                                        if (isPdf) {
+                                                                            iconColor = 'text-red-500';
+                                                                        } else if (isWord) {
+                                                                            iconColor = 'text-blue-500';
+                                                                        }
+                                                                        
+                                                                        return (
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" className={`h-8 w-8 ${iconColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                                            </svg>
+                                                                        );
+                                                                    })()}
                                                                 </div>
                                                             )}
                                                         </div>

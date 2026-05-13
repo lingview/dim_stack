@@ -5,7 +5,7 @@ import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Copy, Check, Music, FileText } from 'lucide-react';
+import { Copy, Check, Music, FileText, Eye, Archive } from 'lucide-react';
 import { preprocessMarkdown, isSafeUrl } from '../../utils/markdownUtils';
 import remarkDisableLonelyOrderedList from "../../utils/remark-disable-lonely-ol.jsx";
 import remarkBreaks from 'remark-breaks';
@@ -18,7 +18,7 @@ const SANITIZE_SCHEMA = {
         'blockquote','pre','code',
         'table','thead','tbody','tr','th','td',
         'a','img','video','audio','source','track',
-        'hr','sup','sub','archive'
+        'hr','sup','sub','archive','document'
     ],
     attributes: {
         '*': ['className', 'id', 'style', 'data*'],
@@ -28,7 +28,8 @@ const SANITIZE_SCHEMA = {
         'audio': ['src', 'controls', 'autoplay', 'loop', 'muted', 'preload', 'data*'],
         'source': ['src', 'type', 'media'],
         'track': ['src', 'kind', 'srclang', 'label', 'default'],
-        'archive': ['src', 'data*']
+        'archive': ['src', 'data*'],
+        'document': ['src', 'data*']
     }
 };
 
@@ -199,8 +200,8 @@ export default function MarkdownPreview({ content, previewRef }) {
             return (
                 <div className="my-4 p-4 bg-white border border-gray-200 rounded-xl shadow-sm max-w-lg">
                     <div className="flex items-center mb-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-blue-300 rounded-full flex items-center justify-center mr-3">
-                            <FileText className="h-4 w-4 text-gray-800" />
+                        <div className="flex-shrink-0 w-8 h-8 bg-orange-300 rounded-full flex items-center justify-center mr-3">
+                            <Archive className="h-4 w-4 text-gray-800" />
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium text-gray-700 truncate" title={displayName}>
@@ -208,6 +209,71 @@ export default function MarkdownPreview({ content, previewRef }) {
                             </div>
                             <div className="text-xs text-gray-500">压缩文件</div>
                         </div>
+                        <a
+                            href={src}
+                            download={displayName}
+                            className="ml-2 px-3 py-1 bg-blue-300 text-gray-800 text-xs rounded-md hover:bg-blue-400"
+                        >
+                            下载
+                        </a>
+                    </div>
+                </div>
+            );
+        },
+        document: ({ src, ...props }) => {
+            if (!isSafeUrl(src)) return null;
+
+            let displayName = props['data-filename'];
+            if (!displayName && src.includes('?filename=')) {
+                try {
+                    const urlObj = new URL(src);
+                    displayName = decodeURIComponent(urlObj.searchParams.get('filename') || '');
+                } catch (e) {
+                    console.error('解析 URL 失败:', e);
+                }
+            }
+            if (!displayName) {
+                displayName = src.split("/").pop()?.split("?")[0] || "文档文件";
+            }
+
+            const fileExtension = displayName.toLowerCase().split('.').pop();
+            const isPdf = fileExtension === 'pdf';
+            const isWord = ['doc', 'docx'].includes(fileExtension);
+            
+            let fileTypeLabel = '文档文件';
+            let iconColor = 'bg-purple-300';
+            
+            if (isPdf) {
+                fileTypeLabel = 'PDF文档';
+                iconColor = 'bg-red-300';
+            } else if (isWord) {
+                fileTypeLabel = 'Word文档';
+                iconColor = 'bg-blue-300';
+            }
+
+            return (
+                <div className="my-4 p-4 bg-white border border-gray-200 rounded-xl shadow-sm max-w-lg">
+                    <div className="flex items-center mb-3">
+                        <div className={`flex-shrink-0 w-8 h-8 ${iconColor} rounded-full flex items-center justify-center mr-3`}>
+                            <FileText className="h-4 w-4 text-gray-800" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-gray-700 truncate" title={displayName}>
+                                {displayName}
+                            </div>
+                            <div className="text-xs text-gray-500">{fileTypeLabel}</div>
+                        </div>
+                        {(isPdf || isWord) && (
+                            <a
+                                href={`https://docs.google.com/gview?url=${encodeURIComponent(window.location.origin + src)}&embedded=true`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="ml-2 px-3 py-1 bg-blue-300 text-gray-800 text-xs rounded-md hover:bg-blue-400 flex items-center gap-1"
+                            >
+                                <Eye className="h-3 w-3" />
+                                预览
+                            </a>
+                        )}
                         <a
                             href={src}
                             download={displayName}

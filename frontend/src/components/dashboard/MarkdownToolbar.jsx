@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import {
     Bold, Italic, Heading, Link as LinkIcon,
-    Image, List, Code, Video, Music, FileText, Sparkles, Download
+    Image, List, Code, Video, Music, FileText, Sparkles, Download, Archive
 } from 'lucide-react';
 
 const TOOLBAR_BUTTONS = [
@@ -12,7 +12,8 @@ const TOOLBAR_BUTTONS = [
     { type: 'image', icon: Image, title: '插入图片', isFile: true },
     { type: 'video', icon: Video, title: '插入视频', isFile: true },
     { type: 'audio', icon: Music, title: '插入音频', isFile: true },
-    { type: 'archive', icon: FileText, title: '插入压缩包', isFile: true },
+    { type: 'archive', icon: Archive, title: '插入压缩包', isFile: true },
+    { type: 'document', icon: FileText, title: '插入文档(PDF/Word)', isFile: true },
     { type: 'list', icon: List, title: '列表' },
     { type: 'code', icon: Code, title: '代码 (Ctrl+E)' },
     { type: 'ai-generate', icon: Sparkles, title: 'AI生成文章' },

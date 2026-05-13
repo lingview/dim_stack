@@ -12,6 +12,11 @@ const SUPPORTED_FILE_TYPES = {
         'application/x-zip-compressed',
         'application/x-compressed',
         'application/x-gzip'
+    ],
+    document: [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ]
 };
 
@@ -106,7 +111,8 @@ export function useFileUpload(apiClient, getConfig) {
                     image: `\n![${file.name}](${fullUrl})\n`,
                     video: `\n<video src="${fullUrl}" controls style="width: 400px;"></video>\n`,
                     audio: `\n<audio src="${fullUrl}?filename=${encodeURIComponent(file.name)}" controls preload="metadata" data-filename="${file.name}"></audio>\n`,
-                    archive: `\n<archive src="${fullUrl}?filename=${encodeURIComponent(file.name)}" data-filename="${file.name}"></archive>\n`
+                    archive: `\n<archive src="${fullUrl}?filename=${encodeURIComponent(file.name)}" data-filename="${file.name}"></archive>\n`,
+                    document: `\n<document src="${fullUrl}?filename=${encodeURIComponent(file.name)}" data-filename="${file.name}"></document>\n`
                 };
 
                 return {

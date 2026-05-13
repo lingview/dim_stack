@@ -553,7 +553,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
         if (!fileInputRef.current) return;
 
         let acceptTypes;
-        if (fileType === 'image' || fileType === 'video' || fileType === 'audio' || fileType === 'archive') {
+        if (fileType === 'image' || fileType === 'video' || fileType === 'audio' || fileType === 'archive' || fileType === 'document') {
             acceptTypes = SUPPORTED_FILE_TYPES[fileType].join(',');
         } else {
             acceptTypes = Object.values(SUPPORTED_FILE_TYPES).flat().join(',');

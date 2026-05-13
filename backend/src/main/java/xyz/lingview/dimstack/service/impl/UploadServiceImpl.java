@@ -89,6 +89,11 @@ public class UploadServiceImpl implements UploadService {
                     "application/x-xz", "application/x-7z-compressed",
                     "application/x-zip-compressed","application/x-compressed",
                     "application/x-gzip"
+            ),
+            "document", List.of(
+                    "application/pdf",
+                    "application/msword",
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
     );
 
@@ -97,7 +102,8 @@ public class UploadServiceImpl implements UploadService {
             ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp",
             ".mp4", ".webm", ".ogg", ".avi", ".mov", ".mkv",
             ".mp3", ".wav", ".flac", ".aac", ".m4a",
-            ".zip", ".rar", ".tar", ".gz", ".tgz", ".xz", ".7z"
+            ".zip", ".rar", ".tar", ".gz", ".tgz", ".xz", ".7z",
+            ".pdf", ".doc", ".docx"
     );
 
     private String getUsername(HttpServletRequest request) {
@@ -176,6 +182,9 @@ public class UploadServiceImpl implements UploadService {
         extensionToMime.put(".tgz", "application/gzip");
         extensionToMime.put(".xz", "application/x-xz");
         extensionToMime.put(".7z", "application/x-7z-compressed");
+        extensionToMime.put(".pdf", "application/pdf");
+        extensionToMime.put(".doc", "application/msword");
+        extensionToMime.put(".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
         return extensionToMime.getOrDefault(extension.toLowerCase(), "application/octet-stream");
     }
 
