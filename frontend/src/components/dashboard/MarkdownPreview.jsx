@@ -9,6 +9,7 @@ import { Copy, Check, Music, FileText, Eye, Archive } from 'lucide-react';
 import { preprocessMarkdown, isSafeUrl } from '../../utils/markdownUtils';
 import remarkDisableLonelyOrderedList from "../../utils/remark-disable-lonely-ol.jsx";
 import remarkBreaks from 'remark-breaks';
+import DocumentPreviewModal from './DocumentPreviewModal';
 
 const SANITIZE_SCHEMA = {
     tagNames: [
@@ -35,6 +36,7 @@ const SANITIZE_SCHEMA = {
 
 export default function MarkdownPreview({ content, previewRef }) {
     const [copiedCode, setCopiedCode] = useState(null);
+    const [previewDoc, setPreviewDoc] = useState(null);
 
     const handleCopyCode = async (code, index) => {
         try {
@@ -264,15 +266,13 @@ export default function MarkdownPreview({ content, previewRef }) {
                             <div className="text-xs text-gray-500">{fileTypeLabel}</div>
                         </div>
                         {(isPdf || isWord) && (
-                            <a
-                                href={`https://docs.google.com/gview?url=${encodeURIComponent(window.location.origin + src)}&embedded=true`}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <button
+                                onClick={() => setPreviewDoc({ src, filename: displayName })}
                                 className="ml-2 px-3 py-1 bg-blue-300 text-gray-800 text-xs rounded-md hover:bg-blue-400 flex items-center gap-1"
                             >
                                 <Eye className="h-3 w-3" />
                                 预览
-                            </a>
+                            </button>
                         )}
                         <a
                             href={src}
@@ -288,27 +288,37 @@ export default function MarkdownPreview({ content, previewRef }) {
     };
 
     return (
-        <div
-            ref={previewRef}
-            className="w-1/2 p-4 overflow-y-auto bg-white text-gray-900 pb-32"
-            style={{ 
-                overflowAnchor: 'none',
-                paddingBottom: '80vh'
-            }}
-        >
-            <ReactMarkdown
-                children={preprocessMarkdown(content)}
-                remarkPlugins={[
-                    remarkGfm,
-                    remarkBreaks,
-                    remarkDisableLonelyOrderedList
-                ]}
-                rehypePlugins={[
-                    rehypeRaw,
-                    [rehypeSanitize, SANITIZE_SCHEMA]
-                ]}
-                components={renderMarkdownComponents}
-            />
-        </div>
+        <>
+            <div
+                ref={previewRef}
+                className="w-1/2 p-4 overflow-y-auto bg-white text-gray-900 pb-32"
+                style={{ 
+                    overflowAnchor: 'none',
+                    paddingBottom: '80vh'
+                }}
+            >
+                <ReactMarkdown
+                    children={preprocessMarkdown(content)}
+                    remarkPlugins={[
+                        remarkGfm,
+                        remarkBreaks,
+                        remarkDisableLonelyOrderedList
+                    ]}
+                    rehypePlugins={[
+                        rehypeRaw,
+                        [rehypeSanitize, SANITIZE_SCHEMA]
+                    ]}
+                    components={renderMarkdownComponents}
+                />
+            </div>
+            
+            {previewDoc && (
+                <DocumentPreviewModal
+                    src={previewDoc.src}
+                    filename={previewDoc.filename}
+                    onClose={() => setPreviewDoc(null)}
+                />
+            )}
+        </>
     );
 }

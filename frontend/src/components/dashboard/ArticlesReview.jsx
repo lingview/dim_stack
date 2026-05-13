@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../utils/axios.jsx';
 import {showToast} from "../../utils/toastManager.jsx";
+import DocumentPreviewModal from './DocumentPreviewModal.jsx';
 
 const MediaPreviewModal = ({ mediaItem, onClose }) => {
     if (!mediaItem) return null;
 
     const { type, src, filename } = mediaItem;
+
+    if (type === 'document') {
+        return (
+            <DocumentPreviewModal
+                src={src}
+                filename={filename}
+                onClose={onClose}
+            />
+        );
+    }
 
     return (
         <div

@@ -1145,3 +1145,108 @@
   color: #d1d5db;
   background-color: #374151;
 }
+
+/* 文档预览组件暗色适配 */
+.dark .document-preview-modal-overlay {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+.dark .document-preview-modal-container {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+.dark .document-preview-header {
+  border-color: #374151 !important;
+}
+
+.dark .document-preview-title {
+  color: #f9fafb !important;
+}
+
+.dark .document-preview-subtitle {
+  color: #9ca3af !important;
+}
+
+.dark .document-preview-toolbar-btn {
+  color: #d1d5db !important;
+}
+
+.dark .document-preview-toolbar-btn:hover {
+  background-color: #374151 !important;
+}
+
+.dark .document-preview-toolbar-divider {
+  background-color: #4b5563 !important;
+}
+
+.dark .document-preview-page-info {
+  color: #9ca3af !important;
+}
+
+.dark .document-preview-content-area {
+  background-color: #111827 !important;
+}
+
+.dark .document-preview-loading-spinner {
+  border-bottom-color: #3b82f6 !important;
+}
+
+.dark .document-preview-loading-text {
+  color: #d1d5db !important;
+}
+
+.dark .document-preview-error-icon-bg {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+.dark .document-preview-error-icon {
+  color: #f87171 !important;
+}
+
+.dark .document-preview-error-title {
+  color: #f9fafb !important;
+}
+
+.dark .document-preview-error-message {
+  color: #d1d5db !important;
+}
+
+.dark .document-preview-download-btn {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+.dark .document-preview-download-btn:hover {
+  background-color: #1d4ed8 !important;
+}
+
+.dark .document-preview-canvas {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .document-preview-word-container {
+  background-color: #ffffff !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3) !important;
+  color: #000000 !important;
+}
+
+.dark .document-preview-word-container .docx {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+}
+
+.dark .document-preview-word-container .docx p,
+.dark .document-preview-word-container .docx span,
+.dark .document-preview-word-container .docx div,
+.dark .document-preview-word-container .docx h1,
+.dark .document-preview-word-container .docx h2,
+.dark .document-preview-word-container .docx h3,
+.dark .document-preview-word-container .docx h4,
+.dark .document-preview-word-container .docx h5,
+.dark .document-preview-word-container .docx h6,
+.dark .document-preview-word-container .docx li,
+.dark .document-preview-word-container .docx td,
+.dark .document-preview-word-container .docx th {
+  color: #000000 !important;
+}

@@ -8,6 +8,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { getConfig } from '../utils/config';
 import ImageLightbox from './ImageLightbox';
+import DocumentPreviewModal from './dashboard/DocumentPreviewModal';
 import { useNavigate } from 'react-router-dom';
 import { getCategoryIcon, getTagIcon } from '../utils/IconUtils';
 import apiClient from '../utils/axios';
@@ -240,6 +241,7 @@ export default function ArticlePreview({ article }) {
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(0);
     const [liking, setLiking] = useState(false);
+    const [previewDoc, setPreviewDoc] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -750,15 +752,13 @@ export default function ArticlePreview({ article }) {
                                 <div className="text-xs text-gray-500">{fileTypeLabel}</div>
                             </div>
                             {(isPdf || isWord) && (
-                                <a
-                                    href={`https://docs.google.com/gview?url=${encodeURIComponent(window.location.origin + fullSrc)}&embedded=true`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <button
+                                    onClick={() => setPreviewDoc({ src: fullSrc, filename: displayName })}
                                     className="ml-2 px-3 py-1 bg-blue-300 text-gray-800 text-xs rounded-md hover:bg-blue-400 flex items-center gap-1"
                                 >
                                     <Eye className="h-3 w-3" />
                                     预览
-                                </a>
+                                </button>
                             )}
                             <a
                                 href={fullSrc}
@@ -930,6 +930,14 @@ export default function ArticlePreview({ article }) {
                             return newIndex;
                         });
                     }}
+                />
+            )}
+
+            {previewDoc && (
+                <DocumentPreviewModal
+                    src={previewDoc.src}
+                    filename={previewDoc.filename}
+                    onClose={() => setPreviewDoc(null)}
                 />
             )}
         </article>
