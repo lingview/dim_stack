@@ -39,12 +39,21 @@ export default function DocumentPreviewModal({
     const [totalPages, setTotalPages] = useState(0);
     const [scale, setScale] = useState(1.0);
     const [visiblePages, setVisiblePages] = useState(new Set());
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
     const wordContainerRef = useRef(null);
     const contentAreaRef = useRef(null);
     const pageRefs = useRef({});
 
     useEffect(() => {
         if (!src || !filename) return;
+
+        document.body.style.overflow = 'hidden';
+
+        const handleResize = () => {
+            setWindowWidth(window.innerWidth);
+        };
+
+        window.addEventListener('resize', handleResize);
 
         const loadDocument = async () => {
             try {
@@ -111,6 +120,11 @@ export default function DocumentPreviewModal({
         };
 
         loadDocument();
+
+        return () => {
+            document.body.style.overflow = '';
+            window.removeEventListener('resize', handleResize);
+        };
     }, [src, filename]);
 
     useEffect(() => {
@@ -131,12 +145,13 @@ export default function DocumentPreviewModal({
                         null, {
                             className: 'docx',
                             inWrapper: false,
-                            ignoreWidth: false,
+                            ignoreWidth: windowWidth < 768,
                             ignoreHeight: false,
                             ignoreFonts: false,
                             breakPages: true,
                             ignoreLastRenderedPageBreak: true,
-                            experimentalCacheTables: true
+                            experimentalCacheTables: true,
+                            useBase64URL: true
                         }
                     );
                 })
@@ -145,7 +160,7 @@ export default function DocumentPreviewModal({
                     setError('Word 文档渲染失败');
                 });
         }
-    }, [documentType, wordData]);
+    }, [documentType, wordData, windowWidth]);
 
     useEffect(() => {
         if (documentType !== 'pdf' || !contentAreaRef.current) return;
@@ -275,28 +290,28 @@ export default function DocumentPreviewModal({
     }
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4 md:p-8">
             <div
                 className="absolute inset-0 bg-black/70 backdrop-blur-md document-preview-modal-overlay"
                 onClick={onClose}
             />
 
-            <div className="relative bg-white rounded-lg shadow-xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden document-preview-modal-container">
+            <div className="relative bg-white w-full h-full md:h-[90vh] md:max-w-6xl md:mt-16 md:rounded-lg shadow-xl flex flex-col overflow-hidden document-preview-modal-container">
 
-                <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center document-preview-header">
-                    <div className="flex items-center space-x-3">
+                <div className="px-4 py-3 md:px-6 md:py-4 border-b border-gray-200 flex justify-between items-center document-preview-header">
+                    <div className="flex items-center space-x-2 md:space-x-3">
                         <div
-                            className={`w-10 h-10 ${iconColor} rounded-lg flex items-center justify-center`}
+                            className={`w-8 h-8 md:w-10 md:h-10 ${iconColor} rounded-lg flex items-center justify-center`}
                         >
-                            <FileText className="h-5 w-5 text-white" />
+                            <FileText className="h-4 w-4 md:h-5 md:w-5 text-white" />
                         </div>
 
-                        <div>
-                            <h3 className="text-lg font-medium text-gray-900 document-preview-title">
+                        <div className="min-w-0 flex-1">
+                            <h3 className="text-base md:text-lg font-medium text-gray-900 document-preview-title truncate">
                                 {filename}
                             </h3>
 
-                            <p className="text-sm text-gray-500 document-preview-subtitle">
+                            <p className="text-xs md:text-sm text-gray-500 document-preview-subtitle">
                                 {fileTypeLabel}
                             </p>
                         </div>
@@ -350,7 +365,7 @@ export default function DocumentPreviewModal({
 
                 <div
                     ref={contentAreaRef}
-                    className="flex-1 overflow-auto bg-gray-50 p-6 document-preview-content-area"
+                    className="flex-1 overflow-auto bg-gray-50 p-3 md:p-6 document-preview-content-area"
                 >
 
                     {loading && (
@@ -379,7 +394,7 @@ export default function DocumentPreviewModal({
                         !error &&
                         documentType === 'pdf' &&
                         pdfData && (
-                            <div className="flex flex-col items-center space-y-6 pb-6">
+                            <div className="flex flex-col items-center space-y-4 md:space-y-6 pb-6">
                                 <Document
                                     file={pdfData}
                                     loading=""
@@ -400,8 +415,8 @@ export default function DocumentPreviewModal({
                                                 key={pageNumber}
                                                 ref={(el) => { pageRefs.current[pageNumber] = el; }}
                                                 data-page-number={pageNumber}
-                                                className="bg-white shadow-lg"
-                                                style={{ minHeight: '600px' }}
+                                                className="bg-white shadow-lg w-full max-w-full"
+                                                style={{ minHeight: '400px' }}
                                             >
                                                 {isVisible ? (
                                                     <Page
@@ -410,9 +425,10 @@ export default function DocumentPreviewModal({
                                                         renderTextLayer={false}
                                                         renderAnnotationLayer={false}
                                                         className="document-preview-canvas"
+                                                        width={windowWidth < 768 ? windowWidth - 40 : undefined}
                                                     />
                                                 ) : (
-                                                    <div className="flex items-center justify-center h-[600px] text-gray-400">
+                                                    <div className="flex items-center justify-center h-[400px] md:h-[600px] text-gray-400">
                                                         第 {pageNumber} 页
                                                     </div>
                                                 )}
@@ -429,7 +445,8 @@ export default function DocumentPreviewModal({
                         wordData && (
                             <div
                                 ref={wordContainerRef}
-                                className="bg-white shadow-lg mx-auto max-w-4xl p-8 document-preview-word-container"
+                                className="bg-white shadow-lg mx-auto w-full max-w-4xl p-4 md:p-8 document-preview-word-container"
+                                style={{ overflowX: 'auto' }}
                             />
                         )}
                 </div>
