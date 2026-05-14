@@ -113,7 +113,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
     const savedSelectionRef = useRef({ start: 0, end: 0 });
     const isSyncingScrollRef = useRef(false);
 
-    const { uploading, processFile, SUPPORTED_FILE_TYPES, toastMessage: uploadToast } = useFileUpload(apiClient, getConfig);
+    const { uploading, processFile, SUPPORTED_FILE_TYPES} = useFileUpload(apiClient, getConfig);
 
     useEffect(() => {
         if (initialData) {
@@ -529,7 +529,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             return;
         }
 
-        if (buttonType === 'image' || buttonType === 'video' || buttonType === 'audio' || buttonType === 'archive') {
+        if (buttonType === 'image' || buttonType === 'video' || buttonType === 'audio' || buttonType === 'archive' || buttonType === 'document') {
             handleFileSelect(buttonType);
             return;
         }
