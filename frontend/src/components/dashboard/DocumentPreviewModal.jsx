@@ -8,7 +8,9 @@ import {
     Download,
     FileText,
     ZoomIn,
-    ZoomOut
+    ZoomOut,
+    Maximize2,
+    Minimize2
 } from 'lucide-react';
 
 import {
@@ -25,6 +27,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
     import.meta.url
 ).toString();
 
+pdfjs.verbosity = pdfjs.VerbosityLevel.ERRORS;
+
 export default function DocumentPreviewModal({
                                                  src,
                                                  filename,
@@ -40,25 +44,45 @@ export default function DocumentPreviewModal({
     const [scale, setScale] = useState(1.0);
     const [visiblePages, setVisiblePages] = useState(new Set());
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [wordRendered, setWordRendered] = useState(false);
     const wordContainerRef = useRef(null);
     const contentAreaRef = useRef(null);
     const pageRefs = useRef({});
+    const modalRef = useRef(null);
+    const wordScrollPositionRef = useRef(0);
 
     useEffect(() => {
         if (!src || !filename) return;
 
+        let cancelled = false;
         document.body.style.overflow = 'hidden';
 
         const handleResize = () => {
             setWindowWidth(window.innerWidth);
         };
 
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                if (isFullscreen) {
+                    setIsFullscreen(false);
+                } else {
+                    onClose();
+                }
+            }
+        };
+
         window.addEventListener('resize', handleResize);
+        window.addEventListener('keydown', handleKeyDown);
 
         const loadDocument = async () => {
             try {
                 setLoading(true);
                 setError(null);
+                setPdfData(null);
+                setWordData(null);
+                setDocumentType(null);
+                setTotalPages(0);
 
                 const extension = filename
                     .toLowerCase()
@@ -75,68 +99,85 @@ export default function DocumentPreviewModal({
                 }
 
                 let cleanSrc = src;
+
                 if (cleanSrc.includes('?')) {
                     cleanSrc = cleanSrc.split('?')[0];
                 }
 
-                if (
-                    cleanSrc.startsWith('http://127.0.0.1:2222') ||
-                    cleanSrc.startsWith('http://localhost:2222')
-                ) {
-                    cleanSrc = cleanSrc.replace(
-                        /^http:\/\/(127\.0\.0\.1|localhost):2222/,
-                        ''
-                    );
+                const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:2222';
+                const backendHost = backendUrl.replace(/^https?:\/\//, '').split(':')[0];
+                const backendPort = backendUrl.split(':').pop();
+                
+                const hostPattern = new RegExp(`^http://(${backendHost}|localhost):${backendPort}`);
+                if (hostPattern.test(cleanSrc)) {
+                    cleanSrc = cleanSrc.replace(hostPattern, '');
                 }
 
                 const response = await fetch(cleanSrc, {
                     method: 'GET',
-                    credentials: 'include'
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,*/*'
+                    }
                 });
 
                 if (!response.ok) {
-                    throw new Error('文件加载失败');
+                    throw new Error(`文件加载失败: ${response.status} ${response.statusText}`);
                 }
 
                 const blob = await response.blob();
+                
+                if (blob.size === 0) {
+                    throw new Error('文件为空');
+                }
+
+                if (cancelled) return;
+
                 const arrayBuffer = await blob.arrayBuffer();
+
+                if (cancelled) return;
 
                 if (isPdf) {
                     setDocumentType('pdf');
                     setPdfData(arrayBuffer);
-                }
-
-                if (isWord) {
+                } else if (isWord) {
                     setDocumentType('word');
                     setWordData(arrayBuffer);
                 }
 
                 setLoading(false);
             } catch (err) {
-                console.error('文档加载失败:', err);
-                setError(err.message || '文档加载失败');
-                setLoading(false);
+                if (!cancelled) {
+                    console.error('文档加载失败:', err);
+                    setError(err.message || '文档加载失败');
+                    setLoading(false);
+                }
             }
         };
 
         loadDocument();
 
         return () => {
+            cancelled = true;
             document.body.style.overflow = '';
             window.removeEventListener('resize', handleResize);
+            window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [src, filename]);
+    }, [src, filename, onClose]);
 
     useEffect(() => {
         if (
             documentType === 'word' &&
             wordData &&
-            wordContainerRef.current
+            wordContainerRef.current &&
+            !wordRendered
         ) {
+            let cancelled = false;
+            
             import('docx-preview')
-                .then(({
-                           renderAsync
-                       }) => {
+                .then(({ renderAsync }) => {
+                    if (cancelled || !wordContainerRef.current) return;
+                    
                     wordContainerRef.current.innerHTML = '';
 
                     return renderAsync(
@@ -153,14 +194,90 @@ export default function DocumentPreviewModal({
                             experimentalCacheTables: true,
                             useBase64URL: true
                         }
-                    );
+                    ).then(() => {
+                        if (!cancelled) {
+                            setWordRendered(true);
+                            if (contentAreaRef.current) {
+                                contentAreaRef.current.scrollTop = wordScrollPositionRef.current;
+                            }
+
+                            setupWordAnchorLinks();
+                        }
+                    });
                 })
                 .catch((err) => {
-                    console.error('Word渲染失败:', err);
-                    setError('Word 文档渲染失败');
+                    if (!cancelled) {
+                        console.error('Word渲染失败:', err);
+                        setError('Word 文档渲染失败');
+                    }
                 });
+            
+            return () => {
+                cancelled = true;
+            };
         }
-    }, [documentType, wordData, windowWidth]);
+    }, [documentType, wordData]);
+
+    const setupWordAnchorLinks = () => {
+        if (!wordContainerRef.current || !contentAreaRef.current) return;
+        
+        const handleAnchorClick = (e) => {
+            const target = e.target.closest('a');
+            if (!target) return;
+            
+            const href = target.getAttribute('href');
+            if (!href || !href.startsWith('#')) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const anchorId = href.substring(1);
+            const targetElement = wordContainerRef.current.querySelector(`[id="${anchorId}"]`);
+            
+            if (targetElement && contentAreaRef.current) {
+                const containerRect = contentAreaRef.current.getBoundingClientRect();
+                const targetRect = targetElement.getBoundingClientRect();
+                const scrollTop = contentAreaRef.current.scrollTop;
+                const offsetTop = targetRect.top - containerRect.top + scrollTop;
+
+                contentAreaRef.current.scrollTo({
+                    top: offsetTop - 20,
+                    behavior: 'smooth'
+                });
+            }
+        };
+        
+        wordContainerRef.current.addEventListener('click', handleAnchorClick, true);
+
+        return () => {
+            if (wordContainerRef.current) {
+                wordContainerRef.current.removeEventListener('click', handleAnchorClick, true);
+            }
+        };
+    };
+
+    useEffect(() => {
+        if (documentType !== 'word' || !wordRendered) return;
+
+        const wasMobile = windowWidth < 768;
+        const handleResize = () => {
+            const isMobile = window.innerWidth < 768;
+
+            if (contentAreaRef.current) {
+                wordScrollPositionRef.current = contentAreaRef.current.scrollTop;
+            }
+
+            if (wasMobile !== isMobile) {
+                setWordRendered(false);
+                setWindowWidth(window.innerWidth);
+            }
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, [documentType, wordRendered, windowWidth]);
 
     useEffect(() => {
         if (documentType !== 'pdf' || !contentAreaRef.current) return;
@@ -220,21 +337,17 @@ export default function DocumentPreviewModal({
                 cleanSrc = cleanSrc.split('?')[0];
             }
 
-            if (
-                cleanSrc.startsWith('http://127.0.0.1:2222') ||
-                cleanSrc.startsWith('http://localhost:2222')
-            ) {
-                cleanSrc = cleanSrc.replace(
-                    /^http:\/\/(127\.0\.0\.1|localhost):2222/,
-                    ''
-                );
+            const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:2222';
+            const backendHost = backendUrl.replace(/^https?:\/\//, '').split(':')[0];
+            const backendPort = backendUrl.split(':').pop();
+            
+            const hostPattern = new RegExp(`^http://(${backendHost}|localhost):${backendPort}`);
+            if (hostPattern.test(cleanSrc)) {
+                cleanSrc = cleanSrc.replace(hostPattern, '');
             }
 
             const response = await fetch(cleanSrc, {
-                credentials: 'include',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                credentials: 'include'
             });
 
             const blob = await response.blob();
@@ -266,6 +379,26 @@ export default function DocumentPreviewModal({
         setScale((prev) => Math.max(prev - 0.2, 0.5));
     };
 
+    const toggleFullscreen = () => {
+        setIsFullscreen((prev) => !prev);
+    };
+
+    const getTruncatedFilename = () => {
+        if (windowWidth >= 768) return filename;
+        
+        const maxMobileLength = 20;
+        const dotIndex = filename.lastIndexOf('.');
+        const nameWithoutExt = dotIndex > 0 ? filename.substring(0, dotIndex) : filename;
+        const extension = dotIndex > 0 ? filename.substring(dotIndex) : '';
+        
+        if (nameWithoutExt.length <= maxMobileLength) {
+            return filename;
+        }
+        
+        const truncatedName = nameWithoutExt.substring(0, maxMobileLength - 3) + '...';
+        return truncatedName + extension;
+    };
+
     if (!src) return null;
 
     const extension = filename
@@ -290,82 +423,104 @@ export default function DocumentPreviewModal({
     }
 
     return (
-        <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4 md:p-8">
+        <div className={`fixed inset-0 flex items-center justify-center z-[9999] ${
+            isFullscreen ? 'p-0' : 'p-0 md:p-4 lg:p-8'
+        }`}>
             <div
                 className="absolute inset-0 bg-black/70 backdrop-blur-md document-preview-modal-overlay"
                 onClick={onClose}
             />
 
-            <div className="relative bg-white w-full h-full md:h-[90vh] md:max-w-6xl md:mt-16 md:rounded-lg shadow-xl flex flex-col overflow-hidden document-preview-modal-container">
+            <div 
+                ref={modalRef}
+                className={`relative bg-white flex flex-col overflow-hidden document-preview-modal-container ${
+                    isFullscreen 
+                        ? 'w-full h-full rounded-none' 
+                        : 'w-full h-full md:h-[90vh] md:max-w-6xl md:mt-16 md:rounded-lg shadow-xl'
+                }`}
+            >
 
-                <div className="px-4 py-3 md:px-6 md:py-4 border-b border-gray-200 flex justify-between items-center document-preview-header">
-                    <div className="flex items-center space-x-2 md:space-x-3">
+                <div className="px-3 py-2 md:px-6 md:py-4 border-b border-gray-200 flex justify-between items-center document-preview-header">
+                    <div className="flex items-center space-x-2 md:space-x-3 min-w-0 flex-1">
                         <div
-                            className={`w-8 h-8 md:w-10 md:h-10 ${iconColor} rounded-lg flex items-center justify-center`}
+                            className={`w-7 h-7 md:w-10 md:h-10 ${iconColor} rounded-lg flex items-center justify-center flex-shrink-0`}
                         >
-                            <FileText className="h-4 w-4 md:h-5 md:w-5 text-white" />
+                            <FileText className="h-3.5 w-3.5 md:h-5 md:w-5 text-white" />
                         </div>
 
                         <div className="min-w-0 flex-1">
-                            <h3 className="text-base md:text-lg font-medium text-gray-900 document-preview-title truncate">
-                                {filename}
+                            <h3 className="text-sm md:text-lg font-medium text-gray-900 document-preview-title truncate" title={filename}>
+                                {getTruncatedFilename()}
                             </h3>
 
-                            <p className="text-xs md:text-sm text-gray-500 document-preview-subtitle">
+                            <p className="text-xs md:text-sm text-gray-500 document-preview-subtitle hidden sm:block">
                                 {fileTypeLabel}
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1 md:space-x-2 flex-shrink-0">
 
                         {documentType === 'pdf' && (
                             <>
                                 <button
                                     onClick={handleZoomOut}
-                                    className="p-2 hover:bg-gray-100 rounded-md transition-colors document-preview-toolbar-btn"
+                                    className="p-1.5 md:p-2 hover:bg-gray-100 rounded-md transition-colors document-preview-toolbar-btn"
                                 >
-                                    <ZoomOut className="h-5 w-5 text-gray-600" />
+                                    <ZoomOut className="h-4 w-4 md:h-5 md:w-5 text-gray-600" />
                                 </button>
 
-                                <span className="text-sm text-gray-600 min-w-[60px] text-center document-preview-page-info">
+                                <span className="text-xs md:text-sm text-gray-600 min-w-[50px] md:min-w-[60px] text-center document-preview-page-info">
                                     {Math.round(scale * 100)}%
                                 </span>
 
                                 <button
                                     onClick={handleZoomIn}
-                                    className="p-2 hover:bg-gray-100 rounded-md transition-colors document-preview-toolbar-btn"
+                                    className="p-1.5 md:p-2 hover:bg-gray-100 rounded-md transition-colors document-preview-toolbar-btn"
                                 >
-                                    <ZoomIn className="h-5 w-5 text-gray-600" />
+                                    <ZoomIn className="h-4 w-4 md:h-5 md:w-5 text-gray-600" />
                                 </button>
 
-                                <div className="w-px h-6 bg-gray-300 mx-2 document-preview-toolbar-divider" />
+                                <div className="w-px h-5 md:h-6 bg-gray-300 mx-1 md:mx-2 document-preview-toolbar-divider hidden sm:block" />
 
-                                <span className="text-sm text-gray-600 min-w-[80px] text-center document-preview-page-info">
+                                <span className="text-xs md:text-sm text-gray-600 min-w-[60px] md:min-w-[80px] text-center document-preview-page-info hidden sm:block">
                                     {totalPages} 页
                                 </span>
                             </>
                         )}
 
                         <button
-                            onClick={handleDownload}
-                            className="p-2 hover:bg-gray-100 rounded-md transition-colors document-preview-toolbar-btn"
+                            onClick={toggleFullscreen}
+                            className="p-1.5 md:p-2 hover:bg-gray-100 rounded-md transition-colors document-preview-toolbar-btn"
                         >
-                            <Download className="h-5 w-5 text-gray-600" />
+                            {isFullscreen ? (
+                                <Minimize2 className="h-4 w-4 md:h-5 md:w-5 text-gray-600" />
+                            ) : (
+                                <Maximize2 className="h-4 w-4 md:h-5 md:w-5 text-gray-600" />
+                            )}
+                        </button>
+
+                        <button
+                            onClick={handleDownload}
+                            className="p-1.5 md:p-2 hover:bg-gray-100 rounded-md transition-colors document-preview-toolbar-btn"
+                        >
+                            <Download className="h-4 w-4 md:h-5 md:w-5 text-gray-600" />
                         </button>
 
                         <button
                             onClick={onClose}
-                            className="p-2 hover:bg-gray-100 rounded-md transition-colors document-preview-toolbar-btn"
+                            className="p-1.5 md:p-2 hover:bg-gray-100 rounded-md transition-colors document-preview-toolbar-btn"
                         >
-                            <X className="h-5 w-5 text-gray-600" />
+                            <X className="h-4 w-4 md:h-5 md:w-5 text-gray-600" />
                         </button>
                     </div>
                 </div>
 
                 <div
                     ref={contentAreaRef}
-                    className="flex-1 overflow-auto bg-gray-50 p-3 md:p-6 document-preview-content-area"
+                    className={`flex-1 overflow-auto bg-gray-50 ${
+                        isFullscreen ? 'p-0' : 'p-3 md:p-6'
+                    } document-preview-content-area`}
                 >
 
                     {loading && (
@@ -402,8 +557,12 @@ export default function DocumentPreviewModal({
                                         setTotalPages(numPages);
                                     }}
                                     onLoadError={(err) => {
-                                        console.error(err);
-                                        setError('PDF 加载失败');
+                                        console.error('PDF 渲染错误:', err);
+                                        if (err.name === 'InvalidPDFException') {
+                                            setError('PDF 文件无效或已损坏');
+                                        } else {
+                                            setError('PDF 加载失败');
+                                        }
                                     }}
                                 >
                                     {Array.from({ length: totalPages }, (_, index) => {
