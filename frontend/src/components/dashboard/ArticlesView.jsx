@@ -1,4 +1,4 @@
-import { Plus, Edit, Trash2, EyeOff, Send, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, EyeOff, Send, Upload, Download } from 'lucide-react';
 import apiClient from "../../utils/axios.jsx";
 import React, { useState, useEffect, useRef } from 'react';
 import { showToast } from "../../utils/toastManager";
@@ -260,6 +260,35 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
         }
     };
 
+    const handleExportArticle = async (articleId) => {
+        try {
+            const response = await apiClient.get(`/getarticle/${articleId}`);
+
+            if (response.success && response.data) {
+                const article = response.data;
+                
+                const markdownContent = article.article_content || '';
+                
+                const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${article.article_name || 'article'}.md`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                
+                showToast('文章导出成功');
+            } else {
+                showToast(response.message || '导出失败', 'error');
+            }
+        } catch (error) {
+            console.error('导出文章时出错:', error);
+            showToast('导出文章时出错', 'error');
+        }
+    };
+
     if (loading) {
         return (
             <div className="bg-white rounded-lg shadow-sm p-6">
@@ -355,18 +384,25 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-500">
+                                        <div className="flex items-center space-x-2">
                                             <button
                                                 onClick={() => onEditArticle(article.article_id)}
-                                                className="text-blue-600 hover:text-blue-900 flex items-center mr-2"
+                                                className="text-blue-600 hover:text-blue-900 flex items-center"
                                             >
                                                 <Edit className="h-4 w-4 mr-1" />
                                                 编辑
                                             </button>
+                                            <button
+                                                onClick={() => handleExportArticle(article.article_id)}
+                                                className="text-green-600 hover:text-green-900 flex items-center"
+                                            >
+                                                <Download className="h-4 w-4 mr-1" />
+                                                导出
+                                            </button>
                                             {article.status === 1 && (
                                                 <button
                                                     onClick={() => handleUnpublishArticle(article.article_id)}
-                                                    className="text-yellow-600 hover:text-yellow-900 flex items-center mr-2"
+                                                    className="text-yellow-600 hover:text-yellow-900 flex items-center"
                                                 >
                                                     <EyeOff className="h-4 w-4 mr-1" />
                                                     取消发布
@@ -375,7 +411,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
                                             {article.status === 2 && (
                                                 <button
                                                     onClick={() => handlePublishArticle(article.article_id)}
-                                                    className="text-green-600 hover:text-green-900 flex items-center mr-2"
+                                                    className="text-green-600 hover:text-green-900 flex items-center"
                                                 >
                                                     <Send className="h-4 w-4 mr-1" />
                                                     发布
@@ -384,7 +420,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
                                             {article.hasPassword && (
                                                 <button
                                                     onClick={() => handleRemovePassword(article.article_id)}
-                                                    className="text-purple-600 hover:text-purple-900 flex items-center mr-2"
+                                                    className="text-purple-600 hover:text-purple-900 flex items-center"
                                                 >
                                                     <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
