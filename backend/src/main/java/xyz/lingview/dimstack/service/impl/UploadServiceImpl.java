@@ -14,6 +14,7 @@ import xyz.lingview.dimstack.domain.UserInformation;
 import xyz.lingview.dimstack.mapper.ArticleCategoryMapper;
 import xyz.lingview.dimstack.mapper.UploadMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
+import xyz.lingview.dimstack.service.CacheService;
 import xyz.lingview.dimstack.service.SiteConfigService;
 import xyz.lingview.dimstack.service.UploadService;
 import xyz.lingview.dimstack.util.CategoryPathUtil;
@@ -23,6 +24,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -59,6 +61,9 @@ public class UploadServiceImpl implements UploadService {
 
     @Autowired
     private SiteConfigService siteConfigService;
+
+    @Autowired
+    private CacheService cacheService;
 
     // 注入配置属性
     @Value("${file.data-root:.}")
@@ -789,6 +794,9 @@ public class UploadServiceImpl implements UploadService {
             log.error("更新用户头像信息失败", e);
         }
 
+        cacheService.deleteByPrefix("article:home:");
+        log.info("用户头像修改,已自动清除文章列表分页缓存");
+
         return ResponseEntity.ok(Map.of("fileUrl", fileUrl));
     }
 
@@ -917,6 +925,9 @@ public class UploadServiceImpl implements UploadService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "更新用户头像信息失败"));
         }
+
+        cacheService.deleteByPrefix("article:home:");
+        log.info("用户头像修改,已自动清除文章列表分页缓存");
 
         return ResponseEntity.ok(Map.of("fileUrl", fileUrl, "message", "头像上传成功"));
     }
@@ -1186,7 +1197,7 @@ public class UploadServiceImpl implements UploadService {
         }
         
         try {
-            java.net.InetAddress address = getByName(host);
+            InetAddress address = getByName(host);
 
             return address.isSiteLocalAddress() ||
                    address.isLinkLocalAddress() ||
