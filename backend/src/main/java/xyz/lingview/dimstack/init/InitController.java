@@ -379,19 +379,15 @@ public class InitController {
         // File配置
         if (hasAdvanced) {
             ymlContent.append("file:\n");
-            ymlContent.append("  # 文件存储目录\n");
             ymlContent.append("  data-root: ").append(dataRoot != null ? dataRoot : ".").append("\n");
             ymlContent.append("  upload-dir: ").append(uploadDir != null ? uploadDir : "upload").append("\n");
-            ymlContent.append("  # 日志存储目录\n");
             ymlContent.append("  log-root: ").append(logRoot != null ? logRoot : ".").append("\n");
             ymlContent.append("\n");
         } else {
             // 默认文件配置
             ymlContent.append("file:\n");
-            ymlContent.append("  # 文件存储目录\n");
             ymlContent.append("  data-root: .\n");
             ymlContent.append("  upload-dir: upload\n");
-            ymlContent.append("  # 日志存储目录\n");
             ymlContent.append("  log-root: .\n");
             ymlContent.append("\n");
         }
