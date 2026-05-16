@@ -31,8 +31,7 @@ export default defineConfig(({ mode }) => {
       minify: 'esbuild',
     },
     esbuild: {
-      drop: ['debugger'],
-      legalComments: 'inline',
+      drop: ['console'],
     },
   };
 });

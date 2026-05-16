@@ -16,7 +16,7 @@
     "dompurify": "3.4.0",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.542.0",
-    "pdfjs-dist": "^5.4.296",
+    "pdfjs-dist": "5.4.296",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-favicon": "^2.0.7",
