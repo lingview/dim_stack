@@ -27,8 +27,6 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
     import.meta.url
 ).toString();
 
-pdfjs.verbosity = pdfjs.VerbosityLevel.ERRORS;
-
 export default function DocumentPreviewModal({
                                                  src,
                                                  filename,
