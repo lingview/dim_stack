@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import apiClient from '../utils/axios.jsx'
+import Header from './Header'
 
 export default function ForgotPassword() {
   const [step, setStep] = useState(1)
@@ -16,6 +17,11 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false)
   const [countdown, setCountdown] = useState(0)
   const [captchaSent, setCaptchaSent] = useState(false)
+  const [globalHeadCode, setGlobalHeadCode] = useState('')
+  const [footerCode, setFooterCode] = useState('')
+  const [copyright, setCopyright] = useState('')
+  const [icpRecord, setIcpRecord] = useState('')
+  const [mpsRecord, setMpsRecord] = useState('')
   const navigate = useNavigate()
 
   const isSubmitting = useRef(false)
@@ -184,6 +190,69 @@ export default function ForgotPassword() {
   }
 
   useEffect(() => {
+    loadSiteInfo()
+  }, [])
+
+  const loadSiteInfo = async () => {
+    try {
+      const globalHeadResponse = await apiClient.get('/site/global-head-code')
+      if (globalHeadResponse?.data?.globalHeadCode) {
+        setGlobalHeadCode(globalHeadResponse.data.globalHeadCode)
+      }
+
+      const footerResponse = await apiClient.get('/site/footer-code')
+      if (footerResponse?.data?.footerCode) {
+        setFooterCode(footerResponse.data.footerCode)
+      }
+
+      const copyrightResponse = await apiClient.get('/site/copyright')
+      if (copyrightResponse) setCopyright(copyrightResponse)
+
+      const icpResponse = await apiClient.get('/site/icp-record')
+      if (icpResponse) setIcpRecord(icpResponse)
+
+      const mpsResponse = await apiClient.get('/site/mps-record')
+      if (mpsResponse) setMpsRecord(mpsResponse)
+    } catch (error) {
+      console.error('加载站点信息失败:', error)
+    }
+  }
+
+  useEffect(() => {
+    if (globalHeadCode) {
+      const container = document.createElement('div')
+      container.innerHTML = globalHeadCode
+      
+      const scripts = container.querySelectorAll('script')
+      scripts.forEach(script => {
+        const newScript = document.createElement('script')
+        Array.from(script.attributes).forEach(attr => {
+          newScript.setAttribute(attr.name, attr.value)
+        })
+        newScript.textContent = script.textContent
+        document.head.appendChild(newScript)
+      })
+
+      const styles = container.querySelectorAll('style')
+      styles.forEach(style => {
+        const newStyle = document.createElement('style')
+        Array.from(style.attributes).forEach(attr => {
+          newStyle.setAttribute(attr.name, attr.value)
+        })
+        newStyle.textContent = style.textContent
+        document.head.appendChild(newStyle)
+      })
+
+      const otherElements = container.querySelectorAll(':not(script):not(style)')
+      otherElements.forEach(element => {
+        if (element.parentElement === container) {
+          document.head.appendChild(element.cloneNode(true))
+        }
+      })
+    }
+  }, [globalHeadCode])
+
+  useEffect(() => {
     let timer = null
     if (countdown > 0) {
       timer = setTimeout(() => {
@@ -204,178 +273,215 @@ export default function ForgotPassword() {
   }, [])
 
   return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div>
-            <div className="mx-auto h-12 w-12 rounded-full bg-blue-400 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{ paddingTop: '64px' }}>
+          <div className="max-w-md w-full space-y-8">
+            <div>
+              <div className="mx-auto h-12 w-12 rounded-full bg-blue-400 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                {step === 1 ? '找回密码' : '设置新密码'}
+              </h2>
+              <p className="mt-2 text-center text-sm text-gray-600">
+                {step === 1
+                    ? '请输入您的用户名和注册邮箱'
+                    : '请设置您的新密码'}
+              </p>
             </div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              {step === 1 ? '找回密码' : '设置新密码'}
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              {step === 1
-                  ? '请输入您的用户名和注册邮箱'
-                  : '请设置您的新密码'}
-            </p>
-          </div>
 
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            {error && (
-                <div className="mb-4 bg-red-50 text-red-700 p-3 rounded-md text-sm">
-                  {error}
-                </div>
-            )}
-
-            {step === 1 ? (
-                <form className="space-y-6" onSubmit={handleVerifyCaptcha}>
-                  <div>
-                    <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                      用户名
-                    </label>
-                    <div className="mt-1">
-                      <input
-                          id="username"
-                          name="username"
-                          type="text"
-                          value={formData.username}
-                          onChange={handleChange}
-                          className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="请输入用户名"
-                      />
-                    </div>
+            <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+              {error && (
+                  <div className="mb-4 bg-red-50 text-red-700 p-3 rounded-md text-sm">
+                    {error}
                   </div>
+              )}
 
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                      邮箱
-                    </label>
-                    <div className="mt-1">
-                      <input
-                          id="email"
-                          name="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={handleChange}
-                          className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="请输入注册邮箱"
-                      />
+              {step === 1 ? (
+                  <form className="space-y-6" onSubmit={handleVerifyCaptcha}>
+                    <div>
+                      <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                        用户名
+                      </label>
+                      <div className="mt-1">
+                        <input
+                            id="username"
+                            name="username"
+                            type="text"
+                            value={formData.username}
+                            onChange={handleChange}
+                            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="请输入用户名"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <label htmlFor="captcha" className="block text-sm font-medium text-gray-700">
-                      验证码
-                    </label>
-                    <div className="mt-1 flex space-x-2">
-                      <input
-                          id="captcha"
-                          name="captcha"
-                          type="text"
-                          value={formData.captcha}
-                          onChange={handleChange}
-                          className="flex-1 appearance-none block px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="请输入验证码"
-                      />
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                        邮箱
+                      </label>
+                      <div className="mt-1">
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="请输入注册邮箱"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="captcha" className="block text-sm font-medium text-gray-700">
+                        验证码
+                      </label>
+                      <div className="mt-1 flex space-x-2">
+                        <input
+                            id="captcha"
+                            name="captcha"
+                            type="text"
+                            value={formData.captcha}
+                            onChange={handleChange}
+                            className="flex-1 appearance-none block px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="请输入验证码"
+                        />
+                        <button
+                            type="button"
+                            onClick={handleSendCaptcha}
+                            disabled={loading || countdown > 0}
+                            className={`px-4 py-2 text-sm rounded-md whitespace-nowrap ${
+                                countdown > 0
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                            }`}
+                        >
+                          {countdown > 0 ? `${countdown}s` : '获取'}
+                        </button>
+                      </div>
+                      <p className="mt-1 text-xs text-gray-500">
+                        验证码有效期10分钟，最多尝试5次
+                      </p>
+                    </div>
+
+                    <div>
                       <button
-                          type="button"
-                          onClick={handleSendCaptcha}
-                          disabled={loading || countdown > 0}
-                          className={`px-4 py-2 text-sm rounded-md whitespace-nowrap ${
-                              countdown > 0
-                                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                  : 'bg-blue-600 text-white hover:bg-blue-700'
-                          }`}
+                          type="submit"
+                          disabled={loading || !captchaSent}
+                          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {countdown > 0 ? `${countdown}s` : '获取'}
+                        {loading ? (
+                            <>
+                              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                              </svg>
+                              验证中...
+                            </>
+                        ) : '验证并继续'}
                       </button>
                     </div>
-                    <p className="mt-1 text-xs text-gray-500">
-                      验证码有效期10分钟，最多尝试5次
-                    </p>
-                  </div>
-
-                  <div>
-                    <button
-                        type="submit"
-                        disabled={loading || !captchaSent}
-                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loading ? (
-                          <>
-                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                            </svg>
-                            验证中...
-                          </>
-                      ) : '验证并继续'}
-                    </button>
-                  </div>
-                </form>
-            ) : (
-                <form className="space-y-6" onSubmit={handleResetPassword}>
-                  <div>
-                    <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
-                      新密码
-                    </label>
-                    <div className="mt-1">
-                      <input
-                          id="newPassword"
-                          name="newPassword"
-                          type="password"
-                          value={formData.newPassword}
-                          onChange={handleChange}
-                          className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="请输入新密码（至少6位）"
-                      />
+                  </form>
+              ) : (
+                  <form className="space-y-6" onSubmit={handleResetPassword}>
+                    <div>
+                      <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+                        新密码
+                      </label>
+                      <div className="mt-1">
+                        <input
+                            id="newPassword"
+                            name="newPassword"
+                            type="password"
+                            value={formData.newPassword}
+                            onChange={handleChange}
+                            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="请输入新密码（至少6位）"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <label htmlFor="confirmNewPassword" className="block text-sm font-medium text-gray-700">
-                      确认新密码
-                    </label>
-                    <div className="mt-1">
-                      <input
-                          id="confirmNewPassword"
-                          name="confirmNewPassword"
-                          type="password"
-                          value={formData.confirmNewPassword}
-                          onChange={handleChange}
-                          className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="请再次输入新密码"
-                      />
+                    <div>
+                      <label htmlFor="confirmNewPassword" className="block text-sm font-medium text-gray-700">
+                        确认新密码
+                      </label>
+                      <div className="mt-1">
+                        <input
+                            id="confirmNewPassword"
+                            name="confirmNewPassword"
+                            type="password"
+                            value={formData.confirmNewPassword}
+                            onChange={handleChange}
+                            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="请再次输入新密码"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                    >
-                      {loading ? (
-                          <>
-                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                            </svg>
-                            重置中...
-                          </>
-                      ) : '重置密码'}
-                    </button>
-                  </div>
-                </form>
-            )}
+                    <div>
+                      <button
+                          type="submit"
+                          disabled={loading}
+                          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                      >
+                        {loading ? (
+                            <>
+                              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                              </svg>
+                              重置中...
+                            </>
+                        ) : '重置密码'}
+                      </button>
+                    </div>
+                  </form>
+              )}
 
-            <p className="mt-6 text-center text-sm text-gray-600">
-              记起密码了？ <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">返回登录</Link>
-            </p>
+              <p className="mt-6 text-center text-sm text-gray-600">
+                记起密码了？ <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">返回登录</Link>
+              </p>
+            </div>
           </div>
         </div>
+
+        <footer className="bg-white mt-auto">
+          <div className="container mx-auto px-4 py-8">
+            <div className="text-center text-gray-600">
+              <p>{copyright}</p>
+              {icpRecord && (
+                <p className="mt-2">
+                  <a
+                    href="https://beian.miit.gov.cn"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-blue-600 text-sm"
+                  >
+                    {icpRecord}
+                  </a>
+                </p>
+              )}
+              {mpsRecord && (
+                <p className="mt-1">
+                  <a
+                    href="http://www.beian.gov.cn"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-600 hover:text-blue-600 text-sm"
+                  >
+                    {mpsRecord}
+                  </a>
+                </p>
+              )}
+              {footerCode && (
+                <div dangerouslySetInnerHTML={{ __html: footerCode }} />
+              )}
+            </div>
+          </div>
+        </footer>
       </div>
   )
 }
