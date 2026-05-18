@@ -242,7 +242,7 @@ export default function ArticleReader() {
         return (
             <div className="min-h-screen bg-gray-50">
                 <Header />
-                <div className="pt-20 container mx-auto px-4 py-8">
+                <div className="container mx-auto px-4 py-8" style={{ paddingTop: '64px' }}>
                     <div className="flex items-center justify-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                         <span className="ml-3 text-gray-600">加载中...</span>
@@ -256,7 +256,7 @@ export default function ArticleReader() {
         return (
             <div className="min-h-screen bg-gray-50">
                 <Header />
-                <div className="pt-20 container mx-auto px-4 py-8">
+                <div className="container mx-auto px-4 py-8" style={{ paddingTop: '64px' }}>
                     <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                         {error}
                     </div>
@@ -268,7 +268,7 @@ export default function ArticleReader() {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Header />
-            <div className="pt-20 flex-grow">
+            <div className="flex-grow" style={{ paddingTop: '64px' }}>
                 {showPasswordInput ? (
                     <div className="container mx-auto px-4 py-8">
                         <div className="max-w-md mx-auto mt-10">

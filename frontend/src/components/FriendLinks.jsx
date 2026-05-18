@@ -201,7 +201,7 @@ const FriendLinks = () => {
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Header />
 
-            <div className="pt-20 flex-grow">
+            <div className="flex-grow" style={{ paddingTop: '64px' }}>
                 <Hero />
 
                 <div className="py-8">

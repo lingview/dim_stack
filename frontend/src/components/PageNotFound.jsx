@@ -28,7 +28,7 @@ const PageNotFound = () => {
     return (
         <div className="flex bg-gray-50 flex-col min-h-screen">
             <Header />
-            <div className="pt-20 flex-grow">
+            <div className="flex-grow" style={{ paddingTop: '64px' }}>
                 <main className="container mx-auto px-4 py-8">
                     <div className="flex flex-col items-center justify-center py-12">
                         <div className="text-center">

@@ -184,7 +184,7 @@ export default function Home() {
         <div className="flex bg-gray-50 flex-col min-h-screen">
             <Header />
 
-            <div className="pt-20 grow">
+            <div className="grow" style={{ paddingTop: '64px' }}>
                 <Hero />
 
                 <main className="max-w-310 mx-auto px-4 py-8">

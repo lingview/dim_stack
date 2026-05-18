@@ -178,7 +178,7 @@ const CustomHtmlPage = () => {
         return (
             <div className="min-h-screen">
                 <Header />
-                <div className="pt-20">
+                <div style={{ paddingTop: '64px' }}>
                     <Hero />
                     <div className="py-8">
                         <main className="container mx-auto px-4">
@@ -202,7 +202,7 @@ const CustomHtmlPage = () => {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Header />
-            <div className="pt-20 flex-grow">
+            <div className="flex-grow" style={{ paddingTop: '64px' }}>
                 <Hero />
                 <div className="py-8">
                     <main className="max-w-310 mx-auto px-4">
