@@ -97,8 +97,8 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
             return;
         }
 
-        if (file.size > 5 * 1024 * 1024) {
-            showToast('封面图片大小不能超过 5MB');
+        if (file.size > 50 * 1024 * 1024) {
+            showToast('封面图片大小不能超过 50MB');
             return;
         }
 
