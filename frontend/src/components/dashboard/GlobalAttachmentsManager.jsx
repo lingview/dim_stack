@@ -280,9 +280,14 @@ const GlobalAttachmentsManager = () => {
         <div className="mx-auto">
             <div className="bg-white rounded-lg shadow p-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900">
-                        {viewMode === 'normal' ? '全局附件管理' : '已删除附件管理'}
-                    </h2>
+                    <div>
+                        <h2 className="text-xl font-semibold text-gray-900">
+                            {viewMode === 'normal' ? '全局附件管理' : '已删除附件管理'}
+                        </h2>
+                        <p className="text-sm text-orange-600 mt-1">
+                            注：附件删除后有6小时冷静期，超期将会彻底删除
+                        </p>
+                    </div>
                     <div className="flex items-center gap-4">
                         <div className="flex bg-gray-100 rounded-lg p-1">
                             <button
