@@ -11,7 +11,8 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
         tags: [],
         category: '',
         alias: '',
-        password: ''
+        password: '',
+        create_time: ''
     });
 
     const [tags, setTags] = useState([]);
@@ -34,6 +35,12 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                 tagsData = tagsData ? tagsData.split(',').map(tag => tag.trim()) : [];
             }
 
+            let createTime = '';
+            if (articleData.create_time) {
+                const date = new Date(articleData.create_time);
+                createTime = date.toISOString().slice(0, 16);
+            }
+
             setFormData({
                 title: articleData.article_name || articleData.title || '',
                 cover: articleData.article_cover || articleData.cover || '',
@@ -41,7 +48,8 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                 tags: tagsData,
                 category: articleData.category || '',
                 alias: articleData.alias || '',
-                password: ''
+                password: '',
+                create_time: createTime
             });
         }
     }, [articleData]);
@@ -147,7 +155,8 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
             excerpt: formData.excerpt,
             tags: Array.isArray(formData.tags) ? formData.tags.join(',') : formData.tags,
             category: formData.category,
-            alias: formData.alias
+            alias: formData.alias,
+            create_time: formData.create_time
         };
 
 
@@ -397,6 +406,24 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                                         ? "当前文章已设置密码，留空则保持原密码不变，输入新密码则更新密码"
                                         : "当前文章无密码保护，输入密码可为文章设置访问密码"
                                     : "设置密码后，用户需要输入密码才能访问文章内容"}
+                            </p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700  mb-2">
+                                创建时间
+                            </label>
+                            <input
+                                type="datetime-local"
+                                name="create_time"
+                                value={formData.create_time}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-2 border border-gray-300  rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white  text-gray-900"
+                            />
+                            <p className="mt-1 text-sm text-gray-500 ">
+                                {articleData?.article_id
+                                    ? "修改文章的创建时间，留空则保持原时间不变"
+                                    : "设置文章的创建时间，留空则使用当前时间"}
                             </p>
                         </div>
                     </div>

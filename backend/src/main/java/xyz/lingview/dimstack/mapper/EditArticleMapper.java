@@ -23,6 +23,8 @@ public interface EditArticleMapper {
 
     String getUuidByArticleId(String articleId);
     String getUsernameByUuid(String uuid);
+
+    // updateArticle接口已废弃（后续可能移除），请使用updateArticleWithCategory接口
     int updateArticle(UpdateArticleDTO updateArticleDTO);
     int updateArticleWithCategory(Map<String, Object> params);
 

@@ -1,6 +1,7 @@
 package xyz.lingview.dimstack.dto.request;
 
 import lombok.Data;
+import java.time.LocalDateTime;
 
 @Data
 public class UpdateArticleDTO {
@@ -14,4 +15,5 @@ public class UpdateArticleDTO {
     private String category;
     private String alias;
     private int status;
+    private LocalDateTime create_time;
 }

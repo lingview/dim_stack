@@ -1,6 +1,7 @@
 package xyz.lingview.dimstack.domain;
 
 import lombok.Data;
+import java.time.LocalDateTime;
 
 @Data
 public class UploadArticle {
@@ -17,4 +18,5 @@ public class UploadArticle {
     private String childCategory;
     private String alias;
     private int status;
+    private LocalDateTime create_time;
 }

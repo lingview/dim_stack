@@ -17,18 +17,24 @@
     </resultMap>
 
     <insert id="insertUploadArticle" parameterType="xyz.lingview.dimstack.domain.UploadArticle">
-        INSERT INTO article(uuid, article_id, article_name, article_cover, excerpt, article_content, password, category_id, alias, status)
+        INSERT INTO article(uuid, article_id, article_name, article_cover, excerpt, article_content, password, category_id, alias, status, create_time)
         VALUES (#{uuid}, #{article_id}, #{article_name}, #{article_cover}, #{excerpt}, #{article_content}, #{password}, 
             (SELECT c.id 
              FROM article_categories c 
              LEFT JOIN article_categories p ON c.parent_id = p.id 
              WHERE c.article_categories = #{category}
              AND p.id IS NULL), 
-            #{alias}, #{status})
+            #{alias}, #{status},
+            <if test="create_time != null">
+                #{create_time}
+            </if>
+            <if test="create_time == null">
+                CURRENT_TIMESTAMP
+            </if>)
     </insert>
 
     <insert id="insertUploadArticleWithCategory" parameterType="xyz.lingview.dimstack.domain.UploadArticle">
-        INSERT INTO article(uuid, article_id, article_name, article_cover, excerpt, article_content, password, category_id, alias, status)
+        INSERT INTO article(uuid, article_id, article_name, article_cover, excerpt, article_content, password, category_id, alias, status, create_time)
         VALUES (#{uuid}, #{article_id}, #{article_name}, #{article_cover}, #{excerpt}, #{article_content}, #{password}, 
             (SELECT c.id 
              FROM article_categories c 
@@ -37,7 +43,13 @@
              <if test="parentCategory != null and parentCategory != ''">
                  AND p.article_categories = #{parentCategory}
              </if>), 
-            #{alias}, #{status})
+            #{alias}, #{status},
+            <if test="create_time != null">
+                #{create_time}
+            </if>
+            <if test="create_time == null">
+                CURRENT_TIMESTAMP
+            </if>)
     </insert>
 
     <select id="selectArticleCountByAliasAndUuid" resultType="int">

@@ -311,7 +311,8 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             tags: initialData?.tag || initialData?.tags || [],
             category: initialData?.category || '',
             alias: initialData?.alias || '',
-            password: initialData?.password || ''
+            password: initialData?.password || '',
+            create_time: initialData?.create_time || ''
         });
         setShowArticleInfo(true);
     };
@@ -335,6 +336,16 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             };
 
             const isUpdate = initialData && initialData.article_id;
+
+            if (isUpdate) {
+                if (info.create_time) {
+                    payload.create_time = info.create_time;
+                }
+            } else {
+                if (info.create_time) {
+                    payload.create_time = info.create_time;
+                }
+            }
 
             let response;
             if (isUpdate) {
