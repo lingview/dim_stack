@@ -110,6 +110,42 @@ public class EditArticleServiceImpl implements EditArticleService {
     }
 
     @Override
+    public Map<String, Object> searchArticlesByUsername(String username, String keyword, Integer page, Integer size) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            String uuid = editArticleMapper.getUuidByUsername(username);
+            if (uuid == null) {
+                result.put("articles", List.of());
+                result.put("total", 0);
+                result.put("page", page);
+                result.put("size", size);
+                return result;
+            }
+
+            int offset = (page - 1) * size;
+            List<EditArticleDTO> articles = editArticleMapper.searchArticlesByUuid(uuid, keyword, offset, size);
+            int total = editArticleMapper.countSearchArticlesByUuid(uuid, keyword);
+
+            result.put("articles", articles);
+            result.put("total", total);
+            result.put("page", page);
+            result.put("size", size);
+            result.put("totalPages", (int) Math.ceil((double) total / size));
+
+            return result;
+
+        } catch (Exception e) {
+            log.error("搜索文章列表失败", e);
+            result.put("articles", List.of());
+            result.put("total", 0);
+            result.put("page", page);
+            result.put("size", size);
+            return result;
+        }
+    }
+
+    @Override
     public ArticleDetailDTO getArticleDetailById(String articleId, String username) {
         try {
             String articleUuid = editArticleMapper.getUuidByArticleId(articleId);

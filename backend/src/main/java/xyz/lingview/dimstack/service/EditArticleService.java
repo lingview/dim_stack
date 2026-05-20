@@ -10,6 +10,8 @@ public interface EditArticleService {
 
     Map<String, Object> getArticleListByUsername(String username, Integer page, Integer size);
 
+    Map<String, Object> searchArticlesByUsername(String username, String keyword, Integer page, Integer size);
+
     ArticleDetailDTO getArticleDetailById(String articleId, String username);
 
     ArticleOperationResult updateArticleWithNotification(UpdateArticleDTO updateArticleDTO, String sessionUsername);

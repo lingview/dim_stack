@@ -1,4 +1,4 @@
-import { Plus, Edit, Trash2, EyeOff, Send, Upload, Download } from 'lucide-react';
+import { Plus, Edit, Trash2, EyeOff, Send, Upload, Download, Search } from 'lucide-react';
 import apiClient from "../../utils/axios.jsx";
 import React, { useState, useEffect, useRef } from 'react';
 import { showToast } from "../../utils/toastManager";
@@ -9,26 +9,42 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
     const [totalPages, setTotalPages] = useState(0);
     const [localArticles, setLocalArticles] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchKeyword, setSearchKeyword] = useState('');
+    const [jumpPage, setJumpPage] = useState('');
+    const searchTimeoutRef = useRef(null);
     const importFileInputRef = useRef(null);
 
     useEffect(() => {
-        fetchArticles(currentPage, pageSize);
+        fetchArticles(currentPage, pageSize, searchKeyword);
     }, [currentPage, pageSize]);
 
     useEffect(() => {
         if (shouldRefresh) {
-            fetchArticles(currentPage, pageSize);
+            fetchArticles(currentPage, pageSize, searchKeyword);
             setShouldRefresh(false);
         }
     }, [shouldRefresh, pageSize, setShouldRefresh]);
 
+    useEffect(() => {
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, []);
 
 
-    const fetchArticles = async (page, size) => {
+
+    const fetchArticles = async (page, size, keyword = '') => {
         setLoading(true);
         try {
+            const params = { page, size };
+            if (keyword && keyword.trim()) {
+                params.keyword = keyword.trim();
+            }
+            
             const response = await apiClient.get('/getarticlelist', {
-                params: { page, size }
+                params
             });
 
             if (response.success && response.data) {
@@ -52,6 +68,20 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
 
     const handleImportClick = () => {
         importFileInputRef.current?.click();
+    };
+
+    const handleSearchChange = (e) => {
+        const value = e.target.value;
+        setSearchKeyword(value);
+        
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        
+        searchTimeoutRef.current = setTimeout(() => {
+            setCurrentPage(1);
+            fetchArticles(1, pageSize, value);
+        }, 300);
     };
 
     const handleImportFile = async (e) => {
@@ -173,6 +203,15 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
         setCurrentPage(newPage);
     };
 
+    const handleJumpPage = (e) => {
+        e.preventDefault();
+        const pageNum = parseInt(jumpPage);
+        if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+            handlePageChange(pageNum);
+            setJumpPage('');
+        }
+    };
+
     const handleDeleteArticle = async (articleId) => {
         if (!window.confirm('确定要删除这篇文章吗？')) {
             return;
@@ -183,7 +222,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
 
             if (response.success) {
                 showToast('文章删除成功', 'info');
-                fetchArticles(currentPage, pageSize);
+                fetchArticles(currentPage, pageSize, searchKeyword);
             } else {
                 showToast(response.message || '删除失败', 'error');
             }
@@ -203,7 +242,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
 
             if (response.success) {
                 showToast('文章已取消发布', 'info');
-                fetchArticles(currentPage, pageSize);
+                fetchArticles(currentPage, pageSize, searchKeyword);
             } else {
                 showToast(response.message || '取消发布失败', 'error');
             }
@@ -223,7 +262,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
 
             if (response.success) {
                 showToast('文章已发布', 'info');
-                fetchArticles(currentPage, pageSize);
+                fetchArticles(currentPage, pageSize, searchKeyword);
             } else {
                 showToast(response.message || '发布失败', 'error');
             }
@@ -243,7 +282,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
 
             if (response.success) {
                 showToast('文章密码已移除', 'info');
-                fetchArticles(currentPage, pageSize);
+                fetchArticles(currentPage, pageSize, searchKeyword);
             } else {
                 showToast(response.message || '移除密码失败', 'error');
             }
@@ -297,6 +336,35 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
                         </button>
                     </div>
                 </div>
+
+                <div className="mb-6">
+                    <div className="flex items-center gap-3">
+                        <div className="relative flex-1 max-w-md">
+                            <input
+                                type="text"
+                                placeholder="搜索文章标题或摘要..."
+                                value={searchKeyword}
+                                onChange={handleSearchChange}
+                                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                            />
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        </div>
+                        {searchKeyword && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setSearchKeyword('');
+                                    setCurrentPage(1);
+                                    fetchArticles(1, pageSize, '');
+                                }}
+                                className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 text-sm font-medium"
+                            >
+                                清除
+                            </button>
+                        )}
+                    </div>
+                </div>
+
                 <div className="flex justify-center items-center h-64">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
                 </div>
@@ -323,6 +391,34 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
                         <Plus className="h-4 w-4 mr-1" />
                         新建文章
                     </button>
+                </div>
+            </div>
+
+            <div className="mb-6">
+                <div className="flex items-center gap-3">
+                    <div className="relative flex-1 max-w-md">
+                        <input
+                            type="text"
+                            placeholder="搜索文章标题或摘要..."
+                            value={searchKeyword}
+                            onChange={handleSearchChange}
+                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+                        />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    </div>
+                    {searchKeyword && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setSearchKeyword('');
+                                setCurrentPage(1);
+                                fetchArticles(1, pageSize, '');
+                            }}
+                            className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 text-sm font-medium"
+                        >
+                            清除
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -469,7 +565,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
                                 显示第 <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> 到 <span className="font-medium">{Math.min(currentPage * pageSize, totalArticles)}</span> 条结果,共 <span className="font-medium">{totalArticles}</span> 条
                             </p>
                         </div>
-                        <div>
+                        <div className="flex items-center gap-4">
                             <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                                 <button
                                     onClick={() => handlePageChange(1)}
@@ -551,6 +647,25 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
                                     </svg>
                                 </button>
                             </nav>
+                            
+                            <form onSubmit={handleJumpPage} className="flex items-center gap-2">
+                                <span className="text-sm text-gray-700">跳转到</span>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max={totalPages}
+                                    value={jumpPage}
+                                    onChange={(e) => setJumpPage(e.target.value)}
+                                    className="w-16 px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="页码"
+                                />
+                                <button
+                                    type="submit"
+                                    className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                                >
+                                    跳转
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

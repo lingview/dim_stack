@@ -28,6 +28,7 @@ public class EditArticleController {
     public ResponseEntity<Map<String, Object>> getArticleList(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String keyword,
             HttpSession session) {
         Map<String, Object> response = new HashMap<>();
 
@@ -40,7 +41,12 @@ public class EditArticleController {
                 return ResponseEntity.ok(response);
             }
 
-            Map<String, Object> result = editArticleService.getArticleListByUsername(username, page, size);
+            Map<String, Object> result;
+            if (keyword != null && !keyword.trim().isEmpty()) {
+                result = editArticleService.searchArticlesByUsername(username, keyword.trim(), page, size);
+            } else {
+                result = editArticleService.getArticleListByUsername(username, page, size);
+            }
 
             response.put("success", true);
             response.put("message", "获取文章列表成功");

@@ -194,4 +194,32 @@
         WHERE article_id = #{articleId}
     </update>
 
+    <select id="searchArticlesByUuid" resultType="xyz.lingview.dimstack.dto.request.EditArticleDTO">
+        SELECT
+            a.article_id as article_id,
+            a.article_name as article_name,
+            a.alias,
+            u.username as author_name,
+            a.create_time as create_time,
+            a.status,
+            a.password as password
+        FROM article a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.uuid = #{uuid} AND a.status != 0
+        <if test="keyword != null and keyword != ''">
+            AND (a.article_name LIKE CONCAT('%', #{keyword}, '%') OR a.excerpt LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY a.create_time DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countSearchArticlesByUuid" resultType="int">
+        SELECT COUNT(*)
+        FROM article a
+        WHERE a.uuid = #{uuid} AND a.status != 0
+        <if test="keyword != null and keyword != ''">
+            AND (a.article_name LIKE CONCAT('%', #{keyword}, '%') OR a.excerpt LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </select>
+
 </mapper>

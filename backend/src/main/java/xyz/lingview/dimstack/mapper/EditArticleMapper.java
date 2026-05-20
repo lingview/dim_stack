@@ -42,4 +42,11 @@ public interface EditArticleMapper {
     String getArticleContentById(@Param("articleId") String articleId);
 
     int updateArticleStatus(@Param("articleId") String articleId, @Param("status") Integer status);
+
+    List<EditArticleDTO> searchArticlesByUuid(@Param("uuid") String uuid,
+                                             @Param("keyword") String keyword,
+                                             @Param("offset") int offset,
+                                             @Param("size") int size);
+
+    int countSearchArticlesByUuid(@Param("uuid") String uuid, @Param("keyword") String keyword);
 }
