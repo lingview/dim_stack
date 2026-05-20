@@ -2,7 +2,7 @@ import { Plus, Edit, Trash2, EyeOff, Send, Upload, Download } from 'lucide-react
 import apiClient from "../../utils/axios.jsx";
 import React, { useState, useEffect, useRef } from 'react';
 import { showToast } from "../../utils/toastManager";
-export default function ArticlesView({ onNewArticle, onEditArticle, onImportArticle, articles: externalArticles, shouldRefresh, setShouldRefresh }) {
+export default function ArticlesView({ onNewArticle, onEditArticle, onImportArticle, shouldRefresh, setShouldRefresh }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10);
     const [totalArticles, setTotalArticles] = useState(0);
@@ -20,16 +20,9 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
             fetchArticles(currentPage, pageSize);
             setShouldRefresh(false);
         }
-    }, [shouldRefresh, currentPage, pageSize, setShouldRefresh]);
+    }, [shouldRefresh, pageSize, setShouldRefresh]);
 
-    useEffect(() => {
-        if (externalArticles && Array.isArray(externalArticles.articles)) {
-            setLocalArticles(externalArticles.articles);
-            setTotalArticles(externalArticles.total || 0);
-            setTotalPages(externalArticles.totalPages || Math.ceil((externalArticles.total || 0) / (externalArticles.size || pageSize)));
-            setLoading(false);
-        }
-    }, [externalArticles]);
+
 
     const fetchArticles = async (page, size) => {
         setLoading(true);
