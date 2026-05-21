@@ -250,17 +250,30 @@ export default function ArticlePreview({ article }) {
 
     useEffect(() => {
         if (article?.article_content) {
-            const imageRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>|!\[[^\]]*\]\(([^)]+)\)/g;
             const images = [];
+            const htmlImgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/g;
             let match;
-
-            while ((match = imageRegex.exec(article.article_content)) !== null) {
-                const src = match[1] || match[2];
+            while ((match = htmlImgRegex.exec(article.article_content)) !== null) {
+                const src = match[1];
                 if (src) {
                     images.push({
                         src: getFullImageUrl(src),
                         alt: ''
                     });
+                }
+            }
+
+            const markdownImgRegex = /!\[(.*?)\]\(([^)]+)\)/g;
+            while ((match = markdownImgRegex.exec(article.article_content)) !== null) {
+                const src = match[2];
+                if (src) {
+                    const fullSrc = getFullImageUrl(src);
+                    if (!images.some(img => img.src === fullSrc)) {
+                        images.push({
+                            src: fullSrc,
+                            alt: ''
+                        });
+                    }
                 }
             }
 
@@ -345,7 +358,8 @@ export default function ArticlePreview({ article }) {
 
         try {
             const config = getConfig();
-            return config.getFullUrl(urlPath) + urlParams;
+            const baseUrl = config.getFullUrl(urlPath);
+            return baseUrl + urlParams;
         } catch (error) {
             if (urlPath.startsWith('/')) {
                 return urlPath + urlParams;
