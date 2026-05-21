@@ -32,7 +32,7 @@ public class ImageCompressorUtil {
             return;
         }
         
-        if (isJpeg && originalSize <= 1_000_000) {
+        if (originalSize <= 1_000_000) {
             Files.copy(inputFile.toPath(), new File(outputPath).toPath());
             return;
         }
