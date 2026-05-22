@@ -344,7 +344,7 @@ https://apilinks.cn/file/5561656e3db242a6bf342714f08855ab?download=true
 注：请务必检查注入的代码是否安全，尽量不要引入外部链接，注意防范XSS、CSRF等常见攻击手段
 
 ### 功能说明
-全局head以及页脚自定义在除了后台的所有页面生效，内容页head自定义只有在文章页生效
+全局head以及页脚自定义在除了后台的所有页面生效，内容页head自定义只有在文章页生效（全局head在内容页也生效）
 
 
 ![](./images/custom_code_injection_config.png)
