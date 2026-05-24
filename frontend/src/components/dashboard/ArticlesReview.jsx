@@ -574,7 +574,6 @@ export default function ArticlesReview() {
                                                 <button
                                                     onClick={() => articleReviewDeleteArticle(article.article_id)}
                                                     className="text-red-600 hover:text-red-900"
-                                                    disabled={article.status === 4}
                                                 >
                                                     删除文章
                                                 </button>
