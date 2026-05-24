@@ -3,6 +3,7 @@ package xyz.lingview.dimstack.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import xyz.lingview.dimstack.dto.response.ArticleReviewListResponseDTO;
 import xyz.lingview.dimstack.dto.response.ArticleReviewStatusResponseDTO;
+import xyz.lingview.dimstack.mapper.ArticleCategoryMapper;
 import xyz.lingview.dimstack.mapper.ArticleReviewMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.mapper.ReadArticleMapper;
@@ -53,6 +54,8 @@ public class ArticleReviewService {
     @Autowired
     private ArticleService articleService;
 
+    @Autowired
+    private ArticleCategoryMapper articleCategoryMapper;
     public ArticleReviewListResponseDTO getUnreviewedArticles(Integer page, Integer size) {
         int offset = (page - 1) * size;
         List<ArticleReviewDTO> articles = articleReviewMapper.selectUnreviewedArticles(offset, size);
@@ -99,6 +102,24 @@ public class ArticleReviewService {
     }
 
 
+    public ArticleReviewStatusResponseDTO deleteArticle(String articleId) {
+        Byte status = 0;
+        articleReviewMapper.updateArticleStatus(articleId, status);
+        invalidateArticleCache(articleId);
+        String category = articleCategoryMapper.getCategoryByArticleId(articleId);
+        articleCategoryMapper.decrementCount(category);
+        log.info("文章审核模块删除文章成功，文章id：{}",articleId);
+        try {
+            articleService.clearArticleCache();
+            log.info("文章状态变更为{}，已清除首页文章列表缓存", status);
+        } catch (Exception e) {
+            log.warn("清除首页文章列表缓存失败", e);
+        }
+        ArticleReviewStatusResponseDTO result = new ArticleReviewStatusResponseDTO();
+        result.setSuccess(true);
+        result.setMessage("文章删除成功");
+        return result;
+    }
 
     public ArticleReviewStatusResponseDTO updateArticleStatus(String articleId, Byte status) {
         articleReviewMapper.updateArticleStatus(articleId, status);

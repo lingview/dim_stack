@@ -302,6 +302,32 @@ export default function ArticlesReview() {
         }
     };
 
+    const articleReviewDeleteArticle = async (articleId) => {
+        try {
+            const res = await apiClient.post('/articlereview/articlereviewdeletearticle', {
+                articleId
+            });
+
+            const response = res;
+
+            if (response && response.code === 200 && response.data && response.data.success) {
+                setArticles(prev => prev.filter(article => article.article_id !== articleId));
+
+                if (articleDetail && articleDetail.article_id === articleId) {
+                    setShowDetail(false);
+                    setSelectedArticle(null);
+                    setArticleDetail(null);
+                }
+
+                showToast('文章删除成功');
+            } else {
+                throw new Error('后端返回失败或 success=false');
+            }
+        } catch (error) {
+            console.error('删除文章失败:', error);
+            showToast('删除文章失败');
+        }
+    };
     const handleCloseDetail = () => {
         setShowDetail(false);
         setSelectedArticle(null);
@@ -540,10 +566,17 @@ export default function ArticlesReview() {
                                                 </button>
                                                 <button
                                                     onClick={() => handleStatusChange(article.article_id, 4)}
-                                                    className="text-red-600 hover:text-red-900"
+                                                    className="text-red-600 hover:text-red-900 mr-3"
                                                     disabled={article.status === 4}
                                                 >
                                                     标记违规
+                                                </button>
+                                                <button
+                                                    onClick={() => articleReviewDeleteArticle(article.article_id)}
+                                                    className="text-red-600 hover:text-red-900"
+                                                    disabled={article.status === 4}
+                                                >
+                                                    删除文章
                                                 </button>
                                             </>
                                         )}
@@ -915,6 +948,15 @@ export default function ArticlesReview() {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                         标记违规
+                                    </button>
+                                    <button
+                                        onClick={() => articleReviewDeleteArticle(articleDetail.article_id)}
+                                        className="px-6 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors flex items-center border border-red-300"
+                                    >
+                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                        删除文章
                                     </button>
                                 </>
                             )}

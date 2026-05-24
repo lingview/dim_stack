@@ -44,6 +44,13 @@ public class ArticleReviewController {
         return ApiResponse.success(articleReviewService.updateArticleStatus(request.getArticleId(), request.getStatus()));
     }
 
+    // 根据文章id删除文章（软删除）
+    @PostMapping("/articlereviewdeletearticle")
+    @RequiresPermission("system:post:review")
+    public ApiResponse<ArticleReviewStatusResponseDTO> articleReviewDeleteArticle(@RequestBody ArticleStatusUpdateRequestDTO request) {
+        return ApiResponse.success(articleReviewService.deleteArticle(request.getArticleId()));
+    }
+
     // 获取所有文章列表（用于审核全部文章）
     @GetMapping("/getallarticles")
     @RequiresPermission("system:post:review")
