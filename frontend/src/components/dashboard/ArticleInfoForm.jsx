@@ -37,8 +37,7 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
 
             let createTime = '';
             if (articleData.create_time) {
-                const date = new Date(articleData.create_time);
-                createTime = date.toISOString().slice(0, 16);
+                createTime = articleData.create_time.slice(0, 16);
             }
 
             setFormData({
