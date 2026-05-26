@@ -78,7 +78,7 @@ public class TagAndCategoryController {
         int offset = (page - 1) * size;
 
         List<ArticleDTO> articles = articleTagMapper.findArticlesByTag(tag, offset, size);
-        System.out.println(articles);
+//        System.out.println(articles);
         int total = articleTagMapper.countArticlesByTag(tag);
 
         int total_pages = (int) Math.ceil((double) total / size);
