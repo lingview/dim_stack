@@ -106,12 +106,16 @@
             a.create_time AS date,
             u.username AS author,
             u.avatar AS author_avatar,
-            CASE 
+            CASE
                 WHEN p.article_categories IS NULL THEN c.article_categories
                 ELSE CONCAT(p.article_categories, '/', c.article_categories)
-            END AS category,
+                END AS category,
             tags.tag_list AS tag,
-            a.alias
+            a.alias,
+            CASE
+                WHEN a.password IS NOT NULL AND a.password != '' THEN TRUE
+                ELSE FALSE
+                END AS password
         FROM (
                  SELECT article_id
                  FROM article_tag_relation
@@ -128,11 +132,11 @@
         ) tags ON a.article_id = tags.article_id
         WHERE a.status = 1
           AND EXISTS (
-                SELECT 1
-                FROM article_tag at
-                WHERE at.tag_name = #{tagName}
-                  AND at.status = 1
-            )
+            SELECT 1
+            FROM article_tag at
+            WHERE at.tag_name = #{tagName}
+              AND at.status = 1
+        )
         ORDER BY a.create_time DESC
         LIMIT #{offset}, #{size}
     </select>
