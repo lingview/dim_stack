@@ -10,9 +10,15 @@ import xyz.lingview.dimstack.service.UpdateService;
 import tools.jackson.databind.ObjectMapper;
 import xyz.lingview.dimstack.common.ApiResponse;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -163,6 +169,46 @@ public class UpdateController {
 
         } catch (Exception e) {
             return ApiResponse.error(500, e.getMessage(), response);
+        }
+    }
+
+    @GetMapping("/changelog")
+    @RequiresPermission("system:update:management")
+    public ApiResponse<Map<String, Object>> getChangelog() {
+        String changelogUrl = "https://update.lingview.xyz/update_log.yaml";
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(changelogUrl))
+                    .timeout(Duration.ofSeconds(15))
+                    .GET()
+                    .build();
+
+            HttpResponse<String> httpResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (httpResponse.statusCode() == 200) {
+                response.put("success", true);
+                response.put("content", httpResponse.body());
+                return ApiResponse.success(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "获取更新日志失败，状态码: " + httpResponse.statusCode());
+                return ApiResponse.error(httpResponse.statusCode(), "获取更新日志失败", response);
+            }
+        } catch (IOException e) {
+            response.put("success", false);
+            response.put("message", "获取更新日志时发生错误: " + e.getMessage());
+            return ApiResponse.error(500, "获取更新日志时发生错误", response);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            response.put("success", false);
+            response.put("message", "获取更新日志时被中断: " + e.getMessage());
+            return ApiResponse.error(500, "获取更新日志时被中断", response);
         }
     }
 

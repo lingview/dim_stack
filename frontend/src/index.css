@@ -758,90 +758,203 @@
 }
 
 /*更新模块*/
-.dark .version-card {
-  background-color: #0f172a;
-  border-color: #1f2937;
+.dark .update-header {
+  border-bottom-color: #374151;
 }
 
-.dark .version-current {
-  background-color: #0b1220;
-  border-color: #1e3a8a;
+.dark .update-status-bar {
+  border-color: #374151;
+  background-color: transparent;
 }
 
-.dark .version-latest.has-update {
-  background-color: #0b1220;
-  border-color: #1e40af;
+.dark .update-status-bar > .update-status-cell + .update-status-cell {
+  border-left-color: #374151;
 }
 
-.dark .version-latest.no-update {
-  background-color: #111827;
-  border-color: #1f2937;
-}
-
-.dark .version-title {
-  color: #e5e7eb;
-}
-
-.dark .version-value {
-  color: #cbd5f5;
-}
-
-.dark .version-latest.no-update .version-value {
+.dark .update-status-label {
   color: #9ca3af;
 }
 
-.dark .update-detail-card {
-  background-color: #111827;
-  border-color: #1f2937;
-}
-
-.dark .update-detail-title {
+.dark .update-status-value {
   color: #e5e7eb;
 }
 
-.dark .update-detail-body {
-  color: #cbd5f5;
+.dark .update-status-value-highlight {
+  color: #93c5fd;
 }
 
-.dark .update-detail-label {
-  color: #e5e7eb;
+.dark .update-badge {
+  border: 1px solid transparent;
 }
 
-.dark .update-detail-value {
-  color: #cbd5f5;
+.dark .update-badge-default {
+  background-color: #1f2937;
+  color: #9ca3af;
+  border-color: #374151;
 }
 
-.dark .update-detail-changelog {
-  color: #a5b4fc;
+.dark .update-badge-success {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
-.dark .update-warning {
-  font-weight: 500;
+.dark .update-badge-info {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
-.dark .update-warning-critical {
-  color: #f59e0b;
+.dark .update-badge-warn {
+  background-color: rgba(249, 115, 22, 0.15);
+  color: #fdba74;
+  border-color: rgba(249, 115, 22, 0.3);
 }
 
-.dark .update-warning-recommend {
-  color: #fbbf24;
+.dark .update-alert {
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
-.dark .notice-card {
-  background-color: #1f1a0f;
-  border-color: #3f2f14;
+.dark .update-message {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
-.dark .notice-title {
-  color: #fde68a;
+.dark .update-available-card {
+  background-color: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
-.dark .notice-list {
+.dark .update-available-card-header {
+  border-bottom-color: rgba(59, 130, 246, 0.25);
+}
+
+.dark .update-available-icon {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+}
+
+.dark .update-available-title {
+  color: #f3f4f6;
+}
+
+.dark .update-available-meta {
+  color: #9ca3af;
+}
+
+.dark .update-available-section-label {
+  color: #9ca3af;
+}
+
+.dark .update-available-changelog {
+  color: #d1d5db;
+}
+
+.dark .update-incompat-banner {
+  background-color: rgba(249, 115, 22, 0.15);
+  color: #fdba74;
+  border-color: rgba(249, 115, 22, 0.3);
+}
+
+.dark .update-success-text {
+  color: #6ee7b7;
+}
+
+.dark .update-warn-tag-danger {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.dark .update-warn-tag-warn {
+  background-color: rgba(245, 158, 11, 0.15);
   color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.3);
 }
 
-.dark .notice-item {
-  color: #fde68a;
+.dark .update-changelog-toggle {
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+.dark .update-changelog-toggle:hover {
+  background-color: #1f2937;
+}
+
+.dark .update-changelog-panel {
+  border-color: #374151;
+}
+
+.dark .update-changelog-sidebar {
+  background-color: #111827;
+  border-right-color: #374151;
+}
+
+.dark .update-changelog-version-item {
+  border-bottom-color: #1f2937;
+  border-left: 2px solid transparent;
+  color: #e5e7eb;
+}
+
+.dark .update-changelog-version-item:hover {
+  background-color: #1f2937;
+}
+
+.dark .update-changelog-version-item.is-active {
+  background-color: #1f2937;
+  border-left-color: #3b82f6;
+}
+
+.dark .update-changelog-version-item.is-active .update-changelog-version-name {
+  color: #93c5fd;
+}
+
+.dark .update-changelog-version-date {
+  color: #9ca3af;
+}
+
+.dark .update-changelog-detail {
+  background-color: #1f2937;
+  color: #e5e7eb;
+}
+
+.dark .update-changelog-detail-header {
+  border-bottom-color: #374151;
+}
+
+.dark .update-changelog-detail-meta {
+  color: #9ca3af;
+}
+
+.dark .update-changelog-category-title {
+  color: #e5e7eb;
+}
+
+.dark .update-changelog-item {
+  color: #d1d5db;
+}
+
+.dark .update-changelog-item-dot {
+  background-color: #4b5563;
+}
+
+.dark .update-notice {
+  border-top-color: #374151;
+}
+
+.dark .update-notice-title {
+  color: #9ca3af;
+}
+
+.dark .update-notice-item {
+  color: #d1d5db;
+}
+
+.dark .update-notice-dot {
+  background-color: #4b5563;
 }
 
 /* 悬浮工具栏暗色适配 */
@@ -989,6 +1102,11 @@
   text-decoration: underline;
 }
 
+
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
