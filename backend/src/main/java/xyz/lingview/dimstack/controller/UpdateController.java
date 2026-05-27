@@ -172,7 +172,11 @@ public class UpdateController {
         }
     }
 
-    @GetMapping("/changelog")
+    /**
+     * 必须在这里狠狠记宝塔面板一笔
+     * 详细原因：https://lingview.xyz/article/a8fa4e12-c527-4080-8a36-1c3620cc01fe
+     */
+    @GetMapping("/updatelog")
     @RequiresPermission("system:update:management")
     public ApiResponse<Map<String, Object>> getChangelog() {
         String changelogUrl = "https://update.lingview.xyz/update_log.yaml";
