@@ -249,10 +249,10 @@ public class UpdateService {
             String scriptContent = """
                     #!/bin/bash
                     echo '[Restart Script] Waiting for application to exit...'
-                    sleep 3
+                    sleep 1
                     echo '[Restart Script] Ensuring old process is terminated...'
                     kill -9 %d 2>/dev/null || true
-                    sleep 2
+                    sleep 1
                     echo '[Restart Script] Starting new application...'
                     cd '%s'
                     nohup '%s' -jar '%s' > app.log 2>&1 &
