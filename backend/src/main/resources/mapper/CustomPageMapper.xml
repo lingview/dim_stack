@@ -49,8 +49,7 @@
     </select>
 
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
-        UPDATE custom_page
-        SET status = 0
+        DELETE FROM custom_page
         WHERE id = #{id,jdbcType=INTEGER}
     </delete>
 
