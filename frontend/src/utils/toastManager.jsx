@@ -72,7 +72,7 @@ const updateToastContainer = () => {
   if (!toastContainer) {
     toastContainer = document.createElement('div');
     toastContainer.id = 'toast-container';
-    toastContainer.style.cssText = 'position: fixed; top: 16px; right: 16px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; gap: 12px;';
+    toastContainer.style.cssText = 'position: fixed; top: 72px; right: 16px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; gap: 12px;';
     document.body.appendChild(toastContainer);
     toastRoot = createRoot(toastContainer);
   }
