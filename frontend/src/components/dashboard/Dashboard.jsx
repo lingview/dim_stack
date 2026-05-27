@@ -74,6 +74,7 @@ export default function Dashboard() {
     const [quickActions, setQuickActions] = useState([])
     const [sidebarMenu, setSidebarMenu] = useState([])
     const [shouldRefresh, setShouldRefresh] = useState(false)
+    const [updateCheckResult, setUpdateCheckResult] = useState(null)
 
     useEffect(() => {
         const checkLoginStatus = async () => {
@@ -139,6 +140,35 @@ export default function Dashboard() {
 
         fetchArticles()
     }, [activeTab, username, shouldRefresh])
+
+    useEffect(() => {
+        if (loading || !username) return;
+
+        let cancelled = false;
+        const autoCheckUpdate = async () => {
+            try {
+                const response = await apiClient.get('/update/check', { silent: true });
+                if (cancelled) return;
+                if (response.code === 200 && response.data?.success) {
+                    setUpdateCheckResult(response.data);
+                    const { hasUpdate, isCompatible, newVersion } = response.data;
+                    if (!hasUpdate || !newVersion) return;
+                    if (isCompatible) {
+                        showToast(`发现新版本 v${newVersion}，可在「更新」中查看`, 'info', 5000);
+                    } else {
+                        showToast(`发现新版本 v${newVersion}，但当前版本不兼容`, 'warning', 5000);
+                    }
+                }
+            } catch (e) {
+                console.warn('自动检查更新失败:', e);
+            }
+        };
+
+        autoCheckUpdate();
+        return () => {
+            cancelled = true;
+        };
+    }, [loading, username]);
 
     useEffect(() => {
         const loadDashboardData = async () => {
@@ -465,7 +495,7 @@ export default function Dashboard() {
                         {activeTab === 'update' && (
                             <Suspense fallback={<SimpleLoading />}>
                                 <FadeIn>
-                                    <UpdateManager />
+                                    <UpdateManager initialCheckResult={updateCheckResult} />
                                 </FadeIn>
                             </Suspense>
                         )}

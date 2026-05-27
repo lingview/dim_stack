@@ -23,13 +23,14 @@ apiClient.interceptors.response.use(
     return response.data;
   },
   (error) => {
+    const silent = error.config?.silent === true;
     if (error.response?.status === 429) {
       const message = error.response.data?.message || '请求过于频繁，请稍后再试';
-      showToast(message, 'warning');
+      if (!silent) showToast(message, 'warning');
       console.warn('Rate Limited:', message);
     } else if (error.response?.status === 403) {
       const message = error.response.data?.message || '您没有访问权限';
-      showToast(message, 'error');
+      if (!silent) showToast(message, 'error');
       console.warn('Forbidden:', message);
     } else if (error.response) {
       console.error('API Error:', error.response.status, error.response.data);

@@ -83,30 +83,63 @@
 
 /* Toast组件暗色模式 */
 .dark .bg-red-50 {
-  background-color: rgba(239, 68, 68) !important;
-  border-color: rgba(239, 68, 68) !important;
+  background-color: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
 }
 
 .dark .bg-yellow-50 {
-  background-color: rgba(245, 158, 11) !important;
-  border-color: rgba(245, 158, 11) !important;
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
 }
 
 .dark .bg-blue-50 {
-  background-color: rgba(59, 130, 246) !important;
-  border-color: rgba(59, 130, 246) !important;
+  background-color: rgba(59, 130, 246, 0.12) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
 }
 
-.dark .text-red-800 {
+.dark .text-red-800,
+.dark .text-red-700 {
   color: #fca5a5 !important;
 }
 
-.dark .text-yellow-800 {
+.dark .text-yellow-800,
+.dark .text-yellow-700 {
   color: #fcd34d !important;
 }
 
-.dark .text-blue-800 {
+.dark .text-blue-800,
+.dark .text-blue-700 {
   color: #93c5fd !important;
+}
+
+
+.toast-item {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.dark .toast-item {
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.6),
+    0 4px 10px -3px rgba(0, 0, 0, 0.45) !important;
+}
+
+.dark .toast-item-error {
+  background-color: rgba(127, 29, 29, 0.92) !important;
+  border-color: rgba(248, 113, 113, 0.55) !important;
+  color: #fee2e2 !important;
+}
+
+.dark .toast-item-warning {
+  background-color: rgba(120, 53, 15, 0.92) !important;
+  border-color: rgba(251, 191, 36, 0.55) !important;
+  color: #fef3c7 !important;
+}
+
+.dark .toast-item-info {
+  background-color: rgba(30, 58, 138, 0.92) !important;
+  border-color: rgba(96, 165, 250, 0.55) !important;
+  color: #dbeafe !important;
 }
 
 /* 暗色模式下输入控件文字颜色 */
@@ -800,15 +833,15 @@
 }
 
 .dark .update-badge-info {
-  background-color: rgba(59, 130, 246, 0.15);
-  color: #93c5fd;
-  border-color: rgba(59, 130, 246, 0.3);
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: #93c5fd !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
 }
 
 .dark .update-badge-warn {
-  background-color: rgba(249, 115, 22, 0.15);
-  color: #fdba74;
-  border-color: rgba(249, 115, 22, 0.3);
+  background-color: rgba(249, 115, 22, 0.15) !important;
+  color: #fdba74 !important;
+  border-color: rgba(249, 115, 22, 0.3) !important;
 }
 
 .dark .update-alert {
@@ -864,15 +897,15 @@
 }
 
 .dark .update-warn-tag-danger {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #fca5a5;
-  border-color: rgba(239, 68, 68, 0.3);
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
 }
 
 .dark .update-warn-tag-warn {
-  background-color: rgba(245, 158, 11, 0.15);
-  color: #fcd34d;
-  border-color: rgba(245, 158, 11, 0.3);
+  background-color: rgba(245, 158, 11, 0.15) !important;
+  color: #fcd34d !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
 }
 
 .dark .update-changelog-toggle {

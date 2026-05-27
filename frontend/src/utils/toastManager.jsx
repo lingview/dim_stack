@@ -22,21 +22,15 @@ const ToastItem = ({ message, type = 'error', onClose, duration = 3000 }) => {
         info: <Info className="w-5 h-5" />
     };
 
-    const bgColors = {
-        error: 'bg-red-50 border-red-200',
-        warning: 'bg-yellow-50 border-yellow-200',
-        info: 'bg-blue-50 border-blue-200'
-    };
-
-    const textColors = {
-        error: 'text-red-800',
-        warning: 'text-yellow-800',
-        info: 'text-blue-800'
+    const typeClasses = {
+        error: 'toast-item-error bg-red-50 border-red-200 text-red-800',
+        warning: 'toast-item-warning bg-yellow-50 border-yellow-200 text-yellow-800',
+        info: 'toast-item-info bg-blue-50 border-blue-200 text-blue-800'
     };
 
     return (
-        <div 
-            className={`flex items-center gap-2 px-4 py-3 rounded-lg border shadow-lg ${bgColors[type]} ${textColors[type]}`}
+        <div
+            className={`toast-item flex items-center gap-2 px-4 py-3 rounded-lg border shadow-lg ${typeClasses[type]}`}
             style={{
                 animation: 'slide-in-down 0.3s ease-out',
                 transform: 'translateY(0)',
