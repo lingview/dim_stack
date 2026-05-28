@@ -364,7 +364,7 @@ export default function UpdateManager({ initialCheckResult = null } = {}) {
           </button>
         </div>
 
-        <div className="update-status-bar flex divide-x divide-gray-200 border border-gray-200 rounded-lg overflow-hidden mb-6">
+        <div className="update-status-bar flex divide-x divide-gray-100 border border-gray-200 rounded-xl overflow-hidden mb-6 bg-white shadow-sm">
           <div className="update-status-cell flex-1 px-5 py-4">
             <div className="flex items-center gap-1.5 mb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
@@ -393,14 +393,14 @@ export default function UpdateManager({ initialCheckResult = null } = {}) {
         </div>
 
         {hasUpdate && updateInfo && (
-            <div className="update-available-card mb-6 rounded-lg border border-blue-200 bg-blue-50/40 overflow-hidden">
-              <div className="update-available-card-header px-5 py-4 flex flex-wrap items-start justify-between gap-3 border-b border-blue-100">
+            <div className="update-available-card mb-6 rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
+              <div className="update-available-card-header px-5 py-4 flex flex-wrap items-start justify-between gap-3 border-b border-gray-100 bg-gray-50/60">
                 <div className="flex items-start gap-3">
-                  <div className="update-available-icon mt-0.5 w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 ring-4 ring-blue-50">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                  </div>
+                  {/*<div className="update-available-icon mt-0.5 w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 ring-4 ring-blue-50">*/}
+                  {/*  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">*/}
+                  {/*    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />*/}
+                  {/*  </svg>*/}
+                  {/*</div>*/}
                   <div>
                     <div className="update-available-title text-sm font-semibold text-gray-900">
                       新版本 v{updateInfo.version} 可用
@@ -507,22 +507,16 @@ export default function UpdateManager({ initialCheckResult = null } = {}) {
                 )}
 
                 {(updateInfo.requiredDatabaseMigration || updateInfo.backupRecommended) && (
-                    <div className="flex flex-wrap gap-2 pt-1">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 pt-1 text-sm">
                       {updateInfo.requiredDatabaseMigration && (
-                          <span className="update-warn-tag-danger inline-flex items-center text-xs text-red-700 bg-red-50 border border-red-100 rounded-full px-2.5 py-1">
-                    <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M4.93 19h14.14a2 2 0 001.74-3l-7.07-12a2 2 0 00-3.48 0l-7.07 12a2 2 0 001.74 3z" />
-                    </svg>
-                    包含数据库迁移
-                  </span>
+                          <span className="update-warn-tag-danger text-red-700">
+                            <span className="font-semibold mr-1">*</span>包含数据库迁移
+                          </span>
                       )}
                       {updateInfo.backupRecommended && (
-                          <span className="update-warn-tag-warn inline-flex items-center text-xs text-yellow-800 bg-yellow-50 border border-yellow-100 rounded-full px-2.5 py-1">
-                    <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    建议更新前备份
-                  </span>
+                          <span className="update-warn-tag-warn text-yellow-700">
+                            <span className="font-semibold mr-1">*</span>建议更新前备份
+                          </span>
                       )}
                     </div>
                 )}

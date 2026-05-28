@@ -797,7 +797,7 @@
 
 .dark .update-status-bar {
   border-color: #374151;
-  background-color: transparent;
+  background-color: #1f2937;
 }
 
 .dark .update-status-bar > .update-status-cell + .update-status-cell {
@@ -821,9 +821,9 @@
 }
 
 .dark .update-badge-default {
-  background-color: #1f2937;
+  background-color: #374151;
   color: #9ca3af;
-  border-color: #374151;
+  border-color: #4b5563;
 }
 
 .dark .update-badge-success {
@@ -833,41 +833,25 @@
 }
 
 .dark .update-badge-info {
-  background-color: rgba(59, 130, 246, 0.15) !important;
-  color: #93c5fd !important;
-  border-color: rgba(59, 130, 246, 0.3) !important;
-}
-
-.dark .update-badge-warn {
-  background-color: rgba(249, 115, 22, 0.15) !important;
-  color: #fdba74 !important;
-  border-color: rgba(249, 115, 22, 0.3) !important;
-}
-
-.dark .update-alert {
-  background-color: rgba(239, 68, 68, 0.12);
-  color: #fca5a5;
-  border-color: rgba(239, 68, 68, 0.3);
-}
-
-.dark .update-message {
-  background-color: rgba(16, 185, 129, 0.12);
-  color: #6ee7b7;
-  border-color: rgba(16, 185, 129, 0.3);
-}
-
-.dark .update-available-card {
-  background-color: rgba(59, 130, 246, 0.08);
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
   border-color: rgba(59, 130, 246, 0.3);
 }
 
-.dark .update-available-card-header {
-  border-bottom-color: rgba(59, 130, 246, 0.25);
+.dark .update-badge-warn {
+  background-color: rgba(249, 115, 22, 0.15);
+  color: #fdba74;
+  border-color: rgba(249, 115, 22, 0.3);
 }
 
-.dark .update-available-icon {
-  background-color: rgba(59, 130, 246, 0.2);
-  color: #93c5fd;
+.dark .update-available-card {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.dark .update-available-card-header {
+  border-bottom-color: #374151;
+  background-color: #111827;
 }
 
 .dark .update-available-title {
@@ -897,15 +881,11 @@
 }
 
 .dark .update-warn-tag-danger {
-  background-color: rgba(239, 68, 68, 0.15) !important;
-  color: #fca5a5 !important;
-  border-color: rgba(239, 68, 68, 0.3) !important;
+  color: #fca5a5;
 }
 
 .dark .update-warn-tag-warn {
-  background-color: rgba(245, 158, 11, 0.15) !important;
-  color: #fcd34d !important;
-  border-color: rgba(245, 158, 11, 0.3) !important;
+  color: #fcd34d;
 }
 
 .dark .update-changelog-toggle {
@@ -927,7 +907,7 @@
 }
 
 .dark .update-changelog-version-item {
-  border-bottom-color: #1f2937;
+  border-bottom-color: #374151;
   border-left: 2px solid transparent;
   color: #e5e7eb;
 }
@@ -971,7 +951,7 @@
 }
 
 .dark .update-changelog-item-dot {
-  background-color: #4b5563;
+  background-color: #6b7280;
 }
 
 .dark .update-notice {
@@ -987,7 +967,7 @@
 }
 
 .dark .update-notice-dot {
-  background-color: #4b5563;
+  background-color: #6b7280;
 }
 
 /* 悬浮工具栏暗色适配 */
