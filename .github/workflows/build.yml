@@ -59,7 +59,6 @@ jobs:
           cd backend
           mkdir release
           cp target/*.jar release/
-          cp dim_stack.sql release/
           cd release
           zip -r dim_stack-release.zip *
 
