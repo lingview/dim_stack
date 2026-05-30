@@ -12,10 +12,19 @@
             u.username as author_name,
             a.create_time as create_time,
             a.status,
-            a.password as password
+            a.password as password,
+            CASE
+                WHEN p.article_categories IS NULL THEN c.article_categories
+                ELSE CONCAT(p.article_categories, '/', c.article_categories)
+            END AS category,
+            GROUP_CONCAT(DISTINCT atr.article_tag SEPARATOR ',') as tag
         FROM article a
         JOIN user_information u ON a.uuid = u.uuid
+        LEFT JOIN article_categories c ON a.category_id = c.id
+        LEFT JOIN article_categories p ON c.parent_id = p.id
+        LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
         WHERE a.uuid = #{uuid} AND a.status != 0
+        GROUP BY a.article_id, a.article_name, a.alias, u.username, a.create_time, a.status, a.password, c.article_categories, p.article_categories
         ORDER BY a.create_time DESC
         LIMIT #{offset}, #{size}
     </select>
@@ -202,13 +211,22 @@
             u.username as author_name,
             a.create_time as create_time,
             a.status,
-            a.password as password
+            a.password as password,
+            CASE
+                WHEN p.article_categories IS NULL THEN c.article_categories
+                ELSE CONCAT(p.article_categories, '/', c.article_categories)
+            END AS category,
+            GROUP_CONCAT(DISTINCT atr.article_tag SEPARATOR ',') as tag
         FROM article a
         JOIN user_information u ON a.uuid = u.uuid
+        LEFT JOIN article_categories c ON a.category_id = c.id
+        LEFT JOIN article_categories p ON c.parent_id = p.id
+        LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
         WHERE a.uuid = #{uuid} AND a.status != 0
         <if test="keyword != null and keyword != ''">
             AND (a.article_name LIKE CONCAT('%', #{keyword}, '%') OR a.excerpt LIKE CONCAT('%', #{keyword}, '%'))
         </if>
+        GROUP BY a.article_id, a.article_name, a.alias, u.username, a.create_time, a.status, a.password, c.article_categories, p.article_categories
         ORDER BY a.create_time DESC
         LIMIT #{offset}, #{size}
     </select>

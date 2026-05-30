@@ -441,6 +441,12 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
                             作者
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            分类
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            标签
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             日期
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -463,6 +469,14 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-500">{unescapeHtml(article.author_name) || '未知作者'}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm text-gray-500" title={article.category || undefined}>
+                                            {article.category ? (article.category.includes('/') ? article.category.split('/').pop() : article.category) : '-'}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm text-gray-500">{article.tag || '-'}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-500">{formatDate(article.create_time)}</div>
@@ -532,7 +546,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
                         })
                     ) : (
                         <tr>
-                            <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
+                            <td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">
                                 暂无文章数据
                             </td>
                         </tr>

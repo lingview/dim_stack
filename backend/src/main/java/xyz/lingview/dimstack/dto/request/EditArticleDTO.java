@@ -15,6 +15,8 @@ public class EditArticleDTO {
     private Integer status;
     private String password;
     private boolean hasPassword;
+    private String category;
+    private String tag;
 
     public boolean isHasPassword() {
         return password != null && !password.isEmpty();
