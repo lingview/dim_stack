@@ -135,6 +135,24 @@ public class SiteConfigUtil {
     }
 
 
+    /**
+     * 从缓存中的dimstack:site_config获取是否启用评论区
+     * @return boolean值，如果不存在或出错则返回true（默认启用）
+     */
+    public boolean isCommentEnabled() {
+        try {
+            SiteConfig siteConfig = cacheService.get("dimstack:site_config", SiteConfig.class);
+            if (siteConfig != null) {
+                Integer enableComment = siteConfig.getEnable_comment();
+                return enableComment == null || enableComment == 1;
+            }
+        } catch (Exception e) {
+            log.warn("检查评论区设置时发生异常", e);
+        }
+        return true;
+    }
+
+
     public boolean adminPostNoReview() {
         try {
             SiteConfig siteConfig = cacheService.get("dimstack:site_config", SiteConfig.class);

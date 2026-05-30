@@ -72,6 +72,13 @@ public class CommentServiceImpl implements CommentService {
             throw new RuntimeException("文章不存在");
         }
 
+        if (!siteConfigUtil.isCommentEnabled()) {
+            throw new RuntimeException("站点评论区已关闭");
+        }
+        if (article.getEnable_comment() != null && article.getEnable_comment() == 0) {
+            throw new RuntimeException("该文章评论区已关闭");
+        }
+
         Comment comment = new Comment();
         comment.setUser_id(userId);
         comment.setComment_id(UUID.randomUUID().toString());

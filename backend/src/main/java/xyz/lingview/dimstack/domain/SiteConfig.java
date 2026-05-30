@@ -40,4 +40,5 @@ public class SiteConfig {
     private Integer enable_image_compression;
     private Integer image_compression_threads;
     private Integer proxy_resource_download;
+    private Integer enable_comment;
 }

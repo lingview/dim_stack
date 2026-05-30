@@ -42,7 +42,8 @@
             footer_code as footer_code,
             enable_image_compression as enable_image_compression,
             image_compression_threads as image_compression_threads,
-            proxy_resource_download as proxy_resource_download
+            proxy_resource_download as proxy_resource_download,
+            enable_comment as enable_comment
         FROM site_config
         WHERE id = 1
     </select>
@@ -119,7 +120,8 @@
             footer_code = #{footer_code},
             enable_image_compression = #{enable_image_compression},
             image_compression_threads = #{image_compression_threads},
-            proxy_resource_download = #{proxy_resource_download}
+            proxy_resource_download = #{proxy_resource_download},
+            enable_comment = #{enable_comment}
         WHERE id = 1
     </update>
 

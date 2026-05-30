@@ -23,4 +23,5 @@ public class ReadArticle {
     private String avatar;
     private Date create_time;
     private Integer status;
+    private Integer enable_comment;
 }

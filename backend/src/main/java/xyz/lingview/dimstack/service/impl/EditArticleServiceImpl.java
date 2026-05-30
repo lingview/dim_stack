@@ -215,6 +215,7 @@ public class EditArticleServiceImpl implements EditArticleService {
             paramMap.put("childCategory", categoryPath.getChildCategory());
             paramMap.put("alias", updateArticleDTO.getAlias());
             paramMap.put("status", updateArticleDTO.getStatus());
+            paramMap.put("enable_comment", updateArticleDTO.getEnable_comment());
             paramMap.put("create_time", updateArticleDTO.getCreate_time());
             
             int result = editArticleMapper.updateArticleWithCategory(paramMap);

@@ -26,6 +26,7 @@ export default function ArticleReader() {
     const [copyright, setCopyright] = useState('');
     const [icpRecord, setIcpRecord] = useState('');
     const [mpsRecord, setMpsRecord] = useState('');
+    const [siteCommentEnabled, setSiteCommentEnabled] = useState(true);
 
     const getFullImageUrl = (url) => {
         if (!url) return null;
@@ -61,7 +62,19 @@ export default function ArticleReader() {
     useEffect(() => {
         loadCodeInjection();
         loadSiteInfo();
+        loadSiteCommentStatus();
     }, []);
+
+    const loadSiteCommentStatus = async () => {
+        try {
+            const response = await apiClient.get('/site/enable-comment');
+            if (response.success && response.data) {
+                setSiteCommentEnabled(response.data.enableComment !== false);
+            }
+        } catch (error) {
+            console.error('获取站点评论区状态失败:', error);
+        }
+    };
 
     useEffect(() => {
         const handleScroll = () => {
@@ -327,7 +340,9 @@ export default function ArticleReader() {
                                 <div className="w-full lg:w-1/2">
                                     <div className={article.article_cover ? "-mt-20 relative z-10" : ""}>
                                         <ArticlePreview article={article} />
-                                        <CommentSection articleAlias={article.alias} />
+                                        {siteCommentEnabled && article.enable_comment === 1 && (
+                                            <CommentSection articleAlias={article.alias} />
+                                        )}
                                     </div>
                                 </div>
                                 <div className="hidden lg:block lg:w-1/4">

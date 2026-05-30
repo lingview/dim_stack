@@ -312,7 +312,10 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             category: initialData?.category || '',
             alias: initialData?.alias || '',
             password: initialData?.password || '',
-            create_time: initialData?.create_time || ''
+            create_time: initialData?.create_time || '',
+            enable_comment: initialData?.enable_comment !== undefined && initialData?.enable_comment !== null
+                ? initialData.enable_comment
+                : 1
         });
         setShowArticleInfo(true);
     };
@@ -332,6 +335,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 category: info.category || '',
                 alias: info.alias || '',
                 status: 2,
+                enable_comment: info.enable_comment !== undefined && info.enable_comment !== null ? info.enable_comment : 1,
                 ...(info.id && { article_id: info.id })
             };
 

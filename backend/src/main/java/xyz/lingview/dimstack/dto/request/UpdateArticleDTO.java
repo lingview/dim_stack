@@ -16,4 +16,5 @@ public class UpdateArticleDTO {
     private String alias;
     private int status;
     private LocalDateTime create_time;
+    private Integer enable_comment;
 }

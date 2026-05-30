@@ -26,6 +26,7 @@ public interface SiteConfigService {
     Integer getEnableImageCompression();
     Integer getImageCompressionThreads();
     Integer getProxyResourceDownload();
+    Integer getEnableComment();
 
     default xyz.lingview.dimstack.domain.MailConfig getMailConfig() {
         SiteConfig siteConfig = getSiteConfig();

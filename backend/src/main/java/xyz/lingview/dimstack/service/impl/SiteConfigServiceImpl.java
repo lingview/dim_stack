@@ -241,4 +241,13 @@ public class SiteConfigServiceImpl implements SiteConfigService {
         }
         return 0;
     }
+
+    @Override
+    public Integer getEnableComment() {
+        SiteConfig config = getSiteConfig();
+        if (config != null) {
+            return config.getEnable_comment();
+        }
+        return 1;
+    }
 }

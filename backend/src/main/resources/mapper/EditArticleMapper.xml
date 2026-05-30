@@ -52,14 +52,15 @@
             END AS category,
             a.alias,
             a.status,
-            a.create_time as create_time
+            a.create_time as create_time,
+            a.enable_comment
         FROM article a
                  LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
                  LEFT JOIN article_categories c ON a.category_id = c.id
                  LEFT JOIN article_categories p ON c.parent_id = p.id
         WHERE a.article_id = #{article_id}
         GROUP BY a.article_id, a.article_name, a.article_cover, a.excerpt,
-                 a.article_content, a.password, c.article_categories, p.article_categories, a.alias, a.status, a.create_time
+                 a.article_content, a.password, c.article_categories, p.article_categories, a.alias, a.status, a.create_time, a.enable_comment
     </select>
 
 
@@ -103,6 +104,9 @@
             ),
             alias = #{alias},
             status = #{status}
+            <if test="enable_comment != null">
+                , enable_comment = #{enable_comment}
+            </if>
             <if test="create_time != null">
                 , create_time = #{create_time}
             </if>
@@ -133,6 +137,9 @@
             ),
             alias = #{alias},
             status = #{status}
+            <if test="enable_comment != null">
+                , enable_comment = #{enable_comment}
+            </if>
             <if test="create_time != null">
                 , create_time = #{create_time}
             </if>

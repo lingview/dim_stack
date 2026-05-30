@@ -93,7 +93,8 @@ export default function SiteSettingsView() {
         footer_code: '',
         enable_image_compression: 1,
         image_compression_threads: 5,
-        proxy_resource_download: 0
+        proxy_resource_download: 0,
+        enable_comment: 1
     });
 
     const [uploadQueue, setUploadQueue] = useState([]);
@@ -178,7 +179,8 @@ export default function SiteSettingsView() {
                     enable_llm_create_article: response.data.enable_llm_create_article !== undefined ? response.data.enable_llm_create_article : 0,
                     enable_image_compression: response.data.enable_image_compression != null ? response.data.enable_image_compression : 0,
                     image_compression_threads: response.data.image_compression_threads != null ? response.data.image_compression_threads : 5,
-                    proxy_resource_download: response.data.proxy_resource_download != null ? response.data.proxy_resource_download : 0
+                    proxy_resource_download: response.data.proxy_resource_download != null ? response.data.proxy_resource_download : 0,
+                    enable_comment: response.data.enable_comment != null ? response.data.enable_comment : 1
                 };
                 setFormData(escapedData);
             } else {
@@ -631,7 +633,8 @@ export default function SiteSettingsView() {
                 enable_llm_create_article: formData.enable_llm_create_article,
                 enable_image_compression: formData.enable_image_compression,
                 image_compression_threads: parseInt(formData.image_compression_threads, 10),
-                proxy_resource_download: formData.proxy_resource_download
+                proxy_resource_download: formData.proxy_resource_download,
+                enable_comment: formData.enable_comment
             };
 
             if (formData.mail_password && formData.mail_password.trim() !== '') {
@@ -1491,6 +1494,32 @@ export default function SiteSettingsView() {
                                     </div>
                                     <p className="mt-1 text-xs text-gray-500">
                                         启用后管理员发布的文章将直接发布，无需等待审核
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        评论区开关
+                                    </label>
+                                    <div className="flex items-center">
+                                        <input
+                                            id="enable_comment"
+                                            name="enable_comment"
+                                            type="checkbox"
+                                            checked={formData.enable_comment === 1}
+                                            onChange={(e) => {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    enable_comment: e.target.checked ? 1 : 0
+                                                }));
+                                            }}
+                                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <label htmlFor="enable_comment" className="ml-2 block text-sm text-gray-700">
+                                            启用文章评论区
+                                        </label>
+                                    </div>
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        关闭后全站文章均不显示评论区；启用后文章作者可单独控制自己文章是否开启评论
                                     </p>
                                 </div>
                             </div>

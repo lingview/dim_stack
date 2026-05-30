@@ -16,4 +16,5 @@ public class ArticleDetailDTO {
     private String alias;
     private Integer status;
     private LocalDateTime create_time;
+    private Integer enable_comment;
 }

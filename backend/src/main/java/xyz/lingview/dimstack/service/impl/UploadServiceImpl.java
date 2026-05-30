@@ -653,6 +653,10 @@ public class UploadServiceImpl implements UploadService {
             uploadArticle.setStatus(2);
         }
 
+        if (uploadArticle.getEnable_comment() == null) {
+            uploadArticle.setEnable_comment(1);
+        }
+
         try {
             int result = uploadMapper.insertUploadArticleWithCategory(uploadArticle);
             if (result == 1) {

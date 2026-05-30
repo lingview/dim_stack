@@ -23,6 +23,7 @@
         <result property="avatar" column="avatar"/>
         <result property="create_time" column="create_time"/>
         <result property="status" column="status"/>
+        <result property="enable_comment" column="enable_comment"/>
     </resultMap>
 
     <!-- 根据文章ID查询文章是否需要密码 -->
@@ -53,7 +54,8 @@
             END AS category,
             a.alias,
             a.create_time,
-            a.status
+            a.status,
+            a.enable_comment
         FROM article a
                  LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
                  LEFT JOIN article_categories c ON a.category_id = c.id
@@ -62,7 +64,7 @@
         GROUP BY a.id, a.uuid, a.article_id, a.article_name, a.article_cover,
                  a.excerpt, a.article_content, a.page_views, a.like_count,
                  a.favorite_count, a.password, c.article_categories, p.article_categories, a.alias,
-                 a.create_time, a.status
+                 a.create_time, a.status, a.enable_comment
     </select>
 
     <!-- 根据别名获取文章 -->
@@ -88,7 +90,8 @@
             ui.avatar as avatar,
             a.alias,
             a.create_time,
-            a.status
+            a.status,
+            a.enable_comment
         FROM article a
                  LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
                  LEFT JOIN article_categories c ON a.category_id = c.id
@@ -98,7 +101,7 @@
         GROUP BY a.id, a.uuid, a.article_id, a.article_name, a.article_cover,
                  a.excerpt, a.article_content, a.page_views, a.like_count,
                  a.favorite_count, a.password, c.article_categories, p.article_categories, ui.username, a.alias,
-                 a.create_time, a.status
+                 a.create_time, a.status, a.enable_comment
     </select>
 
 

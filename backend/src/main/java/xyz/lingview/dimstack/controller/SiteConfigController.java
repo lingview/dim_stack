@@ -283,6 +283,10 @@ public class SiteConfigController {
                 currentConfig.setProxy_resource_download(siteConfig.getProxy_resource_download());
             }
 
+            if (siteConfig.getEnable_comment() != null) {
+                currentConfig.setEnable_comment(siteConfig.getEnable_comment());
+            }
+
             boolean result = siteConfigService.updateSiteConfig(currentConfig);
 
             if (result) {
@@ -377,6 +381,24 @@ public class SiteConfigController {
         return siteConfigService.getMpsRecordNumber();
     }
 
+
+    @GetMapping("/enable-comment")
+    public ResponseEntity<Map<String, Object>> getEnableCommentStatus() {
+        try {
+            Integer enableComment = siteConfigService.getEnableComment();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "data", Map.of("enableComment", enableComment == null || enableComment == 1)
+            ));
+        } catch (Exception e) {
+            log.error("获取评论区启用状态失败", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "获取评论区启用状态失败: " + e.getMessage()
+                    ));
+        }
+    }
 
     @GetMapping("/enable-register")
     public ResponseEntity<Map<String, Object>> getEnableRegisterStatus() {

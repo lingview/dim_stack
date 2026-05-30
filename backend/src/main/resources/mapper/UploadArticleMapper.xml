@@ -17,14 +17,14 @@
     </resultMap>
 
     <insert id="insertUploadArticle" parameterType="xyz.lingview.dimstack.domain.UploadArticle">
-        INSERT INTO article(uuid, article_id, article_name, article_cover, excerpt, article_content, password, category_id, alias, status, create_time)
-        VALUES (#{uuid}, #{article_id}, #{article_name}, #{article_cover}, #{excerpt}, #{article_content}, #{password}, 
-            (SELECT c.id 
-             FROM article_categories c 
-             LEFT JOIN article_categories p ON c.parent_id = p.id 
+        INSERT INTO article(uuid, article_id, article_name, article_cover, excerpt, article_content, password, category_id, alias, status, enable_comment, create_time)
+        VALUES (#{uuid}, #{article_id}, #{article_name}, #{article_cover}, #{excerpt}, #{article_content}, #{password},
+            (SELECT c.id
+             FROM article_categories c
+             LEFT JOIN article_categories p ON c.parent_id = p.id
              WHERE c.article_categories = #{category}
-             AND p.id IS NULL), 
-            #{alias}, #{status},
+             AND p.id IS NULL),
+            #{alias}, #{status}, #{enable_comment},
             <if test="create_time != null">
                 #{create_time}
             </if>
@@ -34,16 +34,16 @@
     </insert>
 
     <insert id="insertUploadArticleWithCategory" parameterType="xyz.lingview.dimstack.domain.UploadArticle">
-        INSERT INTO article(uuid, article_id, article_name, article_cover, excerpt, article_content, password, category_id, alias, status, create_time)
-        VALUES (#{uuid}, #{article_id}, #{article_name}, #{article_cover}, #{excerpt}, #{article_content}, #{password}, 
-            (SELECT c.id 
-             FROM article_categories c 
-             LEFT JOIN article_categories p ON c.parent_id = p.id 
+        INSERT INTO article(uuid, article_id, article_name, article_cover, excerpt, article_content, password, category_id, alias, status, enable_comment, create_time)
+        VALUES (#{uuid}, #{article_id}, #{article_name}, #{article_cover}, #{excerpt}, #{article_content}, #{password},
+            (SELECT c.id
+             FROM article_categories c
+             LEFT JOIN article_categories p ON c.parent_id = p.id
              WHERE c.article_categories = #{childCategory}
              <if test="parentCategory != null and parentCategory != ''">
                  AND p.article_categories = #{parentCategory}
-             </if>), 
-            #{alias}, #{status},
+             </if>),
+            #{alias}, #{status}, #{enable_comment},
             <if test="create_time != null">
                 #{create_time}
             </if>

@@ -21,4 +21,5 @@ public class Article {
     private String alias;
     private LocalDateTime create_time;
     private Byte status;
+    private Integer enable_comment;
 }

@@ -12,17 +12,20 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
         category: '',
         alias: '',
         password: '',
-        create_time: ''
+        create_time: '',
+        enable_comment: 1
     });
 
     const [tags, setTags] = useState([]);
     const [categories, setCategories] = useState([]);
     const [coverUploading, setCoverUploading] = useState(false);
     const [hasOriginalPassword, setHasOriginalPassword] = useState(false);
+    const [siteCommentEnabled, setSiteCommentEnabled] = useState(true);
     const fileInputRef = useRef(null);
 
     useEffect(() => {
         fetchTagsAndCategories();
+        fetchSiteCommentStatus();
     }, []);
 
     useEffect(() => {
@@ -48,10 +51,24 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                 category: articleData.category || '',
                 alias: articleData.alias || '',
                 password: '',
-                create_time: createTime
+                create_time: createTime,
+                enable_comment: articleData.enable_comment !== undefined && articleData.enable_comment !== null
+                    ? articleData.enable_comment
+                    : 1
             });
         }
     }, [articleData]);
+
+    const fetchSiteCommentStatus = async () => {
+        try {
+            const res = await apiClient.get('/site/enable-comment');
+            if (res.success && res.data) {
+                setSiteCommentEnabled(res.data.enableComment !== false);
+            }
+        } catch (error) {
+            console.error('获取站点评论区状态失败:', error);
+        }
+    };
 
 
     const fetchTagsAndCategories = async () => {
@@ -155,7 +172,8 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
             tags: Array.isArray(formData.tags) ? formData.tags.join(',') : formData.tags,
             category: formData.category,
             alias: formData.alias,
-            create_time: formData.create_time
+            create_time: formData.create_time,
+            enable_comment: formData.enable_comment
         };
 
 
@@ -423,6 +441,33 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                                 {articleData?.article_id
                                     ? "修改文章的创建时间，留空则保持原时间不变"
                                     : "设置文章的创建时间，留空则使用当前时间"}
+                            </p>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                评论区
+                            </label>
+                            <label className={`flex items-center space-x-2 ${siteCommentEnabled ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}>
+                                <input
+                                    type="checkbox"
+                                    name="enable_comment"
+                                    disabled={!siteCommentEnabled}
+                                    checked={formData.enable_comment === 1}
+                                    onChange={(e) => {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            enable_comment: e.target.checked ? 1 : 0
+                                        }));
+                                    }}
+                                    className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <span className="text-sm text-gray-700">开启本文章评论区</span>
+                            </label>
+                            <p className="mt-1 text-sm text-gray-500 ">
+                                {siteCommentEnabled
+                                    ? "开启后读者可在文章下方发表评论"
+                                    : "管理员已关闭全站评论区，当前设置不会生效"}
                             </p>
                         </div>
                     </div>
