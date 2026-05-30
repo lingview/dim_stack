@@ -45,7 +45,7 @@
 ---
 
 ## 宝塔面板部署
-请移步b站查看部署视频
+请移步b站查看详细部署视频
 
 [https://www.bilibili.com/video/BV1qncgzkEHk/](https://www.bilibili.com/video/BV1qncgzkEHk/)
 
@@ -54,7 +54,7 @@
 ## Linux部署
 > 环境要求（给出版本为可用版本，其他版本请自行测试）
 >
-> OpenJDK版本：17+
+> OpenJDK版本：17+（推荐21+以支持虚拟线程）
 >
 > Redis版本：5+（可选）
 >
@@ -108,6 +108,9 @@ java -jar dimstack-1.0-SNAPSHOT.jar
 ![](./images/homepage_loaded_successfully.png)
 
 ### systemd自启（仅linux）
+
+注：使用宝塔面板等运维工具部署的可忽略
+
 #### 创建服务文件
 ```bash
 sudo vim /etc/systemd/system/dimstack.service
@@ -378,11 +381,22 @@ https://apilinks.cn/file/5561656e3db242a6bf342714f08855ab?download=true
 ![](./images/llm_article_content_reading_support.png)
 
 
+### 评论区相关
+文章评论区有两个开关，一个是再系统配置页面的管理员总开关（管理员控制），另一个是每篇文章的子开关（作者控制）
+
+评论管理
+![](./images/comment_section_management.png)
+
+总开关
+![](./images/comment_section_toggle_switch.png)
+
+子开关
+![](./images/comment_section_toggles_switch.png)
+
 
 ## 系统启动相关
 ### 流程图
 ![](./images/start_up_flowchart.svg)
-
 
 
 ## 缓存模式相关
