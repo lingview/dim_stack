@@ -160,8 +160,8 @@ export default function DashboardView({ stats, quickActions }) {
                                 <p className="text-sm font-medium text-gray-500">{stat.label}</p>
                                 <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
                             </div>
-                            <div className={`p-3 rounded-full ${getIconColor(stat.icon)}`}>
-                                <span className="text-white text-lg">{getIcon(stat.icon)}</span>
+                            <div className="p-3 bg-blue-50 rounded-lg">
+                                <span className="text-blue-600 text-lg">{getIcon(stat.icon)}</span>
                             </div>
                         </div>
                     </div>
