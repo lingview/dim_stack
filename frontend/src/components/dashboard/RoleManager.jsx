@@ -398,32 +398,44 @@ const RoleManager = () => {
 
                         <div className="mb-6">
                             <p className="text-sm text-gray-600 mb-4">勾选该角色拥有的所有权限：</p>
-                            <div className="flex flex-wrap gap-2">
+                            <div className="space-y-4">
                                 {permissions.length === 0 ? (
                                     <div className="text-center py-8 text-gray-500 w-full">暂无权限数据</div>
                                 ) : (
-                                    permissions.map((permission) => (
-                                        <label
-                                            key={permission.id}
-                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border cursor-pointer transition-all select-none ${
-                                                rolePermissionIds.includes(permission.id)
-                                                    ? 'bg-blue-600 border-blue-600 text-white'
-                                                    : 'bg-white/60 border-gray-300 text-gray-700 hover:border-blue-400 hover:text-blue-600'
-                                            }`}
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={rolePermissionIds.includes(permission.id)}
-                                                onChange={() => handlePermissionChange(permission.id)}
-                                                className="hidden"
-                                            />
-                                            <span className="text-sm font-medium">{permission.name}</span>
-                                            {permission.module && (
-                                                <span className={`text-xs ${rolePermissionIds.includes(permission.id) ? 'text-blue-200' : 'text-gray-400'}`}>
-                                        {permission.module}
-                                    </span>
-                                            )}
-                                        </label>
+                                    Object.entries(
+                                        permissions.reduce((groups, permission) => {
+                                            const module = permission.module || '其他'
+                                            if (!groups[module]) groups[module] = []
+                                            groups[module].push(permission)
+                                            return groups
+                                        }, {})
+                                    ).map(([module, modulePermissions]) => (
+                                        <div key={module}>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="text-xs text-gray-400">{module}</span>
+                                                <div className="flex-1 h-px bg-gray-200"></div>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {modulePermissions.map((permission) => (
+                                                    <label
+                                                        key={permission.id}
+                                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border cursor-pointer transition-all select-none ${
+                                                            rolePermissionIds.includes(permission.id)
+                                                                ? 'bg-blue-600 border-blue-600 text-white'
+                                                                : 'bg-white/60 border-gray-300 text-gray-700 hover:border-blue-400 hover:text-blue-600'
+                                                        }`}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={rolePermissionIds.includes(permission.id)}
+                                                            onChange={() => handlePermissionChange(permission.id)}
+                                                            className="hidden"
+                                                        />
+                                                        <span className="text-sm font-medium">{permission.name}</span>
+                                                    </label>
+                                                ))}
+                                            </div>
+                                        </div>
                                     ))
                                 )}
                             </div>
