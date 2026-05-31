@@ -165,7 +165,7 @@ WantedBy=multi-user.target
 
 #### 重载systemd配置
 ```bash
-systemctl daemon-reload 
+sudo systemctl daemon-reload 
 ```
 
 ![](./images/systemd_daemon_reload_command.png)
@@ -202,7 +202,7 @@ v77->v84+
 
 上述版本请到数据库更新脚本目录中下载对应的升级脚本
 
-注：mysql5的兼容更新脚本只支持到5.7，其他版本请自行处理（建议数据库尽快升级至mysql8+）~~（v82+版本已逐步放弃mysql5.x支持，所以mysql5版本的系统请不要升级）~~（已恢复支持）
+注：要根据自己的数据库版本选择mysql5或者mysql8
 
 ## 构建脚本
 项目提供跨平台构建脚本，支持一键完成前后端构建与打包。
