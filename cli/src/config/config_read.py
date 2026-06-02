@@ -1,5 +1,6 @@
 from ruamel.yaml import YAML
-from src.moudle.config_moudle import DimStackConfig
+
+from model.config_model import DimStackConfig
 
 
 class Config:
