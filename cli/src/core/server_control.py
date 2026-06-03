@@ -1,7 +1,6 @@
 import os
 import sys
 import subprocess
-import re
 from pathlib import Path
 from config.config_read import Config
 from config.cli_config import CliConfig
