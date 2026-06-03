@@ -32,15 +32,27 @@ class CliConfig:
     def get_project_dir(self) -> str | None:
         config = self.load_config()
         return config.get("project_dir")
-    
+
     def set_project_dir(self, project_dir: str) -> None:
         abs_path = os.path.abspath(project_dir)
 
         if not os.path.isdir(abs_path):
             raise ValueError(f"目录不存在: {abs_path}")
-        
+
         config = self.load_config()
         config["project_dir"] = abs_path
+        self.save_config(config)
+
+    def get_jar_name(self) -> str:
+        config = self.load_config()
+        jar_name = config.get("jar_name")
+        return jar_name if jar_name else "dimstack-1.0-SNAPSHOT.jar"
+
+    def set_jar_name(self, jar_name: str) -> None:
+        if not jar_name.endswith(".jar"):
+            jar_name = jar_name + ".jar"
+        config = self.load_config()
+        config["jar_name"] = jar_name
         self.save_config(config)
     
     def _create_default_config(self) -> None:

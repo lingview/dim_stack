@@ -13,6 +13,7 @@ class ServerControl:
         self.config = self._load_config()
         self.port = self.config.server.port
         self.project_dir = self._get_project_dir()
+        self.config_manager = CliConfig()
 
     def _load_config(self):
         config_path = self._find_config_path()
@@ -115,17 +116,19 @@ class ServerControl:
             return False
 
     def _get_jar_path(self) -> str:
+        jar_name = self.config_manager.get_jar_name()
+        
         if self.project_dir:
-            jar_path = os.path.join(self.project_dir, "dimstack-1.0-SNAPSHOT.jar")
+            jar_path = os.path.join(self.project_dir, jar_name)
             if os.path.exists(jar_path):
                 return jar_path
 
         repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-        jar_path = os.path.join(repo_root, "dimstack-1.0-SNAPSHOT.jar")
+        jar_path = os.path.join(repo_root, jar_name)
         if os.path.exists(jar_path):
             return jar_path
 
-        raise FileNotFoundError("找不到 dimstack-1.0-SNAPSHOT.jar 文件")
+        raise FileNotFoundError(f"找不到 {jar_name} 文件")
 
     def start(self, port: int | None = None):
         use_port = port if port is not None else self.port

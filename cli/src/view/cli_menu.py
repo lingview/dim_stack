@@ -14,13 +14,15 @@ class CliMenu:
             self._print_current_config()
             self._print_menu_options()
 
-            choice = input("\n请选择操作 [0-3]: ").strip()
+            choice = input("\n请选择操作 [0-4]: ").strip()
 
             if choice == "1":
                 self._set_project_dir()
             elif choice == "2":
-                self._view_config()
+                self._set_jar_name()
             elif choice == "3":
+                self._view_config()
+            elif choice == "4":
                 self._reset_config()
             elif choice == "0":
                 print("\n再见!")
@@ -38,14 +40,17 @@ class CliMenu:
 
     def _print_current_config(self):
         project_dir = self.config_manager.get_project_dir()
+        jar_name = self.config_manager.get_jar_name()
         print(f"\n当前项目运行目录: {project_dir or '未设置'}")
+        print(f"当前 JAR 名称: {jar_name}")
         print("-" * 50)
 
     def _print_menu_options(self):
         print("\n菜单选项:")
         print("  1. 设置项目运行目录")
-        print("  2. 查看配置详情")
-        print("  3. 重置配置")
+        print("  2. 设置 JAR 名称")
+        print("  3. 查看配置详情")
+        print("  4. 重置配置")
         print("  0. 退出")
 
     def _set_project_dir(self):
@@ -63,6 +68,25 @@ class CliMenu:
             self.config_manager.set_project_dir(new_dir)
             print(f"\n✓ 项目运行目录已设置为: {os.path.abspath(new_dir)}")
         except ValueError as e:
+            print(f"\n✗ 设置失败: {e}")
+
+        input("\n按回车继续...")
+
+    def _set_jar_name(self):
+        print("\n--- 设置 JAR 名称 ---")
+        current = self.config_manager.get_jar_name()
+        print(f"当前 JAR 名称: {current}")
+        new_jar = input("请输入 JAR 名称 (留空取消): ").strip()
+
+        if not new_jar:
+            print("已取消操作")
+            input("\n按回车继续...")
+            return
+
+        try:
+            self.config_manager.set_jar_name(new_jar)
+            print(f"\n✓ JAR 名称已设置为: {new_jar}")
+        except Exception as e:
             print(f"\n✗ 设置失败: {e}")
 
         input("\n按回车继续...")
