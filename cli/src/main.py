@@ -1,50 +1,66 @@
 import os
 import sys
-from config.config_read import Config
-from model.cli_menu import CliMenu
+from view.cli_menu import CliMenu
+from core.server_control import ServerControl
+from core.command_router import CommandRouter
+
+
+def cmd_config(**kwargs) -> bool:
+    menu = CliMenu()
+    menu.show_menu()
+    return True
+
+
+def cmd_set_dir(**kwargs) -> bool:
+    if len(sys.argv) < 3:
+        print("用法: python main.py set-dir <目录路径>")
+        sys.exit(1)
+    from config.cli_config import CliConfig
+    config_mgr = CliConfig()
+    try:
+        config_mgr.set_project_dir(sys.argv[2])
+        print(f"✓ 项目运行目录已设置为: {os.path.abspath(sys.argv[2])}")
+        return True
+    except ValueError as e:
+        print(f"✗ 设置失败: {e}")
+        sys.exit(1)
+
+
+def cmd_get_dir(**kwargs) -> bool:
+    from config.cli_config import CliConfig
+    config_mgr = CliConfig()
+    project_dir = config_mgr.get_project_dir()
+    if project_dir:
+        print(project_dir)
+    else:
+        print("未设置项目运行目录")
+    return True
+
+
+def cmd_start(port: int = None, **kwargs) -> bool:
+    control = ServerControl()
+    return control.start(port=port)
+
+
+def cmd_stop(port: int = None, **kwargs) -> bool:
+    control = ServerControl()
+    return control.stop(port=port)
+
+
+def cmd_restart(port: int = None, **kwargs) -> bool:
+    control = ServerControl()
+    return control.restart(port=port)
 
 
 def main():
-    if len(sys.argv) > 1:
-        command = sys.argv[1]
-        
-        if command == "config":
-            menu = CliMenu()
-            menu.show_menu()
-            return
-        elif command == "set-dir":
-            if len(sys.argv) > 2:
-                from config.cli_config import CliConfig
-                config_mgr = CliConfig()
-                try:
-                    config_mgr.set_project_dir(sys.argv[2])
-                    print(f"✓ 项目运行目录已设置为: {os.path.abspath(sys.argv[2])}")
-                except ValueError as e:
-                    print(f"✗ 设置失败: {e}")
-                    sys.exit(1)
-            else:
-                print("用法: python main.py set-dir <目录路径>")
-                sys.exit(1)
-            return
-        elif command == "get-dir":
-            from config.cli_config import CliConfig
-            config_mgr = CliConfig()
-            project_dir = config_mgr.get_project_dir()
-            if project_dir:
-                print(project_dir)
-            else:
-                print("未设置项目运行目录")
-            return
-
-    print("Dim Stack CLI")
-    print("使用 'config' 命令打开配置菜单")
-    print("使用 'set-dir <path>' 快速设置项目目录")
-    print("使用 'get-dir' 查看当前项目目录")
-    print()
-    
-    config = Config()
-    data = config.read_yaml("../../config/application.yml")
-    print(data.server.port)
+    router = CommandRouter()
+    router.register("config", cmd_config)
+    router.register("set-dir", cmd_set_dir)
+    router.register("get-dir", cmd_get_dir)
+    router.register("start", cmd_start)
+    router.register("stop", cmd_stop)
+    router.register("restart", cmd_restart)
+    router.dispatch()
 
 
 if __name__ == "__main__":
