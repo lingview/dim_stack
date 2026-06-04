@@ -13,7 +13,7 @@ def cmd_config(**kwargs) -> bool:
 
 def cmd_set_dir(**kwargs) -> bool:
     if len(sys.argv) < 3:
-        print("用法: python main.py set-dir <目录路径>")
+        print("用法: ds set-dir <目录路径>")
         sys.exit(1)
     from config.cli_config import CliConfig
     config_mgr = CliConfig()
@@ -39,7 +39,7 @@ def cmd_get_dir(**kwargs) -> bool:
 
 def cmd_set_jar(**kwargs) -> bool:
     if len(sys.argv) < 3:
-        print("用法: python main.py set-jar <JAR 名称>")
+        print("用法: ds set-jar <JAR 名称>")
         sys.exit(1)
     from config.cli_config import CliConfig
     config_mgr = CliConfig()
