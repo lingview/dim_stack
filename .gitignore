@@ -13,3 +13,6 @@ systemconfig/target/
 application-setup.properties
 /systemconfig/dependency-reduced-pom.xml
 qodana.yaml
+cli/.vscode
+cli/src/o
+cli/src/nuitka-crash-report.xml
