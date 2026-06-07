@@ -39,13 +39,13 @@ http://localhost:2223/init/setup
 
 按照向导填写管理员用户名、密码、站点端口、日志级别、MySQL 及 Redis 信息，点击确认后系统会自动完成初始化。
 
-![初始化设置页面](../../images/initialization_setup_page.png)
+![初始化设置页面](../images/initialization_setup_page.png)
 
-![初始化向导表单](../../images/initialization_wizard_form.png)
+![初始化向导表单](../images/initialization_wizard_form.png)
 
 填写完成后点击确认，出现以下界面即为成功：
 
-![初始化成功页面](../../images/initialization_success_page.png)
+![初始化成功页面](../images/initialization_success_page.png)
 
 ### 2. 启动测试
 
@@ -57,7 +57,7 @@ java -jar dimstack-1.0-SNAPSHOT.jar
 
 看到主页正常加载即为成功：
 
-![主页加载成功](../../images/homepage_loaded_successfully.png)
+![主页加载成功](../images/homepage_loaded_successfully.png)
 
 ---
 
