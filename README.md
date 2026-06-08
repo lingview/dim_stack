@@ -68,6 +68,10 @@
 
 ## 文档导航
 
+### 系统部署&构建
+
+- [部署&构建](docs/deployment.md)
+
 ### 功能说明
 
 - [大模型文章审核与生成](docs/features/ai-article.md)
@@ -82,9 +86,7 @@
 - [系统启动流程](docs/architecture/startup-flow.md)
 - [缓存模式](docs/architecture/cache-mode.md)
 
-### 其他
-
-- [部署教程（宝塔/Linux/Docker）](docs/deployment.md)
+### 老版本迁移
 - [老版本升级说明](docs/legacy.md)
 
 ---
