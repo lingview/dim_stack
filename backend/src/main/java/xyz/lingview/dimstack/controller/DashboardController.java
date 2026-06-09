@@ -1,6 +1,5 @@
 package xyz.lingview.dimstack.controller;
 
-import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.lingview.dimstack.dto.request.DashboardMenuDTO;
+import xyz.lingview.dimstack.service.CurrentUserService;
 import xyz.lingview.dimstack.service.DashboardMenuService;
 
 import java.util.HashMap;
@@ -21,10 +21,13 @@ public class DashboardController {
     @Autowired
     private DashboardMenuService dashboardMenuService;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     @GetMapping("/menus")
-    public ResponseEntity<Map<String, Object>> getDashboardMenus(HttpSession session) {
+    public ResponseEntity<Map<String, Object>> getDashboardMenus() {
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
 
             DashboardMenuDTO menus = dashboardMenuService.getDashboardMenus(username);
 

@@ -1,6 +1,5 @@
 package xyz.lingview.dimstack.controller;
 
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +14,7 @@ import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.UserService;
 import xyz.lingview.dimstack.service.UserBlacklistService;
 import xyz.lingview.dimstack.service.UserRoleService;
+import xyz.lingview.dimstack.service.CurrentUserService;
 
 import java.util.List;
 import java.util.Map;
@@ -31,15 +31,16 @@ public class UserController {
     private UserBlacklistService userBlacklistService;
     @Autowired
     private UserRoleService userRoleService;
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @GetMapping("/status")
-    public ApiResponse<UserStatusResponseDTO> getUserStatus(HttpSession session) {
+    public ApiResponse<UserStatusResponseDTO> getUserStatus() {
         UserStatusResponseDTO responseDTO = new UserStatusResponseDTO();
 
-        Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
-        String username = (String) session.getAttribute("username");
+        String username = currentUserService.getCurrentUsername();
 
-        if (isLoggedIn != null && isLoggedIn && username != null) {
+        if (currentUserService.isAuthenticated() && username != null) {
             if (userBlacklistService.isUserInBlacklist(username)) {
                 responseDTO.setLoggedIn(false);
                 responseDTO.setUsername(null);
@@ -68,8 +69,8 @@ public class UserController {
 
 
     @PutMapping("/update")
-    public ApiResponse<Void> updateUserInfo(@RequestBody @Valid UserUpdateDTO userUpdateDTO, HttpSession session) {
-        String currentUsername = (String) session.getAttribute("username");
+    public ApiResponse<Void> updateUserInfo(@RequestBody @Valid UserUpdateDTO userUpdateDTO) {
+        String currentUsername = currentUserService.getCurrentUsername();
         return userService.updateUserInfo(userUpdateDTO, currentUsername);
     }
 

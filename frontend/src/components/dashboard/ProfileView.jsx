@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import apiClient from '../../utils/axios.jsx';
 import { getConfig } from '../../utils/config';
 import ImageCropper from '../ImageCropper.jsx';
+import ApiKeyManager from './ApiKeyManager.jsx';
 
 const getFullImageUrl = (url) => {
     if (!url) return null;
@@ -477,6 +478,8 @@ export default function ProfileView() {
                     </button>
                 </div>
             </form>
+
+            <ApiKeyManager />
 
             {showCropper && imageToCrop && (
                 <ImageCropper

@@ -1,6 +1,5 @@
 package xyz.lingview.dimstack.controller;
 
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +8,7 @@ import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.domain.SystematicNotification;
 import xyz.lingview.dimstack.dto.request.PageResult;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
+import xyz.lingview.dimstack.service.CurrentUserService;
 import xyz.lingview.dimstack.service.NotificationService;
 
 /**
@@ -29,13 +29,15 @@ public class SystematicNotificationController {
     @Autowired
     private UserInformationMapper userInformationMapper;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     @GetMapping("/getsystematicNotification")
     public ApiResponse<PageResult<SystematicNotification>> getSystematicNotification(
             @RequestParam(defaultValue = "1") int pageNum,
-            @RequestParam(defaultValue = "10") int pageSize,
-            HttpSession session) {
+            @RequestParam(defaultValue = "10") int pageSize) {
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
 
             String uuid = userInformationMapper.selectUserUUID(username);
             PageResult<SystematicNotification> notifications =
@@ -50,10 +52,9 @@ public class SystematicNotificationController {
     @GetMapping("/getReadNotifications")
     public ApiResponse<PageResult<SystematicNotification>> getReadNotifications(
             @RequestParam(defaultValue = "1") int pageNum,
-            @RequestParam(defaultValue = "10") int pageSize,
-            HttpSession session) {
+            @RequestParam(defaultValue = "10") int pageSize) {
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
 
             String uuid = userInformationMapper.selectUserUUID(username);
             PageResult<SystematicNotification> notifications =
@@ -68,10 +69,9 @@ public class SystematicNotificationController {
     @GetMapping("/getUnreadNotifications")
     public ApiResponse<PageResult<SystematicNotification>> getUnreadNotifications(
             @RequestParam(defaultValue = "1") int pageNum,
-            @RequestParam(defaultValue = "10") int pageSize,
-            HttpSession session) {
+            @RequestParam(defaultValue = "10") int pageSize) {
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
 
             String uuid = userInformationMapper.selectUserUUID(username);
             PageResult<SystematicNotification> notifications =
@@ -85,10 +85,9 @@ public class SystematicNotificationController {
 
     @PostMapping("/readSystematicNotification")
     public ApiResponse<Void> readSystematicNotification(
-            @RequestParam Integer id,
-            HttpSession session) {
+            @RequestParam Integer id) {
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
 
             String uuid = userInformationMapper.selectUserUUID(username);
             boolean success = notificationService.updateNotificationStatus(id, uuid);
@@ -105,10 +104,9 @@ public class SystematicNotificationController {
 
     @PostMapping("/deleteSystematicNotification")
     public ApiResponse<Void> deleteSystematicNotification(
-            @RequestParam Integer id,
-            HttpSession session) {
+            @RequestParam Integer id) {
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
 
             String uuid = userInformationMapper.selectUserUUID(username);
             boolean success = notificationService.deleteSystematicNotification(id, uuid);

@@ -1,6 +1,5 @@
 package xyz.lingview.dimstack.controller;
 
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +10,7 @@ import xyz.lingview.dimstack.dto.request.ArticleCategoryDTO;
 import xyz.lingview.dimstack.dto.request.ArticleTagDTO;
 import xyz.lingview.dimstack.service.ArticleCategoryService;
 import xyz.lingview.dimstack.service.ArticleTagService;
+import xyz.lingview.dimstack.service.CurrentUserService;
 
 import java.util.Map;
 
@@ -24,6 +24,9 @@ public class TagCategoryController {
 
     @Autowired
     private ArticleCategoryService articleCategoryService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @GetMapping("/tags")
     @RequiresPermission("system:tags:management")
@@ -63,9 +66,9 @@ public class TagCategoryController {
 
     @PostMapping("/tags")
     @RequiresPermission("system:tags:management")
-    public ResponseEntity<Map<String, Object>> createTag(@Valid @RequestBody ArticleTagDTO tagDTO, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> createTag(@Valid @RequestBody ArticleTagDTO tagDTO) {
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
 
             boolean result = articleTagService.createTag(tagDTO, username);
             if (result) {
@@ -256,9 +259,9 @@ public class TagCategoryController {
 
     @PostMapping("/categories")
     @RequiresPermission("system:categories:management")
-    public ResponseEntity<Map<String, Object>> createCategory(@RequestBody ArticleCategoryDTO categoryDTO, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> createCategory(@RequestBody ArticleCategoryDTO categoryDTO) {
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
 
             boolean result = articleCategoryService.createCategory(categoryDTO, username);
             if (result) {

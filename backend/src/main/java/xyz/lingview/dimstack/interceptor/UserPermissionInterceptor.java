@@ -1,6 +1,5 @@
 package xyz.lingview.dimstack.interceptor;
 
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
@@ -9,6 +8,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
+import xyz.lingview.dimstack.service.CurrentUserService;
 import xyz.lingview.dimstack.service.UserPermissionCheckService;
 
 @Component
@@ -16,6 +16,9 @@ public class UserPermissionInterceptor implements HandlerInterceptor {
 
     @Autowired
     private UserPermissionCheckService permissionCheckService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
@@ -28,9 +31,7 @@ public class UserPermissionInterceptor implements HandlerInterceptor {
                 return true;
             }
 
-            HttpSession session = request.getSession();
-            String username = (String) session.getAttribute("username");
-//            System.out.println("UserPermissionInterceptor: username=" + username);
+            String username = currentUserService.getCurrentUsername();
 
             if (username == null) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -57,4 +58,3 @@ public class UserPermissionInterceptor implements HandlerInterceptor {
         return true;
     }
 }
-

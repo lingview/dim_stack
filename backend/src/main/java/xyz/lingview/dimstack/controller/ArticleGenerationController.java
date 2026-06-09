@@ -1,12 +1,12 @@
 package xyz.lingview.dimstack.controller;
 
-import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RateLimit;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
+import xyz.lingview.dimstack.service.CurrentUserService;
 import xyz.lingview.dimstack.service.LLMService;
 
 import java.util.HashMap;
@@ -20,16 +20,18 @@ public class ArticleGenerationController {
     @Autowired
     private LLMService llmService;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     @PostMapping("/generate")
     @RequiresPermission({"post:add","post:edit"})
     @RateLimit(window = 60, maxRequests = 3)
     public ResponseEntity<Map<String, Object>> generateArticle(
-            @RequestBody Map<String, String> request,
-            HttpSession session) {
+            @RequestBody Map<String, String> request) {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
             if (username == null) {
                 response.put("success", false);
                 response.put("message", "用户未登录");

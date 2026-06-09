@@ -1,6 +1,5 @@
 package xyz.lingview.dimstack.controller;
 
-import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +9,7 @@ import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.dto.request.ArticleDetailDTO;
 import xyz.lingview.dimstack.dto.request.UpdateArticleDTO;
 import xyz.lingview.dimstack.dto.response.ArticleOperationResult;
+import xyz.lingview.dimstack.service.CurrentUserService;
 import xyz.lingview.dimstack.service.EditArticleService;
 
 import java.util.HashMap;
@@ -23,17 +23,19 @@ public class EditArticleController {
     @Autowired
     private EditArticleService editArticleService;
 
+    @Autowired
+    private CurrentUserService currentUserService;
+
     @GetMapping("/getarticlelist")
     @RequiresPermission({"post:view", "post:edit"})
     public ResponseEntity<Map<String, Object>> getArticleList(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(required = false) String keyword,
-            HttpSession session) {
+            @RequestParam(required = false) String keyword) {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
 
             if (username == null) {
                 response.put("success", false);
@@ -63,12 +65,11 @@ public class EditArticleController {
     @PostMapping("/updatearticle")
     @RequiresPermission({"post:update", "post:edit"})
     public ResponseEntity<Map<String, Object>> updateArticle(
-            @RequestBody UpdateArticleDTO updateArticleDTO,
-            HttpSession session) {
+            @RequestBody UpdateArticleDTO updateArticleDTO) {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
 
             if (username == null) {
                 response.put("success", false);
@@ -93,12 +94,11 @@ public class EditArticleController {
     @GetMapping("/getarticle/{articleId}")
     @RequiresPermission({"post:details", "post:edit"})
     public ResponseEntity<Map<String, Object>> getArticleDetail(
-            @PathVariable String articleId,
-            HttpSession session) {
+            @PathVariable String articleId) {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
 
             if (username == null) {
                 response.put("success", false);
@@ -130,12 +130,11 @@ public class EditArticleController {
     @PostMapping("/deletearticle")
     @RequiresPermission({"post:delete", "post:edit"})
     public ResponseEntity<Map<String, Object>> deleteArticle(
-            @RequestBody Map<String, String> payload,
-            HttpSession session) {
+            @RequestBody Map<String, String> payload) {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
 
             if (username == null) {
                 response.put("success", false);
@@ -167,12 +166,11 @@ public class EditArticleController {
     @PostMapping("/unpublisharticle")
     @RequiresPermission({"post:unpublish", "post:edit"})
     public ResponseEntity<Map<String, Object>> unpublishArticle(
-            @RequestBody Map<String, String> payload,
-            HttpSession session) {
+            @RequestBody Map<String, String> payload) {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
 
             if (username == null) {
                 response.put("success", false);
@@ -207,12 +205,11 @@ public class EditArticleController {
     @RateLimit(window = 60, maxRequests = 2)
     @RequiresPermission({"post:publish", "post:edit"})
     public ResponseEntity<Map<String, Object>> publishArticle(
-            @RequestBody Map<String, String> payload,
-            HttpSession session) {
+            @RequestBody Map<String, String> payload) {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
 
             if (username == null) {
                 response.put("success", false);
@@ -245,12 +242,11 @@ public class EditArticleController {
     @PostMapping("/removearticlepassword")
     @RequiresPermission({"post:removepassword", "post:edit"})
     public ResponseEntity<Map<String, Object>> removeArticlePassword(
-            @RequestBody Map<String, String> payload,
-            HttpSession session) {
+            @RequestBody Map<String, String> payload) {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
 
             if (username == null) {
                 response.put("success", false);

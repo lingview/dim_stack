@@ -1,13 +1,13 @@
 package xyz.lingview.dimstack.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.AttachmentManagementService;
+import xyz.lingview.dimstack.service.CurrentUserService;
 
 import java.util.Map;
 
@@ -26,6 +26,9 @@ public class AttachmentManagementController {
 
     @Autowired
     private UserInformationMapper userInformationMapper;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     /**
      * 分页查询所有附件（管理员接口，仅正常状态）
@@ -110,8 +113,7 @@ public class AttachmentManagementController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        String username = (String) session.getAttribute("username");
+        String username = currentUserService.getCurrentUsername();
         String uuid = userInformationMapper.selectUserUUID(username);
 
         Map<String, Object> result = attachmentManagementService.getPageByUuid(uuid, page, size);
@@ -127,8 +129,7 @@ public class AttachmentManagementController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        String username = (String) session.getAttribute("username");
+        String username = currentUserService.getCurrentUsername();
         String uuid = userInformationMapper.selectUserUUID(username);
 
         Map<String, Object> result = attachmentManagementService.getDeletedPageByUuidOnly(uuid, page, size);
@@ -144,8 +145,7 @@ public class AttachmentManagementController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        String username = (String) session.getAttribute("username");
+        String username = currentUserService.getCurrentUsername();
         String uuid = userInformationMapper.selectUserUUID(username);
 
         Map<String, Object> result = attachmentManagementService.getPageByUuidWithRecentDeleted(uuid, page, size);
@@ -194,15 +194,14 @@ public class AttachmentManagementController {
             @PathVariable String attachmentId,
             HttpServletRequest request) {
 
-        HttpSession session = request.getSession(false);
-        String username = (String) session.getAttribute("username");
+        String username = currentUserService.getCurrentUsername();
         String userUuid = userInformationMapper.selectUserUUID(username);
 
         String attachmentOwnerUuid = attachmentManagementService.getAttachmentOwnerUuid(attachmentId);
         if (attachmentOwnerUuid == null) {
             return ApiResponse.error(400, "附件不存在");
         }
-        
+
         if (!attachmentOwnerUuid.equals(userUuid)) {
             return ApiResponse.error(403, "无权限删除此附件");
         }
@@ -224,15 +223,14 @@ public class AttachmentManagementController {
             @PathVariable String attachmentId,
             HttpServletRequest request) {
 
-        HttpSession session = request.getSession(false);
-        String username = (String) session.getAttribute("username");
+        String username = currentUserService.getCurrentUsername();
         String userUuid = userInformationMapper.selectUserUUID(username);
 
         String attachmentOwnerUuid = attachmentManagementService.getAttachmentOwnerUuid(attachmentId);
         if (attachmentOwnerUuid == null) {
             return ApiResponse.error(400, "附件不存在");
         }
-        
+
         if (!attachmentOwnerUuid.equals(userUuid)) {
             return ApiResponse.error(403, "无权限操作此附件");
         }

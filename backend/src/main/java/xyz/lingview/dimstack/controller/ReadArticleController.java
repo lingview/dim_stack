@@ -4,11 +4,11 @@ import xyz.lingview.dimstack.annotation.RateLimit;
 import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.domain.ReadArticle;
 import xyz.lingview.dimstack.service.ReadArticleService;
+import xyz.lingview.dimstack.service.CurrentUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpSession;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +20,9 @@ public class ReadArticleController {
 
     @Autowired
     private ReadArticleService readArticleService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
 
     @GetMapping("/{alias}/check-password")
@@ -67,10 +70,10 @@ public class ReadArticleController {
      */
     @RateLimit(window = 60, maxRequests = 5)
     @PostMapping("/{alias}/like")
-    public ApiResponse<Map<String, Object>> likeArticle(@PathVariable String alias, HttpSession session) {
+    public ApiResponse<Map<String, Object>> likeArticle(@PathVariable String alias) {
         Map<String, Object> response = new HashMap<>();
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
             if (username == null) {
                 return ApiResponse.error(401, "请先登录后再点赞");
             }
@@ -85,17 +88,12 @@ public class ReadArticleController {
         }
     }
 
-    /**
-     * 获取用户是否已点赞文章
-     * @param alias
-     * @param session
-     * @return
-     */
+    // 获取用户是否已点赞文章
     @GetMapping("/{alias}/liked")
-    public ApiResponse<Map<String, Object>> getLikedStatus(@PathVariable String alias, HttpSession session) {
+    public ApiResponse<Map<String, Object>> getLikedStatus(@PathVariable String alias) {
         Map<String, Object> response = new HashMap<>();
         try {
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
             if (username == null) {
                 response.put("liked", false);
                 return ApiResponse.success(response);

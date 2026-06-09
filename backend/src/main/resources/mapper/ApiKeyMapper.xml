@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xyz.lingview.dimstack.mapper.ApiKeyMapper">
+
+    <!-- 创建 API Key -->
+    <insert id="insert" parameterType="xyz.lingview.dimstack.domain.ApiKey"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO api_key (
+            user_id,
+            key_hash,
+            description,
+            status
+        ) VALUES (
+            #{user_id},
+            #{key_hash},
+            #{description},
+            #{status}
+        )
+    </insert>
+
+    <!-- 查询某个用户的所有 API Key -->
+    <select id="selectByUserId" resultType="xyz.lingview.dimstack.domain.ApiKey">
+        SELECT * FROM api_key
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据 ID 和所属用户查询 API Key -->
+    <select id="selectByIdAndUserId" resultType="xyz.lingview.dimstack.domain.ApiKey">
+        SELECT * FROM api_key
+        WHERE id = #{id} AND user_id = #{userId}
+    </select>
+
+    <!-- 根据哈希查询 API Key（用于鉴权校验） -->
+    <select id="selectByKeyHash" resultType="xyz.lingview.dimstack.domain.ApiKey">
+        SELECT * FROM api_key
+        WHERE key_hash = #{keyHash}
+    </select>
+
+    <!-- 启用/禁用 API Key -->
+    <update id="updateStatusByIdAndUserId">
+        UPDATE api_key
+        SET status = #{status}
+        WHERE id = #{id} AND user_id = #{userId}
+    </update>
+
+    <!-- 删除 API Key -->
+    <delete id="deleteByIdAndUserId">
+        DELETE FROM api_key
+        WHERE id = #{id} AND user_id = #{userId}
+    </delete>
+
+    <!-- 统计哈希出现次数 -->
+    <select id="countByKeyHash" resultType="int">
+        SELECT COUNT(*) FROM api_key
+        WHERE key_hash = #{keyHash}
+    </select>
+
+</mapper>

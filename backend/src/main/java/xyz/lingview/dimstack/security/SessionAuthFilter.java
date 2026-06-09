@@ -15,7 +15,6 @@ import xyz.lingview.dimstack.service.UserPermissionCheckService;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -28,6 +27,9 @@ public class SessionAuthFilter implements Filter {
 
     @Autowired
     private UserPermissionCheckService userPermissionCheckService;
+
+    @Autowired
+    private TokenAuthResolver tokenAuthResolver;
 
     // 不需要认证的路径
     private static final Set<String> WHITE_LIST = new HashSet<>(Arrays.asList(
@@ -68,81 +70,70 @@ public class SessionAuthFilter implements Filter {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         String requestURI = httpRequest.getRequestURI();
+        boolean whitelisted = isWhitelisted(requestURI);
 
-        log.debug("=== SessionAuthFilter 调试信息 ===");
-        log.debug("请求URI: {}", requestURI);
-        log.debug("请求方法: {}", httpRequest.getMethod());
+        try {
+            AuthenticatedUser principal = resolvePrincipal(httpRequest);
 
-        log.debug("=== 请求头信息 ===");
-        Enumeration<String> headerNames = httpRequest.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String headerName = headerNames.nextElement();
-            log.debug("{}: {}", headerName, httpRequest.getHeader(headerName));
-        }
-        log.debug("=== 请求头信息结束 ===");
-
-        log.debug("=== Cookie信息 ===");
-        jakarta.servlet.http.Cookie[] cookies = httpRequest.getCookies();
-        if (cookies != null) {
-            for (jakarta.servlet.http.Cookie cookie : cookies) {
-                log.debug("{}: {}", cookie.getName(), cookie.getValue());
+            if (principal != null) {
+                if (userBlacklistService.isUserInBlacklist(principal.getUsername())) {
+                    log.warn("用户在黑名单中: {}", principal.getUsername());
+                    if (principal.getAuthType() == AuthType.SESSION) {
+                        HttpSession session = httpRequest.getSession(false);
+                        if (session != null) {
+                            session.invalidate();
+                        }
+                    }
+                    writeUnauthorized(httpResponse, "该用户已被拉黑");
+                    return;
+                }
+                UserContextHolder.set(principal);
             }
-        } else {
-            log.debug("没有Cookie");
-        }
-        log.debug("=== Cookie信息结束 ===");
 
-        if (isWhitelisted(requestURI)) {
-            log.debug("路径在白名单中，放行: {}", requestURI);
+            if (whitelisted) {
+                log.debug("路径在白名单中，放行: {}", requestURI);
+                chain.doFilter(request, response);
+                return;
+            }
+            if (principal == null) {
+                log.info("用户未登录或会话已过期: {}", requestURI);
+                writeUnauthorized(httpResponse, "未登录或会话已过期");
+                return;
+            }
+
+            if (!checkPermission(httpRequest, httpResponse, principal.getUsername())) {
+                return;
+            }
+
             chain.doFilter(request, response);
-            return;
+        } finally {
+            UserContextHolder.clear();
+        }
+    }
+
+    private AuthenticatedUser resolvePrincipal(HttpServletRequest httpRequest) {
+        if (tokenAuthResolver.hasToken(httpRequest)) {
+            AuthenticatedUser tokenUser = tokenAuthResolver.resolve(httpRequest);
+            if (tokenUser != null) {
+                return tokenUser;
+            }
+            return null;
         }
 
         HttpSession session = httpRequest.getSession(false);
-        log.debug("Session对象: {}", session);
-
-        if (session != null) {
-            log.debug("Session ID: {}", session.getId());
-
-            Enumeration<String> attrNames = session.getAttributeNames();
-            log.debug("所有Session属性:");
-            while (attrNames.hasMoreElements()) {
-                String name = attrNames.nextElement();
-                log.debug("  {}: {}", name, session.getAttribute(name));
-            }
-            Object isLoggedIn = session.getAttribute("isLoggedIn");
+        if (session != null && Boolean.TRUE.equals(session.getAttribute("isLoggedIn"))) {
             Object username = session.getAttribute("username");
-            log.debug("isLoggedIn属性: {}", isLoggedIn);
-            log.debug("username属性: {}", username);
-
-            if (Boolean.TRUE.equals(isLoggedIn)) {
-                if (username != null && userBlacklistService.isUserInBlacklist((String) username)) {
-                    log.warn("用户在黑名单中: {}", username);
-                    session.invalidate(); // 清除被拉黑用户的session
-                    httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    httpResponse.setContentType("application/json;charset=UTF-8");
-                    httpResponse.getWriter().write("{\"success\":false,\"message\":\"该用户已被拉黑\"}");
-                    return;
-                }
-
-                if (!checkPermission(httpRequest, httpResponse, (String) username)) {
-                    return;
-                }
-
-                log.debug("用户已登录，放行请求");
-                chain.doFilter(request, response);
-            } else {
-                log.info("用户未登录或会话已过期");
-                httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                httpResponse.setContentType("application/json;charset=UTF-8");
-                httpResponse.getWriter().write("{\"success\":false,\"message\":\"未登录或会话已过期\"}");
+            if (username != null) {
+                return new AuthenticatedUser((String) username, null, AuthType.SESSION);
             }
-        } else {
-            log.info("没有找到Session");
-            httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            httpResponse.setContentType("application/json;charset=UTF-8");
-            httpResponse.getWriter().write("{\"success\":false,\"message\":\"未登录或会话已过期\"}");
         }
+        return null;
+    }
+
+    private void writeUnauthorized(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"success\":false,\"message\":\"" + message + "\"}");
     }
 
     private boolean checkPermission(HttpServletRequest request, HttpServletResponse response, String username)

@@ -15,13 +15,13 @@ import xyz.lingview.dimstack.mapper.ArticleCategoryMapper;
 import xyz.lingview.dimstack.mapper.UploadMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.CacheService;
+import xyz.lingview.dimstack.service.CurrentUserService;
 import xyz.lingview.dimstack.service.SiteConfigService;
 import xyz.lingview.dimstack.service.UploadService;
 import xyz.lingview.dimstack.util.CategoryPathUtil;
 import xyz.lingview.dimstack.util.RandomUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -52,6 +52,9 @@ public class UploadServiceImpl implements UploadService {
 
     @Autowired
     private UserInformationMapper userInformationMapper;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @Autowired
     private ArticleCategoryMapper articleCategoryMapper;
@@ -112,14 +115,13 @@ public class UploadServiceImpl implements UploadService {
     );
 
     private String getUsername(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null || !Boolean.TRUE.equals(session.getAttribute("isLoggedIn"))) {
+        String username = currentUserService.getCurrentUsername();
+        if (username == null) {
             log.debug("未找到用户会话或用户未登录");
             return null;
         }
-        String username = (String) session.getAttribute("username");
-        if (username == null || !username.matches("^[\\p{L}\\p{N}_]+$")) {
-            log.debug("会话中的用户名无效: {}", username);
+        if (!username.matches("^[\\p{L}\\p{N}_]+$")) {
+            log.debug("当前用户名无效: {}", username);
             return null;
         }
         return username;

@@ -1,7 +1,6 @@
 package xyz.lingview.dimstack.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,6 +10,7 @@ import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.domain.Music;
 import xyz.lingview.dimstack.domain.UserInformation;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
+import xyz.lingview.dimstack.service.CurrentUserService;
 import xyz.lingview.dimstack.service.MusicService;
 import xyz.lingview.dimstack.util.SiteConfigUtil;
 
@@ -36,6 +36,9 @@ public class MusicController {
 
     @Autowired
     private SiteConfigUtil siteConfigUtil;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     // 获取所有启用的音乐
     @GetMapping("/enabled")
@@ -88,8 +91,7 @@ public class MusicController {
     @RequiresPermission({"system:music:management","system:config:management"})
     public ResponseEntity<Map<String, Object>> addMusic(HttpServletRequest request ,@RequestBody Music music) {
         try {
-            HttpSession session = request.getSession(false);
-            String username = (String) session.getAttribute("username");
+            String username = currentUserService.getCurrentUsername();
             String currentUser = userInformationMapper.selectUserUUID(username);
 
             music.setUuid(currentUser);

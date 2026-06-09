@@ -1,7 +1,6 @@
 package xyz.lingview.dimstack.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
@@ -9,6 +8,7 @@ import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.dto.request.CustomPageRequest;
 import xyz.lingview.dimstack.dto.response.CustomPageResponse;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
+import xyz.lingview.dimstack.service.CurrentUserService;
 import xyz.lingview.dimstack.service.CustomPageService;
 
 import java.util.List;
@@ -28,6 +28,9 @@ public class CustomPageController {
 
     @Autowired
     private UserInformationMapper userInformationMapper;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     /**
      * 创建自定义页面
@@ -121,12 +124,9 @@ public class CustomPageController {
      * 从Session获取当前用户UUID
      */
     private String getCurrentUserUuid(HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            String username = (String) session.getAttribute("username");
-            if (username != null) {
-                return userInformationMapper.selectUserUUID(username);
-            }
+        String username = currentUserService.getCurrentUsername();
+        if (username != null) {
+            return userInformationMapper.selectUserUUID(username);
         }
         return null;
     }

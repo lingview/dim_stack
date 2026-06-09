@@ -11,11 +11,33 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 15/05/2026 16:02:17
+ Date: 09/06/2026 09:54:24
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for api_key
+-- ----------------------------
+DROP TABLE IF EXISTS `api_key`;
+CREATE TABLE `api_key`  (
+                            `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+                            `user_id` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '所属用户UUID',
+                            `key_hash` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT 'SHA-256哈希，替代原api_key明文',
+                            `description` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '备注描述',
+                            `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                            `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                            `status` int UNSIGNED NOT NULL DEFAULT 1 COMMENT '状态: 1-启用, 0-禁用',
+                            PRIMARY KEY (`id`) USING BTREE,
+                            UNIQUE INDEX `uk_key_hash`(`key_hash` ASC) USING BTREE,
+                            INDEX `idx_user_status`(`user_id` ASC, `status` ASC) USING BTREE,
+                            CONSTRAINT `api_key_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COMMENT = 'API Key表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of api_key
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for article
@@ -655,7 +677,7 @@ CREATE TABLE `site_config`  (
 -- ----------------------------
 -- Records of site_config
 -- ----------------------------
-INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 4, '© 2025-2026 次元栈 - Dim Stack. All rights reserved.', 3, 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A3%81%E7%BA%B8/mmexport1769432250836.jpg?sign=KFQ9u-fY83wR52PdfpesYywMJi_0M4Uc66vz7A9Tal0=:0', '欢迎使用次元栈', '欢迎大家在 GitHub 上提交 Issue 或 Pull Request！', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/Image_1721230292906.png?sign=JU30z6z_RsZ3Vv7HB_5D3msYRneiga5NLjhN3EpL-3w=:0', 'default', 'https://dimstackrepo.apilinks.cn/themes.json', 0, '', NULL, '', '系统通知', '', NULL, 'smtp', 0, 1, 'UTF-8', '', '', 1, 0, 1, 0, 0, 0,'','','',0,5,0,1);
+INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 4, '© 2025-2026 次元栈 - Dim Stack. All rights reserved.', 3, 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A3%81%E7%BA%B8/mmexport1769432250836.jpg?sign=KFQ9u-fY83wR52PdfpesYywMJi_0M4Uc66vz7A9Tal0=:0', '欢迎使用次元栈', '欢迎大家在 GitHub 上提交 Issue 或 Pull Request！', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/Image_1721230292906.png?sign=JU30z6z_RsZ3Vv7HB_5D3msYRneiga5NLjhN3EpL-3w=:0', 'default', 'https://dimstackrepo.apilinks.cn/themes.json', 0, '', NULL, '', '系统通知', '', NULL, 'smtp', 0, 1, 'UTF-8', '', '', 1, 0, 1, 0, 0, 0, '', '', '', 0, 5, 0, 1);
 
 -- ----------------------------
 -- Table structure for systematic_notification
