@@ -112,6 +112,29 @@ public class ThemeController {
         }
     }
 
+    private String readThemeVersion(Path themeDir) {
+        try {
+            Path configFile = themeDir.resolve("config.ini");
+            if (!Files.exists(configFile) || !Files.isRegularFile(configFile)) {
+                return null;
+            }
+            for (String rawLine : Files.readAllLines(configFile)) {
+                String line = rawLine.replace("﻿", "").trim();
+                if (line.isEmpty() || line.startsWith("#") || line.startsWith(";") || line.startsWith("[")) {
+                    continue;
+                }
+                int eq = line.indexOf('=');
+                if (eq > 0 && line.substring(0, eq).trim().equalsIgnoreCase("version")) {
+                    String value = line.substring(eq + 1).trim();
+                    return value.isEmpty() ? null : value;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("读取主题版本失败: {}", e.getMessage());
+        }
+        return null;
+    }
+
     @GetMapping("/list/json")
     @RequiresPermission("system:theme:management")
     public ResponseEntity<Map<String, Object>> listAvailableThemesJson() {
@@ -130,6 +153,7 @@ public class ThemeController {
                             themeInfo.put("name", themeName);
                             themeInfo.put("slug", themeName);
                             themeInfo.put("isCurrent", themeName.equals(activeTheme));
+                            themeInfo.put("version", readThemeVersion(dir));
                             themes.add(themeInfo);
                         });
             }

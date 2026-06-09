@@ -10,17 +10,25 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.common.ApiResponse;
+import xyz.lingview.dimstack.config.ThemeProperties;
 import xyz.lingview.dimstack.dto.request.ThemeSlugRequestDTO;
 import xyz.lingview.dimstack.dto.response.ThemeDetailResponseDTO;
 import xyz.lingview.dimstack.dto.response.ThemeListResponseDTO;
 import xyz.lingview.dimstack.service.SiteConfigService;
 
 import java.io.*;
-import java.net.URL;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.zip.ZipInputStream;
@@ -42,6 +50,11 @@ public class ExpansionController {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private ThemeProperties themeProperties;
+
+    private static final String DEFAULT_THEME = "default";
 
     // 主题名字只允许字母、数字、连字符和下划线
     private static final Pattern THEME_SLUG_PATTERN = Pattern.compile("^[a-zA-Z0-9_-]+$");
@@ -151,11 +164,9 @@ public class ExpansionController {
                 return ApiResponse.error(400, "主题标识包含非法字符，只允许字母、数字、连字符和下划线");
             }
 
-            // 检查是否是当前激活的主题
+            // 是否删除的是当前激活的主题（允许删除，删除后回退到默认主题）
             String activeTheme = siteConfigService.getSiteTheme();
-            if (slug.equals(activeTheme)) {
-                return ApiResponse.error(400, "不能删除当前激活的主题");
-            }
+            boolean deletingActive = slug.equals(activeTheme);
 
             // 构建主题路径
             String themesPath = "themes";
@@ -179,6 +190,14 @@ public class ExpansionController {
 
             // 删除主题目录
             deleteDirectory(themeDir);
+
+            // 若删除的是当前激活主题，回退到默认主题，避免前台找不到主题资源
+            if (deletingActive) {
+                siteConfigService.updateSiteTheme(DEFAULT_THEME);
+                themeProperties.setActiveTheme(DEFAULT_THEME);
+                return ApiResponse.success("主题 '" + slug + "' 删除成功，已切换回默认主题");
+            }
+
             return ApiResponse.success("主题 '" + slug + "' 删除成功");
         } catch (Exception e) {
             return ApiResponse.error(500, "删除主题失败: " + e.getMessage());
@@ -228,19 +247,88 @@ public class ExpansionController {
             }
 
             Path tempFile = Files.createTempFile("theme_", ".zip");
-            try (InputStream in = new URL(downloadUrl).openStream()) {
-                Files.copy(in, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            try {
+                HttpClient client = HttpClient.newBuilder()
+                        .followRedirects(HttpClient.Redirect.NORMAL)
+                        .connectTimeout(Duration.ofSeconds(30))
+                        .build();
+                HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(downloadUrl))
+                        .timeout(Duration.ofMinutes(5))
+                        .GET()
+                        .build();
+                HttpResponse<Path> response = client.send(httpRequest,
+                        HttpResponse.BodyHandlers.ofFile(tempFile));
+
+                if (response.statusCode() != 200) {
+                    throw new IOException("下载主题失败，HTTP 状态码: " + response.statusCode());
+                }
+                if (!isZipFile(tempFile)) {
+                    throw new IOException("下载内容不是有效的 ZIP 文件，请检查主题下载地址");
+                }
+
+                unzipFile(tempFile, themeDir);
+
+                flattenSingleRootDir(themeDir);
+
+                try (DirectoryStream<Path> ds = Files.newDirectoryStream(themeDir)) {
+                    if (!ds.iterator().hasNext()) {
+                        throw new IOException("主题解压后内容为空");
+                    }
+                }
+            } finally {
+                Files.deleteIfExists(tempFile);
             }
-
-            unzipFile(tempFile, themeDir);
-
-            Files.deleteIfExists(tempFile);
 
             return true;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
+    }
+
+    private boolean isZipFile(Path file) {
+        try (InputStream in = Files.newInputStream(file)) {
+            byte[] header = new byte[4];
+            int read = in.read(header);
+            if (read < 4) {
+                return false;
+            }
+            return header[0] == 0x50 && header[1] == 0x4B
+                    && (header[2] == 0x03 || header[2] == 0x05 || header[2] == 0x07);
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private void flattenSingleRootDir(Path themeDir) throws IOException {
+        if (Files.exists(themeDir.resolve("index.html"))) {
+            return;
+        }
+
+        List<Path> entries = new ArrayList<>();
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(themeDir)) {
+            for (Path p : ds) {
+                entries.add(p);
+            }
+        }
+
+        if (entries.size() != 1 || !Files.isDirectory(entries.get(0))) {
+            return;
+        }
+
+        Path inner = entries.get(0);
+        List<Path> children = new ArrayList<>();
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(inner)) {
+            for (Path child : ds) {
+                children.add(child);
+            }
+        }
+
+        for (Path child : children) {
+            Files.move(child, themeDir.resolve(child.getFileName().toString()),
+                    StandardCopyOption.REPLACE_EXISTING);
+        }
+        Files.delete(inner);
     }
 
     /**

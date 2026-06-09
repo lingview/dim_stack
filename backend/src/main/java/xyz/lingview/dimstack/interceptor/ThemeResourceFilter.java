@@ -76,10 +76,17 @@ public class ThemeResourceFilter implements Filter {
             resourcePath = "/index.html";
         }
 
-        if (shouldHandleAsThemeResource(resourcePath)) {
-            Resource resource = resolveResource(resourcePath);
-            if (resource != null && resource.exists()) {
-                serveResource(resource, httpResponse);
+        Resource resource = resolveResource(resourcePath);
+        if (resource != null && resource.exists()) {
+            serveResource(resource, httpResponse);
+            return;
+        }
+
+        String lastSegment = resourcePath.substring(resourcePath.lastIndexOf('/') + 1);
+        if (!lastSegment.contains(".")) {
+            Resource indexResource = resolveResource("/index.html");
+            if (indexResource != null && indexResource.exists()) {
+                serveResource(indexResource, httpResponse);
                 return;
             }
         }

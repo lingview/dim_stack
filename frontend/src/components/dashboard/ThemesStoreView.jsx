@@ -13,13 +13,21 @@ export default function ThemesStoreView() {
 
     useEffect(() => {
         loadLocalThemes();
+        fetchCloudThemes(true);
     }, []);
 
     const loadLocalThemes = async () => {
         try {
             setLoading(true);
-            const response = await apiClient.get('/theme/list');
-            const themes = parseLocalThemes(response);
+            const response = await apiClient.get('/theme/list/json');
+            const list = Array.isArray(response?.data) ? response.data : [];
+            const themes = list.map(t => ({
+                name: t.name,
+                slug: t.slug,
+                isCurrent: !!t.isCurrent,
+                version: t.version || null,
+                type: 'local'
+            }));
             setLocalThemes(themes);
         } catch (error) {
             console.error('获取本地主题列表失败:', error);
@@ -28,6 +36,23 @@ export default function ThemesStoreView() {
             setLoading(false);
         }
     };
+
+
+    const compareVersions = (a, b) => {
+        if (!a || !b) return 0;
+        const pa = String(a).replace(/^v/i, '').split('.').map(n => parseInt(n, 10) || 0);
+        const pb = String(b).replace(/^v/i, '').split('.').map(n => parseInt(n, 10) || 0);
+        const len = Math.max(pa.length, pb.length);
+        for (let i = 0; i < len; i++) {
+            const x = pa[i] || 0;
+            const y = pb[i] || 0;
+            if (x > y) return 1;
+            if (x < y) return -1;
+        }
+        return 0;
+    };
+
+    const getCloudTheme = (slug) => cloudThemes.find(t => t.slug === slug);
 
     const parseLocalThemes = (text) => {
         const lines = text.split('\n');
@@ -51,7 +76,7 @@ export default function ThemesStoreView() {
         return themes;
     };
 
-    const fetchCloudThemes = async () => {
+    const fetchCloudThemes = async (silent = false) => {
         try {
             setCloudLoading(true);
             const response = await apiClient.post('/getthemeslist');
@@ -61,13 +86,13 @@ export default function ThemesStoreView() {
                 const themes = themesData && themesData.data ?
                     (Array.isArray(themesData.data) ? themesData.data : []) : [];
                 setCloudThemes(themes);
-                setMessage({ type: 'success', text: '云端主题列表获取成功' });
+                if (!silent) setMessage({ type: 'success', text: '云端主题列表获取成功' });
             } else {
-                setMessage({ type: 'error', text: response.message || '获取云端主题列表失败' });
+                if (!silent) setMessage({ type: 'error', text: response.message || '获取云端主题列表失败' });
             }
         } catch (error) {
             console.error('获取云端主题列表失败:', error);
-            setMessage({ type: 'error', text: '获取云端主题列表失败' });
+            if (!silent) setMessage({ type: 'error', text: '获取云端主题列表失败' });
         } finally {
             setCloudLoading(false);
         }
@@ -114,12 +139,15 @@ export default function ThemesStoreView() {
     const switchTheme = async (themeName) => {
         try {
             const response = await apiClient.post(`/theme/switch?themeName=${themeName}`);
+            const text = typeof response === 'string' ? response : (response?.message || '');
 
-            if (response.includes('successfully')) {
+            const isSuccess = text && !text.includes('Error') && !text.includes('失败');
+
+            if (isSuccess) {
                 setMessage({ type: 'success', text: `主题已切换为 ${themeName}` });
-                loadLocalThemes();
+                await loadLocalThemes();
             } else {
-                setMessage({ type: 'error', text: response });
+                setMessage({ type: 'error', text: text || '切换主题失败' });
             }
         } catch (error) {
             console.error('切换主题失败:', error);
@@ -166,17 +194,31 @@ export default function ThemesStoreView() {
                             <p className="text-gray-500 text-center py-8">暂无本地主题</p>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {localThemes.map((theme) => (
+                                {localThemes.map((theme) => {
+                                    const cloud = getCloudTheme(theme.slug);
+                                    const hasUpdate = !!(cloud && theme.version && cloud.version
+                                        && compareVersions(theme.version, cloud.version) < 0);
+                                    return (
                                     <div key={theme.slug} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
                                         <div className="p-4">
                                             <div className="flex justify-between items-start">
                                                 <div>
                                                     <h3 className="font-medium text-gray-900">{theme.name}</h3>
-                                                    {theme.isCurrent && (
-                                                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1">
-                                                            当前使用
-                                                        </span>
-                                                    )}
+                                                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                                        {theme.version && (
+                                                            <span className="text-xs text-gray-500">v{theme.version}</span>
+                                                        )}
+                                                        {theme.isCurrent && (
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                                当前使用
+                                                            </span>
+                                                        )}
+                                                        {hasUpdate && (
+                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                                                可更新 v{cloud.version}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div className="mt-4 flex space-x-2">
@@ -188,21 +230,26 @@ export default function ThemesStoreView() {
                                                         使用
                                                     </button>
                                                 )}
+                                                {hasUpdate && (
+                                                    <button
+                                                        onClick={() => installTheme(theme.slug)}
+                                                        disabled={installing}
+                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-50"
+                                                    >
+                                                        {installing ? '更新中...' : '更新'}
+                                                    </button>
+                                                )}
                                                 <button
                                                     onClick={() => deleteTheme(theme.slug)}
-                                                    disabled={theme.isCurrent}
-                                                    className={`inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white ${
-                                                        theme.isCurrent
-                                                            ? 'bg-gray-400 cursor-not-allowed'
-                                                            : 'bg-red-600 hover:bg-red-700'
-                                                    } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500`}
+                                                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                                                 >
                                                     删除
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
