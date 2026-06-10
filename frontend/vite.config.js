@@ -29,6 +29,13 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       minify: 'esbuild',
+      rollupOptions: {
+        output: {
+          assetFileNames: 'assets/[name].[hash].[ext]',
+          chunkFileNames: 'assets/[name].[hash].js',
+          entryFileNames: 'assets/[name].[hash].js',
+        },
+      },
     },
     esbuild: {
       drop: ['console'],

@@ -130,8 +130,11 @@ public class ThemeResourceFilter implements Filter {
             response.setContentType(contentType);
             response.setContentLengthLong(Files.size(path));
 
-            response.setHeader("Cache-Control", "public, max-age=3600");
-
+            if (fileName.endsWith(".html") || fileName.endsWith(".htm")) {
+                response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+                response.setHeader("Pragma", "no-cache");
+                response.setDateHeader("Expires", 0);
+            }
             try (OutputStream out = response.getOutputStream()) {
                 Files.copy(path, out);
                 out.flush();
