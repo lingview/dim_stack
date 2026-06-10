@@ -67,6 +67,7 @@ public class ThemeResourceFilter implements Filter {
             resourcePath.startsWith("/v3/api-docs") ||
             resourcePath.startsWith("/swagger-ui") ||
             resourcePath.startsWith("/upload/") ||
+            resourcePath.startsWith("/file/") ||
             resourcePath.startsWith("/dashboard")) {
             chain.doFilter(request, response);
             return;
