@@ -21,6 +21,8 @@ import java.util.Map;
 @RequestMapping("/api/theme")
 public class ThemeController {
 
+    private static final String DEFAULT_THEME = "default";
+
     @Autowired
     private ThemeProperties themeProperties;
 
@@ -50,6 +52,24 @@ public class ThemeController {
         } else {
             return "Error: 主题切换失败: " + themeName;
         }
+    }
+
+    @PostMapping("/deactivate")
+    @RequiresPermission("system:theme:management")
+    public String deactivateTheme() {
+        String activeTheme = themeProperties.getActiveTheme();
+        if (DEFAULT_THEME.equals(activeTheme)) {
+            return "Error: 默认主题为系统内置主题，无需取消激活";
+        }
+
+        themeProperties.setActiveTheme(DEFAULT_THEME);
+        boolean success = siteConfigService.updateSiteTheme(DEFAULT_THEME);
+
+        if (!success) {
+            return "Error: Failed to save theme to database";
+        }
+
+        return "已取消激活，已切换回默认主题";
     }
 
     @GetMapping("/current")

@@ -155,6 +155,27 @@ export default function ThemesStoreView() {
         }
     };
 
+    const deactivateTheme = async (themeName) => {
+        if (window.confirm(`确定要取消激活主题 "${themeName}" 吗？将切换回默认主题。`)) {
+            try {
+                const response = await apiClient.post('/theme/deactivate');
+                const text = typeof response === 'string' ? response : (response?.message || '');
+
+                const isSuccess = text && !text.includes('Error') && !text.includes('失败');
+
+                if (isSuccess) {
+                    setMessage({ type: 'success', text: text || '已取消激活，已切换回默认主题' });
+                    await loadLocalThemes();
+                } else {
+                    setMessage({ type: 'error', text: text || '取消激活失败' });
+                }
+            } catch (error) {
+                console.error('取消激活主题失败:', error);
+                setMessage({ type: 'error', text: `取消激活主题失败: ${error.message}` });
+            }
+        }
+    };
+
     const showThemePreview = (theme) => {
         setSelectedTheme(theme);
         setShowPreview(true);
@@ -230,6 +251,14 @@ export default function ThemesStoreView() {
                                                         使用
                                                     </button>
                                                 )}
+                                                {theme.isCurrent && theme.slug !== 'default' && (
+                                                    <button
+                                                        onClick={() => deactivateTheme(theme.slug)}
+                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                                                    >
+                                                        取消激活
+                                                    </button>
+                                                )}
                                                 {hasUpdate && (
                                                     <button
                                                         onClick={() => installTheme(theme.slug)}
@@ -239,12 +268,14 @@ export default function ThemesStoreView() {
                                                         {installing ? '更新中...' : '更新'}
                                                     </button>
                                                 )}
-                                                <button
-                                                    onClick={() => deleteTheme(theme.slug)}
-                                                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                                                >
-                                                    删除
-                                                </button>
+                                                {theme.slug !== 'default' && (
+                                                    <button
+                                                        onClick={() => deleteTheme(theme.slug)}
+                                                        className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                                    >
+                                                        删除
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
