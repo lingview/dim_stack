@@ -304,7 +304,7 @@ export default function ThemesStoreView() {
                                         获取中...
                                     </>
                                 ) : (
-                                    '获取云端主题'
+                                    '加载云端主题'
                                 )}
                             </button>
                         </div>
