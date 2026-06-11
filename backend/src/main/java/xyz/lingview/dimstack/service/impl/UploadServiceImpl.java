@@ -651,8 +651,13 @@ public class UploadServiceImpl implements UploadService {
             uploadArticle.setArticle_id(articleId);
         }
 
-        if (uploadArticle.getStatus() != 1 && uploadArticle.getStatus() != 3) {
+//        文章刚创建统一设置为未发布，需要用户手动点击后调用publish接口再读取文章默认状态（该进审核进审核，该发布发布）
+//        if (uploadArticle.getStatus() != 1 && uploadArticle.getStatus() != 3) {
+//            uploadArticle.setStatus(2);
+//        }
+        if (uploadArticle.getStatus() != 2){
             uploadArticle.setStatus(2);
+            log.warn("检测到非法攻击，文章状态被篡改已恢复正确值");
         }
 
         if (uploadArticle.getEnable_comment() == null) {
