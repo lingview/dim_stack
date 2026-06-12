@@ -80,6 +80,7 @@
 - [代码注入（自定义 Head/Footer）](docs/features/code-injection.md)
 - [SEO 优化与大模型读取](docs/features/seo.md)
 - [评论区功能](docs/features/comments.md)
+- [访问控制Key&Agent调用说明](docs/features/key.md)
 
 ### 架构说明
 
