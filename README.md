@@ -92,22 +92,6 @@
 
 ---
 
-## 贡献者
-
-感谢所有参与本项目的贡献者（按字母顺序排列）：
-
-- [@bytegeek](https://github.com/xrb114) - 渗透测试
-- [@dear-sk](https://github.com/dear-sk) - 系统测试
-- [@Denghls](https://github.com/Denghls) - 需求分析
-- [@hanbingniao](https://github.com/hanbingniao) - 系统测试
-- [@kongcangyimama](https://github.com/kongcangyimama) - 主题设计
-- [@lingview](https://github.com/lingview) - 系统开发
-- [@q1uf3ng](https://github.com/q1uf3ng) - 渗透测试
-- [@YeFeng0712](https://github.com/YeFeng0712) - 需求分析
-- [@yukifia](https://github.com/yukifia) - 需求分析
-
----
-
 ### 💡 特别感谢
 
 感谢所有为本项目贡献代码、提出问题和提供反馈的开发者。  
