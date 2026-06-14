@@ -4,6 +4,7 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import xyz.lingview.dimstack.config.ThemeProperties;
+import xyz.lingview.dimstack.util.BotUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -73,7 +74,14 @@ public class ThemeResourceFilter implements Filter {
             return;
         }
 
+        // 搜索引擎爬虫访问页面路由时放行，交给SSR控制器渲染，避免直接返回主题SPA的根标签
+        boolean bot = BotUtil.isBot(httpRequest.getHeader("User-Agent"));
+
         if (resourcePath.equals("/") || resourcePath.equals("")) {
+            if (bot) {
+                chain.doFilter(request, response);
+                return;
+            }
             resourcePath = "/index.html";
         }
 
@@ -85,6 +93,10 @@ public class ThemeResourceFilter implements Filter {
 
         String lastSegment = resourcePath.substring(resourcePath.lastIndexOf('/') + 1);
         if (!lastSegment.contains(".")) {
+            if (bot) {
+                chain.doFilter(request, response);
+                return;
+            }
             Resource indexResource = resolveResource("/index.html");
             if (indexResource != null && indexResource.exists()) {
                 serveResource(indexResource, httpResponse);

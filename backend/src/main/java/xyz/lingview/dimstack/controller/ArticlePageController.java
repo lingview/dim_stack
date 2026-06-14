@@ -11,10 +11,9 @@ import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.servlet.ModelAndView;
 import xyz.lingview.dimstack.service.SiteConfigService;
+import xyz.lingview.dimstack.util.BotUtil;
 import xyz.lingview.dimstack.util.DomainUtil;
 import xyz.lingview.dimstack.util.UrlUtil;
-
-import java.util.List;
 
 /**
  * @Author: lingview
@@ -32,17 +31,6 @@ public class ArticlePageController {
     @Autowired
     private SiteConfigService siteConfigService;
 
-    private static final List<String> BOT_UA = List.of(
-            "Googlebot", "Bingbot", "Baiduspider", "DuckDuckBot", "Sogou", "360Spider",
-            "YisouSpider", "ByteSpider"
-    );
-
-    private boolean isBot(String ua) {
-        if (ua == null) return false;
-        String uaLower = ua.toLowerCase();
-        return BOT_UA.stream().anyMatch(bot -> uaLower.contains(bot.toLowerCase()));
-    }
-
     @GetMapping("/article/{alias}")
     public Object articleForSEO(
             @PathVariable String alias,
@@ -51,7 +39,7 @@ public class ArticlePageController {
     ) {
         log.info("访问文章 {} UA={}", alias, ua);
 
-        boolean bot = isBot(ua);
+        boolean bot = BotUtil.isBot(ua);
 
         if (bot) {
             try {

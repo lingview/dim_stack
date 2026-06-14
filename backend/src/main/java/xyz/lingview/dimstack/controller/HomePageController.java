@@ -13,6 +13,7 @@ import xyz.lingview.dimstack.dto.request.PageRequest;
 import xyz.lingview.dimstack.dto.request.PageResult;
 import xyz.lingview.dimstack.service.ArticleService;
 import xyz.lingview.dimstack.service.SiteConfigService;
+import xyz.lingview.dimstack.util.BotUtil;
 import xyz.lingview.dimstack.util.DomainUtil;
 import xyz.lingview.dimstack.util.UrlUtil;
 
@@ -34,17 +35,6 @@ public class HomePageController {
     @Autowired
     private SiteConfigService siteConfigService;
 
-    private static final List<String> BOT_UA = List.of(
-            "Googlebot", "Bingbot", "Baiduspider", "DuckDuckBot", "Sogou", "360Spider",
-            "YisouSpider", "ByteSpider"
-    );
-
-    private boolean isBot(String ua) {
-        if (ua == null) return false;
-        String uaLower = ua.toLowerCase();
-        return BOT_UA.stream().anyMatch(bot -> uaLower.contains(bot.toLowerCase()));
-    }
-
     @GetMapping("/")
     public Object homePageForSEO(
             @RequestHeader(value = "User-Agent", required = false) String ua,
@@ -52,7 +42,7 @@ public class HomePageController {
     ) {
         log.info("访问首页 UA={}", ua);
 
-        boolean bot = isBot(ua);
+        boolean bot = BotUtil.isBot(ua);
 
         if (bot) {
             try {
