@@ -87,6 +87,9 @@
 - [系统启动流程](docs/architecture/startup-flow.md)
 - [缓存模式](docs/architecture/cache-mode.md)
 
+### 主题
+- [面向主题开发者接口文档](docs/themes/themes-frontend-routing-guide.md)
+
 ### 老版本迁移
 - [老版本升级说明](docs/legacy.md)
 
