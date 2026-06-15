@@ -84,7 +84,7 @@ public class LLMServiceImpl implements LLMService {
             if (choices != null && choices.isArray() && choices.size() > 0) {
                 JsonNode message = choices.get(0).get("message");
                 if (message != null) {
-                    String content = message.get("content").asText();
+                    String content = message.get("content").asString();
 
                     try {
                         JsonNode resultNode = objectMapper.readTree(content);
@@ -162,7 +162,7 @@ public class LLMServiceImpl implements LLMService {
             if (choices != null && choices.isArray() && choices.size() > 0) {
                 JsonNode message = choices.get(0).get("message");
                 if (message != null) {
-                    return message.get("content").asText();
+                    return message.get("content").asString();
                 }
             }
             
