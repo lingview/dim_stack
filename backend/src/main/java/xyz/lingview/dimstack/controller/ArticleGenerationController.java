@@ -2,14 +2,13 @@ package xyz.lingview.dimstack.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RateLimit;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
+import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.service.CurrentUserService;
 import xyz.lingview.dimstack.service.LLMService;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -26,23 +25,17 @@ public class ArticleGenerationController {
     @PostMapping("/generate")
     @RequiresPermission({"post:add","post:edit"})
     @RateLimit(window = 60, maxRequests = 3)
-    public ResponseEntity<Map<String, Object>> generateArticle(
+    public ApiResponse<String> generateArticle(
             @RequestBody Map<String, String> request) {
-        Map<String, Object> response = new HashMap<>();
-
         try {
             String username = currentUserService.getCurrentUsername();
             if (username == null) {
-                response.put("success", false);
-                response.put("message", "用户未登录");
-                return ResponseEntity.ok(response);
+                return ApiResponse.error(401, "用户未登录");
             }
 
             String description = request.get("description");
             if (description == null || description.trim().isEmpty()) {
-                response.put("success", false);
-                response.put("message", "文章描述不能为空");
-                return ResponseEntity.ok(response);
+                return ApiResponse.error(400, "文章描述不能为空");
             }
 
             log.info("用户 {} 请求生成文章，描述: {}", username, description.substring(0, Math.min(50, description.length())));
@@ -50,23 +43,16 @@ public class ArticleGenerationController {
             String generatedContent = llmService.generateArticle(description);
 
             if (generatedContent != null && !generatedContent.trim().isEmpty()) {
-                response.put("success", true);
-                response.put("message", "文章生成成功");
-                response.put("data", generatedContent);
                 log.info("用户 {} 文章生成成功", username);
+                return ApiResponse.success("文章生成成功", generatedContent);
             } else {
-                response.put("success", false);
-                response.put("message", "文章生成失败，请检查LLM配置或稍后重试");
                 log.warn("用户 {} 文章生成失败，返回内容为空", username);
+                return ApiResponse.error(500, "文章生成失败，请检查LLM配置或稍后重试");
             }
-
-            return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             log.error("文章生成接口异常", e);
-            response.put("success", false);
-            response.put("message", "文章生成失败: " + e.getMessage());
-            return ResponseEntity.ok(response);
+            return ApiResponse.error(500, "文章生成失败: " + e.getMessage());
         }
     }
 }

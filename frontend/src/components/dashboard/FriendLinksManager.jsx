@@ -44,7 +44,7 @@ export default function FriendLinksManager() {
                 }
             });
 
-            if (response.success) {
+            if (response.code === 200) {
                 setFriendLinks(response.data.data || []);
                 setTotalPages(response.data.total_pages || 0);
             } else {
@@ -66,7 +66,7 @@ export default function FriendLinksManager() {
                 params: { status }
             });
 
-            if (response.success) {
+            if (response.code === 200) {
                 showMessage('success', response.message || '状态更新成功');
                 loadFriendLinks();
             } else {
@@ -86,7 +86,7 @@ export default function FriendLinksManager() {
         try {
             const response = await apiClient.delete(`/friend-links/${id}`);
 
-            if (response.success) {
+            if (response.code === 200) {
                 showMessage('success', response.message || '友链已标记为删除状态');
                 loadFriendLinks();
             } else {
@@ -106,7 +106,7 @@ export default function FriendLinksManager() {
         try {
             const response = await apiClient.delete(`/friend-links/${id}/permanent`);
 
-            if (response.success) {
+            if (response.code === 200) {
                 showMessage('success', response.message || '友链彻底删除成功');
                 loadFriendLinks();
             } else {
@@ -146,7 +146,7 @@ export default function FriendLinksManager() {
         try {
             const response = await apiClient.put(`/friend-links/${id}`, editForm);
 
-            if (response.success) {
+            if (response.code === 200) {
                 showMessage('success', response.message || '友链信息更新成功');
                 setEditingLink(null);
                 loadFriendLinks();
@@ -218,7 +218,7 @@ export default function FriendLinksManager() {
         try {
             setLoadingSiteConfig(true);
             const response = await apiClient.get('/friend-links/site-info');
-            if (response?.success && response?.data) {
+            if (response?.code === 200 && response?.data) {
                 setSiteConfigForm({
                     siteName: response.data.siteName || '',
                     siteUrl: response.data.siteUrl || '',
@@ -250,7 +250,7 @@ export default function FriendLinksManager() {
     const saveSiteConfig = async () => {
         try {
             const response = await apiClient.put('/friend-links/site-info', siteConfigForm);
-            if (response?.success) {
+            if (response?.code === 200) {
                 showMessage('success', response.message || '配置保存成功');
                 closeSiteConfigModal();
             } else {

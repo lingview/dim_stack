@@ -1,11 +1,9 @@
 package xyz.lingview.dimstack.controller;
 
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
+import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.domain.Role;
 import xyz.lingview.dimstack.domain.SiteConfig;
 import xyz.lingview.dimstack.dto.request.HeroDTO;
@@ -65,7 +63,7 @@ public class SiteConfigController {
 
     @GetMapping("/getsiteconfig")
     @RequiresPermission("system:config:management")
-    public ResponseEntity<Map<String, Object>> getsiteconfig() {
+    public ApiResponse<SiteConfig> getsiteconfig() {
         log.info("获取站点配置信息");
         try {
             SiteConfig config = siteConfigService.getSiteConfig();
@@ -74,84 +72,53 @@ public class SiteConfigController {
                 SiteConfig configCopy = new SiteConfig();
                 org.springframework.beans.BeanUtils.copyProperties(config, configCopy);
                 configCopy.setMail_password(null);
-                return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "data", configCopy
-                ));
+                return ApiResponse.success(configCopy);
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of(
-                                "success", false,
-                                "message", "未找到站点配置信息"
-                        ));
+                return ApiResponse.error(404, "未找到站点配置信息");
             }
         } catch (Exception e) {
             log.error("获取站点配置信息失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "获取站点配置信息失败: " + e.getMessage()
-                    ));
+            return ApiResponse.error(500, "获取站点配置信息失败: " + e.getMessage());
         }
     }
 
     @PostMapping("/editsiteconfig")
     @RequiresPermission("system:config:management")
-    public ResponseEntity<Map<String, Object>> editsiteconfig(@RequestBody SiteConfig siteConfig) {
+    public ApiResponse<Void> editsiteconfig(@RequestBody SiteConfig siteConfig) {
         log.info("更新站点配置信息");
         try {
             // 从数据库获取最新配置，避免内存缓存模式下的密码被污染
             SiteConfig dbConfig = siteConfigMapper.getSiteConfig();
             if (dbConfig == null) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of(
-                                "success", false,
-                                "message", "无法获取当前站点配置"
-                        ));
+                return ApiResponse.error(500, "无法获取当前站点配置");
             }
 
             // 保存原始的邮箱密码，防止内存缓存模式下异常覆盖
             String originalMailPassword = dbConfig.getMail_password();
             SiteConfig currentConfig = dbConfig;
-            
+
             if (siteConfig.getSite_name() != null && !siteConfig.getSite_name().trim().isEmpty()) {
                 currentConfig.setSite_name(siteConfig.getSite_name());
             } else if (currentConfig.getSite_name() == null || currentConfig.getSite_name().trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of(
-                                "success", false,
-                                "message", "站点名称不能为空"
-                        ));
+                return ApiResponse.error(400, "站点名称不能为空");
             }
 
             if (siteConfig.getCopyright() != null && !siteConfig.getCopyright().trim().isEmpty()) {
                 currentConfig.setCopyright(siteConfig.getCopyright());
             } else if (currentConfig.getCopyright() == null || currentConfig.getCopyright().trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of(
-                                "success", false,
-                                "message", "版权信息不能为空"
-                        ));
+                return ApiResponse.error(400, "版权信息不能为空");
             }
 
             if (siteConfig.getHero_title() != null && !siteConfig.getHero_title().trim().isEmpty()) {
                 currentConfig.setHero_title(siteConfig.getHero_title());
             } else if (currentConfig.getHero_title() == null || currentConfig.getHero_title().trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of(
-                                "success", false,
-                                "message", "首页标题不能为空"
-                        ));
+                return ApiResponse.error(400, "首页标题不能为空");
             }
 
             if (siteConfig.getHero_subtitle() != null && !siteConfig.getHero_subtitle().trim().isEmpty()) {
                 currentConfig.setHero_subtitle(siteConfig.getHero_subtitle());
             } else if (currentConfig.getHero_subtitle() == null || currentConfig.getHero_subtitle().trim().isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of(
-                                "success", false,
-                                "message", "首页副标题不能为空"
-                        ));
+                return ApiResponse.error(400, "首页副标题不能为空");
             }
 
             if (siteConfig.getRegister_user_permission() != null) {
@@ -210,7 +177,7 @@ public class SiteConfigController {
                 log.debug("前端未提供密码，保留原始密码: {}", originalMailPassword != null ? "***已设置***" : "NULL");
                 currentConfig.setMail_password(originalMailPassword);
             }
-            
+
             log.debug("最终用于更新的密码: {}", currentConfig.getMail_password() != null ? "***已设置***" : "NULL");
 
             if (siteConfig.getMail_protocol() != null) {
@@ -295,45 +262,27 @@ public class SiteConfigController {
                 } catch (Exception e) {
                     log.warn("更新图片压缩线程数失败", e);
                 }
-                
-                return ResponseEntity.ok(Map.of(
-                        "success", true,
-                        "message", "站点配置更新成功"
-                ));
+
+                return ApiResponse.success("站点配置更新成功");
             } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of(
-                                "success", false,
-                                "message", "更新站点配置失败"
-                        ));
+                return ApiResponse.error(500, "更新站点配置失败");
             }
         } catch (Exception e) {
             log.error("更新站点配置信息失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "更新站点配置时发生错误: " + e.getMessage()
-                    ));
+            return ApiResponse.error(500, "更新站点配置时发生错误: " + e.getMessage());
         }
     }
 
     @GetMapping("/roles")
     @RequiresPermission("system:config:management")
-    public ResponseEntity<Map<String, Object>> getAllRoles() {
+    public ApiResponse<List<Role>> getAllRoles() {
         log.info("获取所有角色列表");
         try {
             List<Role> roles = userInformationMapper.selectAllRoles();
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", roles
-            ));
+            return ApiResponse.success(roles);
         } catch (Exception e) {
             log.error("获取角色列表失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "获取角色列表失败: " + e.getMessage()
-                    ));
+            return ApiResponse.error(500, "获取角色列表失败: " + e.getMessage());
         }
     }
 
@@ -341,20 +290,17 @@ public class SiteConfigController {
 
     @PostMapping("/test-smtp")
     @RequiresPermission("system:config:management")
-    public ResponseEntity<Map<String, Object>> testSmtpConfig(@RequestBody TestSmtpRequestDTO testSmtpRequestDTO) {
+    public ApiResponse<Void> testSmtpConfig(@RequestBody TestSmtpRequestDTO testSmtpRequestDTO) {
         String email = testSmtpRequestDTO.getEmail();
         mailService.sendSimpleMail(email, "测试邮件", "这是一封测试邮件");
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "邮件发送成功"
-        ));
+        return ApiResponse.success("邮件发送成功");
     }
 
 
     @GetMapping("/article-status-options")
     @RequiresPermission("system:config:management")
-    public ResponseEntity<Map<String, Object>> getArticleStatusOptions() {
+    public ApiResponse<List<Map<String, Object>>> getArticleStatusOptions() {
         log.info("获取文章状态选项");
 
         List<Map<String, Object>> statusOptions = List.of(
@@ -365,10 +311,7 @@ public class SiteConfigController {
                 Map.of("value", 4, "label", "违规")
         );
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "data", statusOptions
-        ));
+        return ApiResponse.success(statusOptions);
     }
 
     @GetMapping("/icp-record")
@@ -383,164 +326,101 @@ public class SiteConfigController {
 
 
     @GetMapping("/enable-comment")
-    public ResponseEntity<Map<String, Object>> getEnableCommentStatus() {
+    public ApiResponse<Map<String, Object>> getEnableCommentStatus() {
         try {
             Integer enableComment = siteConfigService.getEnableComment();
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", Map.of("enableComment", enableComment == null || enableComment == 1)
-            ));
+            return ApiResponse.success(Map.of("enableComment", enableComment == null || enableComment == 1));
         } catch (Exception e) {
             log.error("获取评论区启用状态失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "获取评论区启用状态失败: " + e.getMessage()
-                    ));
+            return ApiResponse.error(500, "获取评论区启用状态失败: " + e.getMessage());
         }
     }
 
     @GetMapping("/enable-register")
-    public ResponseEntity<Map<String, Object>> getEnableRegisterStatus() {
+    public ApiResponse<Map<String, Object>> getEnableRegisterStatus() {
         try {
             Integer enableRegister = siteConfigService.getEnableRegister();
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", Map.of("enableRegister", enableRegister != null && enableRegister == 1)
-            ));
+            return ApiResponse.success(Map.of("enableRegister", enableRegister != null && enableRegister == 1));
         } catch (Exception e) {
             log.error("获取用户注册状态失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "获取用户注册状态失败: " + e.getMessage()
-                    ));
+            return ApiResponse.error(500, "获取用户注册状态失败: " + e.getMessage());
         }
     }
 
     @GetMapping("/admin-post-no-review")
-    public ResponseEntity<Map<String, Object>> getAdminPostNoReviewStatus() {
+    public ApiResponse<Map<String, Object>> getAdminPostNoReviewStatus() {
         try {
             Integer adminPostNoReview = siteConfigService.getAdminPostNoReview();
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", Map.of("adminPostNoReview", adminPostNoReview != null && adminPostNoReview == 1)
-            ));
+            return ApiResponse.success(Map.of("adminPostNoReview", adminPostNoReview != null && adminPostNoReview == 1));
         } catch (Exception e) {
             log.error("获取管理员文章审核状态失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "获取管理员文章审核状态失败: " + e.getMessage()
-                    ));
+            return ApiResponse.error(500, "获取管理员文章审核状态失败: " + e.getMessage());
         }
     }
 
     @GetMapping("/enable-llm")
-    public ResponseEntity<Map<String, Object>> getEnableLlmStatus() {
+    public ApiResponse<Map<String, Object>> getEnableLlmStatus() {
         try {
             Integer enableLlm = siteConfigService.getEnableLlm();
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", Map.of("enableLlm", enableLlm != null && enableLlm == 1)
-            ));
+            return ApiResponse.success(Map.of("enableLlm", enableLlm != null && enableLlm == 1));
         } catch (Exception e) {
             log.error("获取LLM启用状态失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "获取LLM启用状态失败: " + e.getMessage()
-                    ));
+            return ApiResponse.error(500, "获取LLM启用状态失败: " + e.getMessage());
         }
     }
 
     @GetMapping("/enable-llm-article-review")
-    public ResponseEntity<Map<String, Object>> getEnableLlmArticleReviewStatus() {
+    public ApiResponse<Map<String, Object>> getEnableLlmArticleReviewStatus() {
         try {
             Integer enableLlmArticleReview = siteConfigService.getEnableLlmArticleReview();
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", Map.of("enableLlmArticleReview", enableLlmArticleReview != null && enableLlmArticleReview == 1)
-            ));
+            return ApiResponse.success(Map.of("enableLlmArticleReview", enableLlmArticleReview != null && enableLlmArticleReview == 1));
         } catch (Exception e) {
             log.error("获取LLM自动审核文章状态失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "获取LLM自动审核文章状态失败: " + e.getMessage()
-                    ));
+            return ApiResponse.error(500, "获取LLM自动审核文章状态失败: " + e.getMessage());
         }
     }
 
     @GetMapping("/enable-llm-create-article")
-    public ResponseEntity<Map<String, Object>> getEnableLlmCreateArticleStatus() {
+    public ApiResponse<Map<String, Object>> getEnableLlmCreateArticleStatus() {
         try {
             Integer enableLlmCreateArticle = siteConfigService.getEnableLlmCreateArticle();
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", Map.of("enableLlmCreateArticle", enableLlmCreateArticle != null && enableLlmCreateArticle == 1)
-            ));
+            return ApiResponse.success(Map.of("enableLlmCreateArticle", enableLlmCreateArticle != null && enableLlmCreateArticle == 1));
         } catch (Exception e) {
             log.error("获取LLM生成文章状态失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "获取LLM生成文章状态失败: " + e.getMessage()
-                    ));
+            return ApiResponse.error(500, "获取LLM生成文章状态失败: " + e.getMessage());
         }
     }
 
     @GetMapping("/global-head-code")
-    public ResponseEntity<Map<String, Object>> getGlobalHeadCode() {
+    public ApiResponse<Map<String, Object>> getGlobalHeadCode() {
         try {
             String globalHeadCode = siteConfigService.getGlobalHeadCode();
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", Map.of("globalHeadCode", globalHeadCode != null ? globalHeadCode : "")
-            ));
+            return ApiResponse.success(Map.of("globalHeadCode", globalHeadCode != null ? globalHeadCode : ""));
         } catch (Exception e) {
             log.error("获取全局Head代码失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "获取全局Head代码失败: " + e.getMessage()
-                    ));
+            return ApiResponse.error(500, "获取全局Head代码失败: " + e.getMessage());
         }
     }
 
     @GetMapping("/content-head-code")
-    public ResponseEntity<Map<String, Object>> getContentHeadCode() {
+    public ApiResponse<Map<String, Object>> getContentHeadCode() {
         try {
             String contentHeadCode = siteConfigService.getContentHeadCode();
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", Map.of("contentHeadCode", contentHeadCode != null ? contentHeadCode : "")
-            ));
+            return ApiResponse.success(Map.of("contentHeadCode", contentHeadCode != null ? contentHeadCode : ""));
         } catch (Exception e) {
             log.error("获取内容页Head代码失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "获取内容页Head代码失败: " + e.getMessage()
-                    ));
+            return ApiResponse.error(500, "获取内容页Head代码失败: " + e.getMessage());
         }
     }
 
     @GetMapping("/footer-code")
-    public ResponseEntity<Map<String, Object>> getFooterCode() {
+    public ApiResponse<Map<String, Object>> getFooterCode() {
         try {
             String footerCode = siteConfigService.getFooterCode();
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", Map.of("footerCode", footerCode != null ? footerCode : "")
-            ));
+            return ApiResponse.success(Map.of("footerCode", footerCode != null ? footerCode : ""));
         } catch (Exception e) {
             log.error("获取页脚代码失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "获取页脚代码失败: " + e.getMessage()
-                    ));
+            return ApiResponse.error(500, "获取页脚代码失败: " + e.getMessage());
         }
     }
 

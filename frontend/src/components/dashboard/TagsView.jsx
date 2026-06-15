@@ -21,7 +21,7 @@ export default function TagsView() {
         try {
             setLoading(true);
             const response = await apiClient.get('/tags-categories/tags');
-            if (response.success) {
+            if (response.code === 200) {
                 setTags(response.data || []);
             }
         } catch (error) {
@@ -55,7 +55,7 @@ export default function TagsView() {
         if (window.confirm('确定要禁用这个标签吗？')) {
             try {
                 const response = await apiClient.delete(`/tags-categories/tags/${id}`);
-                if (response.success) {
+                if (response.code === 200) {
                     fetchTags();
                     showToast('标签禁用成功');
                 } else {
@@ -71,7 +71,7 @@ export default function TagsView() {
     const handleActivateTag = async (id) => {
         try {
             const response = await apiClient.put(`/tags-categories/tags/${id}/activate`);
-            if (response.success) {
+            if (response.code === 200) {
                 fetchTags();
                 showToast('标签激活成功');
             } else {
@@ -107,7 +107,7 @@ export default function TagsView() {
                 response = await apiClient.post('/tags-categories/tags', formData);
             }
 
-            if (response.success) {
+            if (response.code === 200) {
                 fetchTags();
                 setShowModal(false);
                 showToast(editingTag ? '标签更新成功' : '标签创建成功');

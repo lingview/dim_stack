@@ -358,7 +358,7 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 response = await apiClient.post('/uploadarticle', payload);
             }
 
-            if (response.success === true || response.message) {
+            if (response.code === 200) {
                 onSave(info);
             } else {
                 throw new Error(response.message || response.error || '操作失败');
@@ -900,7 +900,7 @@ ${cleanText}
                 signal: abortControllerRef.current.signal
             });
 
-            if (response.success && response.data) {
+            if (response.code === 200 && response.data) {
                 const textarea = textareaRef.current;
                 const insertPosition = textarea ? textarea.selectionStart : content.length;
                 

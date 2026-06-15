@@ -47,7 +47,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
                 params
             });
 
-            if (response.success && response.data) {
+            if (response.code === 200 && response.data) {
                 setLocalArticles(response.data.articles || []);
                 setTotalArticles(response.data.total || 0);
                 setTotalPages(response.data.totalPages || Math.ceil((response.data.total || 0) / size));
@@ -220,7 +220,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
         try {
             const response = await apiClient.post('/deletearticle', { article_id: articleId });
 
-            if (response.success) {
+            if (response.code === 200) {
                 showToast('文章删除成功', 'info');
                 fetchArticles(currentPage, pageSize, searchKeyword);
             } else {
@@ -240,7 +240,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
         try {
             const response = await apiClient.post('/unpublisharticle', { article_id: articleId });
 
-            if (response.success) {
+            if (response.code === 200) {
                 showToast('文章已取消发布', 'info');
                 fetchArticles(currentPage, pageSize, searchKeyword);
             } else {
@@ -260,7 +260,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
         try {
             const response = await apiClient.post('/publisharticle', { article_id: articleId });
 
-            if (response.success) {
+            if (response.code === 200) {
                 showToast('文章已发布', 'info');
                 fetchArticles(currentPage, pageSize, searchKeyword);
             } else {
@@ -280,7 +280,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
         try {
             const response = await apiClient.post('/removearticlepassword', { article_id: articleId });
 
-            if (response.success) {
+            if (response.code === 200) {
                 showToast('文章密码已移除', 'info');
                 fetchArticles(currentPage, pageSize, searchKeyword);
             } else {
@@ -296,7 +296,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
         try {
             const response = await apiClient.get(`/getarticle/${articleId}`);
 
-            if (response.success && response.data) {
+            if (response.code === 200 && response.data) {
                 const article = response.data;
                 
                 const markdownContent = article.article_content || '';

@@ -2,17 +2,16 @@ package xyz.lingview.dimstack.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RateLimit;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
+import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.dto.request.ArticleDetailDTO;
 import xyz.lingview.dimstack.dto.request.UpdateArticleDTO;
 import xyz.lingview.dimstack.dto.response.ArticleOperationResult;
 import xyz.lingview.dimstack.service.CurrentUserService;
 import xyz.lingview.dimstack.service.EditArticleService;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -28,19 +27,15 @@ public class EditArticleController {
 
     @GetMapping("/getarticlelist")
     @RequiresPermission({"post:view", "post:edit"})
-    public ResponseEntity<Map<String, Object>> getArticleList(
+    public ApiResponse<Map<String, Object>> getArticleList(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String keyword) {
-        Map<String, Object> response = new HashMap<>();
-
         try {
             String username = currentUserService.getCurrentUsername();
 
             if (username == null) {
-                response.put("success", false);
-                response.put("message", "用户未登录");
-                return ResponseEntity.ok(response);
+                return ApiResponse.error(401, "用户未登录");
             }
 
             Map<String, Object> result;
@@ -50,153 +45,115 @@ public class EditArticleController {
                 result = editArticleService.getArticleListByUsername(username, page, size);
             }
 
-            response.put("success", true);
-            response.put("message", "获取文章列表成功");
-            response.put("data", result);
-            return ResponseEntity.ok(response);
+            return ApiResponse.success("获取文章列表成功", result);
 
         } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "获取文章列表失败: " + e.getMessage());
-            return ResponseEntity.ok(response);
+            return ApiResponse.error(500, "获取文章列表失败: " + e.getMessage());
         }
     }
 
     @PostMapping("/updatearticle")
     @RequiresPermission({"post:update", "post:edit"})
-    public ResponseEntity<Map<String, Object>> updateArticle(
+    public ApiResponse<Void> updateArticle(
             @RequestBody UpdateArticleDTO updateArticleDTO) {
-        Map<String, Object> response = new HashMap<>();
-
         try {
             String username = currentUserService.getCurrentUsername();
 
             if (username == null) {
-                response.put("success", false);
-                response.put("message", "用户未登录");
-                return ResponseEntity.ok(response);
+                return ApiResponse.error(401, "用户未登录");
             }
 
             ArticleOperationResult result = editArticleService.updateArticleWithNotification(updateArticleDTO, username);
-            
-            response.put("success", result.isSuccess());
-            response.put("message", result.getMessage());
-            return ResponseEntity.ok(response);
+
+            return result.isSuccess()
+                    ? ApiResponse.success(result.getMessage())
+                    : ApiResponse.error(500, result.getMessage());
 
         } catch (Exception e) {
             log.error("文章更新失败", e);
-            response.put("success", false);
-            response.put("message", "文章更新失败: " + e.getMessage());
-            return ResponseEntity.ok(response);
+            return ApiResponse.error(500, "文章更新失败: " + e.getMessage());
         }
     }
 
     @GetMapping("/getarticle/{articleId}")
     @RequiresPermission({"post:details", "post:edit"})
-    public ResponseEntity<Map<String, Object>> getArticleDetail(
+    public ApiResponse<ArticleDetailDTO> getArticleDetail(
             @PathVariable String articleId) {
-        Map<String, Object> response = new HashMap<>();
-
         try {
             String username = currentUserService.getCurrentUsername();
 
             if (username == null) {
-                response.put("success", false);
-                response.put("message", "用户未登录");
-                return ResponseEntity.ok(response);
+                return ApiResponse.error(401, "用户未登录");
             }
 
             ArticleDetailDTO article = editArticleService.getArticleDetailById(articleId, username);
 
 //            System.out.println("article: " + article);
             if (article != null) {
-                response.put("success", true);
-                response.put("message", "获取文章详情成功");
-                response.put("data", article);
+                return ApiResponse.success("获取文章详情成功", article);
             } else {
-                response.put("success", false);
-                response.put("message", "获取文章详情失败：权限不足或文章不存在");
+                return ApiResponse.error(404, "获取文章详情失败：权限不足或文章不存在");
             }
 
-            return ResponseEntity.ok(response);
-
         } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "获取文章详情失败: " + e.getMessage());
-            return ResponseEntity.ok(response);
+            return ApiResponse.error(500, "获取文章详情失败: " + e.getMessage());
         }
     }
 
     @PostMapping("/deletearticle")
     @RequiresPermission({"post:delete", "post:edit"})
-    public ResponseEntity<Map<String, Object>> deleteArticle(
+    public ApiResponse<Void> deleteArticle(
             @RequestBody Map<String, String> payload) {
-        Map<String, Object> response = new HashMap<>();
-
         try {
             String username = currentUserService.getCurrentUsername();
 
             if (username == null) {
-                response.put("success", false);
-                response.put("message", "用户未登录");
-                return ResponseEntity.ok(response);
+                return ApiResponse.error(401, "用户未登录");
             }
 
             String articleId = payload.get("article_id");
             if (articleId == null || articleId.isEmpty()) {
-                response.put("success", false);
-                response.put("message", "文章ID不能为空");
-                return ResponseEntity.ok(response);
+                return ApiResponse.error(400, "文章ID不能为空");
             }
 
             ArticleOperationResult result = editArticleService.deleteArticleWithNotification(articleId, username);
-            
-            response.put("success", result.isSuccess());
-            response.put("message", result.getMessage());
-            return ResponseEntity.ok(response);
+
+            return result.isSuccess()
+                    ? ApiResponse.success(result.getMessage())
+                    : ApiResponse.error(500, result.getMessage());
 
         } catch (Exception e) {
             log.error("文章删除失败", e);
-            response.put("success", false);
-            response.put("message", "文章删除失败: " + e.getMessage());
-            return ResponseEntity.ok(response);
+            return ApiResponse.error(500, "文章删除失败: " + e.getMessage());
         }
     }
 
     @PostMapping("/unpublisharticle")
     @RequiresPermission({"post:unpublish", "post:edit"})
-    public ResponseEntity<Map<String, Object>> unpublishArticle(
+    public ApiResponse<Void> unpublishArticle(
             @RequestBody Map<String, String> payload) {
-        Map<String, Object> response = new HashMap<>();
-
         try {
             String username = currentUserService.getCurrentUsername();
 
             if (username == null) {
-                response.put("success", false);
-                response.put("message", "用户未登录");
-                return ResponseEntity.ok(response);
+                return ApiResponse.error(401, "用户未登录");
             }
 
             String articleId = payload.get("article_id");
 
             if (articleId == null || articleId.isEmpty()) {
-                response.put("success", false);
-                response.put("message", "文章ID不能为空");
-                return ResponseEntity.ok(response);
+                return ApiResponse.error(400, "文章ID不能为空");
             }
 
             ArticleOperationResult result = editArticleService.unpublishArticleWithValidation(articleId, username);
-            
-            response.put("success", result.isSuccess());
-            response.put("message", result.getMessage());
-            return ResponseEntity.ok(response);
+
+            return result.isSuccess()
+                    ? ApiResponse.success(result.getMessage())
+                    : ApiResponse.error(500, result.getMessage());
 
         } catch (Exception e) {
             log.error("取消发布失败", e);
-            response.put("success", false);
-            response.put("message", "取消发布失败: " + e.getMessage());
-            return ResponseEntity.ok(response);
+            return ApiResponse.error(500, "取消发布失败: " + e.getMessage());
         }
     }
 
@@ -204,74 +161,58 @@ public class EditArticleController {
     @PostMapping("/publisharticle")
     @RateLimit(window = 60, maxRequests = 2)
     @RequiresPermission({"post:publish", "post:edit"})
-    public ResponseEntity<Map<String, Object>> publishArticle(
+    public ApiResponse<Void> publishArticle(
             @RequestBody Map<String, String> payload) {
-        Map<String, Object> response = new HashMap<>();
-
         try {
             String username = currentUserService.getCurrentUsername();
 
             if (username == null) {
-                response.put("success", false);
-                response.put("message", "用户未登录");
-                return ResponseEntity.ok(response);
+                return ApiResponse.error(401, "用户未登录");
             }
 
             String articleId = payload.get("article_id");
 
             if (articleId == null || articleId.isEmpty()) {
-                response.put("success", false);
-                response.put("message", "文章ID不能为空");
-                return ResponseEntity.ok(response);
+                return ApiResponse.error(400, "文章ID不能为空");
             }
 
             ArticleOperationResult result = editArticleService.publishArticleWithReview(articleId, username);
-            
-            response.put("success", result.isSuccess());
-            response.put("message", result.getMessage());
-            return ResponseEntity.ok(response);
+
+            return result.isSuccess()
+                    ? ApiResponse.success(result.getMessage())
+                    : ApiResponse.error(500, result.getMessage());
 
         } catch (Exception e) {
             log.error("发布失败", e);
-            response.put("success", false);
-            response.put("message", "发布失败: " + e.getMessage());
-            return ResponseEntity.ok(response);
+            return ApiResponse.error(500, "发布失败: " + e.getMessage());
         }
     }
 
     @PostMapping("/removearticlepassword")
     @RequiresPermission({"post:removepassword", "post:edit"})
-    public ResponseEntity<Map<String, Object>> removeArticlePassword(
+    public ApiResponse<Void> removeArticlePassword(
             @RequestBody Map<String, String> payload) {
-        Map<String, Object> response = new HashMap<>();
-
         try {
             String username = currentUserService.getCurrentUsername();
 
             if (username == null) {
-                response.put("success", false);
-                response.put("message", "用户未登录");
-                return ResponseEntity.ok(response);
+                return ApiResponse.error(401, "用户未登录");
             }
 
             String articleId = payload.get("article_id");
             if (articleId == null || articleId.isEmpty()) {
-                response.put("success", false);
-                response.put("message", "文章ID不能为空");
-                return ResponseEntity.ok(response);
+                return ApiResponse.error(400, "文章ID不能为空");
             }
 
             ArticleOperationResult result = editArticleService.removeArticlePasswordWithValidation(articleId, username);
-            
-            response.put("success", result.isSuccess());
-            response.put("message", result.getMessage());
-            return ResponseEntity.ok(response);
+
+            return result.isSuccess()
+                    ? ApiResponse.success(result.getMessage())
+                    : ApiResponse.error(500, result.getMessage());
 
         } catch (Exception e) {
             log.error("移除文章密码失败", e);
-            response.put("success", false);
-            response.put("message", "移除文章密码失败: " + e.getMessage());
-            return ResponseEntity.ok(response);
+            return ApiResponse.error(500, "移除文章密码失败: " + e.getMessage());
         }
     }
 }

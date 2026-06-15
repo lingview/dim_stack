@@ -125,7 +125,7 @@ export default function Dashboard() {
                     const response = await apiClient.get('/getarticlelist', {
                         params: { page: 1, size: 10 }
                     })
-                    if (response.success) {
+                    if (response.code === 200) {
                         setArticles(response.data || [])
                     } else {
                         console.error('获取文章列表失败:', response.message)
@@ -298,7 +298,7 @@ export default function Dashboard() {
             // 获取文章详情
             const response = await apiClient.get(`/getarticle/${articleId}`);
 
-            if (response.success) {
+            if (response.code === 200) {
                 setEditingArticle(response.data);
                 setShowEditor(true);
             } else {

@@ -7,7 +7,6 @@ import xyz.lingview.dimstack.service.ReadArticleService;
 import xyz.lingview.dimstack.service.CurrentUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -26,38 +25,30 @@ public class ReadArticleController {
 
 
     @GetMapping("/{alias}/check-password")
-    public ResponseEntity<Map<String, Object>> checkArticlePassword(@PathVariable String alias) {
-        Map<String, Object> response = new HashMap<>();
+    public ApiResponse<Map<String, Object>> checkArticlePassword(@PathVariable String alias) {
         try {
             boolean needPassword = readArticleService.isArticleNeedPassword(alias);
-            response.put("needPassword", needPassword);
-            response.put("success", true);
-            return ResponseEntity.ok(response);
+            Map<String, Object> data = new HashMap<>();
+            data.put("needPassword", needPassword);
+            return ApiResponse.success(data);
         } catch (Exception e) {
             log.error("检查文章密码失败: ", e);
-            response.put("success", false);
-            response.put("message", "检查文章密码失败");
-            return ResponseEntity.badRequest().body(response);
+            return ApiResponse.error(400, "检查文章密码失败");
         }
     }
 
     @GetMapping("/{alias}")
-    public ResponseEntity<Map<String, Object>> getArticleContent(
+    public ApiResponse<ReadArticle> getArticleContent(
             @PathVariable String alias,
             @RequestParam(required = false) String password) {
-        Map<String, Object> response = new HashMap<>();
         try {
             ReadArticle article = readArticleService.getArticleByAlias(alias, password);
             log.debug("Article data: {}", article);
-            response.put("success", true);
             article.setPassword("******");
-            response.put("data", article);
-            return ResponseEntity.ok(response);
+            return ApiResponse.success(article);
         } catch (Exception e) {
             log.error("获取文章内容失败：", e);
-            response.put("success", false);
-            response.put("message", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return ApiResponse.error(400, e.getMessage());
         }
     }
 

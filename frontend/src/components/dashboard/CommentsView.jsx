@@ -85,9 +85,10 @@ export default function CommentsView() {
                     response = await apiClient.get(`/backentcomments?page=${currentPage}&size=${pageSize}`);
                 }
 
-                if (response) {
+                if (response && response.code === 200 && response.data) {
+                    const data = response.data;
                     if (selectedArticle) {
-                        const escapedComments = (response.comments || []).map(comment => ({
+                        const escapedComments = (data.comments || []).map(comment => ({
                             ...comment,
                             content: escapeHtml(comment.content) || '',
                             username: escapeHtml(comment.username) || '',
@@ -96,7 +97,7 @@ export default function CommentsView() {
                         }));
                         setComments(escapedComments);
                     } else {
-                        const escapedComments = (response.comments || []).map(comment => ({
+                        const escapedComments = (data.comments || []).map(comment => ({
                             ...comment,
                             content: escapeHtml(comment.content) || '',
                             username: escapeHtml(comment.username) || '',
@@ -104,7 +105,7 @@ export default function CommentsView() {
                             article_title: escapeHtml(comment.article_title) || ''
                         }));
                         setComments(escapedComments);
-                        setTotalPages(response.totalPages || 1);
+                        setTotalPages(data.totalPages || 1);
                     }
                 }
             } catch (err) {
@@ -121,9 +122,13 @@ export default function CommentsView() {
     const handleDeleteComment = async (comment_id) => {
         if (!window.confirm('确定要删除这条评论吗？')) return;
         try {
-            await apiClient.delete(`/backentcomments/${comment_id}`);
-            setComments(comments.filter(comment => comment.comment_id !== comment_id));
-            showToast('评论删除成功');
+            const response = await apiClient.delete(`/backentcomments/${comment_id}`);
+            if (response.code === 200) {
+                setComments(comments.filter(comment => comment.comment_id !== comment_id));
+                showToast('评论删除成功');
+            } else {
+                showToast('删除评论失败: ' + (response.message || '未知错误'));
+            }
         } catch (err) {
             showToast('删除评论失败: ' + (err.message || '未知错误'));
             console.error('删除评论失败:', err);
@@ -143,7 +148,11 @@ export default function CommentsView() {
         }
         try {
             const escapedContent = escapeHtml(editContent);
-            await apiClient.put(`/backentcomments/${editingComment}`, { content: escapedContent });
+            const response = await apiClient.put(`/backentcomments/${editingComment}`, { content: escapedContent });
+            if (response.code !== 200) {
+                showToast('更新评论失败: ' + (response.message || '未知错误'));
+                return;
+            }
             setComments(comments.map(comment =>
                 comment.comment_id === editingComment
                     ? { ...comment, content: escapedContent }

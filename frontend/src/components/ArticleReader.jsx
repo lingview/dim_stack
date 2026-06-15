@@ -68,7 +68,7 @@ export default function ArticleReader() {
     const loadSiteCommentStatus = async () => {
         try {
             const response = await apiClient.get('/site/enable-comment');
-            if (response.success && response.data) {
+            if (response.code === 200 && response.data) {
                 setSiteCommentEnabled(response.data.enableComment !== false);
             }
         } catch (error) {
@@ -93,9 +93,9 @@ export default function ArticleReader() {
         try {
             setLoading(true);
             const response = await apiClient.get(`/article/${articleId}/check-password`);
-            if (response.success) {
-                setNeedPassword(response.needPassword);
-                if (response.needPassword) {
+            if (response.code === 200) {
+                setNeedPassword(response.data.needPassword);
+                if (response.data.needPassword) {
                     setShowPasswordInput(true);
                 } else {
                     fetchArticleContent();
@@ -117,7 +117,7 @@ export default function ArticleReader() {
             const params = inputPassword ? { password: inputPassword } : {};
             const response = await apiClient.get(`/article/${articleId}`, { params });
 
-            if (response.success) {
+            if (response.code === 200) {
                 setArticle(response.data);
                 setShowPasswordInput(false);
                 setError('');

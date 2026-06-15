@@ -59,7 +59,7 @@ const FriendLinks = () => {
 
             console.log('FriendLinks API Response:', response);
 
-            if (response.success && response.data) {
+            if (response.code === 200 && response.data) {
                 const data = response.data;
                 setFriendLinks(data.data || []);
                 setTotalItems(data.total || 0);
@@ -108,7 +108,7 @@ const FriendLinks = () => {
         try {
             const response = await apiClient.get('/friend-links/site-info');
             console.log('友链配置数据:', response);
-            if (response?.success && response?.data) {
+            if (response?.code === 200 && response?.data) {
                 setSiteInfo(response.data);
                 console.log('设置 siteInfo:', response.data);
             }
@@ -126,7 +126,7 @@ const FriendLinks = () => {
         e.preventDefault();
         try {
             const response = await apiClient.post('/friend-links/apply', formData);
-            if (response.success) {
+            if (response.code === 200) {
                 showMessage('success', response.message);
                 setFormData({
                     siteName: '',

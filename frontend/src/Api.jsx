@@ -64,7 +64,7 @@ export const fetchSiteName = async () => {
 export const fetchDashboardData = async () => {
     try {
         const response = await apiClient.get('/dashboard/menus');
-        if (response.success) {
+        if (response.code === 200) {
             return response.data;
         } else {
             throw new Error(response.message || '获取仪表盘数据失败');

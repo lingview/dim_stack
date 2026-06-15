@@ -55,9 +55,19 @@ public class UploadController {
 
     @PostMapping("/uploadarticle")
     @RequiresPermission({"post:add", "post:edit"})
-    public ResponseEntity<Map<String, Object>> uploadArticle(HttpServletRequest request,
-                                                             @RequestBody UploadArticle uploadArticle) {
-        return uploadService.uploadArticle(request, uploadArticle);
+    public ApiResponse<Map<String, Object>> uploadArticle(HttpServletRequest request,
+                                                          @RequestBody UploadArticle uploadArticle) {
+        ResponseEntity<Map<String, Object>> result = uploadService.uploadArticle(request, uploadArticle);
+        Map<String, Object> body = result.getBody();
+        if (result.getStatusCode().is2xxSuccessful()) {
+            String message = body != null && body.get("message") != null
+                    ? body.get("message").toString() : "文章保存成功";
+            return ApiResponse.success(message, body);
+        } else {
+            String message = body != null && body.get("error") != null
+                    ? body.get("error").toString() : "文章保存失败";
+            return ApiResponse.error(result.getStatusCode().value(), message, body);
+        }
     }
 
     @PostMapping("/uploadavatar")

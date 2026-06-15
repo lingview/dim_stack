@@ -24,7 +24,7 @@ export default function CategoryManagement() {
         try {
             setLoading(true);
             const response = await apiClient.get('/tags-categories/categories');
-            if (response.success) {
+            if (response.code === 200) {
                 const treeData = buildTreeStructure(response.data || []);
                 setCategories(treeData);
             }
@@ -38,7 +38,7 @@ export default function CategoryManagement() {
     const fetchTopLevelCategories = async () => {
         try {
             const response = await apiClient.get('/tags-categories/categories/top-level');
-            if (response.success) {
+            if (response.code === 200) {
                 setTopLevelCategories(response.data || []);
             }
         } catch (error) {
@@ -88,7 +88,7 @@ export default function CategoryManagement() {
         if (window.confirm('确定要禁用这个分类吗？\n\n注意：此操作将级联禁用该分类及其所有子分类，确保分类体系的完整性。')) {
             try {
                 const response = await apiClient.delete(`/tags-categories/categories/${id}`);
-                if (response.success) {
+                if (response.code === 200) {
                     fetchCategories();
                     showToast('分类禁用成功\n\n已同步禁用所有相关子分类');
                 } else {
@@ -104,7 +104,7 @@ export default function CategoryManagement() {
     const handleActivateCategory = async (id) => {
         try {
             const response = await apiClient.put(`/tags-categories/categories/${id}/activate`);
-            if (response.success) {
+            if (response.code === 200) {
                 fetchCategories();
                 showToast('分类激活成功');
             } else {
@@ -140,7 +140,7 @@ export default function CategoryManagement() {
                 response = await apiClient.post('/tags-categories/categories', formData);
             }
 
-            if (response.success) {
+            if (response.code === 200) {
                 fetchCategories();
                 fetchTopLevelCategories();
                 setShowModal(false);

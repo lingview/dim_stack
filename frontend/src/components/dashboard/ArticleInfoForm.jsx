@@ -62,7 +62,7 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
     const fetchSiteCommentStatus = async () => {
         try {
             const res = await apiClient.get('/site/enable-comment');
-            if (res.success && res.data) {
+            if (res.code === 200 && res.data) {
                 setSiteCommentEnabled(res.data.enableComment !== false);
             }
         } catch (error) {

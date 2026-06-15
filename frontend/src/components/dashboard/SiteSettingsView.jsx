@@ -148,7 +148,7 @@ export default function SiteSettingsView() {
         try {
             const response = await apiClient.get('/site/getsiteconfig');
 
-            if (response.success) {
+            if (response.code === 200) {
                 const escapedData = {
                     ...response.data,
                     site_name: escapeHtml(response.data.site_name) || '',
@@ -196,7 +196,7 @@ export default function SiteSettingsView() {
         try {
             const response = await apiClient.get('/site/roles');
 
-            if (response.success) {
+            if (response.code === 200) {
                 setRoles(response.data);
             } else {
                 showMessage('error', response.message || '获取角色列表失败');
@@ -211,7 +211,7 @@ export default function SiteSettingsView() {
         try {
             const response = await apiClient.get('/site/article-status-options');
 
-            if (response.success) {
+            if (response.code === 200) {
                 setArticleStatusOptions(response.data);
             } else {
                 showMessage('error', response.message || '获取文章状态选项失败');
@@ -227,7 +227,7 @@ export default function SiteSettingsView() {
             setLoadingMusics(true);
             const response = await apiClient.get('/music/admin/enabled');
 
-            if (response.success) {
+            if (response.code === 200) {
                 setMusics(response.data);
             } else {
                 showMessage('error', response.message || '获取音乐列表失败');
@@ -405,7 +405,7 @@ export default function SiteSettingsView() {
                 musicUrl: editingMusic.musicUrl
             });
 
-            if (response.success) {
+            if (response.code === 200) {
                 showMessage('success', '音乐更新成功');
                 setEditingMusic(null);
                 fetchMusics();
@@ -560,7 +560,7 @@ export default function SiteSettingsView() {
         try {
             const response = await apiClient.delete(`/music/delete/${id}`);
 
-            if (response.success) {
+            if (response.code === 200) {
                 showMessage('success', '音乐删除成功');
                 fetchMusics();
             } else {
@@ -582,7 +582,7 @@ export default function SiteSettingsView() {
             const response = await apiClient.post('/site/test-smtp', {
                 email: testEmail.trim()
             });
-            if (response.success) {
+            if (response.code === 200) {
                 showMessage('success', response.message || '测试邮件已发送，请检查收件箱');
             } else {
                 showMessage('error', response.message || '测试邮件发送失败');
@@ -643,7 +643,7 @@ export default function SiteSettingsView() {
 
             const response = await apiClient.post('/site/editsiteconfig', unescapedData);
 
-            if (response.success) {
+            if (response.code === 200) {
                 showMessage('success', '站点配置保存成功');
                 setFormData(prev => ({
                     ...prev,

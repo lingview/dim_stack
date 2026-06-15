@@ -1,9 +1,8 @@
 package xyz.lingview.dimstack.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
+import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.config.ThemeProperties;
 import xyz.lingview.dimstack.service.SiteConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -157,7 +156,7 @@ public class ThemeController {
 
     @GetMapping("/list/json")
     @RequiresPermission("system:theme:management")
-    public ResponseEntity<Map<String, Object>> listAvailableThemesJson() {
+    public ApiResponse<List<Map<String, Object>>> listAvailableThemesJson() {
         try {
             List<Map<String, Object>> themes = new ArrayList<>();
             String themesPath = themeProperties.getThemesPath();
@@ -178,17 +177,10 @@ public class ThemeController {
                         });
             }
 
-            return ResponseEntity.ok(Map.of(
-                    "success", true,
-                    "data", themes
-            ));
+            return ApiResponse.success(themes);
         } catch (Exception e) {
             log.error("获取主题列表失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "Error listing themes"
-                    ));
+            return ApiResponse.error(500, "Error listing themes");
         }
     }
 

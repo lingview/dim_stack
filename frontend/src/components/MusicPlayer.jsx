@@ -31,7 +31,7 @@ const MusicPlayer = () => {
         const fetchMusics = async () => {
             try {
                 const response = await apiClient.get('/music/enabled');
-                if (response.success && response.data && response.data.length > 0) {
+                if (response.code === 200 && response.data && response.data.length > 0) {
                     const config = getConfig();
                     const processedMusics = response.data.map(music => ({
                         ...music,
