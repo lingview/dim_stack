@@ -5,11 +5,13 @@ import { fetchSiteName, fetchSiteIcon } from './Api.jsx'
 import { getConfig } from './utils/config.jsx'
 import MusicPlayer from './components/MusicPlayer';
 
+const importArticleReader = () => import('./components/ArticleReader')
+
 const Home = lazy(() => import('./pages/Home'))
 const Login = lazy(() => import('./components/Login'))
 const Register = lazy(() => import('./components/Register'))
 const Dashboard = lazy(() => import('./components/dashboard/Dashboard.jsx'))
-const ArticleReader = lazy(() => import('./components/ArticleReader'))
+const ArticleReader = lazy(importArticleReader)
 const FriendLinks = lazy(() => import('./components/FriendLinks.jsx'))
 const PageNotFound = lazy(() => import('./components/PageNotFound.jsx'))
 const ForgotPassword = lazy(() => import('./components/ForgotPassword.jsx'))
@@ -57,6 +59,16 @@ function App() {
         };
 
         setSiteIcon();
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (window.requestIdleCallback) {
+            const id = window.requestIdleCallback(() => importArticleReader(), { timeout: 2000 });
+            return () => window.cancelIdleCallback?.(id);
+        }
+        const t = setTimeout(() => importArticleReader(), 1200);
+        return () => clearTimeout(t);
     }, []);
 
     console.log('当前faviconUrl状态:', faviconUrl);
