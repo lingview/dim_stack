@@ -1,18 +1,19 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import Favicon from 'react-favicon'
-import Home from './pages/Home'
-import Login from './components/Login'
-import Register from './components/Register'
-import Dashboard from "./components/dashboard/Dashboard.jsx";
-import ArticleReader from './components/ArticleReader'
 import { fetchSiteName, fetchSiteIcon } from './Api.jsx'
 import { getConfig } from './utils/config.jsx'
-import FriendLinks from "./components/FriendLinks.jsx";
-import PageNotFound from "./components/PageNotFound.jsx";
-import ForgotPassword from "./components/ForgotPassword.jsx";
-import CustomHtmlPage from "./components/CustomHtmlPage.jsx";
 import MusicPlayer from './components/MusicPlayer';
+
+const Home = lazy(() => import('./pages/Home'))
+const Login = lazy(() => import('./components/Login'))
+const Register = lazy(() => import('./components/Register'))
+const Dashboard = lazy(() => import('./components/dashboard/Dashboard.jsx'))
+const ArticleReader = lazy(() => import('./components/ArticleReader'))
+const FriendLinks = lazy(() => import('./components/FriendLinks.jsx'))
+const PageNotFound = lazy(() => import('./components/PageNotFound.jsx'))
+const ForgotPassword = lazy(() => import('./components/ForgotPassword.jsx'))
+const CustomHtmlPage = lazy(() => import('./components/CustomHtmlPage.jsx'))
 
 function App() {
     const [faviconUrl, setFaviconUrl] = useState('/favicon.ico')
@@ -63,20 +64,22 @@ function App() {
     return (
         <>
             <Favicon url={faviconUrl} animated={false} />
-            <Routes>
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/" element={<Home />} />
-                <Route path="/category" element={<Home />} />
-                <Route path="/tag/:tagName" element={<Home />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/dashboard/*" element={<Dashboard />} />
-                <Route path="/article/:articleId" element={<ArticleReader />} />
-                <Route path="/friend-links" element={<FriendLinks />}></Route>
-                <Route path="*" element={<PageNotFound />} />
-                <Route path="/custom-page/:alias" element={<CustomHtmlPage />} />
-            </Routes>
+            <Suspense fallback={null}>
+                <Routes>
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/" element={<Home />} />
+                    <Route path="/category" element={<Home />} />
+                    <Route path="/tag/:tagName" element={<Home />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/dashboard/*" element={<Dashboard />} />
+                    <Route path="/article/:articleId" element={<ArticleReader />} />
+                    <Route path="/friend-links" element={<FriendLinks />}></Route>
+                    <Route path="*" element={<PageNotFound />} />
+                    <Route path="/custom-page/:alias" element={<CustomHtmlPage />} />
+                </Routes>
+            </Suspense>
             {!isDashboardRoute && <MusicPlayer />}
         </>
     )
