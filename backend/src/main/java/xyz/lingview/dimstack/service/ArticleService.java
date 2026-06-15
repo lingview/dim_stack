@@ -27,6 +27,7 @@ public class ArticleService {
         String cacheKey = buildCacheKey(pageRequest);
 
         try {
+            @SuppressWarnings("unchecked")
             PageResult<ArticleDTO> cachedResult = cacheService.get(cacheKey, PageResult.class);
             if (cachedResult != null) {
                 log.debug("命中文章列表缓存: {}", cacheKey);
