@@ -1,1003 +1,2611 @@
-# 次元栈 - DimStack
+# 次元栈 - DimStack API
 
-> 主题开发者接口文档
+次元栈主题开发者接口文档
 
-## RouterController - 路由控制器
-**需要主题开发者适配的路由**
-**描述**: 处理所有前端页面的路由请求，将所有匹配的请求转发到 index.html 文件，以便前端路由器（如 React Router 或 Vue Router）能够处理具体的路由逻辑。这些路由需要主题开发者进行适配和实现。
+Base URLs:
 
-**路径**: 多个路径匹配
+# Authentication
 
-**方法类型**: GET
+- HTTP Authentication, scheme: bearer
 
-**内容类型**: application/x-www-form-urlencoded
+# Default
 
-**路径参数**:
-| 路径            | 示例         |
-|-----------------|--------------|
-| `/`             | 无           |
-| `/login`        | 登录页面     |
-| `/register`     | 注册页面     |
-| `/article/**`   | 文章相关路径 |
-| `/category/**`  | 分类相关路径 |
+## GET 获取首页文章列表
 
+GET /api/articles
 
-## HomeController - 主页面控制器
-### 获取首页文章列表
-**地址:** /api/articles
+用于系统首页获取文章列表，支持按分类过滤
 
-**请求协议:** GET
+### 请求参数
 
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|page|query|integer(int32)| 否 |页码|
+|size|query|integer(int32)| 否 |每页数量|
+|category|query|string| 否 |按分类名过滤|
 
-**内容类型:** application/x-www-form-urlencoded
+> 返回示例
 
-**描述:** 用于系统首页获取文章列表
+> 200 Response
 
-
-**请求参数:**
-
-| 参数| 类型 | 是否必须| 描述| 例子|
-|-----------|------|----------|-------------|---------|
-|page|int32|true|页码|1|
-|size|int32|true|每页数量|10|
-
-**请求示例:**
-```bash
-curl -X GET "https://apilinks.cn/api/articles?page=1&size=10"
-```
-**响应字段:**
-
-| 字段       | 类型  | 描述                                         |
-|------------|-------|----------------------------------------------|
-| data       | 对象  | 存储实际数据的对象                           |
-| ├─ data     | 数组  | 包含具体数据项的数组                         |
-| │ ├─ id     | int32 | 数据项的唯一标识                             |
-| │ ├─ article_id | 字符串| 文章的 UUID                              |
-| │ ├─ title  | 字符串| 文章的标题                                 |
-| │ ├─ excerpt| 字符串| 文章的摘要或简介                           |
-| │ ├─ image  | 字符串| 文章的相关图片链接                           |
-| │ ├─ date   | 字符串| 文章的发布日期和时间，格式为 yyyy-MM-dd HH:mm:ss |
-| │ ├─ author | 字符串| 文章的作者名称或标识                         |
-| │ ├─ category| 字符串| 文章所属的分类                         |
-| │ ├─ tag    | 字符串| 文章所属的标签，不同标签使用英文逗号区分                         |
-| │ └─ alias  | 字符串| 文章的别名或URL的一部分                      |
-| ├─ total    | int32 | 数据库中符合条件的数据总数                   |
-| ├─ page     | int32 | 当前返回的数据页码                           |
-| ├─ size     | int32 | 每页返回的数据条目数量                       |
-| └─ total_pages | int32 | 符合条件的数据总共有几页                   |
-
-**响应示例：**
 ```json
 {
   "data": [
     {
-      "id": 2,
-      "article_id": "3cb9d2eb-bd24-486e-bb56-c6dc9332b4f1",
-      "title": "致谢",
-      "excerpt": "致谢",
-      "image": "https://pan.apilinks.cn/f/Y5Sw/e5f2f1fe4bfceeb32e88217577732c04.jpg",
-      "date": "2025-09-14 11:26:52",
-      "author": "admin",
-      "category": "默认分类",
-      "tag": "默认标签,次元栈",
-      "alias": "thanks"
-    },
-    {
-      "id": 1,
-      "article_id": "a1d3112d-fd8e-4484-9c3c-bad24a9e2019",
-      "title": "关于",
-      "excerpt": "关于",
-      "image": "https://pan.apilinks.cn/f/29um/Image_2756849649102.jpg",
-      "date": "2025-09-13 12:42:47",
-      "author": "admin",
-      "category": "默认分类",
-      "tag": "默认标签,次元栈",
-      "alias": "about"
+      "id": 0,
+      "article_id": "string",
+      "title": "string",
+      "excerpt": "string",
+      "image": "string",
+      "date": "string",
+      "author": "string",
+      "author_avatar": "string",
+      "category": "string",
+      "tag": "string",
+      "alias": "string",
+      "password": true
     }
   ],
-  "total": 2,
-  "page": 1,
-  "size": 10,
-  "total_pages": 1
+  "total": 0,
+  "page": 0,
+  "size": 0,
+  "total_pages": 0
 }
 ```
 
+### 返回结果
 
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|文章列表|[PaginatedArticlesResponse](#schemapaginatedarticlesresponse)|
 
-## CaptchaController - 验证码控制器
-### 获取验证码
-**地址:** /api/captcha
+## GET 获取站点名称
 
-**类型:** GET
+GET /api/site/name
 
+返回站点名称
 
-**内容类型:** application/x-www-form-urlencoded
+> 返回示例
 
-**描述:** 验证码获取
+> 200 Response
 
-
-**请求示例:**
-```bash
-curl -X GET -i "https://apilinks.cn/api/captcha"
 ```
-**响应字段:**
+"string"
+```
 
-| 字段      | 类型    | 描述                                    | 示例 |
-|-----------|---------|-----------------------------------------|------|
-| image     | 字符串  | 图像的 Base64 编码数据                    | `"data:image/png;base64,iVBORw0KGgoAAAANSUhEUg..."` |
-| success   | 布尔值  | 标识请求是否成功                          | `true` |
-| sessionId | 字符串  | 会话标识符                                | `"******"` |
-| key       | 字符串  | 唯一标识                  | `"3d63f17fe65845e7"` |
+### 返回结果
 
-**响应示例：**
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|站点名称|string|
+
+## GET 获取站点图标
+
+GET /api/site/icon
+
+返回站点图标URL
+
+> 返回示例
+
+> 200 Response
+
+```
+"string"
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|站点图标URL|string|
+
+## GET 获取首屏Hero配置
+
+GET /api/site/hero
+
+返回首屏Hero配置
+
+> 返回示例
+
+> 200 Response
+
 ```json
 {
-    "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHgAAAAoCAIAAAC6iKlyAAAB/0lEQVR4Xu3XPU4DMRCG4dRI1HTUSNwiFSWHoeICXMs3m0RZZZj9xn/x2F7vxq9cre2V88QK4kSzLp3wwaxNE7pTE7pTE7pTI0I75/DR/pvQnRoO+pDKNKG7NaE7NRb0UZXpANDuFj4dr2rQ5/cPPXCR6vfthcejXp9f38mBe1R/P68wcEWl0tDJK6N987k3hNbETa3T0EsLtxddy+oBW7jW0N4DU1S5kXUutAzQQ5o51hIa51Jl3lxSB6Y1tFwZem6vBFp2PfoVkT8ANAi07HrUuGZkypIVmtO3hkaClseT0PK0S/Gvobhq0DL+SD2h/yF9yY1ACcv2BM11g/YO3HAvQulSPyzFNYSWyufb77i8OEsF0PwSLVsADZqRKWOtoEEZZhkrCc0rOZ7SspnQpEBDA7cZqg8NxFpZJqFR9BZuEGWahtKseuAeQ5WhH1J26xud6csZoclnDQ9xg6Ga0HFl6ciaoZ8OWObNDu2thTJVhNbKEivkFYKWhV7SArrRdaZa0FoZV/hyGX8MIcltgfY6SmXvAksl0PKKufV/JZGBbymClkno0MA998BUD9xgLhdaysKUNvUO2LW8Z0xoXF2jXOhI2tQ7YNe20BSwxkX1qgBtyQK9r7aElsoTun7g+wzKNAg0rjhiG0Pj3HHbAPo5m9CdmtCdmtCdmtCdugCwGB3v/VPeXwAAAABJRU5ErkJggg==",
-    "success": true,
-    "sessionId": "******",
-    "key": "3d63f17fe65845e7"
+  "title": "string",
+  "subtitle": "string",
+  "image": "string"
 }
 ```
 
+### 返回结果
 
-## RegisterController - 用户注册控制器
-### 用户注册接口
-**地址:** /api/register
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|Hero配置|[HeroConfig](#schemaheroconfig)|
 
-**请求协议:** POST
+## GET 获取版权信息
 
+GET /api/site/copyright
 
-**内容类型:** application/json
+返回版权信息
 
-**描述:** 用户注册接口
+> 返回示例
 
+> 200 Response
 
-**请求参数:**
-
-| 参数| 类型| 是否必须| 描述| 例子|
-|--------------|----------|----------|---------------------------------------------------------|-----------------------|
-| username     | 字符串   | 是       | 用户名                                                  | `"dimstack"`            |
-| email        | 字符串   | 否       | 电子邮件地址                                            | `"test@example.com"`    |
-| phone        | 字符串   | 否       | 手机号码，格式需符合 `^1[3-9]\d{9}$`                    | `"13800000000"`         |
-| password     | 字符串   | 是       | 密码                                                    | `"123456"`              |
-| captcha      | 字符串   | 是       | 验证码                                                  | `"pjru"`                |
-| captchaKey   | 字符串   | 是       | 验证码密钥                                              | `"8f2d1c2c4fc643dc"`    |
-
-**请求示例:**
-```bash
-curl -X POST "https://apilinks.cn/api/register" -H "Content-Type: application/json" -d "{\"username\": \"dimstack\", \"email\": \"test@example.com\", \"phone\": \"13800000000\", \"password\": \"123456\", \"captcha\": \"pjru\", \"captchaKey\": \"8f2d1c2c4fc643dc\"}"
 ```
-**响应字段:**
+"string"
+```
 
-| 字段    | 类型    | 描述                                     | 示例          |
-|---------|---------|------------------------------------------|---------------|
-| data    | 对象    | 存储实际数据的对象                         | -             |
-| ├─ success  | 布尔值  | 标识请求是否成功的布尔值                     | `true`        |
-| ├─ message  | 字符串  | 详细的响应信息                           | `"注册成功！"`|
+### 返回结果
 
-**响应示例：**
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|版权信息|string|
+
+## GET 获取ICP备案号
+
+GET /api/site/icp-record
+
+返回ICP备案号
+
+> 返回示例
+
+> 200 Response
+
+```
+"string"
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|ICP备案号|string|
+
+## GET 获取公安备案号
+
+GET /api/site/mps-record
+
+返回公安备案号
+
+> 返回示例
+
+> 200 Response
+
+```
+"string"
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|公安备案号|string|
+
+## GET 获取评论开关状态
+
+GET /api/site/enable-comment
+
+返回评论是否启用
+
+> 返回示例
+
+> 200 Response
+
 ```json
 {
+  "code": 0,
   "data": {
-    "success": true,
-    "message": "注册成功！"
-  }
+    "enableComment": true
+  },
+  "message": "string"
 }
 ```
 
-## LoginController - 用户登录控制器
-### 用户登录接口
-**地址:** /api/login
+### 返回结果
 
-**请求协议:** POST
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|评论开关状态|[EnableCommentResponse](#schemaenablecommentresponse)|
 
+## GET 获取注册开关状态
 
-**内容类型:** application/json
+GET /api/site/enable-register
 
-**描述:** 用户登录接口
+返回注册是否启用
 
+> 返回示例
 
-**请求体:**
+> 200 Response
 
-| 参数       | 类型     | 必填 | 描述                                     | 示例                 |
-|------------|----------|------|------------------------------------------|----------------------|
-| username   | 字符串   | 否   | 用户名                                   | `"dimstack"`           |
-| password   | 字符串   | 否   | 密码                                     | `"123456"`             |
-| captcha    | 字符串   | 否   | 验证码                                   | `"2mdn"`               |
-| captchaKey | 字符串   | 否   | 验证码密钥                               | `"42ffa3da6b6c4df7"`     |
-
-**请求示例:**
-```bash
-curl -X POST "https://apilinks.cn/api/login" -H "Content-Type: application/json" -H "Cookie: SESSION=ODJhOGNlYTYtMDk1Yy00M2RlLTk4ZDEtNDhjYTY4MWQ2ZTUy" -d "{ \"username\": \"dimstack\", \"password\": \"123456\", \"captcha\": \"2mdn\", \"captchaKey\": \"42ffa3da6b6c4df7\"}"
-```
-**响应字段:**
-
-| 字段    | 类型    | 描述                                     | 示例          |
-|---------|---------|------------------------------------------|---------------|
-| data    | 对象    | 存储实际数据的对象                         | -             |
-| ├─ success| 布尔值  | 标识请求是否成功的布尔值                     | `true`        |
-| ├─ message| 字符串  | 详细的响应信息                           | `"登录成功"`    |
-
-**响应示例：**
 ```json
 {
+  "code": 0,
   "data": {
-    "success": true,
-    "message": "登录成功"
-  }
+    "enableRegister": true
+  },
+  "message": "string"
 }
 ```
 
-### 用户登出接口
-**地址:** /api/logout
+### 返回结果
 
-**请求协议:** POST
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|注册开关状态|[EnableRegisterResponse](#schemaenableregisterresponse)|
 
+## GET 获取全局自定义代码
 
-**内容类型:** application/x-www-form-urlencoded
+GET /api/site/global-head-code
 
-**描述:** 用户登出接口
+返回全局自定义代码
 
+> 返回示例
 
-**请求示例:**
-```bash
-curl -X POST -i "https://apilinks.cn/api/logout" -H "Cookie: SESSION=ZTVmYWI2ZjctNTg3Yy00OTBlLWI5ZmItNjFmOTJjYzUzOTg4"
-```
-**响应字段:**
+> 200 Response
 
-| 字段    | 类型    | 描述                                     | 示例          |
-|---------|---------|------------------------------------------|---------------|
-| data    | 对象    | 存储实际数据的对象                         | -             |
-| ├─ success| 布尔值  | 标识请求是否成功的布尔值                     | `true`        |
-| ├─ message| 字符串  | 详细的响应信息                           | `"登出成功"`    |
-
-**响应示例：**
 ```json
 {
-    "data": {
-        "success": true,
-        "message": "登出成功"
-    }
+  "code": 0,
+  "data": {
+    "globalHeadCode": "string",
+    "contentHeadCode": "string",
+    "footerCode": "string"
+  },
+  "message": "string"
 }
 ```
 
+### 返回结果
 
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|全局自定义代码|[CustomCodeResponse](#schemacustomcoderesponse)|
 
-## ArticleSearchController - 文章搜索控制器
-### 搜索文章
-**地址:** /api/articlesearch/search
+## GET 获取内容自定义代码
 
-**请求协议:** GET
+GET /api/site/content-head-code
 
-**内容类型:** application/x-www-form-urlencoded
+返回内容自定义代码
 
-**描述:** 文章搜索
+> 返回示例
 
-**请求参数:**
+> 200 Response
 
-| 参数    | 类型     | 必填 | 描述           | 示例                |
-|---------|----------|------|----------------|---------------------|
-| keyword | 字符串   | 否   | 搜索关键字     | `%E5%85%B3%E4%BA%8E` (即 URL 编码的 "关于") |
-
-**请求示例:**
-```bash
-注：中文需要URL编码
-curl -X GET -i "https://apilinks.cn/api/articlesearch/search?keyword=%E5%85%B3%E4%BA%8E"
-```
-**响应字段:**
-
-| 字段      | 类型    | 描述                                     | 示例          |
-|-----------|---------|------------------------------------------|---------------|
-| data      | 对象    | 存储实际数据的对象                         | -             |
-| ├─ data   | 数组    | 匹配的文章列表                             | -             |
-| │ ├─ title| 字符串  | 文章标题                                 | `"关于"`      |
-| │ ├─ alias| 字符串  | 文章别名                                 | `"help"`      |
-| │ ├─ id   | int32   | 文章ID                                   | `1`           |
-| │ └─ excerpt| 字符串| 文章摘要                                 | `"关于次元栈论坛"` |
-| ├─ count  | int32   | 返回的文章总数                             | `1`           |
-| success   | 布尔值  | 标识请求是否成功的布尔值                     | `true`        |
-
-**响应示例：**
 ```json
 {
-    "count": 1,
+  "code": 0,
+  "data": {
+    "globalHeadCode": "string",
+    "contentHeadCode": "string",
+    "footerCode": "string"
+  },
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|内容自定义代码|[CustomCodeResponse](#schemacustomcoderesponse)|
+
+## GET 获取页脚自定义代码
+
+GET /api/site/footer-code
+
+返回页脚自定义代码
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "globalHeadCode": "string",
+    "contentHeadCode": "string",
+    "footerCode": "string"
+  },
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|页脚自定义代码|[CustomCodeResponse](#schemacustomcoderesponse)|
+
+## GET 获取验证码
+
+GET /api/captcha
+
+获取图形验证码，返回Base64图片与配套的key
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "image": "string",
+    "key": "string"
+  },
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|验证码信息|[CaptchaResponse](#schemacaptcharesponse)|
+
+## POST 用户注册接口
+
+POST /api/register
+
+用户注册
+
+> Body 请求参数
+
+```json
+{
+  "username": "string",
+  "email": "string",
+  "phone": "string",
+  "password": "string",
+  "captcha": "string",
+  "captchaKey": "string"
+}
+```
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|body|body|[RegisterRequest](#schemaregisterrequest)| 是 |none|
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {},
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|注册结果|[ApiResponse](#schemaapiresponse)|
+
+## POST 用户登录接口
+
+POST /api/login
+
+用户登录
+
+> Body 请求参数
+
+```json
+{
+  "username": "string",
+  "password": "string",
+  "captcha": "string",
+  "captchaKey": "string"
+}
+```
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|body|body|[LoginRequest](#schemaloginrequest)| 是 |none|
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {},
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|登录结果|[ApiResponse](#schemaapiresponse)|
+
+## POST 用户登出接口
+
+POST /api/logout
+
+用户登出
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {},
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|登出结果|[ApiResponse](#schemaapiresponse)|
+
+## POST 发送找回密码验证码
+
+POST /api/forgot-password/send-captcha
+
+发送找回密码验证码到邮箱
+
+> Body 请求参数
+
+```json
+{
+  "username": "string",
+  "email": "string"
+}
+```
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|body|body|[ForgotPasswordSendCaptchaRequest](#schemaforgotpasswordsendcaptcharequest)| 是 |none|
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {},
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|发送结果|[ApiResponse](#schemaapiresponse)|
+
+## POST 校验找回密码验证码
+
+POST /api/forgot-password/verify
+
+校验找回密码验证码
+
+> Body 请求参数
+
+```json
+{
+  "username": "string",
+  "email": "string",
+  "captcha": "string"
+}
+```
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|body|body|[ForgotPasswordVerifyRequest](#schemaforgotpasswordverifyrequest)| 是 |none|
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {},
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|验证结果|[ApiResponse](#schemaapiresponse)|
+
+## POST 重置密码
+
+POST /api/forgot-password/reset
+
+重置用户密码
+
+> Body 请求参数
+
+```json
+{
+  "username": "string",
+  "email": "string",
+  "newPassword": "string",
+  "confirmNewPassword": "string"
+}
+```
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|body|body|[ForgotPasswordResetRequest](#schemaforgotpasswordresetrequest)| 是 |none|
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {},
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|重置结果|[ApiResponse](#schemaapiresponse)|
+
+## GET 获取登录状态
+
+GET /api/user/status
+
+获取当前用户登录状态及基本信息
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "loggedIn": true,
+    "username": "string",
+    "avatar": "string",
+    "message": "string"
+  },
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|用户登录状态|[UserStatusResponse](#schemauserstatusresponse)|
+|401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|未登录|[UnauthorizedResponse](#schemaunauthorizedresponse)|
+
+## GET 搜索文章
+
+GET /api/articlesearch/search
+
+搜索文章
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|keyword|query|string| 否 |搜索关键字（中文需URL编码）|
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "count": 0,
     "data": [
-        {
-            "alias": "help",
-            "id": 1,
-            "title": "关于",
-            "excerpt": "关于次元栈论坛"
-        }
-    ],
+      {
+        "title": "string",
+        "alias": "string",
+        "id": 0,
+        "excerpt": "string"
+      }
+    ]
+  },
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|搜索结果|[SearchResponse](#schemasearchresponse)|
+
+## GET 获取所有启用的标签
+
+GET /api/tags
+
+返回所有启用的标签
+
+> 返回示例
+
+> 200 Response
+
+```json
+[
+  {
+    "id": 0,
+    "tag_name": "string",
+    "tag_explain": "string",
+    "founder": "string",
+    "create_time": "2019-08-24T14:15:22Z",
+    "status": 0
+  }
+]
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|标签列表|Inline|
+
+### 返回数据结构
+
+状态码 **200**
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|*anonymous*|[[Tag](#schematag)]|false|none||none|
+|» id|integer(int32)|false|none||标签ID|
+|» tag_name|string|false|none||标签名称|
+|» tag_explain|string|false|none||标签说明|
+|» founder|string|false|none||创建者UUID|
+|» create_time|string(date-time)|false|none||创建时间|
+|» status|integer(int32)|false|none||状态（0禁用，1启用）|
+
+## GET 获取启用的分类
+
+GET /api/categories
+
+返回启用的分类
+
+> 返回示例
+
+> 200 Response
+
+```json
+[
+  {
+    "id": 0,
+    "article_categories": "string",
+    "categories_explain": "string",
+    "founder": "string",
+    "create_time": "2019-08-24T14:15:22Z",
+    "status": 0,
+    "parent_id": 0,
+    "level": 0,
+    "full_path": "string",
+    "sort_order": 0,
+    "article_count": 0
+  }
+]
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|分类列表|Inline|
+
+### 返回数据结构
+
+状态码 **200**
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|*anonymous*|[[Category](#schemacategory)]|false|none||none|
+|» id|integer(int32)|false|none||分类ID|
+|» article_categories|string|false|none||分类名称|
+|» categories_explain|string|false|none||分类说明|
+|» founder|string|false|none||创建者UUID|
+|» create_time|string(date-time)|false|none||创建时间|
+|» status|integer(int32)|false|none||状态（0禁用，1启用）|
+|» parent_id|integer(int32)¦null|false|none||父分类ID（顶级为null）|
+|» level|integer(int32)¦null|false|none||层级|
+|» full_path|string¦null|false|none||分类完整路径|
+|» sort_order|integer(int32)¦null|false|none||排序值|
+|» article_count|integer(int32)¦null|false|none||文章数|
+
+## GET 获取所有已启用的分类及文章数
+
+GET /api/categoriesandcount
+
+返回所有已启用的分类及文章数
+
+> 返回示例
+
+> 200 Response
+
+```json
+[
+  {
+    "id": 0,
+    "article_categories": "string",
+    "categories_explain": "string",
+    "founder": "string",
+    "create_time": "2019-08-24T14:15:22Z",
+    "status": 0,
+    "parent_id": 0,
+    "level": 0,
+    "full_path": "string",
+    "sort_order": 0,
+    "article_count": 0,
+    "articleCount": 0
+  }
+]
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|分类列表|Inline|
+
+### 返回数据结构
+
+状态码 **200**
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|*anonymous*|[allOf]|false|none||none|
+
+*allOf*
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|» *anonymous*|[Category](#schemacategory)|false|none||none|
+|»» id|integer(int32)|false|none||分类ID|
+|»» article_categories|string|false|none||分类名称|
+|»» categories_explain|string|false|none||分类说明|
+|»» founder|string|false|none||创建者UUID|
+|»» create_time|string(date-time)|false|none||创建时间|
+|»» status|integer(int32)|false|none||状态（0禁用，1启用）|
+|»» parent_id|integer(int32)¦null|false|none||父分类ID（顶级为null）|
+|»» level|integer(int32)¦null|false|none||层级|
+|»» full_path|string¦null|false|none||分类完整路径|
+|»» sort_order|integer(int32)¦null|false|none||排序值|
+|»» article_count|integer(int32)¦null|false|none||文章数|
+
+*and*
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|» *anonymous*|object|false|none||none|
+|»» articleCount|integer(int64)|false|none||该分类下文章数量|
+
+## GET 获取某分类下的所有文章
+
+GET /api/categories/articles
+
+获取某分类下的所有文章
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|category|query|string| 是 |分类名称（中文需URL编码）|
+|page|query|integer(int32)| 否 |当前页码|
+|size|query|integer(int32)| 否 |每页文章数|
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "data": [
+    {
+      "id": 0,
+      "article_id": "string",
+      "title": "string",
+      "excerpt": "string",
+      "image": "string",
+      "date": "string",
+      "author": "string",
+      "author_avatar": "string",
+      "category": "string",
+      "tag": "string",
+      "alias": "string",
+      "password": true
+    }
+  ],
+  "total": 0,
+  "page": 0,
+  "size": 0,
+  "total_pages": 0
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|分类文章列表|[PaginatedArticlesResponse](#schemapaginatedarticlesresponse)|
+
+## GET 获取某标签下的所有文章
+
+GET /api/tags/{tag}/articles
+
+获取某标签下的所有文章
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|tag|path|string| 是 |标签名称（中文需URL编码）|
+|page|query|integer(int32)| 否 |当前页码|
+|size|query|integer(int32)| 否 |每页文章数|
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "data": [
+    {
+      "id": 0,
+      "article_id": "string",
+      "title": "string",
+      "excerpt": "string",
+      "image": "string",
+      "date": "string",
+      "author": "string",
+      "author_avatar": "string",
+      "category": "string",
+      "tag": "string",
+      "alias": "string",
+      "password": true
+    }
+  ],
+  "total": 0,
+  "page": 0,
+  "size": 0,
+  "total_pages": 0
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|标签文章列表|[PaginatedArticlesResponse](#schemapaginatedarticlesresponse)|
+
+## GET 获取热门文章
+
+GET /api/hot/articles
+
+返回热门文章列表
+
+> 返回示例
+
+> 200 Response
+
+```json
+[
+  {
+    "id": 0,
+    "article_id": "string",
+    "title": "string",
+    "excerpt": "string",
+    "date": "string",
+    "author": "string",
+    "category": "string",
+    "page_views": 0,
+    "alias": "string"
+  }
+]
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|热门文章列表|Inline|
+
+### 返回数据结构
+
+状态码 **200**
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|*anonymous*|[[HotArticle](#schemahotarticle)]|false|none||none|
+|» id|integer(int32)|false|none||文章ID|
+|» article_id|string|false|none||文章UUID|
+|» title|string|false|none||文章标题|
+|» excerpt|string|false|none||文章摘要|
+|» date|string|false|none||发布日期|
+|» author|string|false|none||作者|
+|» category|string|false|none||文章分类|
+|» page_views|integer(int32)|false|none||浏览次数|
+|» alias|string|false|none||文章别名|
+
+## GET 检查文章是否需要密码
+
+GET /api/article/{alias}/check-password
+
+检查文章是否需要密码
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|alias|path|string| 是 |文章别名|
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "needPassword": true
+  },
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|密码检查结果|[CheckPasswordResponse](#schemacheckpasswordresponse)|
+
+## GET 获取文章内容
+
+GET /api/article/{alias}
+
+获取文章详细内容
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|alias|path|string| 是 |文章别名|
+|password|query|string| 否 |文章密码（按需填写）|
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "id": 0,
+    "uuid": "string",
+    "article_id": "string",
+    "article_name": "string",
+    "article_cover": "string",
+    "excerpt": "string",
+    "article_content": "string",
+    "page_views": 0,
+    "like_count": 0,
+    "favorite_count": 0,
+    "password": "string",
+    "tag": "string",
+    "category": "string",
+    "alias": "string",
+    "author": "string",
+    "avatar": "string",
+    "create_time": "string",
+    "status": 0,
+    "enable_comment": 0
+  },
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|文章内容|[ArticleDetailResponse](#schemaarticledetailresponse)|
+
+## GET 获取文章点赞状态
+
+GET /api/article/{alias}/liked
+
+获取当前用户对文章的点赞状态
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|alias|path|string| 是 |文章别名|
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "liked": true
+  },
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|点赞状态|[LikeStatusResponse](#schemalikestatusresponse)|
+
+## POST 点赞/取消点赞文章
+
+POST /api/article/{alias}/like
+
+点赞或取消点赞文章
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|alias|path|string| 是 |文章别名|
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {
     "success": true
+  },
+  "message": "string"
 }
 ```
 
-## TagAndCategoryController - 标签&分类控制器
-### 获取启用的分类
+### 返回结果
 
-**地址:** /api/categories
-**类型:** GET
-**内容类型:** application/x-www-form-urlencoded
-**描述:**
-**请求示例:**
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|点赞操作结果|[LikeResponse](#schemalikeresponse)|
 
-```bash
-curl -X GET -i "https://apilinks.cn/api/categories"
-```
-**响应字段:**
+## GET 获取文章下所有评论
 
-| 字段                  | 类型     | 描述                                     | 示例                      |
-|-----------------------|----------|------------------------------------------|---------------------------|
-| data                  | 数组     | 存储所有启用分类的信息数组                 | -                         |
-| ├─ id                 | int32    | 分类ID                                   | `1`                       |
-| ├─ article_categories | 字符串   | 分类名称                                 | `"默认分类"`              |
-| ├─ categories_explain | 字符串   | 分类说明                                 | `"默认分类"`              |
-| ├─ founder            | 字符串   | 创建者标识符                             | `"075eb86f721743e3940f35869154a140175689381296899805858"` |
-| ├─ create_time        | 字符串   | 创建时间                                 | `"2025-09-13T13:35:57"` |
-| ├─ status             | int32    | 状态（0 表示禁用，1 表示启用）             | `1`                       |
+GET /api/comments/article/{articleAlias}
 
-**响应示例：**
+获取文章下所有评论（树形结构）
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|articleAlias|path|string| 是 |文章别名|
+
+> 返回示例
+
+> 200 Response
+
 ```json
 [
   {
-    "id": 1,
-    "article_categories": "默认分类",
-    "categories_explain": "默认分类",
-    "founder": "075eb86f721743e3940f35869154a140175689381296899805858",
-    "create_time": "2025-09-13T13:35:57",
-    "status": 1
-  }
-]
-```
-
-### 获取所有已启用的分类
-**地址:** /api/categoriesandcount
-
-**请求协议:** GET
-
-
-**内容类型:** application/x-www-form-urlencoded
-
-**描述:**
-
-
-**请求示例:**
-```bash
-curl -X GET -i "https://apilinks.cn/api/categoriesandcount"
-```
-**响应字段:**
-
-| 字段                  | 类型     | 描述                                     | 示例                      |
-|-----------------------|----------|------------------------------------------|---------------------------|
-| data                  | 数组     | 存储所有启用分类及其文章数量的信息数组     | -                         |
-| ├─ id                 | int32    | 分类ID                                   | `1`                       |
-| ├─ article_categories | 字符串   | 分类名称                                 | `"默认分类"`              |
-| ├─ categories_explain | 字符串   | 分类说明                                 | `"默认分类"`              |
-| ├─ founder            | 字符串   | 创建者标识符                             | `"075eb86f721743e3940f35869154a140175689381296899805858"` |
-| ├─ create_time        | 字符串   | 创建时间                                 | `"2025-09-13T13:35:57"` |
-| ├─ status             | int32    | 状态（0 表示禁用，1 表示启用）             | `1`                       |
-| ├─ articleCount       | int64    | 该分类下的文章数量                       | `2`                       |
-
-**响应示例：**
-```json
-[
-  {
-    "id": 1,
-    "article_categories": "默认分类",
-    "categories_explain": "默认分类",
-    "founder": "075eb86f721743e3940f35869154a140175689381296899805858",
-    "create_time": "2025-09-13T13:35:57",
-    "status": 1,
-    "articleCount": 2
-  }
-]
-```
-
-### 获取该分类的所有文章
-**地址:** /api/categories/{category}/articles
-
-**请求协议:** GET
-
-
-**内容类型:** application/x-www-form-urlencoded
-
-**描述:**
-
-
-**请求参数:**
-
-| 参数 | 类型   | 必填 | 描述           | 示例 |
-|------|--------|------|----------------|------|
-| page | int32  | 是   | 当前页码       | `1`  |
-| size | int32  | 是   | 每页显示的文章数 | `10` |
-
-**请求示例:**
-```bash
-curl -X GET -i "https://apilinks.cn/api/categories/%E9%BB%98%E8%AE%A4%E5%88%86%E7%B1%BB/articles?page=1&size=10"
-```
-**响应字段:**
-
-| 字段           | 类型   | 描述                                     | 示例                      |
-|----------------|--------|------------------------------------------|---------------------------|
-| data           | 对象   | 包含文章列表及分页信息的对象             | -                         |
-| ├─ data         | 数组   | 文章列表                                 | -                         |
-| │ ├─ id         | int32  | 文章ID                                   | `2`                       |
-| │ ├─ article_id | 字符串 | 文章唯一标识符                           | `"3cb9d2eb-bd24-486e-bb56-c6dc9332b4f1"` |
-| │ ├─ title      | 字符串 | 文章标题                                 | `"致谢"`                  |
-| │ ├─ excerpt    | 字符串 | 文章摘要                                 | `"致谢"`                  |
-| │ ├─ image      | 字符串 | 文章封面图 URL                           | `"https://pan.apilinks.cn/f/Y5Sw/e5f2f1fe4bfceeb32e88217577732c04.jpg"` |
-| │ ├─ date       | 字符串 | 发布日期                                 | `"2025-09-14 11:26:52"` |
-| │ ├─ author     | 字符串 | 作者                                     | `"admin"`                 |
-| │ ├─ category   | 字符串 | 文章所属分类                             | `"默认分类"`              |
-| │ ├─ tag        | 字符串 | 文章所属标签                             | `"次元栈,默认标签"`              |
-| │ └─ alias      | 字符串 | 文章别名                                 | `"thanks"`                |
-| ├─ total        | int32  | 总文章数                                 | `3`                       |
-| ├─ page         | int32  | 当前页码                                 | `1`                       |
-| ├─ size         | int32  | 每页显示的文章数                         | `10`                      |
-| └─ total_pages  | int32  | 总页数                                   | `1`                       |
-**响应示例：**
-```json
-{
-  "data": [
-    {
-      "id": 2,
-      "article_id": "3cb9d2eb-bd24-486e-bb56-c6dc9332b4f1",
-      "title": "致谢",
-      "excerpt": "致谢",
-      "image": "https://pan.apilinks.cn/f/Y5Sw/e5f2f1fe4bfceeb32e88217577732c04.jpg",
-      "date": "2025-09-14 11:26:52",
-      "author": "admin",
-      "category": "默认分类",
-      "tag": "次元栈,默认标签",
-      "alias": "thanks"
-    },
-    {
-      "id": 1,
-      "article_id": "a1d3112d-fd8e-4484-9c3c-bad24a9e2019",
-      "title": "关于",
-      "excerpt": "关于",
-      "image": "https://pan.apilinks.cn/f/29um/Image_2756849649102.jpg",
-      "date": "2025-09-13 12:42:47",
-      "author": "admin",
-      "category": "默认分类",
-      "tag": "次元栈,默认标签",
-      "alias": "about"
-    }
-  ],
-  "total": 3,
-  "page": 1,
-  "size": 10,
-  "total_pages": 1
-}
-```
-
-
-### 获取该标签的所有文章
-**地址:** /api/tags/{tag}/articles
-
-**请求协议:** GET
-
-
-**内容类型:** application/x-www-form-urlencoded
-
-**描述:**
-
-
-**请求参数:**
-
-| 参数 | 类型   | 必填 | 描述           | 示例 |
-|------|--------|------|----------------|------|
-| page | int32  | 是   | 当前页码       | `1`  |
-| size | int32  | 是   | 每页显示的文章数 | `10` |
-
-**请求示例:**
-```bash
-curl -X GET -i "https://apilinks.cn/api/tags/%e9%bb%98%e8%ae%a4%e6%a0%87%e7%ad%be/articles?page=1&size=10"
-```
-**响应字段:**
-
-| 字段           | 类型   | 描述                                     | 示例                      |
-|----------------|--------|------------------------------------------|---------------------------|
-| data           | 对象   | 包含文章列表及分页信息的对象             | -                         |
-| ├─ data         | 数组   | 文章列表                                 | -                         |
-| │ ├─ id         | int32  | 文章ID                                   | `2`                       |
-| │ ├─ article_id | 字符串 | 文章唯一标识符                           | `"3cb9d2eb-bd24-486e-bb56-c6dc9332b4f1"` |
-| │ ├─ title      | 字符串 | 文章标题                                 | `"致谢"`                  |
-| │ ├─ excerpt    | 字符串 | 文章摘要                                 | `"致谢"`                  |
-| │ ├─ image      | 字符串 | 文章封面图 URL                           | `"https://pan.apilinks.cn/f/Y5Sw/e5f2f1fe4bfceeb32e88217577732c04.jpg"` |
-| │ ├─ date       | 字符串 | 发布日期                                 | `"2025-09-14 11:26:52"` |
-| │ ├─ author     | 字符串 | 作者                                     | `"admin"`                 |
-| │ ├─ category   | 字符串 | 文章所属分类                             | `"默认分类"`              |
-| │ ├─ tag        | 字符串 | 文章所属标签                             | `"次元栈,默认标签"`              |
-| │ └─ alias      | 字符串 | 文章别名                                 | `"thanks"`                |
-| ├─ total        | int32  | 总文章数                                 | `3`                       |
-| ├─ page         | int32  | 当前页码                                 | `1`                       |
-| ├─ size         | int32  | 每页显示的文章数                         | `10`                      |
-| └─ total_pages  | int32  | 总页数                                   | `1`                       |
-**响应示例：**
-```json
-{
-    "data": [
-        {
-            "id": 3,
-            "article_id": "52bffedc-5f09-48f4-a6cf-06a906bc73f4",
-            "title": "面向主题开发者接口文档",
-            "excerpt": "面向主题开发者的接口文档",
-            "image": "https://pan.apilinks.cn/f/gMik/995634982fb64ce47cc81c4ef76d2de6.jpeg",
-            "date": "2025-09-25 21:57:39",
-            "author": "admin",
-            "category": "接口文档",
-            "tag": "接口文档,默认标签",
-            "alias": "themeapi"
-        },
-        {
-            "id": 2,
-            "article_id": "3cb9d2eb-bd24-486e-bb56-c6dc9332b4f1",
-            "title": "致谢",
-            "excerpt": "致谢",
-            "image": "https://pan.apilinks.cn/f/Y5Sw/e5f2f1fe4bfceeb32e88217577732c04.jpg",
-            "date": "2025-09-14 11:26:52",
-            "author": "admin",
-            "category": "默认分类",
-            "tag": "默认标签",
-            "alias": "thanks"
-        },
-        {
-            "id": 1,
-            "article_id": "a1d3112d-fd8e-4484-9c3c-bad24a9e2019",
-            "title": "关于",
-            "excerpt": "关于",
-            "image": "https://pan.apilinks.cn/f/29um/Image_2756849649102.jpg",
-            "date": "2025-09-13 12:42:47",
-            "author": "admin",
-            "category": "默认分类",
-            "tag": "默认标签",
-            "alias": "about"
-        }
-    ],
-    "total": 3,
-    "page": 1,
-    "size": 10,
-    "total_pages": 1
-}
-```
-
-
-
-## HotArticleController - 热门文章控制器
-### 获取热门文章
-**地址:** /api/hot/articles
-
-**请求协议:** GET
-
-
-**内容类型:** application/x-www-form-urlencoded
-
-**描述:**
-
-**请求示例:**
-```bash
-curl -X GET -i "https://apilinks.cn/api/hot/articles"
-```
-**响应字段:**
-
-| 字段         | 类型     | 描述                             | 示例                          |
-|--------------|----------|----------------------------------|-------------------------------|
-| data         | 数组     | 存储热门文章的信息数组             | -                             |
-| ├─ id         | int32    | 文章ID                           | `2`                           |
-| ├─ article_id | 字符串   | 文章唯一标识符                   | `"3cb9d2eb-bd24-486e-bb56-c6dc9332b4f1"` |
-| ├─ title      | 字符串   | 文章标题                         | `"致谢"`                      |
-| ├─ excerpt    | 字符串   | 文章摘要                         | `"参与次元栈论坛项目的朋友"`  |
-| ├─ date       | 字符串   | 发布日期                         | `"2025-09-14 11:26:52"`       |
-| ├─ author     | 字符串   | 作者                             | `"lingview"`                  |
-| ├─ category   | 字符串   | 文章所属分类                     | `"默认分类"`                  |
-| ├─ page_views | int32    | 浏览次数                         | `53`                          |
-| └─ alias      | 字符串   | 文章别名                         | `"thanks"`                    |
-
-**响应示例：**
-```json
-[
-    {
-        "id": 2,
-        "article_id": "3cb9d2eb-bd24-486e-bb56-c6dc9332b4f1",
-        "title": "致谢",
-        "excerpt": "参与次元栈论坛项目的朋友",
-        "date": "2025-09-14 11:26:52",
-        "author": "lingview",
-        "category": "默认分类",
-        "page_views": 53,
-        "alias": "thanks"
-    },
-    {
-        "id": 1,
-        "article_id": "a1d3112d-fd8e-4484-9c3c-bad24a9e2019",
-        "title": "关于",
-        "excerpt": "关于次元栈论坛",
-        "date": "2025-09-13 12:42:47",
-        "author": "lingview",
-        "category": "默认分类",
-        "page_views": 44,
-        "alias": "help"
-    }
-]
-```
-
-
-## CommentController - 评论控制器
-### 获取该文章下所有评论
-**地址:** /api/comments/article/{articleAlias}
-
-**请求协议:** GET
-
-
-**内容类型:** application/x-www-form-urlencoded
-
-**描述:**
-
-
-**请求示例:**
-```bash
-curl -X GET -i "https://apilinks.cn/api/comments/article/thanks"
-```
-**响应字段:**
-
-| 字段                | 类型   | 描述                                | 示例                          |
-|---------------------|--------|-------------------------------------|-------------------------------|
-| data                | 数组   | 存储评论及子评论的信息数组          | -                             |
-| ├─ comment_id        | 字符串 | 评论唯一标识符                    | `"ef5bc7a4-435c-4f0e-a9b3-dcbd678010a4"` |
-| ├─ user_id           | 字符串 | 用户唯一标识符                    | `"5fd777d3290540ac8eca0ccc84ebb1eb175783255951989608445"` |
-| ├─ username          | 字符串 | 用户名                              | `"hanbingniao"`               |
-| ├─ avatar            | 字符串 | 用户头像 URL                        | `null` 或 `"/upload/admin/avatar/avatar-4b584fdb-38a7-4c27-8d56-ec72f4bab50c-1757829520.png"` |
-| ├─ content           | 字符串 | 评论内容                            | `"\uD83D\uDC4D"`              |
-| ├─ create_time       | 字符串 | 评论创建时间                        | `"2025-09-14T14:49:39"`       |
-| ├─ comment_like_count| int64  | 评论点赞数                          | `0`                           |
-| ├─ to_comment_id     | 字符串 | 回复评论的唯一标识符（如果存在）    | `null` 或 `"ef5bc7a4-435c-4f0e-a9b3-dcbd678010a4"` |
-| ├─ to_comment_user_id| 字符串 | 回复用户的唯一标识符（如果存在）    | `null` 或 `"075eb86f721743e3940f35869154a140175689381296899805858"` |
-| ├─ to_comment_username| 字符串 | 回复用户名（如果存在）              | `null` 或 `"lingview"`          |
-| ├─ article_id        | 字符串 | 关联文章的唯一标识符              | `null`                        |
-| ├─ article_title     | 字符串 | 关联文章的标题                    | `null`                        |
-| ├─ status            | int32  | 评论状态（例如：0 表示禁用，1 表示启用） | `null`                        |
-| ├─ children          | 数组   | 子评论列表                          | -                             |
-| │ ├─ comment_id      | 字符串 | 子评论唯一标识符                  | `"ce07e85f-1c71-4ab4-a31c-f1b05531ee94"` |
-| │ ├─ user_id         | 字符串 | 子评论用户的唯一标识符            | `"075eb86f721743e3940f35869154a140175689381296899805858"` |
-| │ ├─ username        | 字符串 | 子评论用户名                      | `"lingview"`                  |
-| │ ├─ avatar          | 字符串 | 子评论用户头像 URL                | `"/upload/lmt/avatar/avatar-cc57801d-cf81-4a0b-b7f6-eae0edbc131d-1758351584.jpg"` |
-| │ ├─ content         | 字符串 | 子评论内容                        | `"好久不见hhh"`               |
-| │ ├─ create_time     | 字符串 | 子评论创建时间                    | `"2025-09-14T14:57:24"`       |
-| │ ├─ comment_like_count| int64 | 子评论点赞数                      | `0`                           |
-| │ ├─ to_comment_id   | 字符串 | 子评论回复的评论唯一标识符（如果存在） | `null` 或 `"ef5bc7a4-435c-4f0e-a9b3-dcbd678010a4"` |
-| │ ├─ to_comment_user_id| 字符串 | 子评论回复的用户唯一标识符（如果存在） | `null`                        |
-| │ ├─ to_comment_username| 字符串 | 子评论回复的用户名（如果存在）    | `null`                        |
-| │ ├─ article_id      | 字符串 | 关联子评论的文章唯一标识符        | `null`                        |
-| │ ├─ article_title   | 字符串 | 关联子评论的文章标题              | `null`                        |
-| │ ├─ status          | int32  | 子评论状态（例如：0 表示禁用，1 表示启用） | `null`                        |
-| │ └─ is_liked        | 布尔值  | 当前用户是否点赞                 | `null`                        |
-
-**响应示例：**
-```json
-[
-    {
-        "comment_id": "13448949-ec6d-4b0a-a6d1-cda606734d64",
-        "user_id": "075eb86f721743e3940f35869154a140175689381296899805858",
-        "username": "admin",
-        "avatar": "/upload/admin/avatar/avatar-3e04e348-8bef-4abe-a164-572e0421f17e-1757579183.jpeg",
-        "content": "Hello World",
-        "create_time": "2025-09-25T21:44:33",
-        "comment_like_count": 2,
-        "to_comment_id": null,
-        "to_comment_user_id": null,
-        "to_comment_username": null,
-        "article_id": null,
-        "article_title": null,
-        "status": null,
+    "comment_id": "string",
+    "user_id": "string",
+    "username": "string",
+    "avatar": "string",
+    "content": "string",
+    "create_time": "2019-08-24T14:15:22Z",
+    "comment_like_count": 0,
+    "to_comment_id": "string",
+    "to_comment_user_id": "string",
+    "to_comment_username": "string",
+    "article_id": "string",
+    "article_title": "string",
+    "status": 0,
+    "is_liked": true,
+    "children": [
+      {
+        "comment_id": "string",
+        "user_id": "string",
+        "username": "string",
+        "avatar": "string",
+        "content": "string",
+        "create_time": "2019-08-24T14:15:22Z",
+        "comment_like_count": 0,
+        "to_comment_id": "string",
+        "to_comment_user_id": "string",
+        "to_comment_username": "string",
+        "article_id": "string",
+        "article_title": "string",
+        "status": 0,
         "is_liked": true,
         "children": [
-            {
-                "comment_id": "f97090ef-7b31-4beb-aefd-5bab5c2bd07c",
-                "user_id": "075eb86f721743e3940f35869154a140175689381296899805858",
-                "username": "admin",
-                "avatar": "/upload/admin/avatar/avatar-3e04e348-8bef-4abe-a164-572e0421f17e-1757579183.jpeg",
-                "content": "你好世界",
-                "create_time": "2025-09-25T21:44:46",
-                "comment_like_count": 1,
-                "to_comment_id": "13448949-ec6d-4b0a-a6d1-cda606734d64",
-                "to_comment_user_id": null,
-                "to_comment_username": null,
-                "article_id": null,
-                "article_title": null,
-                "status": null,
-                "is_liked": true,
-                "children": [
-                    {
-                        "comment_id": "9685f56b-38f7-4493-b62a-c9abc93a481e",
-                        "user_id": "d6fe60a7bfd64d86a547d8f335af2e94175880793855984296059",
-                        "username": "test",
-                        "avatar": null,
-                        "content": "好久不见",
-                        "create_time": "2025-09-25T21:46:18",
-                        "comment_like_count": 0,
-                        "to_comment_id": "f97090ef-7b31-4beb-aefd-5bab5c2bd07c",
-                        "to_comment_user_id": null,
-                        "to_comment_username": null,
-                        "article_id": null,
-                        "article_title": null,
-                        "status": null,
-                        "is_liked": false,
-                        "children": []
-                    }
-                ]
-            },
-            {
-                "comment_id": "2838e598-aa84-4456-8639-9347708539ff",
-                "user_id": "d6fe60a7bfd64d86a547d8f335af2e94175880793855984296059",
-                "username": "test",
-                "avatar": null,
-                "content": "hello",
-                "create_time": "2025-09-25T21:46:30",
-                "comment_like_count": 0,
-                "to_comment_id": "13448949-ec6d-4b0a-a6d1-cda606734d64",
-                "to_comment_user_id": null,
-                "to_comment_username": null,
-                "article_id": null,
-                "article_title": null,
-                "status": null,
-                "is_liked": false,
-                "children": []
-            }
+          {
+            "comment_id": "string",
+            "user_id": "string",
+            "username": "string",
+            "avatar": "string",
+            "content": "string",
+            "create_time": "2019-08-24T14:15:22Z",
+            "comment_like_count": 0,
+            "to_comment_id": "string",
+            "to_comment_user_id": "string",
+            "to_comment_username": "string",
+            "article_id": "string",
+            "article_title": "string",
+            "status": 0,
+            "is_liked": true,
+            "children": [
+              null
+            ]
+          }
         ]
-    },
-    {
-        "comment_id": "d38fd390-bdf4-4b22-bf90-4449d3f4137c",
-        "user_id": "d6fe60a7bfd64d86a547d8f335af2e94175880793855984296059",
-        "username": "test",
-        "avatar": null,
-        "content": "评论测试",
-        "create_time": "2025-09-25T21:46:09",
-        "comment_like_count": 0,
-        "to_comment_id": null,
-        "to_comment_user_id": null,
-        "to_comment_username": null,
-        "article_id": null,
-        "article_title": null,
-        "status": null,
-        "is_liked": false,
-        "children": []
-    }
+      }
+    ]
+  }
 ]
 ```
 
-### 添加评论
-**地址:** /api/comments
+### 返回结果
 
-**请求协议:** POST
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|评论列表|Inline|
 
+### 返回数据结构
 
-**内容类型:** application/json
+状态码 **200**
 
-**描述:**
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|*anonymous*|[[Comment](#schemacomment)]|false|none||none|
+|» comment_id|string|false|none||评论唯一标识|
+|» user_id|string|false|none||评论者UUID|
+|» username|string|false|none||评论者用户名|
+|» avatar|string¦null|false|none||评论者头像|
+|» content|string|false|none||评论内容|
+|» create_time|string(date-time)|false|none||评论时间|
+|» comment_like_count|integer(int64)|false|none||点赞数|
+|» to_comment_id|string¦null|false|none||回复的评论ID|
+|» to_comment_user_id|string¦null|false|none||被回复者UUID|
+|» to_comment_username|string¦null|false|none||被回复者用户名|
+|» article_id|string¦null|false|none||关联文章ID|
+|» article_title|string¦null|false|none||关联文章标题|
+|» status|integer(int32)¦null|false|none||评论状态|
+|» is_liked|boolean¦null|false|none||当前用户是否已点赞|
+|» children|[[Comment](#schemacomment)]|false|none||子评论列表|
+|»» comment_id|string|false|none||评论唯一标识|
+|»» user_id|string|false|none||评论者UUID|
+|»» username|string|false|none||评论者用户名|
+|»» avatar|string¦null|false|none||评论者头像|
+|»» content|string|false|none||评论内容|
+|»» create_time|string(date-time)|false|none||评论时间|
+|»» comment_like_count|integer(int64)|false|none||点赞数|
+|»» to_comment_id|string¦null|false|none||回复的评论ID|
+|»» to_comment_user_id|string¦null|false|none||被回复者UUID|
+|»» to_comment_username|string¦null|false|none||被回复者用户名|
+|»» article_id|string¦null|false|none||关联文章ID|
+|»» article_title|string¦null|false|none||关联文章标题|
+|»» status|integer(int32)¦null|false|none||评论状态|
+|»» is_liked|boolean¦null|false|none||当前用户是否已点赞|
+|»» children|[[Comment](#schemacomment)]|false|none||子评论列表|
 
+## POST 添加评论
 
-**请求体:**
+POST /api/comments
 
-| 参数          | 类型   | 必填 | 描述                                | 示例                |
-|---------------|--------|------|-------------------------------------|---------------------|
-| article_alias | 字符串 | 是   | 文章别名                            | `thanks`            |
-| content       | 字符串 | 是   | 评论内容                            | `"接口测试"`        |
-| to_comment_id | 字符串 | 否   | 回复的评论唯一标识符（如果存在）    | `""` 或 `上级评论id` |
+添加评论到文章
 
-**请求示例:**
-```bash
-curl -X POST -H "Content-Type: application/json" -H "Cookie: SESSION=YTI2MDM3OWUtYThhNi00ZTEwLTg3MTMtYjU4Y2YyOTAyNGZj" -i "https://apilinks.cn/api/comments" --data "{\"article_alias\": \"thanks\", \"content\": \"接口测试\", \"to_comment_id\": \"\"}"
-```
-**响应字段:**
+> Body 请求参数
 
-成功发送后返回空响应体，返回http状态码200
-
-**响应示例：**
-```json
-无
-```
-
-### 点赞评论
-**地址:** /api/comments/{commentId}/like
-
-**请求协议:** POST
-
-
-**内容类型:** application/x-www-form-urlencoded
-
-**描述:**
-
-
-**请求参数:**
-
-| 参数     | 类型   | 必填 | 描述              | 示例                                   |
-|----------|--------|------|-------------------|----------------------------------------|
-| commentId| 字符串 | 是   | 评论唯一标识符    | `f7e8930a-becf-42ee-a3f4-6a09d6af837c` |
-
-**请求示例:**
-```bash
-curl -X POST -H "Cookie: SESSION=YTI2MDM3OWUtYThhNi00ZTEwLTg3MTMtYjU4Y2YyOTAyNGZj" -i "https://apilinks.cn/api/comments/f7e8930a-becf-42ee-a3f4-6a09d6af837c/like"
-```
-**响应字段:**
-
-成功点赞后返回空响应体，返回http状态码200
-
-**响应示例：**
-```json
-无
-```
-
-### 删除评论
-**地址:** /api/comments/{commentId}
-
-**请求协议:** DELETE
-
-
-**内容类型:** application/x-www-form-urlencoded
-
-**描述:**
-
-
-**请求参数:**
-
-| 参数     | 类型   | 必填 | 描述              | 示例                                   |
-|----------|--------|------|-------------------|----------------------------------------|
-| commentId| 字符串 | 是   | 评论唯一标识符    | `239afa5d-37af-4aad-9aee-26cea17353b0` |
-
-**请求示例:**
-```bash
-curl -X DELETE -H "Cookie: SESSION=YTI2MDM3OWUtYThhNi00ZTEwLTg3MTMtYjU4Y2YyOTAyNGZj" -i "https://apilinks.cn/api/comments/239afa5d-37af-4aad-9aee-26cea17353b0"
-```
-**响应字段:**
-
-成功删除后返回空响应体，返回http状态码200
-
-**响应示例：**
-```json
-获取用户登录状态
-```
-
-## UserController - 用户控制器
-### getUserStatus
-**地址:** /api/user/status
-
-**类型:** GET
-
-
-**内容类型:** application/x-www-form-urlencoded
-
-**描述:**
-
-
-**请求示例:**
-```bash
-curl -X GET -H "Cookie: SESSION=YTI2MDM3OWUtYThhNi00ZTEwLTg3MTMtYjU4Y2YyOTAyNGZj" -i "https://apilinks.cn/api/user/status"
-```
-**响应字段:**
-
-| 字段       | 类型    | 描述                    | 示例             |
-|------------|---------|-------------------------|------------------|
-| data       | 对象    | 数据对象                |                  |
-| └─ loggedIn| 布尔值  | 是否已登录              | `true`           |
-| └─ username| 字符串  | 用户名                  | `"lingview"`     |
-| └─ message| 字符串  | 用户状态消息            | `""`             |
-
-**响应示例：**
 ```json
 {
-  "loggedIn": true,
-  "username": "lingview"
+  "article_alias": "string",
+  "content": "string",
+  "to_comment_id": "string"
 }
 ```
 
+### 请求参数
 
-## ReadArticleController - 文章阅读控制器
-### 检查文章密码
-**地址:** http://{{server}}/api/article/{alias}/check-password
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|body|body|[AddCommentRequest](#schemaaddcommentrequest)| 是 |none|
 
-**请求协议:** GET
+### 返回结果
 
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|评论添加成功|None|
 
-**内容类型:** application/x-www-form-urlencoded
+## POST 点赞评论
 
-**描述:**
+POST /api/comments/{commentId}/like
 
+点赞评论
 
-**请求参数:**
+### 请求参数
 
-| 参数   | 类型   | 必填 | 描述              | 示例               |
-|--------|--------|------|-------------------|--------------------|
-| alias  | 字符串 | 是   | 文章别名          | `thanks`           |
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|commentId|path|string| 是 |评论唯一标识|
 
-**请求示例:**
-```bash
-curl -X GET -i "https://apilinks.cn/api/article/thanks/check-password"
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|点赞成功|None|
+
+## DELETE 删除评论
+
+DELETE /api/comments/{commentId}
+
+删除评论
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|commentId|path|string| 是 |评论唯一标识|
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|删除成功|None|
+
+## GET 获取前台导航菜单
+
+GET /api/frontendgetmenus
+
+返回前台导航菜单
+
+> 返回示例
+
+> 200 Response
+
+```json
+[
+  {
+    "menus_id": "string",
+    "menus_name": "string",
+    "menus_url": "string",
+    "sort_order": 0,
+    "status": 0,
+    "user_id": "string",
+    "username": "string"
+  }
+]
 ```
-**响应字段:**
 
-| 字段       | 类型    | 描述                    | 示例                 |
-|------------|---------|-------------------------|----------------------|
-| data       | 对象    | 数据对象                |                      |
-| └─ success| 布尔值  | 请求是否成功            | `true`               |
-| └─ needPassword| 布尔值| 文章是否需要密码        | `false`              |
+### 返回结果
 
-**响应示例：**
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|导航菜单列表|Inline|
+
+### 返回数据结构
+
+状态码 **200**
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|*anonymous*|[[Menu](#schemamenu)]|false|none||none|
+|» menus_id|string|false|none||菜单ID|
+|» menus_name|string|false|none||菜单名称|
+|» menus_url|string|false|none||菜单链接|
+|» sort_order|integer(int32)|false|none||排序值|
+|» status|integer(int32)|false|none||状态（0禁用，1启用）|
+|» user_id|string|false|none||创建者UUID|
+|» username|string|false|none||创建者用户名|
+
+## GET 根据别名获取自定义页面
+
+GET /api/custom-pages/{alias}
+
+根据别名获取自定义页面
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|alias|path|string| 是 |页面别名|
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "id": 0,
+    "pageName": "string",
+    "pageCode": "string",
+    "alias": "string",
+    "creatorUsername": "string",
+    "createTime": "2019-08-24T14:15:22Z",
+    "status": 0
+  },
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|自定义页面详情|[CustomPageResponse](#schemacustompageresponse)|
+
+## GET 分页获取已审核友链
+
+GET /api/friend-links/approved/page
+
+分页获取已审核友链
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|page|query|integer(int32)| 否 |页码|
+|size|query|integer(int32)| 否 |每页数量|
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "total": 0,
+    "page": 0,
+    "size": 0,
+    "total_pages": 0,
+    "data": [
+      {
+        "id": 0,
+        "siteName": "string",
+        "siteUrl": "string",
+        "siteIcon": "string",
+        "siteDescription": "string",
+        "webmasterName": "string",
+        "contact": "string",
+        "createTime": "string",
+        "status": 0
+      }
+    ]
+  },
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|友链列表|[PaginatedFriendLinksResponse](#schemapaginatedfriendlinksresponse)|
+
+## GET 获取本站友链信息
+
+GET /api/friend-links/site-info
+
+获取本站友链信息（用于申请页展示）
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {},
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|本站友链信息|[SiteInfoResponse](#schemasiteinforesponse)|
+
+## POST 申请友链
+
+POST /api/friend-links/apply
+
+申请友链
+
+> Body 请求参数
+
+```json
+{
+  "siteName": "string",
+  "siteUrl": "string",
+  "siteIcon": "string",
+  "siteDescription": "string",
+  "webmasterName": "string",
+  "contact": "string"
+}
+```
+
+### 请求参数
+
+|名称|位置|类型|必选|说明|
+|---|---|---|---|---|
+|body|body|[FriendLinkApplyRequest](#schemafriendlinkapplyrequest)| 是 |none|
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": {},
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|申请结果|[ApiResponse](#schemaapiresponse)|
+
+## GET 获取已启用的音乐列表
+
+GET /api/music/enabled
+
+返回已启用的音乐列表
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 0,
+  "data": [
+    {
+      "id": 0,
+      "musicName": "string",
+      "musicAuthor": "string",
+      "musicUrl": "string",
+      "createTime": "2019-08-24T14:15:22Z",
+      "status": 0
+    }
+  ],
+  "message": "string"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|音乐列表|[MusicListResponse](#schemamusiclistresponse)|
+
+# 数据模型
+
+<h2 id="tocS_Article">Article</h2>
+
+<a id="schemaarticle"></a>
+<a id="schema_Article"></a>
+<a id="tocSarticle"></a>
+<a id="tocsarticle"></a>
+
+```json
+{
+  "id": 0,
+  "article_id": "string",
+  "title": "string",
+  "excerpt": "string",
+  "image": "string",
+  "date": "string",
+  "author": "string",
+  "author_avatar": "string",
+  "category": "string",
+  "tag": "string",
+  "alias": "string",
+  "password": true
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|id|integer(int32)|false|none||数据项的唯一标识|
+|article_id|string|false|none||文章的UUID|
+|title|string|false|none||文章标题|
+|excerpt|string|false|none||文章摘要|
+|image|string|false|none||文章封面图链接|
+|date|string|false|none||发布时间 yyyy-MM-dd HH:mm:ss|
+|author|string|false|none||作者名|
+|author_avatar|string|false|none||作者头像链接|
+|category|string|false|none||文章所属分类|
+|tag|string¦null|false|none||文章标签，多个以英文逗号分隔|
+|alias|string|false|none||文章别名（URL片段）|
+|password|boolean|false|none||是否为加密文章|
+
+<h2 id="tocS_PaginatedArticlesResponse">PaginatedArticlesResponse</h2>
+
+<a id="schemapaginatedarticlesresponse"></a>
+<a id="schema_PaginatedArticlesResponse"></a>
+<a id="tocSpaginatedarticlesresponse"></a>
+<a id="tocspaginatedarticlesresponse"></a>
+
+```json
+{
+  "data": [
+    {
+      "id": 0,
+      "article_id": "string",
+      "title": "string",
+      "excerpt": "string",
+      "image": "string",
+      "date": "string",
+      "author": "string",
+      "author_avatar": "string",
+      "category": "string",
+      "tag": "string",
+      "alias": "string",
+      "password": true
+    }
+  ],
+  "total": 0,
+  "page": 0,
+  "size": 0,
+  "total_pages": 0
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|data|[[Article](#schemaarticle)]|false|none||none|
+|total|integer(int32)|false|none||符合条件的数据总数|
+|page|integer(int32)|false|none||当前页码|
+|size|integer(int32)|false|none||每页数量|
+|total_pages|integer(int32)|false|none||总页数|
+
+<h2 id="tocS_UnauthorizedResponse">UnauthorizedResponse</h2>
+
+<a id="schemaunauthorizedresponse"></a>
+<a id="schema_UnauthorizedResponse"></a>
+<a id="tocSunauthorizedresponse"></a>
+<a id="tocsunauthorizedresponse"></a>
+
 ```json
 {
   "success": true,
-  "needPassword": false
+  "message": "string"
 }
+
 ```
 
-### 获取文章内容
+### 属性
 
-**地址:** /api/article/{alias}
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|success|boolean|false|none||请求是否成功|
+|message|string|false|none||错误消息|
 
-**类型:** GET
+<h2 id="tocS_HeroConfig">HeroConfig</h2>
 
+<a id="schemaheroconfig"></a>
+<a id="schema_HeroConfig"></a>
+<a id="tocSheroconfig"></a>
+<a id="tocsheroconfig"></a>
 
-**内容类型:** application/x-www-form-urlencoded
-
-**描述:**
-
-
-**请求参数:**
-| 参数   | 类型   | 必填 | 描述              | 示例               |
-|--------|--------|------|-------------------|--------------------|
-| alias  | 字符串 | 是   | 文章别名          | `about`            |
-| password | 字符串 | 否   | 文章密码          | `mysecretpassword` |
-
-**请求示例:**
-```bash
-curl -X GET -i 'http://{{server}}/api/article/{alias}?password='
-```
-**响应字段:**
-
-| 字段       | 类型    | 描述        | 示例                 |
-|------------|---------|-----------|----------------------|
-| data       | 对象    | 数据对象      |                      |
-| └─ id      | 整数    | 文章 ID     | `1`                  |
-| └─ uuid    | 字符串  | 文章作者 UUID | `"075eb86f721743e3940f35869154a140175689381296899805858"` |
-| └─ article_id | 字符串 | 文章唯一标识符   | `"a1d3112d-fd8e-4484-9c3c-bad24a9e2019"` |
-| └─ article_name | 字符串 | 文章标题      | `"关于"`             |
-| └─ article_cover | 字符串 | 文章封面图     | `"https://pan.apilinks.cn/f/29um/Image_2756849649102.jpg"` |
-| └─ excerpt  | 字符串  | 文章摘要      | `"关于次元栈论坛"`   |
-| └─ article_content | 字符串 | 文章内容      | `"# 关于次元栈\n## \uD83C\uDF1F 项目简介\n\n**次元栈** 是一个面向多元兴趣群体的内容社区平台，致力于为 **Vsinger 爱好者**、**Minecraft 创作者** 与 **计算机技术爱好者** 提供一个自由表达、知识共享与创作沉淀的空间。\n\n平台核心功能：\n- \uD83D\uDCDD 文章发布与内容管理（CMS）\n- \uD83D\uDCAC 用户互动：评论、点赞、收藏\n- \uD83D\uDD16 标签分类：支持跨圈层内容组织（如 #洛天依、#乐正绫、#星尘、#红石电路、#Java）\n- \uD83D\uDC65 用户系统：注册、登录、个人主页\n- \uD83D\uDD0D 内容搜索与推荐\n- \uD83D\uDCF1 响应式前端，支持移动端浏览\n\n---\n\n## \uD83D\uDEE0 技术栈\n\n| 层级       | 技术选型                                                         |\n|------------|--------------------------------------------------------------|\n| **后端**   | Java 17, Spring Boot 3.5, Mybatis, MySQL, Redis, Cookie      |\n| **前端**   | React 19, JavaScript, Vite, Axios, Tailwind CSS              |\n| **构建**   | Maven (后端), npm/pnpm (前端)                                    |\n| **部署**   | Docker, Nginx, Linux, Windows                                |\n---\n\n"` |
-| └─ page_views  | 整数    | 阅读次数      | `48`                 |
-| └─ like_count  | 整数    | 点赞次数      | `0`                  |
-| └─ favorite_count | 整数    | 收藏次数      | `0`                  |
-| └─ password  | 字符串  | 文章密码      | `""`                 |
-| └─ tag  | 字符串  | 文章标签      | `"默认标签"`         |
-| └─ category  | 字符串  | 文章分类      | `"默认分类"`         |
-| └─ alias  | 字符串  | 文章别名      | `"about"`            |
-| └─ create_time | 字符串  | 创建时间      | `"2025-09-13 12:42:47"` |
-| └─ status  | 整数    | 文章状态      | `1`                  |
-| success    | 布尔值  | 请求是否成功    | `true`               |
-
-**响应示例：**
 ```json
 {
+  "title": "string",
+  "subtitle": "string",
+  "image": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|title|string|false|none||主标题|
+|subtitle|string|false|none||副标题|
+|image|string|false|none||背景图链接|
+
+<h2 id="tocS_EnableCommentResponse">EnableCommentResponse</h2>
+
+<a id="schemaenablecommentresponse"></a>
+<a id="schema_EnableCommentResponse"></a>
+<a id="tocSenablecommentresponse"></a>
+<a id="tocsenablecommentresponse"></a>
+
+```json
+{
+  "code": 0,
   "data": {
-    "id": 1,
-    "uuid": "075eb86f721743e3940f35869154a140175689381296899805858",
-    "article_id": "a1d3112d-fd8e-4484-9c3c-bad24a9e2019",
-    "article_name": "关于",
-    "article_cover": "https://pan.apilinks.cn/f/29um/Image_2756849649102.jpg",
-    "excerpt": "关于次元栈论坛",
-    "article_content": "# 关于次元栈\n## \uD83C\uDF1F 项目简介\n\n**次元栈** 是一个面向多元兴趣群体的内容社区平台，致力于为 **Vsinger 爱好者**、**Minecraft 创作者** 与 **计算机技术爱好者** 提供一个自由表达、知识共享与创作沉淀的空间。\n\n平台核心功能：\n- \uD83D\uDCDD 文章发布与内容管理（CMS）\n- \uD83D\uDCAC 用户互动：评论、点赞、收藏\n- \uD83D\uDD16 标签分类：支持跨圈层内容组织（如 #洛天依、#乐正绫、#星尘、#红石电路、#Java）\n- \uD83D\uDC65 用户系统：注册、登录、个人主页\n- \uD83D\uDD0D 内容搜索与推荐\n- \uD83D\uDCF1 响应式前端，支持移动端浏览\n\n---\n\n## \uD83D\uDEE0 技术栈\n\n| 层级       | 技术选型                                                         |\n|------------|--------------------------------------------------------------|\n| **后端**   | Java 17, Spring Boot 3.5, Mybatis, MySQL, Redis, Cookie      |\n| **前端**   | React 19, JavaScript, Vite, Axios, Tailwind CSS              |\n| **构建**   | Maven (后端), npm/pnpm (前端)                                    |\n| **部署**   | Docker, Nginx, Linux, Windows                                |\n---\n\n",
-    "page_views": 48,
+    "enableComment": true
+  },
+  "message": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|object|false|none||none|
+|» enableComment|boolean|false|none||是否启用评论|
+|message|string|false|none||提示信息|
+
+<h2 id="tocS_EnableRegisterResponse">EnableRegisterResponse</h2>
+
+<a id="schemaenableregisterresponse"></a>
+<a id="schema_EnableRegisterResponse"></a>
+<a id="tocSenableregisterresponse"></a>
+<a id="tocsenableregisterresponse"></a>
+
+```json
+{
+  "code": 0,
+  "data": {
+    "enableRegister": true
+  },
+  "message": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|object|false|none||none|
+|» enableRegister|boolean|false|none||是否启用注册|
+|message|string|false|none||提示信息|
+
+<h2 id="tocS_CustomCodeResponse">CustomCodeResponse</h2>
+
+<a id="schemacustomcoderesponse"></a>
+<a id="schema_CustomCodeResponse"></a>
+<a id="tocScustomcoderesponse"></a>
+<a id="tocscustomcoderesponse"></a>
+
+```json
+{
+  "code": 0,
+  "data": {
+    "globalHeadCode": "string",
+    "contentHeadCode": "string",
+    "footerCode": "string"
+  },
+  "message": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|object|false|none||none|
+|» globalHeadCode|string|false|none||全局头部代码|
+|» contentHeadCode|string|false|none||内容头部代码|
+|» footerCode|string|false|none||页脚代码|
+|message|string|false|none||提示信息|
+
+<h2 id="tocS_CaptchaResponse">CaptchaResponse</h2>
+
+<a id="schemacaptcharesponse"></a>
+<a id="schema_CaptchaResponse"></a>
+<a id="tocScaptcharesponse"></a>
+<a id="tocscaptcharesponse"></a>
+
+```json
+{
+  "code": 0,
+  "data": {
+    "image": "string",
+    "key": "string"
+  },
+  "message": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|object|false|none||none|
+|» image|string|false|none||图像的Base64编码|
+|» key|string|false|none||验证码唯一标识|
+|message|string|false|none||提示信息|
+
+<h2 id="tocS_RegisterRequest">RegisterRequest</h2>
+
+<a id="schemaregisterrequest"></a>
+<a id="schema_RegisterRequest"></a>
+<a id="tocSregisterrequest"></a>
+<a id="tocsregisterrequest"></a>
+
+```json
+{
+  "username": "string",
+  "email": "string",
+  "phone": "string",
+  "password": "string",
+  "captcha": "string",
+  "captchaKey": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|username|string|true|none||用户名|
+|email|string|false|none||电子邮件地址|
+|phone|string|false|none||手机号|
+|password|string|true|none||密码|
+|captcha|string|true|none||验证码|
+|captchaKey|string|true|none||验证码密钥|
+
+<h2 id="tocS_LoginRequest">LoginRequest</h2>
+
+<a id="schemaloginrequest"></a>
+<a id="schema_LoginRequest"></a>
+<a id="tocSloginrequest"></a>
+<a id="tocsloginrequest"></a>
+
+```json
+{
+  "username": "string",
+  "password": "string",
+  "captcha": "string",
+  "captchaKey": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|username|string|true|none||用户名|
+|password|string|true|none||密码|
+|captcha|string|true|none||验证码|
+|captchaKey|string|true|none||验证码密钥|
+
+<h2 id="tocS_ApiResponse">ApiResponse</h2>
+
+<a id="schemaapiresponse"></a>
+<a id="schema_ApiResponse"></a>
+<a id="tocSapiresponse"></a>
+<a id="tocsapiresponse"></a>
+
+```json
+{
+  "code": 0,
+  "data": {},
+  "message": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|object|false|none||返回数据|
+|message|string|false|none||提示信息|
+
+<h2 id="tocS_ForgotPasswordSendCaptchaRequest">ForgotPasswordSendCaptchaRequest</h2>
+
+<a id="schemaforgotpasswordsendcaptcharequest"></a>
+<a id="schema_ForgotPasswordSendCaptchaRequest"></a>
+<a id="tocSforgotpasswordsendcaptcharequest"></a>
+<a id="tocsforgotpasswordsendcaptcharequest"></a>
+
+```json
+{
+  "username": "string",
+  "email": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|username|string|true|none||用户名|
+|email|string|true|none||注册邮箱|
+
+<h2 id="tocS_ForgotPasswordVerifyRequest">ForgotPasswordVerifyRequest</h2>
+
+<a id="schemaforgotpasswordverifyrequest"></a>
+<a id="schema_ForgotPasswordVerifyRequest"></a>
+<a id="tocSforgotpasswordverifyrequest"></a>
+<a id="tocsforgotpasswordverifyrequest"></a>
+
+```json
+{
+  "username": "string",
+  "email": "string",
+  "captcha": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|username|string|true|none||用户名|
+|email|string|true|none||邮箱|
+|captcha|string|true|none||邮箱收到的验证码|
+
+<h2 id="tocS_ForgotPasswordResetRequest">ForgotPasswordResetRequest</h2>
+
+<a id="schemaforgotpasswordresetrequest"></a>
+<a id="schema_ForgotPasswordResetRequest"></a>
+<a id="tocSforgotpasswordresetrequest"></a>
+<a id="tocsforgotpasswordresetrequest"></a>
+
+```json
+{
+  "username": "string",
+  "email": "string",
+  "newPassword": "string",
+  "confirmNewPassword": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|username|string|true|none||用户名|
+|email|string|true|none||邮箱|
+|newPassword|string|true|none||新密码|
+|confirmNewPassword|string|true|none||确认新密码|
+
+<h2 id="tocS_UserStatusResponse">UserStatusResponse</h2>
+
+<a id="schemauserstatusresponse"></a>
+<a id="schema_UserStatusResponse"></a>
+<a id="tocSuserstatusresponse"></a>
+<a id="tocsuserstatusresponse"></a>
+
+```json
+{
+  "code": 0,
+  "data": {
+    "loggedIn": true,
+    "username": "string",
+    "avatar": "string",
+    "message": "string"
+  },
+  "message": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|object|false|none||none|
+|» loggedIn|boolean|false|none||是否已登录|
+|» username|string|false|none||用户名|
+|» avatar|string|false|none||头像链接|
+|» message|string|false|none||状态消息|
+|message|string|false|none||提示信息|
+
+<h2 id="tocS_SearchResponse">SearchResponse</h2>
+
+<a id="schemasearchresponse"></a>
+<a id="schema_SearchResponse"></a>
+<a id="tocSsearchresponse"></a>
+<a id="tocssearchresponse"></a>
+
+```json
+{
+  "code": 0,
+  "data": {
+    "count": 0,
+    "data": [
+      {
+        "title": "string",
+        "alias": "string",
+        "id": 0,
+        "excerpt": "string"
+      }
+    ]
+  },
+  "message": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|object|false|none||none|
+|» count|integer(int32)|false|none||匹配文章总数|
+|» data|[object]|false|none||none|
+|»» title|string|false|none||文章标题|
+|»» alias|string|false|none||文章别名|
+|»» id|integer(int32)|false|none||文章ID|
+|»» excerpt|string|false|none||文章摘要|
+|message|string|false|none||提示信息|
+
+<h2 id="tocS_Tag">Tag</h2>
+
+<a id="schematag"></a>
+<a id="schema_Tag"></a>
+<a id="tocStag"></a>
+<a id="tocstag"></a>
+
+```json
+{
+  "id": 0,
+  "tag_name": "string",
+  "tag_explain": "string",
+  "founder": "string",
+  "create_time": "2019-08-24T14:15:22Z",
+  "status": 0
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|id|integer(int32)|false|none||标签ID|
+|tag_name|string|false|none||标签名称|
+|tag_explain|string|false|none||标签说明|
+|founder|string|false|none||创建者UUID|
+|create_time|string(date-time)|false|none||创建时间|
+|status|integer(int32)|false|none||状态（0禁用，1启用）|
+
+<h2 id="tocS_Category">Category</h2>
+
+<a id="schemacategory"></a>
+<a id="schema_Category"></a>
+<a id="tocScategory"></a>
+<a id="tocscategory"></a>
+
+```json
+{
+  "id": 0,
+  "article_categories": "string",
+  "categories_explain": "string",
+  "founder": "string",
+  "create_time": "2019-08-24T14:15:22Z",
+  "status": 0,
+  "parent_id": 0,
+  "level": 0,
+  "full_path": "string",
+  "sort_order": 0,
+  "article_count": 0
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|id|integer(int32)|false|none||分类ID|
+|article_categories|string|false|none||分类名称|
+|categories_explain|string|false|none||分类说明|
+|founder|string|false|none||创建者UUID|
+|create_time|string(date-time)|false|none||创建时间|
+|status|integer(int32)|false|none||状态（0禁用，1启用）|
+|parent_id|integer(int32)¦null|false|none||父分类ID（顶级为null）|
+|level|integer(int32)¦null|false|none||层级|
+|full_path|string¦null|false|none||分类完整路径|
+|sort_order|integer(int32)¦null|false|none||排序值|
+|article_count|integer(int32)¦null|false|none||文章数|
+
+<h2 id="tocS_CategoryWithCount">CategoryWithCount</h2>
+
+<a id="schemacategorywithcount"></a>
+<a id="schema_CategoryWithCount"></a>
+<a id="tocScategorywithcount"></a>
+<a id="tocscategorywithcount"></a>
+
+```json
+{
+  "id": 0,
+  "article_categories": "string",
+  "categories_explain": "string",
+  "founder": "string",
+  "create_time": "2019-08-24T14:15:22Z",
+  "status": 0,
+  "parent_id": 0,
+  "level": 0,
+  "full_path": "string",
+  "sort_order": 0,
+  "article_count": 0,
+  "articleCount": 0
+}
+
+```
+
+### 属性
+
+allOf
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|*anonymous*|[Category](#schemacategory)|false|none||none|
+
+and
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|*anonymous*|object|false|none||none|
+|» articleCount|integer(int64)|false|none||该分类下文章数量|
+
+<h2 id="tocS_HotArticle">HotArticle</h2>
+
+<a id="schemahotarticle"></a>
+<a id="schema_HotArticle"></a>
+<a id="tocShotarticle"></a>
+<a id="tocshotarticle"></a>
+
+```json
+{
+  "id": 0,
+  "article_id": "string",
+  "title": "string",
+  "excerpt": "string",
+  "date": "string",
+  "author": "string",
+  "category": "string",
+  "page_views": 0,
+  "alias": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|id|integer(int32)|false|none||文章ID|
+|article_id|string|false|none||文章UUID|
+|title|string|false|none||文章标题|
+|excerpt|string|false|none||文章摘要|
+|date|string|false|none||发布日期|
+|author|string|false|none||作者|
+|category|string|false|none||文章分类|
+|page_views|integer(int32)|false|none||浏览次数|
+|alias|string|false|none||文章别名|
+
+<h2 id="tocS_CheckPasswordResponse">CheckPasswordResponse</h2>
+
+<a id="schemacheckpasswordresponse"></a>
+<a id="schema_CheckPasswordResponse"></a>
+<a id="tocScheckpasswordresponse"></a>
+<a id="tocscheckpasswordresponse"></a>
+
+```json
+{
+  "code": 0,
+  "data": {
+    "needPassword": true
+  },
+  "message": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|object|false|none||none|
+|» needPassword|boolean|false|none||是否需要密码|
+|message|string|false|none||提示信息|
+
+<h2 id="tocS_ArticleDetailResponse">ArticleDetailResponse</h2>
+
+<a id="schemaarticledetailresponse"></a>
+<a id="schema_ArticleDetailResponse"></a>
+<a id="tocSarticledetailresponse"></a>
+<a id="tocsarticledetailresponse"></a>
+
+```json
+{
+  "code": 0,
+  "data": {
+    "id": 0,
+    "uuid": "string",
+    "article_id": "string",
+    "article_name": "string",
+    "article_cover": "string",
+    "excerpt": "string",
+    "article_content": "string",
+    "page_views": 0,
     "like_count": 0,
     "favorite_count": 0,
-    "password": "",
-    "tag": "默认标签",
-    "category": "默认分类",
-    "alias": "about",
-    "create_time": "2025-09-13 12:42:47",
-    "status": 1
+    "password": "string",
+    "tag": "string",
+    "category": "string",
+    "alias": "string",
+    "author": "string",
+    "avatar": "string",
+    "create_time": "string",
+    "status": 0,
+    "enable_comment": 0
   },
-  "success": true
+  "message": "string"
 }
+
 ```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|object|false|none||none|
+|» id|integer(int32)|false|none||文章ID|
+|» uuid|string|false|none||作者UUID|
+|» article_id|string|false|none||文章唯一标识|
+|» article_name|string|false|none||文章标题|
+|» article_cover|string|false|none||文章封面图|
+|» excerpt|string|false|none||文章摘要|
+|» article_content|string|false|none||文章正文（Markdown）|
+|» page_views|integer(int64)|false|none||阅读次数|
+|» like_count|integer(int64)|false|none||点赞次数|
+|» favorite_count|integer(int64)|false|none||收藏次数|
+|» password|string|false|none||密码占位（已脱敏为******|
+|» tag|string|false|none||文章标签|
+|» category|string|false|none||文章分类|
+|» alias|string|false|none||文章别名|
+|» author|string|false|none||作者名|
+|» avatar|string|false|none||作者头像|
+|» create_time|string|false|none||创建时间|
+|» status|integer(int32)|false|none||文章状态|
+|» enable_comment|integer(int32)|false|none||是否允许评论（0/1）|
+|message|string|false|none||提示信息|
+
+<h2 id="tocS_LikeStatusResponse">LikeStatusResponse</h2>
+
+<a id="schemalikestatusresponse"></a>
+<a id="schema_LikeStatusResponse"></a>
+<a id="tocSlikestatusresponse"></a>
+<a id="tocslikestatusresponse"></a>
+
+```json
+{
+  "code": 0,
+  "data": {
+    "liked": true
+  },
+  "message": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|object|false|none||none|
+|» liked|boolean|false|none||是否已点赞|
+|message|string|false|none||提示信息|
+
+<h2 id="tocS_LikeResponse">LikeResponse</h2>
+
+<a id="schemalikeresponse"></a>
+<a id="schema_LikeResponse"></a>
+<a id="tocSlikeresponse"></a>
+<a id="tocslikeresponse"></a>
+
+```json
+{
+  "code": 0,
+  "data": {
+    "success": true
+  },
+  "message": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|object|false|none||none|
+|» success|boolean|false|none||操作是否成功|
+|message|string|false|none||提示信息|
+
+<h2 id="tocS_Comment">Comment</h2>
+
+<a id="schemacomment"></a>
+<a id="schema_Comment"></a>
+<a id="tocScomment"></a>
+<a id="tocscomment"></a>
+
+```json
+{
+  "comment_id": "string",
+  "user_id": "string",
+  "username": "string",
+  "avatar": "string",
+  "content": "string",
+  "create_time": "2019-08-24T14:15:22Z",
+  "comment_like_count": 0,
+  "to_comment_id": "string",
+  "to_comment_user_id": "string",
+  "to_comment_username": "string",
+  "article_id": "string",
+  "article_title": "string",
+  "status": 0,
+  "is_liked": true,
+  "children": [
+    {
+      "comment_id": "string",
+      "user_id": "string",
+      "username": "string",
+      "avatar": "string",
+      "content": "string",
+      "create_time": "2019-08-24T14:15:22Z",
+      "comment_like_count": 0,
+      "to_comment_id": "string",
+      "to_comment_user_id": "string",
+      "to_comment_username": "string",
+      "article_id": "string",
+      "article_title": "string",
+      "status": 0,
+      "is_liked": true,
+      "children": [
+        {
+          "comment_id": "string",
+          "user_id": "string",
+          "username": "string",
+          "avatar": "string",
+          "content": "string",
+          "create_time": "2019-08-24T14:15:22Z",
+          "comment_like_count": 0,
+          "to_comment_id": "string",
+          "to_comment_user_id": "string",
+          "to_comment_username": "string",
+          "article_id": "string",
+          "article_title": "string",
+          "status": 0,
+          "is_liked": true,
+          "children": [
+            {}
+          ]
+        }
+      ]
+    }
+  ]
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|comment_id|string|false|none||评论唯一标识|
+|user_id|string|false|none||评论者UUID|
+|username|string|false|none||评论者用户名|
+|avatar|string¦null|false|none||评论者头像|
+|content|string|false|none||评论内容|
+|create_time|string(date-time)|false|none||评论时间|
+|comment_like_count|integer(int64)|false|none||点赞数|
+|to_comment_id|string¦null|false|none||回复的评论ID|
+|to_comment_user_id|string¦null|false|none||被回复者UUID|
+|to_comment_username|string¦null|false|none||被回复者用户名|
+|article_id|string¦null|false|none||关联文章ID|
+|article_title|string¦null|false|none||关联文章标题|
+|status|integer(int32)¦null|false|none||评论状态|
+|is_liked|boolean¦null|false|none||当前用户是否已点赞|
+|children|[[Comment](#schemacomment)]|false|none||子评论列表|
+
+<h2 id="tocS_AddCommentRequest">AddCommentRequest</h2>
+
+<a id="schemaaddcommentrequest"></a>
+<a id="schema_AddCommentRequest"></a>
+<a id="tocSaddcommentrequest"></a>
+<a id="tocsaddcommentrequest"></a>
+
+```json
+{
+  "article_alias": "string",
+  "content": "string",
+  "to_comment_id": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|article_alias|string|true|none||文章别名|
+|content|string|true|none||评论内容|
+|to_comment_id|string¦null|false|none||回复的评论ID|
+
+<h2 id="tocS_Menu">Menu</h2>
+
+<a id="schemamenu"></a>
+<a id="schema_Menu"></a>
+<a id="tocSmenu"></a>
+<a id="tocsmenu"></a>
+
+```json
+{
+  "menus_id": "string",
+  "menus_name": "string",
+  "menus_url": "string",
+  "sort_order": 0,
+  "status": 0,
+  "user_id": "string",
+  "username": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|menus_id|string|false|none||菜单ID|
+|menus_name|string|false|none||菜单名称|
+|menus_url|string|false|none||菜单链接|
+|sort_order|integer(int32)|false|none||排序值|
+|status|integer(int32)|false|none||状态（0禁用，1启用）|
+|user_id|string|false|none||创建者UUID|
+|username|string|false|none||创建者用户名|
+
+<h2 id="tocS_CustomPageResponse">CustomPageResponse</h2>
+
+<a id="schemacustompageresponse"></a>
+<a id="schema_CustomPageResponse"></a>
+<a id="tocScustompageresponse"></a>
+<a id="tocscustompageresponse"></a>
+
+```json
+{
+  "code": 0,
+  "data": {
+    "id": 0,
+    "pageName": "string",
+    "pageCode": "string",
+    "alias": "string",
+    "creatorUsername": "string",
+    "createTime": "2019-08-24T14:15:22Z",
+    "status": 0
+  },
+  "message": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|object|false|none||none|
+|» id|integer(int32)|false|none||页面ID|
+|» pageName|string|false|none||页面名称|
+|» pageCode|string|false|none||页面HTML代码|
+|» alias|string|false|none||页面别名|
+|» creatorUsername|string|false|none||创建者用户名|
+|» createTime|string(date-time)|false|none||创建时间|
+|» status|integer(int32)|false|none||状态（0禁用，1启用）|
+|message|string|false|none||提示信息|
+
+<h2 id="tocS_PaginatedFriendLinksResponse">PaginatedFriendLinksResponse</h2>
+
+<a id="schemapaginatedfriendlinksresponse"></a>
+<a id="schema_PaginatedFriendLinksResponse"></a>
+<a id="tocSpaginatedfriendlinksresponse"></a>
+<a id="tocspaginatedfriendlinksresponse"></a>
+
+```json
+{
+  "code": 0,
+  "data": {
+    "total": 0,
+    "page": 0,
+    "size": 0,
+    "total_pages": 0,
+    "data": [
+      {
+        "id": 0,
+        "siteName": "string",
+        "siteUrl": "string",
+        "siteIcon": "string",
+        "siteDescription": "string",
+        "webmasterName": "string",
+        "contact": "string",
+        "createTime": "string",
+        "status": 0
+      }
+    ]
+  },
+  "message": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|object|false|none||none|
+|» total|integer(int32)|false|none||友链总数|
+|» page|integer(int32)|false|none||当前页码|
+|» size|integer(int32)|false|none||每页数量|
+|» total_pages|integer(int32)|false|none||总页数|
+|» data|[object]|false|none||none|
+|»» id|integer(int32)|false|none||友链ID|
+|»» siteName|string|false|none||站点名称|
+|»» siteUrl|string|false|none||站点地址|
+|»» siteIcon|string|false|none||站点图标|
+|»» siteDescription|string|false|none||站点描述|
+|»» webmasterName|string|false|none||站长名称|
+|»» contact|string|false|none||联系方式|
+|»» createTime|string|false|none||创建时间|
+|»» status|integer(int32)|false|none||状态|
+|message|string|false|none||提示信息|
+
+<h2 id="tocS_SiteInfoResponse">SiteInfoResponse</h2>
+
+<a id="schemasiteinforesponse"></a>
+<a id="schema_SiteInfoResponse"></a>
+<a id="tocSsiteinforesponse"></a>
+<a id="tocssiteinforesponse"></a>
+
+```json
+{
+  "code": 0,
+  "data": {},
+  "message": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|object¦null|false|none||站点信息|
+|message|string|false|none||提示信息|
+
+<h2 id="tocS_FriendLinkApplyRequest">FriendLinkApplyRequest</h2>
+
+<a id="schemafriendlinkapplyrequest"></a>
+<a id="schema_FriendLinkApplyRequest"></a>
+<a id="tocSfriendlinkapplyrequest"></a>
+<a id="tocsfriendlinkapplyrequest"></a>
+
+```json
+{
+  "siteName": "string",
+  "siteUrl": "string",
+  "siteIcon": "string",
+  "siteDescription": "string",
+  "webmasterName": "string",
+  "contact": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|siteName|string|true|none||站点名称|
+|siteUrl|string|true|none||站点地址|
+|siteIcon|string|false|none||站点图标|
+|siteDescription|string|true|none||站点描述|
+|webmasterName|string|true|none||站长名称|
+|contact|string|true|none||联系方式|
+
+<h2 id="tocS_MusicListResponse">MusicListResponse</h2>
+
+<a id="schemamusiclistresponse"></a>
+<a id="schema_MusicListResponse"></a>
+<a id="tocSmusiclistresponse"></a>
+<a id="tocsmusiclistresponse"></a>
+
+```json
+{
+  "code": 0,
+  "data": [
+    {
+      "id": 0,
+      "musicName": "string",
+      "musicAuthor": "string",
+      "musicUrl": "string",
+      "createTime": "2019-08-24T14:15:22Z",
+      "status": 0
+    }
+  ],
+  "message": "string"
+}
+
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|[object]|false|none||none|
+|» id|integer(int32)|false|none||音乐ID|
+|» musicName|string|false|none||曲名|
+|» musicAuthor|string|false|none||作者|
+|» musicUrl|string|false|none||音频地址|
+|» createTime|string(date-time)|false|none||创建时间|
+|» status|integer(int32)|false|none||状态|
+|message|string|false|none||提示信息|
 
