@@ -2,13 +2,30 @@
 
 次元栈主题开发者接口文档
 
-Base URLs:
+## RouterController - 路由控制器
+**需要主题开发者适配的路由**
+**描述**: 主题需要实现的页面以及路由
 
-# Authentication
+**路径**: 多个路径匹配
 
-- HTTP Authentication, scheme: bearer
+**方法类型**: GET
 
-# Default
+**内容类型**: application/x-www-form-urlencoded
+
+**路径参数**:
+
+| 路径            | 示例         |
+|-----------------|--------------|
+| `/`             | 无           |
+| `/login`        | 登录页面     |
+| `/register`     | 注册页面     |
+| `/article/{articleId}` | 文章相关路径 |
+| `/?category={分类名}` | 分类相关路径（首页按分类筛选） |
+| `/tag/{tagName}` | 标签相关路径 |
+| `/custom-page/{alias}` | 自定义页面 |
+| `/friend-links` | 友链页面     |
+| `/forgot-password` | 找回密码页面 |
+
 
 ## GET 获取首页文章列表
 
