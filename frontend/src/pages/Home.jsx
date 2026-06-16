@@ -12,7 +12,7 @@ import apiClient from '../utils/axios';
 export default function Home() {
     const [searchParams, setSearchParams] = useSearchParams();
     const { tagName } = useParams();
-    const categoryName = searchParams.get('name');
+    const categoryName = searchParams.get('category');
 
     const [copyright, setCopyright] = useState('');
     const [icpRecord, setIcpRecord] = useState('');
@@ -99,7 +99,7 @@ export default function Home() {
 
     const handleCategoryChange = (category) => {
         const newParams = new URLSearchParams(searchParams);
-        newParams.set('name', category);
+        newParams.set('category', category);
         newParams.delete('page');
         setSearchParams(newParams);
     };

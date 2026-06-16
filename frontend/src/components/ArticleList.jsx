@@ -8,7 +8,7 @@ import apiClient from '../utils/axios';
 export default function ArticleList() {
     const [searchParams, setSearchParams] = useSearchParams();
     const { tagName } = useParams();
-    const categoryName = searchParams.get('name');
+    const categoryName = searchParams.get('category');
     const pageParam = parseInt(searchParams.get('page')) || 1;
     const navigate = useNavigate();
     const location = useLocation();
@@ -75,7 +75,7 @@ export default function ArticleList() {
 
     const handleCategoryChange = (category) => {
         const newParams = new URLSearchParams(searchParams);
-        newParams.set('name', category);
+        newParams.set('category', category);
         newParams.delete('page');
         setSearchParams(newParams);
     };

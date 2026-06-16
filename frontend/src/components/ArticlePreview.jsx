@@ -305,7 +305,7 @@ export default function ArticlePreview({ article }) {
 
     const handleCategoryClick = (categoryName) => {
         const encodedCategory = encodeURIComponent(categoryName);
-        navigate(`/category?name=${encodedCategory}`);
+        navigate(`/category?category=${encodedCategory}`);
     };
 
     const handleTagClick = (tagName) => {
