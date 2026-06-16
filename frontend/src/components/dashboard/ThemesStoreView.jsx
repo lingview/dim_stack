@@ -53,27 +53,12 @@ export default function ThemesStoreView() {
     };
 
     const getCloudTheme = (slug) => cloudThemes.find(t => t.slug === slug);
-
-    const parseLocalThemes = (text) => {
-        const lines = text.split('\n');
-        const themes = [];
-
-        for (let i = 1; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (line.startsWith('- ')) {
-                const themeInfo = line.substring(2);
-                const [name, status] = themeInfo.split(' (');
-                const isCurrent = status && status.includes('current');
-                themes.push({
-                    name: name,
-                    slug: name,
-                    isCurrent: isCurrent,
-                    type: 'local'
-                });
-            }
-        }
-
-        return themes;
+    
+    const formatCoreRange = (theme) => {
+        const min = theme?.min_core_version;
+        const max = theme?.max_core_version;
+        if (!min && !max) return '';
+        return `${min || '不限'} ~ ${max || '不限'}`;
     };
 
     const fetchCloudThemes = async (silent = false) => {
@@ -320,7 +305,10 @@ export default function ThemesStoreView() {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {cloudThemes.map((theme) => (
+                                {cloudThemes.map((theme) => {
+                                    const incompatible = theme.compatible === false;
+                                    const coreRange = formatCoreRange(theme);
+                                    return (
                                     <div key={theme.slug} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
                                         <div className="aspect-w-16 aspect-h-9 bg-gray-100">
                                             {theme.preview_url ? (
@@ -346,19 +334,33 @@ export default function ThemesStoreView() {
                                                     </span>
                                                 ))}
                                             </div>
+                                            {(coreRange || incompatible) && (
+                                                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                                                    {coreRange && (
+                                                        <span className="text-xs text-gray-500">核心版本: {coreRange}</span>
+                                                    )}
+                                                    {incompatible && (
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                                            与当前核心 v{theme.current_core_version} 不兼容
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
                                             <div className="mt-4 flex justify-between items-center">
                                                 <span className="text-sm text-gray-500">{theme.version}</span>
                                                 <button
                                                     onClick={() => installTheme(theme.slug)}
-                                                    disabled={installing}
-                                                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                                                    disabled={installing || incompatible}
+                                                    title={incompatible ? '该主题与当前系统核心版本不兼容' : ''}
+                                                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                                 >
-                                                    {installing ? '安装中...' : '安装'}
+                                                    {incompatible ? '不兼容' : (installing ? '安装中...' : '安装')}
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -416,6 +418,20 @@ export default function ThemesStoreView() {
                                             {new Date(selectedTheme.upload_time).toLocaleDateString()}
                                         </p>
                                     </div>
+                                    <div>
+                                        <h4 className="text-sm font-medium text-gray-900">兼容核心版本</h4>
+                                        <p className="text-sm text-gray-500">
+                                            {formatCoreRange(selectedTheme) || '不限'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-medium text-gray-900">兼容性</h4>
+                                        <p className={`text-sm ${selectedTheme.compatible === false ? 'text-red-600' : 'text-green-600'}`}>
+                                            {selectedTheme.compatible === false
+                                                ? `与当前核心 v${selectedTheme.current_core_version} 不兼容`
+                                                : '兼容当前系统'}
+                                        </p>
+                                    </div>
                                 </div>
 
                                 <div className="mt-4">
@@ -441,9 +457,11 @@ export default function ThemesStoreView() {
                                             installTheme(selectedTheme.slug);
                                             closePreview();
                                         }}
-                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                        disabled={installing || selectedTheme.compatible === false}
+                                        title={selectedTheme.compatible === false ? '该主题与当前系统核心版本不兼容' : ''}
+                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        安装主题
+                                        {selectedTheme.compatible === false ? '不兼容' : '安装主题'}
                                     </button>
                                 </div>
                             </div>

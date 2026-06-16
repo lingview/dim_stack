@@ -361,22 +361,46 @@ public class UpdateService {
 
     public boolean isNewerVersion(String currentVersion, String newVersion) {
         try {
-            String[] currentParts = currentVersion.split("\\.");
-            String[] newParts = newVersion.split("\\.");
-
-            for (int i = 0; i < Math.max(currentParts.length, newParts.length); i++) {
-                int currentPart = i < currentParts.length ? Integer.parseInt(currentParts[i]) : 0;
-                int newPart = i < newParts.length ? Integer.parseInt(newParts[i]) : 0;
-
-                if (newPart > currentPart) {
-                    return true;
-                } else if (newPart < currentPart) {
-                    return false;
-                }
-            }
-            return false;
+            return compareVersions(newVersion, currentVersion) > 0;
         } catch (Exception e) {
             log.error("版本比较失败", e);
+            return true;
+        }
+    }
+
+
+    public int compareVersions(String v1, String v2) {
+        if (v1 == null && v2 == null) return 0;
+        if (v1 == null) return -1;
+        if (v2 == null) return 1;
+
+        try {
+            java.math.BigDecimal a = new java.math.BigDecimal(v1.trim().replaceFirst("^[vV]", ""));
+            java.math.BigDecimal b = new java.math.BigDecimal(v2.trim().replaceFirst("^[vV]", ""));
+            return a.compareTo(b);
+        } catch (NumberFormatException e) {
+            log.warn("版本号不是合法的十进制数值，无法比较: {} / {}", v1, v2);
+            return 0;
+        }
+    }
+
+
+    public boolean isCoreVersionInRange(String currentVersion, String minVersion, String maxVersion) {
+        if (currentVersion == null || currentVersion.isBlank() || "unknown".equals(currentVersion)) {
+            return true;
+        }
+        try {
+            if (minVersion != null && !minVersion.isBlank()
+                    && compareVersions(currentVersion, minVersion) < 0) {
+                return false;
+            }
+            if (maxVersion != null && !maxVersion.isBlank()
+                    && compareVersions(currentVersion, maxVersion) > 0) {
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            log.error("核心版本范围检查失败", e);
             return true;
         }
     }
@@ -387,19 +411,7 @@ public class UpdateService {
         }
 
         try {
-            String[] currentParts = currentVersion.split("\\.");
-            String[] minParts = minCompatibleVersion.split("\\.");
-
-            if (currentParts.length > 0 && minParts.length > 0) {
-                int currentMajor = Integer.parseInt(currentParts[0]);
-                int minMajor = Integer.parseInt(minParts[0]);
-
-                if (currentMajor < minMajor) {
-                    return false;
-                }
-            }
-
-            return true;
+            return compareVersions(currentVersion, minCompatibleVersion) >= 0;
         } catch (Exception e) {
             log.error("版本兼容性检查失败", e);
             return false;

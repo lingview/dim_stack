@@ -2,6 +2,7 @@ package xyz.lingview.dimstack.controller;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +16,7 @@ import xyz.lingview.dimstack.dto.request.ThemeSlugRequestDTO;
 import xyz.lingview.dimstack.dto.response.ThemeDetailResponseDTO;
 import xyz.lingview.dimstack.dto.response.ThemeListResponseDTO;
 import xyz.lingview.dimstack.service.SiteConfigService;
+import xyz.lingview.dimstack.service.UpdateService;
 
 import java.io.*;
 import java.net.URI;
@@ -54,6 +56,9 @@ public class ExpansionController {
     @Autowired
     private ThemeProperties themeProperties;
 
+    @Autowired
+    private UpdateService updateService;
+
     private static final String DEFAULT_THEME = "default";
 
     // 主题名字只允许字母、数字、连字符和下划线
@@ -76,6 +81,19 @@ public class ExpansionController {
             if (themesJson != null) {
                 ThemeListResponseDTO responseDTO = new ThemeListResponseDTO();
                 JsonNode themes = objectMapper.readTree(themesJson);
+
+                String currentVersion = updateService.getCurrentVersion();
+                if (themes.isArray()) {
+                    for (JsonNode theme : themes) {
+                        if (theme instanceof ObjectNode obj) {
+                            String min = optText(theme, "min_core_version");
+                            String max = optText(theme, "max_core_version");
+                            obj.put("compatible", updateService.isCoreVersionInRange(currentVersion, min, max));
+                            obj.put("current_core_version", currentVersion);
+                        }
+                    }
+                }
+
                 responseDTO.setData(themes);
                 return ApiResponse.success(responseDTO);
             } else {
@@ -128,6 +146,18 @@ public class ExpansionController {
 
             if (targetTheme == null) {
                 return ApiResponse.error(404, "未找到标识为 '" + slug + "' 的主题");
+            }
+
+            // 校验主题与当前系统核心版本的兼容性
+            String currentVersion = updateService.getCurrentVersion();
+            String minCore = optText(targetTheme, "min_core_version");
+            String maxCore = optText(targetTheme, "max_core_version");
+            if (!updateService.isCoreVersionInRange(currentVersion, minCore, maxCore)) {
+                return ApiResponse.error(400, String.format(
+                        "主题 '%s' 与当前系统核心版本 %s 不兼容（要求核心版本 %s ~ %s）",
+                        slug, currentVersion,
+                        minCore == null ? "不限" : minCore,
+                        maxCore == null ? "不限" : maxCore));
             }
 
             // 获取下载URL
@@ -202,6 +232,16 @@ public class ExpansionController {
         } catch (Exception e) {
             return ApiResponse.error(500, "删除主题失败: " + e.getMessage());
         }
+    }
+
+
+    private String optText(JsonNode node, String field) {
+        JsonNode value = node.get(field);
+        if (value == null || value.isNull()) {
+            return null;
+        }
+        String text = value.asString();
+        return (text == null || text.isBlank()) ? null : text;
     }
 
     /**
