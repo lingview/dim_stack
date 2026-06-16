@@ -77,8 +77,10 @@ public class SessionConfig {
 
     @Bean
     public WebServerFactoryCustomizer<TomcatServletWebServerFactory> tomcatCustomizer() {
-        return factory -> factory.addContextCustomizers(context ->
-                context.setSessionTimeout(10080)
-        );
+        return factory -> factory.addContextCustomizers(context -> {
+            context.setSessionTimeout(10080);
+            context.addMimeMapping("mjs", "text/javascript");
+            context.addMimeMapping("wasm", "application/wasm");
+        });
     }
 }

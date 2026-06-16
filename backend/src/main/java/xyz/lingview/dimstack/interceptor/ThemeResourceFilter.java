@@ -31,6 +31,8 @@ public class ThemeResourceFilter implements Filter {
         CONTENT_TYPES.put(".htm", "text/html");
         CONTENT_TYPES.put(".css", "text/css");
         CONTENT_TYPES.put(".js", "application/javascript");
+        CONTENT_TYPES.put(".mjs", "text/javascript");
+        CONTENT_TYPES.put(".wasm", "application/wasm");
         CONTENT_TYPES.put(".json", "application/json");
         CONTENT_TYPES.put(".xml", "application/xml");
         CONTENT_TYPES.put(".png", "image/png");
