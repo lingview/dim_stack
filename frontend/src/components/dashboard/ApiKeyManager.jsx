@@ -194,8 +194,10 @@ export default function ApiKeyManager() {
             )}
 
             {newKey && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-                    <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 relative">
+                <>
+                <div className="fixed inset-0 backdrop-blur-sm bg-transparent z-40" onClick={() => setNewKey(null)}></div>
+                <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 relative" onClick={(e) => e.stopPropagation()}>
                         <button
                             type="button"
                             onClick={() => setNewKey(null)}
@@ -234,6 +236,7 @@ export default function ApiKeyManager() {
                         </div>
                     </div>
                 </div>
+                </>
             )}
         </div>
     );

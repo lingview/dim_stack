@@ -2098,8 +2098,10 @@ export default function SiteSettingsView() {
 
             {/* 提示词编辑模态框 */}
             {promptModal.show && (
-                <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+                <>
+                <div className="fixed inset-0 backdrop-blur-sm bg-transparent z-40" onClick={closePromptModal}></div>
+                <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between p-6 border-b border-gray-200">
                             <h3 className="text-lg font-semibold text-gray-900">
                                 {promptModal.promptName === 'article_review' ? '文章审核提示词' : '文章生成提示词'}
@@ -2165,6 +2167,7 @@ export default function SiteSettingsView() {
                         </div>
                     </div>
                 </div>
+                </>
             )}
         </div>
     );

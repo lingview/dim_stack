@@ -19,14 +19,16 @@ const MediaPreviewModal = ({ mediaItem, onClose }) => {
     }
 
     return (
+        <>
+        <div
+            className="fixed inset-0 backdrop-blur-sm bg-transparent z-40"
+            onClick={onClose}
+            aria-hidden="true"
+        />
         <div
             className="fixed inset-0 flex items-center justify-center z-50 p-4"
             onClick={onClose}
         >
-            <div
-                className="absolute inset-0 bg-black/70 backdrop-blur-md transition-opacity"
-                aria-hidden="true"
-            />
 
             <div
                 className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto"
@@ -187,6 +189,7 @@ const MediaPreviewModal = ({ mediaItem, onClose }) => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 
@@ -700,14 +703,16 @@ export default function ArticlesReview() {
             )}
 
             {showDetail && (
+                <>
+                <div
+                    className="fixed inset-0 backdrop-blur-sm bg-transparent z-40"
+                    onClick={handleCloseDetail}
+                    aria-hidden="true"
+                />
                 <div
                     className="fixed inset-0 flex items-center justify-center z-50 p-4"
                     onClick={handleCloseDetail}
                 >
-                    <div
-                        className="absolute inset-0 bg-white/20 backdrop-blur-md transition-opacity"
-                        aria-hidden="true"
-                    />
 
                     <div
                         className="relative bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[95vh] overflow-hidden flex flex-col"
@@ -969,6 +974,7 @@ export default function ArticlesReview() {
                         </div>
                     </div>
                 </div>
+                </>
             )}
             
             {showMediaPreview && selectedMedia && (

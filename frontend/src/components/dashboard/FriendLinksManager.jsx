@@ -571,8 +571,10 @@ export default function FriendLinksManager() {
             )}
 
             {showSiteConfigModal && (
-                <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+                <>
+                <div className="fixed inset-0 backdrop-blur-sm bg-transparent z-40" onClick={closeSiteConfigModal}></div>
+                <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                         <div className="p-6">
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-semibold text-gray-900">配置本站友链信息</h3>
@@ -689,6 +691,7 @@ export default function FriendLinksManager() {
                         </div>
                     </div>
                 </div>
+                </>
             )}
         </div>
     );
