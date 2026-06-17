@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../utils/axios';
+import { showToast } from '../../utils/toastManager.jsx';
 
 export default function FriendLinksManager() {
     const [friendLinks, setFriendLinks] = useState([]);
@@ -7,7 +8,6 @@ export default function FriendLinksManager() {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
     const [filterStatus, setFilterStatus] = useState(null);
-    const [message, setMessage] = useState({ type: '', content: '' });
 
     const [editingLink, setEditingLink] = useState(null);
     const [editForm, setEditForm] = useState({
@@ -18,6 +18,17 @@ export default function FriendLinksManager() {
         webmasterName: '',
         contact: ''
     });
+
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [addForm, setAddForm] = useState({
+        siteName: '',
+        siteUrl: '',
+        siteIcon: '',
+        siteDescription: '',
+        webmasterName: '',
+        contact: ''
+    });
+    const [savingAdd, setSavingAdd] = useState(false);
 
     const [showSiteConfigModal, setShowSiteConfigModal] = useState(false);
     const [siteConfigForm, setSiteConfigForm] = useState({
@@ -160,10 +171,7 @@ export default function FriendLinksManager() {
     };
 
     const showMessage = (type, content) => {
-        setMessage({ type, content });
-        setTimeout(() => {
-            setMessage({ type: '', content: '' });
-        }, 3000);
+        showToast(content, type === 'success' ? 'info' : type);
     };
 
     const getStatusText = (status) => {
@@ -212,6 +220,42 @@ export default function FriendLinksManager() {
                 console.error('复制失败:', err);
                 showMessage('error', '复制失败');
             });
+    };
+
+    const openAddModal = () => {
+        setAddForm({
+            siteName: '',
+            siteUrl: '',
+            siteIcon: '',
+            siteDescription: '',
+            webmasterName: '',
+            contact: ''
+        });
+        setShowAddModal(true);
+    };
+
+    const closeAddModal = () => {
+        setShowAddModal(false);
+    };
+
+    const handleAddFriendLink = async () => {
+        try {
+            setSavingAdd(true);
+            const response = await apiClient.post('/friend-links', addForm);
+            if (response?.code === 200) {
+                showMessage('success', response.message || '友链添加成功');
+                closeAddModal();
+                setCurrentPage(1);
+                loadFriendLinks();
+            } else {
+                showMessage('error', response?.message || '友链添加失败');
+            }
+        } catch (error) {
+            console.error('添加友链失败:', error);
+            showMessage('error', error?.response?.data?.message || '添加友链时发生错误');
+        } finally {
+            setSavingAdd(false);
+        }
     };
 
     const openSiteConfigModal = async () => {
@@ -266,23 +310,28 @@ export default function FriendLinksManager() {
         <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">友链管理</h2>
-                <button
-                    onClick={openSiteConfigModal}
-                    className="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                >
-                    配置本站友链信息
-                </button>
-            </div>
-
-            {message.content && (
-                <div className={`mb-6 p-4 rounded-lg ${
-                    message.type === 'success' ? 'bg-green-50 text-green-800' :
-                        message.type === 'error' ? 'bg-red-50 text-red-800' :
-                            'bg-blue-50 text-blue-800'
-                }`}>
-                    {message.content}
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={openAddModal}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        添加友链
+                    </button>
+                    <button
+                        onClick={openSiteConfigModal}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        配置本站友链信息
+                    </button>
                 </div>
-            )}
+            </div>
 
             <div className="mb-6 flex flex-wrap gap-4">
                 <div>
@@ -568,6 +617,137 @@ export default function FriendLinksManager() {
                 <div className="text-center py-12">
                     <div className="text-gray-500">暂无友链数据</div>
                 </div>
+            )}
+
+            {showAddModal && (
+                <>
+                <div className="fixed inset-0 backdrop-blur-sm bg-transparent z-40" onClick={closeAddModal}></div>
+                <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                        <div className="p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-semibold text-gray-900">添加友链</h3>
+                                <button
+                                    onClick={closeAddModal}
+                                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        站点名称 <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={addForm.siteName}
+                                        onChange={(e) => setAddForm({...addForm, siteName: e.target.value})}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        placeholder="请输入站点名称"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        站点 URL <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="url"
+                                        value={addForm.siteUrl}
+                                        onChange={(e) => setAddForm({...addForm, siteUrl: e.target.value})}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        placeholder="https://example.com/"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        站点图标 URL
+                                    </label>
+                                    <input
+                                        type="url"
+                                        value={addForm.siteIcon}
+                                        onChange={(e) => setAddForm({...addForm, siteIcon: e.target.value})}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        placeholder="https://example.com/favicon.ico"
+                                    />
+                                    {addForm.siteIcon && (
+                                        <div className="mt-3">
+                                            <p className="text-xs text-gray-500 mb-2">预览：</p>
+                                            <img
+                                                src={addForm.siteIcon}
+                                                alt="图标预览"
+                                                className="w-16 h-16 rounded-lg object-contain border"
+                                                onError={(e) => e.target.src = '/image_error.svg'}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        站点描述 <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        value={addForm.siteDescription}
+                                        onChange={(e) => setAddForm({...addForm, siteDescription: e.target.value})}
+                                        rows={3}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm resize-none"
+                                        placeholder="请输入站点描述"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            站长名称 <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={addForm.webmasterName}
+                                            onChange={(e) => setAddForm({...addForm, webmasterName: e.target.value})}
+                                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            placeholder="请输入站长名称"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            联系方式 <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={addForm.contact}
+                                            onChange={(e) => setAddForm({...addForm, contact: e.target.value})}
+                                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                            placeholder="邮箱 / QQ / 微信等"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="px-6 py-4 flex justify-end space-x-3">
+                                    <button
+                                        onClick={closeAddModal}
+                                        className="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    >
+                                        取消
+                                    </button>
+                                    <button
+                                        onClick={handleAddFriendLink}
+                                        disabled={savingAdd || !addForm.siteName || !addForm.siteUrl || !addForm.siteDescription || !addForm.webmasterName || !addForm.contact}
+                                        className="bg-blue-600 border border-transparent rounded-md shadow-sm py-2 px-4 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {savingAdd ? '添加中...' : '确认添加'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </>
             )}
 
             {showSiteConfigModal && (

@@ -14,6 +14,7 @@ import java.util.Map;
  */
 public interface FriendLinksService {
     boolean applyFriendLink(FriendLinksRequestDTO requestDTO);
+    boolean addFriendLink(FriendLinksRequestDTO requestDTO);
     List<FriendLinks> getApprovedFriendLinks();
     Map<String, Object> getFriendLinksByPage(Integer page, Integer size, Integer status);
     boolean updateFriendLinkStatus(Integer id, Integer status);

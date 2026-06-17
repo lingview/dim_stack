@@ -85,6 +85,22 @@ public class FriendLinksController {
 
 
 
+    @PostMapping
+    @RequiresPermission("system:friendlinks:management")
+    public ApiResponse<Void> addFriendLink(@RequestBody @Valid FriendLinksRequestDTO requestDTO) {
+        try {
+            boolean result = friendLinkService.addFriendLink(requestDTO);
+            if (result) {
+                return ApiResponse.success("友链添加成功");
+            } else {
+                return ApiResponse.error(500, "友链添加失败");
+            }
+        } catch (Exception e) {
+            log.error("后台添加友链失败", e);
+            return ApiResponse.error(500, "添加友链时发生错误: " + e.getMessage());
+        }
+    }
+
     @GetMapping
     @RequiresPermission("system:friendlinks:management")
     public ApiResponse<Map<String, Object>> getFriendLinks(

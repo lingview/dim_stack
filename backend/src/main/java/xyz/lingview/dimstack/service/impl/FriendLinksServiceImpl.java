@@ -71,6 +71,27 @@ public class FriendLinksServiceImpl implements FriendLinksService {
         }
     }
 
+    @Override
+    public boolean addFriendLink(FriendLinksRequestDTO requestDTO) {
+        try {
+            FriendLinks friendLink = new FriendLinks();
+            friendLink.setUuid(RandomUtil.generateUUID());
+            friendLink.setSiteName(requestDTO.getSiteName());
+            friendLink.setSiteUrl(requestDTO.getSiteUrl());
+            friendLink.setSiteIcon(requestDTO.getSiteIcon() != null ? requestDTO.getSiteIcon() : "");
+            friendLink.setSiteDescription(requestDTO.getSiteDescription());
+            friendLink.setWebmasterName(requestDTO.getWebmasterName());
+            friendLink.setContact(requestDTO.getContact());
+            friendLink.setStatus(1);
+
+            int result = friendLinksMapper.insert(friendLink);
+            return result > 0;
+        } catch (Exception e) {
+            log.error("后台添加友链失败", e);
+            return false;
+        }
+    }
+
     @Async
     public void sendFriendLinkNotification(FriendLinksRequestDTO requestDTO) {
         try {
