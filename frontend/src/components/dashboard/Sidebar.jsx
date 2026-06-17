@@ -60,7 +60,8 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onCl
     };
 
     const handleSiteNameClick = () => {
-        navigate('/');
+        // navigate('/');
+        window.location.href = '/';
     };
     return (
         <>
