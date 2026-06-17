@@ -1,9 +1,32 @@
 import ThemeToggle from './ThemeToggle'
 import Search from './Search'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import apiClient from '../utils/axios.jsx'
 import { getConfig } from '../utils/config';
+
+const computeVisibleCount = (containerWidth, itemWidths, gap, moreWidth) => {
+    if (!itemWidths.length) return 0;
+
+    let total = 0;
+    for (let i = 0; i < itemWidths.length; i++) {
+        total += itemWidths[i] + (i > 0 ? gap : 0);
+    }
+    if (total <= containerWidth) return itemWidths.length;
+
+    let used = 0;
+    let count = 0;
+    for (let i = 0; i < itemWidths.length; i++) {
+        const add = itemWidths[i] + (i > 0 ? gap : 0);
+        if (used + add + gap + moreWidth <= containerWidth) {
+            used += add;
+            count++;
+        } else {
+            break;
+        }
+    }
+    return count;
+};
 
 const escapeHtml = (unsafe) => {
     if (!unsafe) return unsafe;
@@ -33,6 +56,14 @@ export default function Header() {
     const [siteName, setSiteName] = useState('')
     const [menus, setMenus] = useState([])
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+    const [visibleCount, setVisibleCount] = useState(0)
+    const [itemWidths, setItemWidths] = useState([])
+    const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false)
+    const navContainerRef = useRef(null)
+    const measureRef = useRef(null)
+
+    const NAV_GAP = 32
+    const MORE_BTN_WIDTH = 88
 
     useEffect(() => {
         const storedIsLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -114,6 +145,36 @@ export default function Header() {
         fetchMenus()
     }, [])
 
+    useEffect(() => {
+        if (!measureRef.current) return;
+        const lis = measureRef.current.querySelectorAll('li');
+        const widths = Array.from(lis).map((li) => li.offsetWidth);
+        setItemWidths(widths);
+    }, [menus]);
+
+    useEffect(() => {
+        const el = navContainerRef.current;
+        if (!el || itemWidths.length === 0) {
+            setVisibleCount(menus.length);
+            return;
+        }
+
+        const recompute = () => {
+            const count = computeVisibleCount(
+                el.clientWidth,
+                itemWidths,
+                NAV_GAP,
+                MORE_BTN_WIDTH
+            );
+            setVisibleCount(count);
+        };
+
+        recompute();
+        const observer = new ResizeObserver(recompute);
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [itemWidths, menus.length]);
+
     const handleLogout = async () => {
         try {
             await apiClient.post('/logout')
@@ -149,11 +210,16 @@ export default function Header() {
             if (isUserMenuOpen && !event.target.closest('.user-menu-container')) {
                 setIsUserMenuOpen(false)
             }
+            if (isMoreMenuOpen && !event.target.closest('.more-menu-container')) {
+                setIsMoreMenuOpen(false)
+            }
         }
 
         document.addEventListener('click', handleClickOutside)
         return () => document.removeEventListener('click', handleClickOutside)
-    }, [isMobileMenuOpen, isUserMenuOpen])
+    }, [isMobileMenuOpen, isUserMenuOpen, isMoreMenuOpen])
+
+    const effectiveVisible = itemWidths.length === 0 ? menus.length : visibleCount;
 
     return (
         <header className="bg-white shadow border-b border-gray-200 fixed top-0 left-0 right-0 z-50" style={{ height: '64px' }}>
@@ -165,9 +231,12 @@ export default function Header() {
                         </h1>
                     </div>
 
-                    <nav className="hidden md:block">
-                        <ul className="flex space-x-8">
-                            {menus.map((menu, index) => (
+                    <nav
+                        ref={navContainerRef}
+                        className="hidden md:flex flex-1 min-w-0 items-center justify-center mx-6"
+                    >
+                        <ul className="flex items-center space-x-8 min-w-0">
+                            {menus.slice(0, effectiveVisible).map((menu, index) => (
                                 <li key={menu.menus_id || index}>
                                     {menu.menus_url.startsWith('/') && !menu.menus_url.startsWith('//') ? (
                                         <button
@@ -175,7 +244,7 @@ export default function Header() {
                                                 navigate(menu.menus_url);
                                                 closeMobileMenu();
                                             }}
-                                            className="text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200 text-left"
+                                            className="text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200 text-left whitespace-nowrap"
                                         >
                                             {menu.menus_name}
                                         </button>
@@ -184,15 +253,82 @@ export default function Header() {
                                             href={menu.menus_url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200"
+                                            className="text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200 whitespace-nowrap"
                                         >
                                             {menu.menus_name}
                                         </a>
                                     )}
                                 </li>
                             ))}
+
+                            {effectiveVisible < menus.length && (
+                                <li className="relative more-menu-container">
+                                    <button
+                                        onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
+                                        className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200 whitespace-nowrap"
+                                        aria-haspopup="true"
+                                        aria-expanded={isMoreMenuOpen}
+                                    >
+                                        <span>更多</span>
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className={`h-4 w-4 transition-transform duration-200 ${isMoreMenuOpen ? 'rotate-180' : ''}`}
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                        >
+                                            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                        </svg>
+                                    </button>
+
+                                    <div className={`absolute top-full right-0 mt-2 w-48 bg-white shadow-lg rounded-md overflow-hidden transition-all duration-200 z-50 border border-gray-200 ${
+                                        isMoreMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+                                    }`}>
+                                        {menus.slice(effectiveVisible).map((menu, index) => (
+                                            menu.menus_url.startsWith('/') && !menu.menus_url.startsWith('//') ? (
+                                                <button
+                                                    key={menu.menus_id || index}
+                                                    onClick={() => {
+                                                        navigate(menu.menus_url);
+                                                        closeMobileMenu();
+                                                        setIsMoreMenuOpen(false);
+                                                    }}
+                                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 truncate"
+                                                >
+                                                    {menu.menus_name}
+                                                </button>
+                                            ) : (
+                                                <a
+                                                    key={menu.menus_id || index}
+                                                    href={menu.menus_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    onClick={() => setIsMoreMenuOpen(false)}
+                                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 truncate"
+                                                >
+                                                    {menu.menus_name}
+                                                </a>
+                                            )
+                                        ))}
+                                    </div>
+                                </li>
+                            )}
                         </ul>
                     </nav>
+
+                    <ul
+                        ref={measureRef}
+                        aria-hidden="true"
+                        className="flex items-center invisible pointer-events-none absolute -left-[9999px] top-0"
+                    >
+                        {menus.map((menu, index) => (
+                            <li
+                                key={menu.menus_id || index}
+                                className="font-medium whitespace-nowrap"
+                            >
+                                {menu.menus_name}
+                            </li>
+                        ))}
+                    </ul>
 
                     <div className="flex items-center space-x-2 sm:space-x-4">
                         <Search />
