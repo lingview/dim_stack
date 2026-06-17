@@ -3,6 +3,7 @@ import React, {
     useEffect,
     useRef
 } from 'react';
+import { createPortal } from 'react-dom';
 import {
     X,
     Download,
@@ -327,6 +328,25 @@ export default function DocumentPreviewModal({
         };
     }, [documentType, totalPages]);
 
+    useEffect(() => {
+        const contentArea = contentAreaRef.current;
+        if (!contentArea) return;
+
+        const handleWheel = (e) => {
+            if (!e.ctrlKey) return;
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            setScale((prev) =>
+                Math.min(Math.max(Math.round((prev + delta) * 10) / 10, 0.5), 3)
+            );
+        };
+
+        contentArea.addEventListener('wheel', handleWheel, { passive: false });
+        return () => {
+            contentArea.removeEventListener('wheel', handleWheel);
+        };
+    }, [documentType, loading]);
+
     const handleDownload = async () => {
         try {
             let cleanSrc = src;
@@ -420,7 +440,7 @@ export default function DocumentPreviewModal({
         iconColor = 'bg-blue-500';
     }
 
-    return (
+    return createPortal(
         <div className={`fixed inset-0 flex items-center justify-center z-[9999] ${
             isFullscreen ? 'p-0' : 'p-0 md:p-4 lg:p-8'
         }`}>
@@ -434,7 +454,7 @@ export default function DocumentPreviewModal({
                 className={`relative bg-white flex flex-col overflow-hidden document-preview-modal-container ${
                     isFullscreen 
                         ? 'w-full h-full rounded-none' 
-                        : 'w-full h-full md:h-[90vh] md:max-w-6xl md:mt-16 md:rounded-lg shadow-xl'
+                        : 'w-full h-full md:h-[90vh] md:max-w-6xl md:mt-4 md:rounded-lg shadow-xl'
                 }`}
             >
 
@@ -459,7 +479,7 @@ export default function DocumentPreviewModal({
 
                     <div className="flex items-center space-x-1 md:space-x-2 flex-shrink-0">
 
-                        {documentType === 'pdf' && (
+                        {(documentType === 'pdf' || documentType === 'word') && (
                             <>
                                 <button
                                     onClick={handleZoomOut}
@@ -479,11 +499,15 @@ export default function DocumentPreviewModal({
                                     <ZoomIn className="h-4 w-4 md:h-5 md:w-5 text-gray-600" />
                                 </button>
 
-                                <div className="w-px h-5 md:h-6 bg-gray-300 mx-1 md:mx-2 document-preview-toolbar-divider hidden sm:block" />
+                                {documentType === 'pdf' && (
+                                    <>
+                                        <div className="w-px h-5 md:h-6 bg-gray-300 mx-1 md:mx-2 document-preview-toolbar-divider hidden sm:block" />
 
-                                <span className="text-xs md:text-sm text-gray-600 min-w-[60px] md:min-w-[80px] text-center document-preview-page-info hidden sm:block">
-                                    {totalPages} 页
-                                </span>
+                                        <span className="text-xs md:text-sm text-gray-600 min-w-[60px] md:min-w-[80px] text-center document-preview-page-info hidden sm:block">
+                                            {totalPages} 页
+                                        </span>
+                                    </>
+                                )}
                             </>
                         )}
 
@@ -603,11 +627,12 @@ export default function DocumentPreviewModal({
                             <div
                                 ref={wordContainerRef}
                                 className="bg-white shadow-lg mx-auto w-full max-w-4xl p-4 md:p-8 document-preview-word-container"
-                                style={{ overflowX: 'auto' }}
+                                style={{ overflowX: 'auto', zoom: scale }}
                             />
                         )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
