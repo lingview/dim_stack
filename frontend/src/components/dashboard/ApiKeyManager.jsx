@@ -102,8 +102,22 @@ export default function ApiKeyManager() {
     };
 
     const handleCopy = async (text) => {
+        const clipboard = navigator.clipboard || {
+            writeText: (value) => {
+                const copyInput = document.createElement('input');
+                copyInput.value = value;
+                copyInput.style.position = 'fixed';
+                copyInput.style.left = '-999999px';
+                copyInput.style.top = '-999999px';
+                document.body.appendChild(copyInput);
+                copyInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(copyInput);
+            }
+        };
+
         try {
-            await navigator.clipboard.writeText(text);
+            await clipboard.writeText(text);
             showToast('已复制到剪贴板');
         } catch {
             showToast('复制失败，请手动复制');
@@ -223,7 +237,7 @@ export default function ApiKeyManager() {
                             出于安全考虑，该 Key 仅显示这一次，关闭后将无法再次查看。请立即复制并妥善保存。
                         </p>
                         <div className="flex items-stretch gap-2 mb-2">
-                            <code className="flex-1 px-3 py-2 bg-gray-100 rounded-md text-sm break-all select-all">
+                            <code className="apikey-key-code flex-1 px-3 py-2 rounded-md text-sm break-all select-all">
                                 {newKey}
                             </code>
                             <button

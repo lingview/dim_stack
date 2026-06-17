@@ -1125,6 +1125,16 @@
   display: none;
 }
 
+.apikey-key-code {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
+.dark .apikey-key-code {
+  background-color: #374151;
+  color: #f3f4f6;
+}
+
 .category-fade-mask-top {
   background: linear-gradient(to top, transparent, #ffffff);
 }
