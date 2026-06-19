@@ -28,6 +28,7 @@ const UpdateManager = lazy(() => import('./UpdateManager'));
 const GlobalAttachmentsManager = lazy(() => import('./GlobalAttachmentsManager'));
 const UserAttachmentsManager = lazy(() => import('./UserAttachmentsManager'));
 const RoleManager = lazy(() => import('./RoleManager'));
+const AnnouncementManager = lazy(() => import('./AnnouncementManager'));
 
 const FadeIn = ({ children, duration = 200 }) => {
     const [isVisible, setIsVisible] = useState(false);
@@ -433,6 +434,14 @@ export default function Dashboard() {
                             <Suspense fallback={<SimpleLoading />}>
                                 <FadeIn>
                                     <FriendLinksManager />
+                                </FadeIn>
+                            </Suspense>
+                        )}
+
+                        {activeTab === 'announcement' && (
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <AnnouncementManager />
                                 </FadeIn>
                             </Suspense>
                         )}

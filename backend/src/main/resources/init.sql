@@ -11,11 +11,27 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 09/06/2026 09:54:24
+ Date: 20/06/2026 00:48:21
 */
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for announcement
+-- ----------------------------
+DROP TABLE IF EXISTS `announcement`;
+CREATE TABLE `announcement`  (
+                                 `id` int NOT NULL AUTO_INCREMENT,
+                                 `content` text CHARACTER SET utf8mb4 NOT NULL COMMENT '公告内容(HTML)',
+                                 `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                 `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                 PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COMMENT = '公告表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of announcement
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for api_key
@@ -33,7 +49,7 @@ CREATE TABLE `api_key`  (
                             UNIQUE INDEX `uk_key_hash`(`key_hash` ASC) USING BTREE,
                             INDEX `idx_user_status`(`user_id` ASC, `status` ASC) USING BTREE,
                             CONSTRAINT `api_key_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user_information` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COMMENT = 'API Key表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COMMENT = 'API Key表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of api_key
@@ -315,6 +331,8 @@ INSERT INTO `dashboard_menu` VALUES (107, '友链管理', 'link', '/dashboard/fr
 INSERT INTO `dashboard_menu` VALUES (108, '全局附件管理', 'attachment', '/dashboard/global-attachments', 3, 'globalattachments:menus', 46, '2026-02-08 20:50:15', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (109, '我的附件', 'upload', '/dashboard/my-attachments', 3, 'attachments:menus', 47, '2026-02-08 20:50:19', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (110, '角色编辑', 'permission', '/dashboard/rbac-editor', 3, 'role:menus', 9, '2026-03-19 20:10:22', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (111, '公告管理', 'announcement', '/dashboard/announcement', 5, 'announcement:menus', 30, '2026-06-20 00:48:10', 'sidebar');
+
 -- ----------------------------
 -- Table structure for friend_links
 -- ----------------------------
@@ -454,7 +472,7 @@ CREATE TABLE `permission`  (
                                `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                                PRIMARY KEY (`id`) USING BTREE,
                                UNIQUE INDEX `idx_code`(`code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 60 CHARACTER SET = utf8mb4 COMMENT = '权限表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 62 CHARACTER SET = utf8mb4 COMMENT = '权限表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of permission
@@ -518,6 +536,8 @@ INSERT INTO `permission` VALUES (56, 'config:menus', '配置管理菜单', 'menu
 INSERT INTO `permission` VALUES (57, 'update:menus', '系统更新菜单', 'menus', '2025-08-27 09:22:27');
 INSERT INTO `permission` VALUES (58, 'theme:menus', '主题管理菜单', 'menus', '2025-08-27 09:22:27');
 INSERT INTO `permission` VALUES (59, 'role:menus', '角色管理菜单', 'menus', '2026-03-19 20:11:55');
+INSERT INTO `permission` VALUES (60, 'system:announcement:management', '公告管理', 'announcement', '2026-06-20 00:48:10');
+INSERT INTO `permission` VALUES (61, 'announcement:menus', '公告管理菜单', 'menus', '2026-06-20 00:48:10');
 
 -- ----------------------------
 -- Table structure for role
@@ -626,6 +646,8 @@ INSERT INTO `role_permission` VALUES (2, 57);
 INSERT INTO `role_permission` VALUES (1, 58);
 INSERT INTO `role_permission` VALUES (2, 58);
 INSERT INTO `role_permission` VALUES (1, 59);
+INSERT INTO `role_permission` VALUES (1, 60);
+INSERT INTO `role_permission` VALUES (1, 61);
 
 -- ----------------------------
 -- Table structure for site_config

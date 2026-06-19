@@ -4,6 +4,7 @@ import Favicon from 'react-favicon'
 import { fetchSiteName, fetchSiteIcon } from './Api.jsx'
 import { getConfig } from './utils/config.jsx'
 import MusicPlayer from './components/MusicPlayer';
+import AnnouncementModal from './components/AnnouncementModal';
 
 const importArticleReader = () => import('./components/ArticleReader')
 
@@ -93,6 +94,7 @@ function App() {
                 </Routes>
             </Suspense>
             {!isDashboardRoute && <MusicPlayer />}
+            {!isDashboardRoute && <AnnouncementModal />}
         </>
     )
 }
