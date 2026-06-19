@@ -86,4 +86,18 @@
         SET create_time = #{create_time}, update_time = NOW()
         WHERE comment_id = #{comment_id}
     </update>
+
+    <update id="updateCommentUser">
+        UPDATE `comment`
+        SET user_id = #{user_id}, update_time = NOW()
+        WHERE comment_id = #{comment_id}
+    </update>
+
+    <select id="searchUsersByPrefix" resultType="map">
+        SELECT uuid AS user_id, username, avatar
+        FROM `user_information`
+        WHERE status = 1 AND username LIKE CONCAT('%', #{prefix}, '%')
+        ORDER BY username
+        LIMIT 20
+    </select>
 </mapper>

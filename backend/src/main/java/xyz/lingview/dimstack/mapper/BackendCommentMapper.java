@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import xyz.lingview.dimstack.domain.Comment;
 import xyz.lingview.dimstack.dto.request.CommentDTO;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 @Repository
@@ -31,4 +32,8 @@ public interface BackendCommentMapper {
     int countTotalComments();
 
     int updateCommentTime(@Param("comment_id") String comment_id, @Param("create_time") String create_time);
+
+    int updateCommentUser(@Param("comment_id") String comment_id, @Param("user_id") String user_id);
+
+    List<Map<String, Object>> searchUsersByPrefix(@Param("prefix") String prefix);
 }

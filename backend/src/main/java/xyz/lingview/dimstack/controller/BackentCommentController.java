@@ -7,6 +7,7 @@ import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.domain.Comment;
 import xyz.lingview.dimstack.dto.request.CommentDTO;
 import xyz.lingview.dimstack.service.BackendCommentService;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +79,35 @@ public class BackentCommentController {
         } else {
             return ApiResponse.error(400, "评论时间更新失败");
         }
+    }
+
+    // 修改评论用户
+    @PutMapping("/{comment_id}/user")
+    @RequiresPermission({"system:comments:edit", "system:comments:management"})
+    public ApiResponse<Void> updateCommentUser(@PathVariable String comment_id,
+                                               @RequestBody Map<String, String> payload) {
+        String username = payload.get("username");
+        if (username == null || username.trim().isEmpty()) {
+            return ApiResponse.error(400, "用户名不能为空");
+        }
+
+        boolean success = backendCommentService.updateCommentUser(comment_id, username);
+        if (success) {
+            return ApiResponse.success("评论用户更新成功");
+        } else {
+            return ApiResponse.error(400, "用户不存在或更新失败");
+        }
+    }
+
+    // 搜索用户
+    @GetMapping("/users/search")
+    @RequiresPermission({"system:comments:edit", "system:comments:management"})
+    public ApiResponse<List<Map<String, Object>>> searchUsers(@RequestParam String q) {
+        if (q == null || q.trim().isEmpty()) {
+            return ApiResponse.success(new ArrayList<>());
+        }
+        List<Map<String, Object>> users = backendCommentService.searchUsers(q.trim());
+        return ApiResponse.success(users);
     }
 
     // 删除评论

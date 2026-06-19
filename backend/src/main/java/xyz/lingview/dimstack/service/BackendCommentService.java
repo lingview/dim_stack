@@ -8,8 +8,10 @@ import xyz.lingview.dimstack.domain.Comment;
 import xyz.lingview.dimstack.dto.request.CommentDTO;
 import xyz.lingview.dimstack.mapper.ArticleMapper;
 import xyz.lingview.dimstack.mapper.BackendCommentMapper;
+import xyz.lingview.dimstack.mapper.UserInformationMapper;
 
 import java.util.*;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -20,6 +22,9 @@ public class BackendCommentService {
 
     @Autowired
     private ArticleMapper articleMapper;
+
+    @Autowired
+    private UserInformationMapper userInformationMapper;
 
     public List<CommentDTO> getCommentsByArticleId(String article_id) {
         log.info("查询文章评论，article_id = {}", article_id);
@@ -108,5 +113,17 @@ public class BackendCommentService {
 
     public boolean updateCommentTime(String comment_id, String create_time) {
         return backendCommentMapper.updateCommentTime(comment_id, create_time) > 0;
+    }
+
+    public boolean updateCommentUser(String comment_id, String username) {
+        String user_id = userInformationMapper.selectUserUUID(username);
+        if (user_id == null) {
+            return false;
+        }
+        return backendCommentMapper.updateCommentUser(comment_id, user_id) > 0;
+    }
+
+    public List<Map<String, Object>> searchUsers(String prefix) {
+        return backendCommentMapper.searchUsersByPrefix(prefix);
     }
 }

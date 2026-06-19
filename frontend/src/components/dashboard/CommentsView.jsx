@@ -13,6 +13,9 @@ export default function CommentsView() {
     const [editContent, setEditContent] = useState('');
     const [editingTime, setEditingTime] = useState(null);
     const [editTimeValue, setEditTimeValue] = useState('');
+    const [editingUser, setEditingUser] = useState(null);
+    const [editUserValue, setEditUserValue] = useState('');
+    const [userSearchResults, setUserSearchResults] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [pageSize] = useState(10);
@@ -209,6 +212,62 @@ export default function CommentsView() {
     const cancelEditTime = () => {
         setEditingTime(null);
         setEditTimeValue('');
+    };
+
+    const startEditUser = (comment) => {
+        setEditingUser(comment.comment_id);
+        setEditUserValue(unescapeHtml(comment.username));
+        setUserSearchResults([]);
+    };
+
+    const handleUserSearch = async (value) => {
+        setEditUserValue(value);
+        if (!value.trim()) {
+            setUserSearchResults([]);
+            return;
+        }
+        try {
+            const response = await apiClient.get(`/backentcomments/users/search?q=${encodeURIComponent(value)}`);
+            const data = response.data || response;
+            setUserSearchResults(Array.isArray(data) ? data : []);
+        } catch {
+            setUserSearchResults([]);
+        }
+    };
+
+    const selectUser = (user) => {
+        setEditUserValue(user.username);
+        setUserSearchResults([]);
+    };
+
+    const saveEditUser = async () => {
+        if (!editUserValue.trim()) {
+            showToast('用户名不能为空');
+            return;
+        }
+        try {
+            const response = await apiClient.put(`/backentcomments/${editingUser}/user`, { username: editUserValue });
+            if (response.code !== 200) {
+                showToast('更新用户失败: ' + (response.message || '未知错误'));
+                return;
+            }
+            setComments(comments.map(comment =>
+                comment.comment_id === editingUser
+                    ? { ...comment, username: escapeHtml(editUserValue), user_id: comment.user_id }
+                    : comment
+            ));
+            setEditingUser(null);
+            setEditUserValue('');
+            showToast('评论用户更新成功');
+        } catch (err) {
+            showToast('更新用户失败: ' + (err.message || '未知错误'));
+            console.error('更新用户失败:', err);
+        }
+    };
+
+    const cancelEditUser = () => {
+        setEditingUser(null);
+        setEditUserValue('');
     };
 
     const handlePageChange = (newPage) => {
@@ -442,26 +501,78 @@ export default function CommentsView() {
                                             )}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center">
-                                                {comment.avatar && (
-                                                    <img
-                                                        src={getFullAvatarUrl(comment.avatar)}
-                                                        alt={unescapeHtml(comment.username)}
-                                                        className="h-8 w-8 rounded-full mr-2"
-                                                        onError={(e) => { e.target.src = '/image_error.svg'; }}
+                                            {editingUser === comment.comment_id ? (
+                                                <div className="relative">
+                                                    <input
+                                                        type="text"
+                                                        value={editUserValue}
+                                                        onChange={(e) => handleUserSearch(e.target.value)}
+                                                        className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36"
+                                                        placeholder="搜索用户..."
+                                                        autoFocus
                                                     />
-                                                )}
-                                                <div>
-                                                    <div className="text-sm font-medium text-gray-900">
-                                                        {unescapeHtml(comment.username)}
-                                                    </div>
-                                                    {comment.to_comment_username && (
-                                                        <div className="text-xs text-gray-500">
-                                                            回复 @{unescapeHtml(comment.to_comment_username)}
+                                                    {userSearchResults.length > 0 && (
+                                                        <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded shadow-lg z-10 max-h-48 overflow-y-auto">
+                                                            {userSearchResults.map((user) => (
+                                                                <div
+                                                                    key={user.user_id}
+                                                                    className="flex items-center px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
+                                                                    onClick={() => selectUser(user)}
+                                                                >
+                                                                    {user.avatar && (
+                                                                        <img
+                                                                            src={getFullAvatarUrl(user.avatar)}
+                                                                            alt=""
+                                                                            className="h-6 w-6 rounded-full mr-2"
+                                                                            onError={(e) => { e.target.style.display = 'none'; }}
+                                                                        />
+                                                                    )}
+                                                                    <span className="text-gray-900">{user.username}</span>
+                                                                </div>
+                                                            ))}
                                                         </div>
                                                     )}
+                                                    <div className="flex space-x-2 mt-1">
+                                                        <button
+                                                            onClick={saveEditUser}
+                                                            className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                                                        >
+                                                            保存
+                                                        </button>
+                                                        <button
+                                                            onClick={cancelEditUser}
+                                                            className="px-2 py-1 bg-gray-300 text-gray-700 rounded text-xs hover:bg-gray-400"
+                                                        >
+                                                            取消
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            ) : (
+                                                <div className="flex items-center">
+                                                    {comment.avatar && (
+                                                        <img
+                                                            src={getFullAvatarUrl(comment.avatar)}
+                                                            alt={unescapeHtml(comment.username)}
+                                                            className="h-8 w-8 rounded-full mr-2"
+                                                            onError={(e) => { e.target.src = '/image_error.svg'; }}
+                                                        />
+                                                    )}
+                                                    <div>
+                                                        <div
+                                                            className="text-sm font-medium text-gray-900 cursor-pointer hover:text-blue-600 hover:underline"
+                                                            onClick={() => startEditUser(comment)}
+                                                            title="点击修改用户"
+                                                        >
+                                                            {unescapeHtml(comment.username)}
+                                                        </div>
+                                                        {comment.to_comment_username && (
+                                                            <div className="text-xs text-gray-500">
+                                                                回复 @{unescapeHtml(comment.to_comment_username)}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </td>
                                         {!selectedArticle && (
                                             <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
@@ -504,7 +615,7 @@ export default function CommentsView() {
                                             {comment.comment_like_count}
                                         </td>
                                         <td className="px-6 py-4 text-right text-sm font-medium">
-                                            {editingComment !== comment.comment_id && editingTime !== comment.comment_id && (
+                                            {editingComment !== comment.comment_id && editingTime !== comment.comment_id && editingUser !== comment.comment_id && (
                                                 <div className="flex justify-end space-x-2">
                                                     <button
                                                         onClick={() => startEditComment(comment)}
