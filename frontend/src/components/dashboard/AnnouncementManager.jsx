@@ -156,7 +156,7 @@ export default function AnnouncementManager() {
                         onChange={(e) => setContent(e.target.value)}
                         className="flex-1 w-full resize-none p-4 text-sm text-gray-900 border-0
                                    focus:outline-none focus:ring-0 font-mono"
-                        placeholder="请输入公告内容（支持HTML）..."
+                        placeholder="请输入公告内容..."
                     />
                 </div>
                 <div className="w-1/2 flex flex-col">
