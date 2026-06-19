@@ -11,6 +11,8 @@ export default function CommentsView() {
     const [articles, setArticles] = useState([]);
     const [editingComment, setEditingComment] = useState(null);
     const [editContent, setEditContent] = useState('');
+    const [editingTime, setEditingTime] = useState(null);
+    const [editTimeValue, setEditTimeValue] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [pageSize] = useState(10);
@@ -170,6 +172,43 @@ export default function CommentsView() {
     const cancelEditComment = () => {
         setEditingComment(null);
         setEditContent('');
+    };
+
+    const startEditTime = (comment) => {
+        setEditingTime(comment.comment_id);
+        const datePart = comment.create_time.slice(0, 16);
+        setEditTimeValue(datePart);
+    };
+
+    const saveEditTime = async () => {
+        if (!editTimeValue) {
+            showToast('请选择时间');
+            return;
+        }
+        try {
+            const create_time = editTimeValue + ':00';
+            const response = await apiClient.put(`/backentcomments/${editingTime}/time`, { create_time });
+            if (response.code !== 200) {
+                showToast('更新时间失败: ' + (response.message || '未知错误'));
+                return;
+            }
+            setComments(comments.map(comment =>
+                comment.comment_id === editingTime
+                    ? { ...comment, create_time: create_time }
+                    : comment
+            ));
+            setEditingTime(null);
+            setEditTimeValue('');
+            showToast('评论时间更新成功');
+        } catch (err) {
+            showToast('更新时间失败: ' + (err.message || '未知错误'));
+            console.error('更新时间失败:', err);
+        }
+    };
+
+    const cancelEditTime = () => {
+        setEditingTime(null);
+        setEditTimeValue('');
     };
 
     const handlePageChange = (newPage) => {
@@ -430,19 +469,48 @@ export default function CommentsView() {
                                             </td>
                                         )}
                                         <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                                            {formatDate(comment.create_time)}
+                                            {editingTime === comment.comment_id ? (
+                                                <div className="flex items-center space-x-2">
+                                                    <input
+                                                        type="datetime-local"
+                                                        value={editTimeValue}
+                                                        onChange={(e) => setEditTimeValue(e.target.value)}
+                                                        className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    />
+                                                    <button
+                                                        onClick={saveEditTime}
+                                                        className="px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                                                    >
+                                                        保存
+                                                    </button>
+                                                    <button
+                                                        onClick={cancelEditTime}
+                                                        className="px-2 py-1 bg-gray-300 text-gray-700 rounded text-xs hover:bg-gray-400"
+                                                    >
+                                                        取消
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <span
+                                                    className="cursor-pointer hover:text-blue-600 hover:underline"
+                                                    onClick={() => startEditTime(comment)}
+                                                    title="点击修改时间"
+                                                >
+                                                    {formatDate(comment.create_time)}
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-500">
                                             {comment.comment_like_count}
                                         </td>
                                         <td className="px-6 py-4 text-right text-sm font-medium">
-                                            {editingComment !== comment.comment_id && (
+                                            {editingComment !== comment.comment_id && editingTime !== comment.comment_id && (
                                                 <div className="flex justify-end space-x-2">
                                                     <button
                                                         onClick={() => startEditComment(comment)}
                                                         className="text-blue-600 hover:text-blue-900"
                                                     >
-                                                        编辑
+                                                        编辑内容
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteComment(comment.comment_id)}

@@ -80,4 +80,10 @@
     <select id="countTotalComments" resultType="int">
         SELECT COUNT(*) FROM `comment` WHERE status = 1
     </select>
+
+    <update id="updateCommentTime">
+        UPDATE `comment`
+        SET create_time = #{create_time}, update_time = NOW()
+        WHERE comment_id = #{comment_id}
+    </update>
 </mapper>

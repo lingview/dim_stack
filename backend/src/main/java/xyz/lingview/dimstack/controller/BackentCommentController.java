@@ -62,6 +62,24 @@ public class BackentCommentController {
         }
     }
 
+    // 修改评论时间
+    @PutMapping("/{comment_id}/time")
+    @RequiresPermission({"system:comments:edit", "system:comments:management"})
+    public ApiResponse<Void> updateCommentTime(@PathVariable String comment_id,
+                                               @RequestBody Map<String, String> payload) {
+        String create_time = payload.get("create_time");
+        if (create_time == null || create_time.trim().isEmpty()) {
+            return ApiResponse.error(400, "评论时间不能为空");
+        }
+
+        boolean success = backendCommentService.updateCommentTime(comment_id, create_time);
+        if (success) {
+            return ApiResponse.success("评论时间更新成功");
+        } else {
+            return ApiResponse.error(400, "评论时间更新失败");
+        }
+    }
+
     // 删除评论
     @DeleteMapping("/{comment_id}")
     @RequiresPermission({"system:comments:delete", "system:comments:management"})

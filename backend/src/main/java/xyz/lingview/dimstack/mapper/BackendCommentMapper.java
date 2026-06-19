@@ -29,4 +29,6 @@ public interface BackendCommentMapper {
     String selectArticleTitleByArticleId(@Param("article_id") String article_id);
 
     int countTotalComments();
+
+    int updateCommentTime(@Param("comment_id") String comment_id, @Param("create_time") String create_time);
 }

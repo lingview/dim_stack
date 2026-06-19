@@ -105,4 +105,8 @@ public class BackendCommentService {
     public int getTotalCommentsCount() {
         return backendCommentMapper.countTotalComments();
     }
+
+    public boolean updateCommentTime(String comment_id, String create_time) {
+        return backendCommentMapper.updateCommentTime(comment_id, create_time) > 0;
+    }
 }
