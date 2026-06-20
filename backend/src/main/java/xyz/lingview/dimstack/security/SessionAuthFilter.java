@@ -59,7 +59,8 @@ public class SessionAuthFilter implements Filter {
             "/api/custom-pages/**",
             "/api/proxy/**",
             "/api/music/enabled",
-            "/api/friend-links/site-info"
+            "/api/friend-links/site-info",
+            "/api/announcement"
     ));
 
     @Override
