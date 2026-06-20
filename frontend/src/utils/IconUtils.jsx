@@ -1,9 +1,11 @@
 import {
     FileText, User, MessageCircle, Eye, Edit, File, Upload,
+    FileEdit,
     Palette, Plug, UserPlus, RefreshCcw, BarChart2, Book,
     Settings, Wrench, Image, Link as LinkIcon, Clipboard, Users,
     Database, ShoppingCart, Package, CheckSquare, List,
-    Tags, Folder, Paperclip, Shield, Megaphone
+    Tags, Folder, Paperclip, Shield, Megaphone,
+    CheckCircle2
 } from 'lucide-react';
 
 export function getIcon(iconName) {
@@ -14,7 +16,7 @@ export function getIcon(iconName) {
         case 'view':
         case 'eye': return <Eye className="w-5 h-5" />;
         case 'edit': return <Edit className="w-5 h-5" />;
-        case 'page': return <File className="w-5 h-5" />;
+        case 'page': return <FileEdit className="w-5 h-5" />;
         case 'upload': return <Upload className="w-5 h-5" />;
         case 'theme': return <Palette className="w-5 h-5" />;
         case 'plugin': return <Plug className="w-5 h-5" />;
@@ -43,6 +45,7 @@ export function getIcon(iconName) {
         case 'attachment': return <Paperclip className="w-5 h-5" />;
         case 'permission': return <Shield className="w-5 h-5" />;
         case 'announcement': return <Megaphone className="w-5 h-5" />;
+        case 'comment-review': return <CheckCircle2 className="w-5 h-5" />;
         default: return <File className="w-5 h-5" />;
     }
 }
@@ -82,7 +85,8 @@ export function getIconColor(iconName) {
         case 'dashboard':
         case 'overview': return 'bg-blue-500';
         case 'content':
-        case 'review': return 'bg-teal-500';
+        case 'review':
+        case 'comment-review': return 'bg-teal-500';
         case 'appearance':
         case 'settings':
         case 'system': return 'bg-gray-700';
