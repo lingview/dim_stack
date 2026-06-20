@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../../utils/axios';
 import {getConfig} from "../../utils/config.jsx";
+import { showToast } from '../../utils/toastManager.jsx';
 
 const getFullImageUrl = (url) => {
     if (!url) return null;
@@ -102,7 +103,6 @@ export default function SiteSettingsView() {
 
     const [uploadQueue, setUploadQueue] = useState([]);
 
-    const [message, setMessage] = useState({ type: '', content: '' });
     const [testEmail, setTestEmail] = useState('');
     const [llmConfig, setLlmConfig] = useState({
         api_key: '',
@@ -190,11 +190,11 @@ export default function SiteSettingsView() {
                 };
                 setFormData(escapedData);
             } else {
-                showMessage('error', response.message || '获取站点配置失败');
+                showToast(response.message || '获取站点配置失败', 'error');
             }
         } catch (error) {
             console.error('获取站点配置失败:', error);
-            showMessage('error', '获取站点配置时发生错误');
+            showToast('获取站点配置时发生错误', 'error');
         }
     };
 
@@ -205,11 +205,11 @@ export default function SiteSettingsView() {
             if (response.code === 200) {
                 setRoles(response.data);
             } else {
-                showMessage('error', response.message || '获取角色列表失败');
+                showToast(response.message || '获取角色列表失败', 'error');
             }
         } catch (error) {
             console.error('获取角色列表失败:', error);
-            showMessage('error', '获取角色列表时发生错误');
+            showToast('获取角色列表时发生错误', 'error');
         }
     };
 
@@ -220,11 +220,11 @@ export default function SiteSettingsView() {
             if (response.code === 200) {
                 setArticleStatusOptions(response.data);
             } else {
-                showMessage('error', response.message || '获取文章状态选项失败');
+                showToast(response.message || '获取文章状态选项失败', 'error');
             }
         } catch (error) {
             console.error('获取文章状态选项失败:', error);
-            showMessage('error', '获取文章状态选项时发生错误');
+            showToast('获取文章状态选项时发生错误', 'error');
         }
     };
 
@@ -236,11 +236,11 @@ export default function SiteSettingsView() {
             if (response.code === 200) {
                 setMusics(response.data);
             } else {
-                showMessage('error', response.message || '获取音乐列表失败');
+                showToast(response.message || '获取音乐列表失败', 'error');
             }
         } catch (error) {
             console.error('获取音乐列表失败:', error);
-            showMessage('error', '获取音乐列表时发生错误');
+            showToast('获取音乐列表时发生错误', 'error');
         } finally {
             setLoadingMusics(false);
         }
@@ -258,11 +258,11 @@ export default function SiteSettingsView() {
                     model: response.data.model || ''
                 });
             } else {
-                showMessage('error', response.message || '获取LLM配置失败');
+                showToast(response.message || '获取LLM配置失败', 'error');
             }
         } catch (error) {
             console.error('获取LLM配置失败:', error);
-            showMessage('error', '获取LLM配置时发生错误');
+            showToast('获取LLM配置时发生错误', 'error');
         } finally {
             setLoadingLlmConfig(false);
         }
@@ -278,11 +278,11 @@ export default function SiteSettingsView() {
 
     const handleSaveLlmConfig = async () => {
         if (!llmConfig.api_url.trim()) {
-            showMessage('error', 'API地址不能为空');
+            showToast('API地址不能为空', 'error');
             return;
         }
         if (!llmConfig.model.trim()) {
-            showMessage('error', '模型名称不能为空');
+            showToast('模型名称不能为空', 'error');
             return;
         }
 
@@ -291,14 +291,14 @@ export default function SiteSettingsView() {
             const response = await apiClient.post('/llm/config', llmConfig);
 
             if (response.code === 200) {
-                showMessage('success', response.message || 'LLM配置保存成功');
+                showToast(response.message || 'LLM配置保存成功');
                 fetchLlmConfig();
             } else {
-                showMessage('error', response.message || 'LLM配置保存失败');
+                showToast(response.message || 'LLM配置保存失败', 'error');
             }
         } catch (error) {
             console.error('保存LLM配置失败:', error);
-            showMessage('error', '保存LLM配置时发生错误');
+            showToast('保存LLM配置时发生错误', 'error');
         } finally {
             setSavingLlmConfig(false);
         }
@@ -316,12 +316,12 @@ export default function SiteSettingsView() {
                     loading: false
                 }));
             } else {
-                showMessage('error', response.message || '获取提示词失败');
+                showToast(response.message || '获取提示词失败', 'error');
                 setPromptModal(prev => ({ ...prev, show: false, loading: false }));
             }
         } catch (error) {
             console.error('获取提示词失败:', error);
-            showMessage('error', '获取提示词时发生错误');
+            showToast('获取提示词时发生错误', 'error');
             setPromptModal(prev => ({ ...prev, show: false, loading: false }));
         }
     };
@@ -338,7 +338,7 @@ export default function SiteSettingsView() {
 
     const savePrompt = async () => {
         if (!promptModal.promptContent.trim()) {
-            showMessage('error', '提示词内容不能为空');
+            showToast('提示词内容不能为空', 'error');
             return;
         }
 
@@ -349,14 +349,14 @@ export default function SiteSettingsView() {
             });
 
             if (response.code === 200) {
-                showMessage('success', response.message || '提示词更新成功');
+                showToast(response.message || '提示词更新成功');
                 closePromptModal();
             } else {
-                showMessage('error', response.message || '提示词更新失败');
+                showToast(response.message || '提示词更新失败', 'error');
             }
         } catch (error) {
             console.error('保存提示词失败:', error);
-            showMessage('error', '保存提示词时发生错误');
+            showToast('保存提示词时发生错误', 'error');
         } finally {
             setPromptModal(prev => ({ ...prev, saving: false }));
         }
@@ -400,7 +400,7 @@ export default function SiteSettingsView() {
     // 保存编辑的音乐
     const saveEditMusic = async () => {
         if (!editingMusic.musicName || !editingMusic.musicAuthor || !editingMusic.musicUrl) {
-            showMessage('error', '请填写完整的音乐信息');
+            showToast('请填写完整的音乐信息', 'error');
             return;
         }
 
@@ -412,15 +412,15 @@ export default function SiteSettingsView() {
             });
 
             if (response.code === 200) {
-                showMessage('success', '音乐更新成功');
+                showToast('音乐更新成功');
                 setEditingMusic(null);
                 fetchMusics();
             } else {
-                showMessage('error', response.message || '音乐更新失败');
+                showToast(response.message || '音乐更新失败', 'error');
             }
         } catch (error) {
             console.error('更新音乐失败:', error);
-            showMessage('error', '更新音乐时发生错误');
+            showToast('更新音乐时发生错误', 'error');
         }
     };
 
@@ -507,7 +507,7 @@ export default function SiteSettingsView() {
 
         const audioFiles = files.filter(f => f.type.startsWith('audio/'));
         const invalidCount = files.length - audioFiles.length;
-        if (invalidCount > 0) showMessage('error', `已跳过 ${invalidCount} 个非音频文件`);
+        if (invalidCount > 0) showToast(`已跳过 ${invalidCount} 个非音频文件`, 'error');
         if (!audioFiles.length) return;
 
         const newItems = audioFiles.map((file, i) => ({
@@ -539,7 +539,7 @@ export default function SiteSettingsView() {
     const addAllQueuedMusic = async () => {
         const readyItems = uploadQueue.filter(q => q.status === 'done' && q.musicName && q.musicAuthor && q.musicUrl);
         if (!readyItems.length) {
-            showMessage('error', '没有可添加的音乐（请确认上传完成且填写了曲名和歌手名）');
+            showToast('没有可添加的音乐（请确认上传完成且填写了曲名和歌手名）', 'error');
             return;
         }
         try {
@@ -550,11 +550,11 @@ export default function SiteSettingsView() {
                     musicUrl: item.musicUrl
                 })
             ));
-            showMessage('success', `成功添加 ${readyItems.length} 首音乐`);
+            showToast(`成功添加 ${readyItems.length} 首音乐`);
             setUploadQueue([]);
             fetchMusics();
         } catch (error) {
-            showMessage('error', '部分音乐添加失败');
+            showToast('部分音乐添加失败', 'error');
         }
     };
 
@@ -567,20 +567,20 @@ export default function SiteSettingsView() {
             const response = await apiClient.delete(`/music/delete/${id}`);
 
             if (response.code === 200) {
-                showMessage('success', '音乐删除成功');
+                showToast('音乐删除成功');
                 fetchMusics();
             } else {
-                showMessage('error', response.message || '音乐删除失败');
+                showToast(response.message || '音乐删除失败', 'error');
             }
         } catch (error) {
             console.error('删除音乐失败:', error);
-            showMessage('error', '删除音乐时发生错误');
+            showToast('删除音乐时发生错误', 'error');
         }
     };
 
     const handleSmtpTest = async () => {
         if (!testEmail.trim()) {
-            showMessage('error', '请输入测试收件邮箱');
+            showToast('请输入测试收件邮箱', 'error');
             return;
         }
         try {
@@ -589,14 +589,14 @@ export default function SiteSettingsView() {
                 email: testEmail.trim()
             });
             if (response.code === 200) {
-                showMessage('success', response.message || '测试邮件已发送，请检查收件箱');
+                showToast(response.message || '测试邮件已发送，请检查收件箱');
             } else {
-                showMessage('error', response.message || '测试邮件发送失败');
+                showToast(response.message || '测试邮件发送失败', 'error');
             }
         } catch (error) {
             console.error('SMTP测试失败:', error);
             const errorMessage = error?.response?.data?.message || '测试邮件发送时发生错误';
-            showMessage('error', errorMessage);
+            showToast(errorMessage, 'error');
         } finally {
             setTestingSmtp(false);
         }
@@ -653,17 +653,17 @@ export default function SiteSettingsView() {
             const response = await apiClient.post('/site/editsiteconfig', unescapedData);
 
             if (response.code === 200) {
-                showMessage('success', '站点配置保存成功');
+                showToast('站点配置保存成功');
                 setFormData(prev => ({
                     ...prev,
                     mail_password: ''
                 }));
             } else {
-                showMessage('error', response.message || '保存失败');
+                showToast(response.message || '保存失败', 'error');
             }
         } catch (error) {
             console.error('保存站点配置失败:', error);
-            showMessage('error', '保存站点配置时发生错误');
+            showToast('保存站点配置时发生错误', 'error');
         } finally {
             setSaving(false);
         }
@@ -689,13 +689,13 @@ export default function SiteSettingsView() {
                     ...prev,
                     hero_image: response.fileUrl
                 }));
-                showMessage('success', '图片上传成功');
+                showToast('图片上传成功');
             } else {
-                showMessage('error', response.error || '图片上传失败');
+                showToast(response.error || '图片上传失败', 'error');
             }
         } catch (error) {
             console.error('图片上传失败:', error);
-            showMessage('error', '图片上传时发生错误');
+            showToast('图片上传时发生错误', 'error');
         } finally {
             setUploading(false);
             if (fileInputRef.current) {
@@ -724,13 +724,13 @@ export default function SiteSettingsView() {
                     ...prev,
                     site_icon: response.fileUrl
                 }));
-                showMessage('success', '站点图标上传成功');
+                showToast('站点图标上传成功');
             } else {
-                showMessage('error', response.error || '站点图标上传失败');
+                showToast(response.error || '站点图标上传失败', 'error');
             }
         } catch (error) {
             console.error('站点图标上传失败:', error);
-            showMessage('error', '站点图标上传时发生错误');
+            showToast('站点图标上传时发生错误', 'error');
         } finally {
             setIconUploading(false);
             if (iconFileInputRef.current) {
@@ -749,13 +749,6 @@ export default function SiteSettingsView() {
         if (iconFileInputRef.current) {
             iconFileInputRef.current.click();
         }
-    };
-
-    const showMessage = (type, content) => {
-        setMessage({ type, content });
-        setTimeout(() => {
-            setMessage({ type: '', content: '' });
-        }, 3000);
     };
 
     const cacheOptions = [
@@ -788,7 +781,7 @@ export default function SiteSettingsView() {
 
     const handleClearSelectedCache = async () => {
         if (selectedCacheKeys.length === 0) {
-            showMessage('error', '请至少选择一个缓存项');
+            showToast('请至少选择一个缓存项', 'error');
             return;
         }
 
@@ -805,14 +798,14 @@ export default function SiteSettingsView() {
             });
 
             if (response.success || response.code === 200) {
-                showMessage('success', `成功清除 ${response.data?.count || selectedCacheKeys.length} 个缓存`);
+                showToast(`成功清除 ${response.data?.count || selectedCacheKeys.length} 个缓存`);
                 setSelectedCacheKeys([]);
             } else {
-                showMessage('error', response.message || '清除缓存失败');
+                showToast(response.message || '清除缓存失败', 'error');
             }
         } catch (error) {
             console.error('清除缓存失败:', error);
-            showMessage('error', '清除缓存时发生错误');
+            showToast('清除缓存时发生错误', 'error');
         } finally {
             setClearingCache(false);
         }
@@ -828,14 +821,14 @@ export default function SiteSettingsView() {
             const response = await apiClient.post('/cache/clear/all');
 
             if (response.success || response.code === 200) {
-                showMessage('success', `成功清除 ${response.data?.count || 7} 个缓存`);
+                showToast(`成功清除 ${response.data?.count || 7} 个缓存`);
                 setSelectedCacheKeys([]);
             } else {
-                showMessage('error', response.message || '清除缓存失败');
+                showToast(response.message || '清除缓存失败', 'error');
             }
         } catch (error) {
             console.error('清除所有缓存失败:', error);
-            showMessage('error', '清除缓存时发生错误');
+            showToast('清除缓存时发生错误', 'error');
         } finally {
             setClearingCache(false);
         }
@@ -860,18 +853,6 @@ export default function SiteSettingsView() {
                 <h2 className="text-xl font-semibold text-gray-900">站点配置管理</h2>
                 <p className="mt-1 text-sm text-gray-500">修改后请点击底部的保存按钮</p>
             </div>
-
-            {message.content && (
-                <div className="mx-4 md:mx-6 mt-4">
-                    <div className={`p-4 rounded-lg ${
-                        message.type === 'success' ? 'bg-green-50 text-green-800' :
-                            message.type === 'error' ? 'bg-red-50 text-red-800' :
-                                'bg-blue-50 text-blue-800'
-                    }`}>
-                        {message.content}
-                    </div>
-                </div>
-            )}
 
             <div className="border-b border-gray-200 overflow-x-auto">
                 <nav className="flex space-x-2 px-4 md:px-6 min-w-max" aria-label="Tabs">
