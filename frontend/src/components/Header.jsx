@@ -244,7 +244,7 @@ export default function Header() {
                                                 navigate(menu.menus_url);
                                                 closeMobileMenu();
                                             }}
-                                            className="text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200 text-left whitespace-nowrap"
+                                            className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 text-left whitespace-nowrap"
                                         >
                                             {menu.menus_name}
                                         </button>
@@ -253,7 +253,7 @@ export default function Header() {
                                             href={menu.menus_url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200 whitespace-nowrap"
+                                            className="text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 whitespace-nowrap"
                                         >
                                             {menu.menus_name}
                                         </a>
@@ -265,7 +265,7 @@ export default function Header() {
                                 <li className="relative more-menu-container">
                                     <button
                                         onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-                                        className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors duration-200 whitespace-nowrap"
+                                        className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 font-medium transition-colors duration-200 whitespace-nowrap"
                                         aria-haspopup="true"
                                         aria-expanded={isMoreMenuOpen}
                                     >
@@ -355,7 +355,7 @@ export default function Header() {
                         </button>
 
                         {isLoggedIn ? (
-                            <div 
+                            <div
                                 className="relative group user-menu-container hidden md:flex items-center space-x-3"
                                 onMouseEnter={() => setIsUserMenuOpen(true)}
                                 onMouseLeave={() => setIsUserMenuOpen(false)}

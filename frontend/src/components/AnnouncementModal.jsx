@@ -52,15 +52,15 @@ export default function AnnouncementModal() {
         <>
             <div className="fixed inset-0 backdrop-blur-sm bg-opacity-30 z-50"></div>
             <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col"
+                <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col"
                      onClick={(e) => e.stopPropagation()}>
-                    <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <div className="flex justify-between items-center p-4 border-b border-gray-200 shrink-0">
+                        <h3 className="text-lg font-semibold text-gray-900">
                             公告
                         </h3>
                         <button
                             onClick={handleClose}
-                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl leading-none w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                            className="text-gray-400 hover:text-gray-600 text-xl leading-none w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
                         >
                             &times;
                         </button>

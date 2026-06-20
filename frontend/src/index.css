@@ -59,6 +59,14 @@
   background-color: #6b7280 !important;
 }
 
+.dark .hover\:text-gray-600:hover {
+  color: #d1d5db !important;
+}
+
+.dark .hover\:text-blue-600:hover {
+  color: #60a5fa !important;
+}
+
 /* 阴影在暗色下变淡一点 */
 .dark .shadow-md {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important;
