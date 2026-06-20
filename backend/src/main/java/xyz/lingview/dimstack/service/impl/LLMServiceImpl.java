@@ -76,6 +76,36 @@ public class LLMServiceImpl implements LLMService {
             return AiReviewResult.ERROR;
         }
     }
+
+    @Override
+    public String reviewComment(String commentContent) {
+        try {
+            LlmConfig llmConfig = llmConfigService.getLlmConfig();
+            if (llmConfig == null || llmConfig.getApi_key() == null || llmConfig.getApi_key().trim().isEmpty()) {
+                return "ERROR";
+            }
+
+            LlmPromptConfig promptConfig = llmPromptConfigService.getPromptByName("comment_review");
+            if (promptConfig == null || promptConfig.getPrompt_content() == null || promptConfig.getPrompt_content().trim().isEmpty()) {
+                return "ERROR";
+            }
+
+            String response = LargeLanguageModelsUtil.callDashscopeAPI(
+                    llmConfig.getApi_key(),
+                    llmConfig.getApi_url(),
+                    llmConfig.getModel(),
+                    promptConfig.getPrompt_content(),
+                    commentContent
+            );
+
+            Boolean result = parseReviewResult(response);
+            if (result == null) return "ERROR";
+            return result ? "PASS" : "REJECT";
+        } catch (Exception e) {
+            log.error("评论审核异常", e);
+            return "ERROR";
+        }
+    }
     private Boolean parseReviewResult(String response) {
         try {
             JsonNode rootNode = objectMapper.readTree(response);

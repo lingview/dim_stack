@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RateLimit;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
+import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.dto.request.AddCommentRequestDTO;
 import xyz.lingview.dimstack.dto.request.CommentDTO;
 import xyz.lingview.dimstack.service.CommentService;
@@ -32,9 +33,13 @@ public class CommentController {
     @PostMapping
     @RateLimit(window = 60, maxRequests = 5)
     @RequiresPermission({"comments:add", "comments:edit"})
-    public void addComment(@RequestBody AddCommentRequestDTO request) {
+    public ApiResponse<Void> addComment(@RequestBody AddCommentRequestDTO request) {
         String username = currentUserService.getCurrentUsername();
-        commentService.addComment(username, request);
+        int status = commentService.addComment(username, request);
+        if (status == 3) {
+            return ApiResponse.success("您的评论已提交，将在审核通过后展示");
+        }
+        return ApiResponse.success("评论成功");
     }
 
     // 点赞评论

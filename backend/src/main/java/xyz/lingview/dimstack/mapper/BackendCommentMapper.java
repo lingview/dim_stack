@@ -36,4 +36,14 @@ public interface BackendCommentMapper {
     int updateCommentUser(@Param("comment_id") String comment_id, @Param("user_id") String user_id);
 
     List<Map<String, Object>> searchUsersByPrefix(@Param("prefix") String prefix);
+
+    List<CommentDTO> selectCommentsByStatus(@Param("status") int status, @Param("offset") int offset, @Param("limit") int limit);
+
+    int countByStatus(@Param("status") int status);
+
+    List<CommentDTO> selectAllReviewComments(@Param("offset") int offset, @Param("limit") int limit);
+
+    int countAllReview();
+
+    int updateCommentStatus(@Param("comment_id") String comment_id, @Param("status") int status);
 }

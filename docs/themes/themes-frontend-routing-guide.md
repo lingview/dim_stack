@@ -1260,11 +1260,33 @@ POST /api/comments
 |---|---|---|---|---|
 |body|body|[AddCommentRequest](#schemaaddcommentrequest)| 是 |none|
 
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 200,
+  "data": null,
+  "message": "评论成功"
+}
+```
+
+> 若评论需要审核，返回示例
+
+```json
+{
+  "code": 200,
+  "data": null,
+  "message": "您的评论已提交，将在审核通过后展示"
+}
+```
+
 ### 返回结果
 
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|评论添加成功|None|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|评论成功/待审核后展示|[ApiResponse](#schemaapiresponse)|
 
 ## POST 点赞评论
 

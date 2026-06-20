@@ -1,6 +1,7 @@
 package xyz.lingview.dimstack.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 import xyz.lingview.dimstack.domain.Comment;
 
@@ -14,4 +15,6 @@ public interface CommentMapper {
     Comment selectCommentByCommentId(String commentId);
     void updateCommentLikeCount(String commentId, Long likeCount);
     void deleteComment(String commentId);
+
+    int updateCommentStatus(@Param("commentId") String commentId, @Param("status") int status);
 }

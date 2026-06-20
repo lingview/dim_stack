@@ -41,4 +41,7 @@ public class SiteConfig {
     private Integer image_compression_threads;
     private Integer proxy_resource_download;
     private Integer enable_comment;
+    private Integer comment_status;
+    private Integer enable_llm_comment_review;
+    private Integer admin_comment_no_review;
 }

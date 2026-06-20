@@ -5,10 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.Article;
 import xyz.lingview.dimstack.domain.Comment;
+import xyz.lingview.dimstack.domain.UserInformation;
 import xyz.lingview.dimstack.dto.request.CommentDTO;
 import xyz.lingview.dimstack.mapper.ArticleMapper;
 import xyz.lingview.dimstack.mapper.BackendCommentMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
+import xyz.lingview.dimstack.service.MailService;
+import xyz.lingview.dimstack.service.NotificationService;
+import xyz.lingview.dimstack.util.SiteConfigUtil;
 
 import java.util.*;
 import java.util.Map;
@@ -25,6 +29,15 @@ public class BackendCommentService {
 
     @Autowired
     private UserInformationMapper userInformationMapper;
+
+    @Autowired
+    private MailService mailService;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private SiteConfigUtil siteConfigUtil;
 
     public List<CommentDTO> getCommentsByArticleId(String article_id) {
         log.info("查询文章评论，article_id = {}", article_id);
@@ -125,5 +138,67 @@ public class BackendCommentService {
 
     public List<Map<String, Object>> searchUsers(String prefix) {
         return backendCommentMapper.searchUsersByPrefix(prefix);
+    }
+
+    public List<CommentDTO> getCommentsByStatus(int status, int page, int size) {
+        int offset = (page - 1) * size;
+        return backendCommentMapper.selectCommentsByStatus(status, offset, size);
+    }
+
+    public int countByStatus(int status) {
+        return backendCommentMapper.countByStatus(status);
+    }
+
+    public List<CommentDTO> getAllReviewComments(int page, int size) {
+        int offset = (page - 1) * size;
+        return backendCommentMapper.selectAllReviewComments(offset, size);
+    }
+
+    public int countAllReview() {
+        return backendCommentMapper.countAllReview();
+    }
+
+    public boolean updateCommentReviewStatus(String comment_id, int status) {
+        boolean result = backendCommentMapper.updateCommentStatus(comment_id, status) > 0;
+        if (result && (status == 1 || status == 4)) {
+            sendReviewResultNotification(comment_id, status);
+        }
+        return result;
+    }
+
+    private void sendReviewResultNotification(String comment_id, int status) {
+        try {
+            if (!siteConfigUtil.isNotificationEnabled()) return;
+
+            Comment comment = backendCommentMapper.selectCommentByCommentId(comment_id);
+            if (comment == null) return;
+
+            UserInformation author = userInformationMapper.selectUserByUUID(comment.getUser_id());
+            if (author == null || author.getEmail() == null) return;
+
+            String siteName = siteConfigUtil.getSiteName();
+            String resultText = status == 1 ? "通过审核" : "被标记为违规";
+            String subject = siteName + " 评论审核结果";
+            String content = "您的评论 \"" + comment.getContent() + "\" " + resultText + "。";
+
+            notificationService.sendSystemNotification(author.getUsername(), "系统通知", content);
+            mailService.sendSimpleMail(author.getEmail(), subject, content);
+
+            // 审核通过时，同时通知文章作者有新评论
+            if (status == 1) {
+                Article article = articleMapper.selectArticleByArticleId(comment.getArticle_id());
+                if (article != null && !comment.getUser_id().equals(article.getUuid())) {
+                    UserInformation articleAuthor = userInformationMapper.selectUserByUUID(article.getUuid());
+                    if (articleAuthor != null && articleAuthor.getEmail() != null) {
+                        String commentSubject = siteName + " 评论通知";
+                        String commentContent = "用户：" + author.getUsername() + " 评论了您的文章《" + article.getArticle_name() + "》：" + comment.getContent();
+                        notificationService.sendSystemNotification(articleAuthor.getUsername(), "系统通知", commentContent);
+                        mailService.sendSimpleMail(articleAuthor.getEmail(), commentSubject, commentContent);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("发送评论审核结果通知失败", e);
+        }
     }
 }

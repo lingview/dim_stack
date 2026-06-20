@@ -13,7 +13,9 @@ import xyz.lingview.dimstack.mapper.ArticleMapper;
 import xyz.lingview.dimstack.mapper.CommentLikeMapper;
 import xyz.lingview.dimstack.mapper.CommentMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
+import xyz.lingview.dimstack.mapper.UserPermissionMapper;
 import xyz.lingview.dimstack.service.CommentService;
+import xyz.lingview.dimstack.service.LLMService;
 import xyz.lingview.dimstack.service.MailService;
 import xyz.lingview.dimstack.service.NotificationService;
 import xyz.lingview.dimstack.util.SiteConfigUtil;
@@ -35,6 +37,9 @@ public class CommentServiceImpl implements CommentService {
     private UserInformationMapper userInformationMapper;
 
     @Autowired
+    private UserPermissionMapper userPermissionMapper;
+
+    @Autowired
     private CommentLikeMapper commentLikeMapper;
     
     @Autowired
@@ -45,6 +50,9 @@ public class CommentServiceImpl implements CommentService {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private LLMService llmService;
 
     @Override
     public List<CommentDTO> getCommentsByArticleAlias(String articleAlias, String username) {
@@ -63,7 +71,7 @@ public class CommentServiceImpl implements CommentService {
         return buildCommentTree(comments, currentUserUuid);
     }
     @Override
-    public void addComment(String username, AddCommentRequestDTO request) {
+    public int addComment(String username, AddCommentRequestDTO request) {
 
         String userId = userInformationMapper.selectUserUUID(username);
 
@@ -85,7 +93,15 @@ public class CommentServiceImpl implements CommentService {
         comment.setArticle_id(article.getArticle_id());
         comment.setContent(request.getContent());
         comment.setComment_like_count(0L);
-        comment.setStatus(1);
+        int commentStatus;
+
+        List<String> userPermissions = userPermissionMapper.findPermissionCodesByUserName(username);
+        if (userPermissions.contains("system:comments:review") && siteConfigUtil.adminCommentNoReview()) {
+            commentStatus = 1;
+        } else {
+            commentStatus = siteConfigUtil.getCommentStatus();
+        }
+        comment.setStatus(commentStatus);
         comment.setCreate_time(LocalDateTime.now());
         comment.setUpdate_time(LocalDateTime.now());
 
@@ -104,7 +120,16 @@ public class CommentServiceImpl implements CommentService {
 
         commentMapper.insertComment(comment);
 
-        sendCommentNotification(comment, article, username);
+        // AI审核
+        if (commentStatus == 3 && siteConfigUtil.isLlmCommentReviewEnabled()) {
+            triggerLlmCommentReview(comment, article, username);
+        } else if (commentStatus == 3) {
+            sendCommentReviewNotification(comment, article, username);
+        } else {
+            sendCommentNotification(comment, article, username);
+        }
+
+        return commentStatus;
     }
 
     @Override
@@ -302,6 +327,73 @@ public class CommentServiceImpl implements CommentService {
             }
         } catch (Exception e) {
             log.warn("点赞通知邮件发送失败{}", String.valueOf(e));
+        }
+    }
+
+    private void sendCommentReviewNotification(Comment comment, Article article, String commenterName) {
+        try {
+            if (!siteConfigUtil.isNotificationEnabled()) {
+                return;
+            }
+            UserInformation commenter = userInformationMapper.selectUserByUUID(comment.getUser_id());
+            String siteName = siteConfigUtil.getSiteName();
+            String subject = siteName + " 评论审核通知";
+            String content = "用户 " + commenterName + " 发表了新评论：《" + article.getArticle_name() + "》\"" + comment.getContent() + "\"，需要审核。";
+
+            List<String> reviewers = userInformationMapper.getUsernamesByPermissionCode("system:comments:review");
+            if (reviewers != null) {
+                for (String reviewer : reviewers) {
+                    notificationService.sendSystemNotification(reviewer, subject, content);
+                }
+            }
+
+            List<String> reviewerEmails = userInformationMapper.getEmailsByPermissionCode("system:comments:review");
+            if (reviewerEmails != null) {
+                for (String email : reviewerEmails) {
+                    mailService.sendSimpleMail(email, subject, content);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("评论审核通知发送失败{}", String.valueOf(e));
+        }
+    }
+
+    private void triggerLlmCommentReview(Comment comment, Article article, String commenterName) {
+        new Thread(() -> {
+            try {
+                String result = llmService.reviewComment(comment.getContent());
+                if ("PASS".equals(result)) {
+                    commentMapper.updateCommentStatus(comment.getComment_id(), 1);
+                    sendReviewResultToAuthor(comment, true);
+                    sendCommentNotification(comment, article, commenterName);
+                } else if ("REJECT".equals(result)) {
+                    commentMapper.updateCommentStatus(comment.getComment_id(), 4);
+                    sendReviewResultToAuthor(comment, false);
+                } else {
+                    sendCommentReviewNotification(comment, article, commenterName);
+                }
+            } catch (Exception e) {
+                log.warn("LLM评论审核异常: {}", e.getMessage());
+            }
+        }).start();
+    }
+
+    private void sendReviewResultToAuthor(Comment comment, boolean passed) {
+        try {
+            if (!siteConfigUtil.isNotificationEnabled()) return;
+
+            UserInformation author = userInformationMapper.selectUserByUUID(comment.getUser_id());
+            if (author == null || author.getEmail() == null) return;
+
+            String siteName = siteConfigUtil.getSiteName();
+            String resultText = passed ? "通过审核" : "被标记为违规";
+            String subject = siteName + " 评论审核结果";
+            String content = "您的评论 \"" + comment.getContent() + "\" " + resultText + "。";
+
+            notificationService.sendSystemNotification(author.getUsername(), "系统通知", content);
+            mailService.sendSimpleMail(author.getEmail(), subject, content);
+        } catch (Exception e) {
+            log.warn("发送评论审核结果通知失败", e);
         }
     }
 }

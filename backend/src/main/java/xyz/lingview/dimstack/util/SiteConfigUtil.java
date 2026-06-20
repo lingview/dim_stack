@@ -234,4 +234,45 @@ public class SiteConfigUtil {
         }
         return 0;
     }
+
+    public int getCommentStatus() {
+        try {
+            SiteConfig siteConfig = cacheService.get("dimstack:site_config", SiteConfig.class);
+            if (siteConfig != null) {
+                Integer status = siteConfig.getComment_status();
+                return status != null ? status : 1;
+            }
+        } catch (Exception e) {
+            log.warn("获取评论默认状态时发生异常", e);
+        }
+        return 1;
+    }
+
+    public boolean isLlmCommentReviewEnabled() {
+        try {
+            SiteConfig siteConfig = cacheService.get("dimstack:site_config", SiteConfig.class);
+            if (siteConfig != null) {
+                Integer enableLlm = siteConfig.getEnable_llm();
+                Integer enableCommentReview = siteConfig.getEnable_llm_comment_review();
+                return enableLlm != null && enableLlm == 1
+                    && enableCommentReview != null && enableCommentReview == 1;
+            }
+        } catch (Exception e) {
+            log.warn("检查LLM评论审核设置时发生异常", e);
+        }
+        return false;
+    }
+
+    public boolean adminCommentNoReview() {
+        try {
+            SiteConfig siteConfig = cacheService.get("dimstack:site_config", SiteConfig.class);
+            if (siteConfig != null) {
+                Integer noReview = siteConfig.getAdmin_comment_no_review();
+                return noReview == null || noReview == 1;
+            }
+        } catch (Exception e) {
+            log.warn("检查管理员评论免审核设置时发生异常", e);
+        }
+        return true;
+    }
 }

@@ -254,6 +254,18 @@ public class SiteConfigController {
                 currentConfig.setEnable_comment(siteConfig.getEnable_comment());
             }
 
+            if (siteConfig.getComment_status() != null) {
+                currentConfig.setComment_status(siteConfig.getComment_status());
+            }
+
+            if (siteConfig.getEnable_llm_comment_review() != null) {
+                currentConfig.setEnable_llm_comment_review(siteConfig.getEnable_llm_comment_review());
+            }
+
+            if (siteConfig.getAdmin_comment_no_review() != null) {
+                currentConfig.setAdmin_comment_no_review(siteConfig.getAdmin_comment_no_review());
+            }
+
             boolean result = siteConfigService.updateSiteConfig(currentConfig);
 
             if (result) {

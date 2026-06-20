@@ -34,4 +34,10 @@
         SET status = 0
         WHERE comment_id = #{commentId}
     </update>
+
+    <update id="updateCommentStatus">
+        UPDATE comment
+        SET status = #{status}, update_time = NOW()
+        WHERE comment_id = #{commentId}
+    </update>
 </mapper>

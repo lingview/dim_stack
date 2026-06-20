@@ -94,7 +94,10 @@ export default function SiteSettingsView() {
         enable_image_compression: 1,
         image_compression_threads: 5,
         proxy_resource_download: 0,
-        enable_comment: 1
+        enable_comment: 1,
+        comment_status: 1,
+        enable_llm_comment_review: 0,
+        admin_comment_no_review: 1
     });
 
     const [uploadQueue, setUploadQueue] = useState([]);
@@ -180,7 +183,10 @@ export default function SiteSettingsView() {
                     enable_image_compression: response.data.enable_image_compression != null ? response.data.enable_image_compression : 0,
                     image_compression_threads: response.data.image_compression_threads != null ? response.data.image_compression_threads : 5,
                     proxy_resource_download: response.data.proxy_resource_download != null ? response.data.proxy_resource_download : 0,
-                    enable_comment: response.data.enable_comment != null ? response.data.enable_comment : 1
+                    enable_comment: response.data.enable_comment != null ? response.data.enable_comment : 1,
+                    comment_status: response.data.comment_status != null ? response.data.comment_status : 1,
+                    enable_llm_comment_review: response.data.enable_llm_comment_review !== undefined ? response.data.enable_llm_comment_review : 0,
+                    admin_comment_no_review: response.data.admin_comment_no_review != null ? response.data.admin_comment_no_review : 1
                 };
                 setFormData(escapedData);
             } else {
@@ -364,7 +370,7 @@ export default function SiteSettingsView() {
             finalValue = checked;
         } else if (name === 'smtp_port' || name === 'article_status') {
             finalValue = value === '' ? '' : parseInt(value, 10);
-        } else if (name === 'enable_music' || name === 'admin_post_no_review') {
+        } else if (name === 'enable_music' || name === 'admin_post_no_review' || name === 'admin_comment_no_review') {
             finalValue = checked ? 1 : 0;
         } else {
             finalValue = escapeHtml(value);
@@ -634,7 +640,10 @@ export default function SiteSettingsView() {
                 enable_image_compression: formData.enable_image_compression,
                 image_compression_threads: parseInt(formData.image_compression_threads, 10),
                 proxy_resource_download: formData.proxy_resource_download,
-                enable_comment: formData.enable_comment
+                enable_comment: formData.enable_comment,
+                comment_status: formData.comment_status,
+                enable_llm_comment_review: formData.enable_llm_comment_review,
+                admin_comment_no_review: formData.admin_comment_no_review
             };
 
             if (formData.mail_password && formData.mail_password.trim() !== '') {
@@ -1452,78 +1461,124 @@ export default function SiteSettingsView() {
                                     </select>
                                 </div>
 
-                                <div>
-                                    <label htmlFor="article_status" className="block text-sm font-medium text-gray-700 mb-1">
-                                        文章默认状态
-                                    </label>
-                                    <select
-                                        id="article_status"
-                                        name="article_status"
-                                        value={formData.article_status}
-                                        onChange={handleInputChange}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        {articleStatusOptions.map(option => (
-                                            <option key={option.value} value={option.value}>
-                                                {option.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        管理员文章审核
-                                    </label>
-                                    <div className="flex items-center">
-                                        <input
-                                            id="admin_post_no_review"
-                                            name="admin_post_no_review"
-                                            type="checkbox"
-                                            checked={formData.admin_post_no_review === 1}
-                                            onChange={(e) => {
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    admin_post_no_review: e.target.checked ? 1 : 0
-                                                }));
-                                            }}
-                                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                        />
-                                        <label htmlFor="admin_post_no_review" className="ml-2 block text-sm text-gray-700">
-                                            管理员文章无需审核
+                            <div className="pt-4 border-t border-gray-200">
+                                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">文章</h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <label htmlFor="article_status" className="block text-sm font-medium text-gray-700 mb-1">
+                                            文章默认状态
                                         </label>
+                                        <select
+                                            id="article_status"
+                                            name="article_status"
+                                            value={formData.article_status}
+                                            onChange={handleInputChange}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            {articleStatusOptions.map(option => (
+                                                <option key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
-                                    <p className="mt-1 text-xs text-gray-500">
-                                        启用后管理员发布的文章将直接发布，无需等待审核
-                                    </p>
+                                    <div>
+                                        <div className="flex items-center">
+                                            <input
+                                                id="admin_post_no_review"
+                                                name="admin_post_no_review"
+                                                type="checkbox"
+                                                checked={formData.admin_post_no_review === 1}
+                                                onChange={(e) => {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        admin_post_no_review: e.target.checked ? 1 : 0
+                                                    }));
+                                                }}
+                                                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                            />
+                                            <label htmlFor="admin_post_no_review" className="ml-2 block text-sm text-gray-700">
+                                                管理员文章无需审核
+                                            </label>
+                                        </div>
+                                        <p className="mt-1 ml-6 text-xs text-gray-500">
+                                            启用后管理员发布的文章将直接发布，无需等待审核
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        评论区开关
-                                    </label>
-                                    <div className="flex items-center">
-                                        <input
-                                            id="enable_comment"
-                                            name="enable_comment"
-                                            type="checkbox"
-                                            checked={formData.enable_comment === 1}
-                                            onChange={(e) => {
-                                                setFormData(prev => ({
-                                                    ...prev,
-                                                    enable_comment: e.target.checked ? 1 : 0
-                                                }));
-                                            }}
-                                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                        />
-                                        <label htmlFor="enable_comment" className="ml-2 block text-sm text-gray-700">
-                                            启用文章评论区
-                                        </label>
+                            </div>
+
+                            <div className="pt-4 border-t border-gray-200">
+                                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">评论</h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <div className="flex items-center">
+                                            <input
+                                                id="enable_comment"
+                                                name="enable_comment"
+                                                type="checkbox"
+                                                checked={formData.enable_comment === 1}
+                                                onChange={(e) => {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        enable_comment: e.target.checked ? 1 : 0
+                                                    }));
+                                                }}
+                                                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                            />
+                                            <label htmlFor="enable_comment" className="ml-2 block text-sm text-gray-700">
+                                                启用文章评论区
+                                            </label>
+                                        </div>
+                                        <p className="mt-1 ml-6 text-xs text-gray-500">
+                                            关闭后全站文章均不显示评论区；启用后文章作者可单独控制自己文章是否开启评论
+                                        </p>
                                     </div>
-                                    <p className="mt-1 text-xs text-gray-500">
-                                        关闭后全站文章均不显示评论区；启用后文章作者可单独控制自己文章是否开启评论
-                                    </p>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            评论默认状态
+                                        </label>
+                                        <select
+                                            name="comment_status"
+                                            value={formData.comment_status}
+                                            onChange={handleInputChange}
+                                            className="w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 
+                                                       focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                        >
+                                            <option value={1}>直接发布（无需审核）</option>
+                                            <option value={3}>待审核</option>
+                                        </select>
+                                        <p className="mt-1 text-xs text-gray-500">
+                                            用户发表评论后的默认状态。设为"待审核"时需在评论审核页面审核通过后才会展示
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center">
+                                            <input
+                                                id="admin_comment_no_review"
+                                                name="admin_comment_no_review"
+                                                type="checkbox"
+                                                checked={formData.admin_comment_no_review === 1}
+                                                onChange={(e) => {
+                                                    setFormData(prev => ({
+                                                        ...prev,
+                                                        admin_comment_no_review: e.target.checked ? 1 : 0
+                                                    }));
+                                                }}
+                                                className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                            />
+                                            <label htmlFor="admin_comment_no_review" className="ml-2 block text-sm text-gray-700">
+                                                管理员评论无需审核
+                                            </label>
+                                        </div>
+                                        <p className="mt-1 ml-6 text-xs text-gray-500">
+                                            启用后拥有审核权限的用户发表的评论将直接发布，无需等待审核
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
                     )}
 
                     {/* 通知服务配置 */}
@@ -1782,6 +1837,42 @@ export default function SiteSettingsView() {
                                             <button
                                                 type="button"
                                                 onClick={() => openPromptModal('article_review')}
+                                                className="ml-2 text-blue-600 hover:text-blue-800 underline"
+                                            >
+                                                查看&修改提示词
+                                            </button>
+                                        )}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        评论自动审核
+                                    </label>
+                                    <div className="flex items-center">
+                                        <input
+                                            id="enable_llm_comment_review"
+                                            name="enable_llm_comment_review"
+                                            type="checkbox"
+                                            checked={formData.enable_llm_comment_review === 1}
+                                            onChange={(e) => {
+                                                setFormData(prev => ({
+                                                    ...prev,
+                                                    enable_llm_comment_review: e.target.checked ? 1 : 0
+                                                }));
+                                            }}
+                                            className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <label htmlFor="enable_llm_comment_review" className="ml-2 block text-sm text-gray-700">
+                                            启用大模型自动审核评论
+                                        </label>
+                                    </div>
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        用户发表评论后，自动使用AI进行内容审核
+                                        {formData.enable_llm_comment_review === 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => openPromptModal('comment_review')}
                                                 className="ml-2 text-blue-600 hover:text-blue-800 underline"
                                             >
                                                 查看&修改提示词
@@ -2104,7 +2195,7 @@ export default function SiteSettingsView() {
                     <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-between p-6 border-b border-gray-200">
                             <h3 className="text-lg font-semibold text-gray-900">
-                                {promptModal.promptName === 'article_review' ? '文章审核提示词' : '文章生成提示词'}
+                                {promptModal.promptName === 'article_review' ? '文章审核提示词' : promptModal.promptName === 'comment_review' ? '评论审核提示词' : '文章生成提示词'}
                             </h3>
                             <button
                                 type="button"

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../utils/axios';
 import { getConfig } from '../utils/config';
+import { showToast } from '../utils/toastManager.jsx';
 
 const CommentSection = ({ articleAlias }) => {
   const [comments, setComments] = useState([]);
@@ -82,10 +83,13 @@ const CommentSection = ({ articleAlias }) => {
         content: newComment
       };
 
-      await apiClient.post('/comments', requestData);
+      const response = await apiClient.post('/comments', requestData);
       setNewComment('');
       fetchComments();
       setError('');
+      if (response.message) {
+        showToast(response.message);
+      }
     } catch (err) {
       setError('发表评论失败，请检查是否登录');
       console.error(err);
@@ -106,11 +110,14 @@ const CommentSection = ({ articleAlias }) => {
         to_comment_id: commentId
       };
 
-      await apiClient.post('/comments', requestData);
+      const response = await apiClient.post('/comments', requestData);
       setReplyContent('');
       setReplyingTo(null);
       fetchComments();
       setError('');
+      if (response.message) {
+        showToast(response.message);
+      }
     } catch (err) {
       setError('回复评论失败，请检查是否登录');
       console.error(err);
@@ -431,7 +438,7 @@ const CommentSection = ({ articleAlias }) => {
       </form>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-sm">
           {error}
         </div>
       )}

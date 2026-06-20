@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 20/06/2026 00:48:21
+ Date: 20/06/2026 21:46:13
 */
 
 SET NAMES utf8mb4;
@@ -332,6 +332,7 @@ INSERT INTO `dashboard_menu` VALUES (108, '全局附件管理', 'attachment', '/
 INSERT INTO `dashboard_menu` VALUES (109, '我的附件', 'upload', '/dashboard/my-attachments', 3, 'attachments:menus', 47, '2026-02-08 20:50:19', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (110, '角色编辑', 'permission', '/dashboard/rbac-editor', 3, 'role:menus', 9, '2026-03-19 20:10:22', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (111, '公告管理', 'announcement', '/dashboard/announcement', 5, 'announcement:menus', 30, '2026-06-20 00:48:10', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (112, '评论审核', 'comment-review', '/dashboard/commentsreview', 3, 'commentreview:menus', 35, '2026-06-20 21:46:01', 'sidebar');
 
 -- ----------------------------
 -- Table structure for friend_links
@@ -403,13 +404,14 @@ CREATE TABLE `llm_prompt_config`  (
                                       `status` int NOT NULL COMMENT '提示词状态',
                                       PRIMARY KEY (`id`) USING BTREE,
                                       UNIQUE INDEX `prompt_name`(`prompt_name` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of llm_prompt_config
 -- ----------------------------
 INSERT INTO `llm_prompt_config` VALUES (1, 'article_review', '你是一名专业的文章内容审核员，需依据以下多维度标准对用户提交的文章内容进行综合评估与风险研判：\n一、价值导向与合规性\n是否符合社会主义核心价值观：包括富强、民主、文明、和谐，自由、平等、公正、法治，爱国、敬业、诚信、友善等；\n是否符合人类基本道德准则：如尊重生命、诚实守信、反对暴力歧视、维护人格尊严等；\n是否契合社会基本运行秩序：不得破坏社会稳定、煽动群体对立、传播反科学或封建迷信内容；\n是否遵守中国法律法规及主流意识形态：严禁涉及危害国家安全、分裂国家、颠覆政权、泄露国家秘密、破坏宗教政策等内容。\n二、违规词与敏感信息分析\n广告法违禁词识别：检测是否存在“最”“第一”“唯一”“国家级”“顶级”“全网最低价”等极限化、绝对化用语；\n政治与敏感词筛查：识别涉政不当表述、领导人姓名职务错误、涉疆涉藏涉台不当用语、不规范地图引用等高危内容；\n低俗、暴力、谣言类词汇：包括色情暗示、人身攻击、伪科学、已被官方辟谣的虚假信息等；\n变异规避词检测：识别使用谐音、符号替代（如“薇❤”“电①③⑧”）、生僻字、火星文等方式试图绕过审核的敏感词。\n你的输出必须且只能是如下两种 JSON 格式：\n{\"compliant\": true}\n{\"compliant\": false}\n下面是需要你审核的文章：', '2026-04-08 17:43:27', 1);
 INSERT INTO `llm_prompt_config` VALUES (2, 'article_create', '你是一位经验丰富的通用内容作者，擅长撰写结构清晰、语言流畅、富有逻辑与人文关怀的文章。你的文风平实而不平淡，兼具可读性与思想性，能用具体例子或生动比喻解释抽象概念。请避免使用术语堆砌或空洞口号，注重真实感、节奏感和读者共鸣。字数如用户没有特别要求请不要超过2000字。\n下面是本文的主题和内容要求：', '2026-04-08 17:49:55', 1);
+INSERT INTO `llm_prompt_config` VALUES (3, 'comment_review', '你是一名专业的评论内容审核员，需依据以下标准对用户提交的评论内容进行快速评估与风险研判：\n一、违规内容识别\n是否包含色情、低俗、性暗示等不当内容；\n是否包含人身攻击、辱骂、歧视性言论、地域黑等不友善内容；\n是否包含广告、垃圾营销、引流、联系方式等信息；\n是否包含政治敏感、违法信息、谣言、欺诈等内容；\n是否包含恶意代码、SQL注入、XSS攻击等技术性威胁。\n二、评论质量判断\n是否为无意义灌水（如纯表情、重复字符、随机字母等）；\n是否与主题完全无关的恶意刷屏内容。\n你的输出必须且只能是如下两种 JSON 格式：\n{\"compliant\": true}\n{\"compliant\": false}\n下面是需要你审核的评论：', '2026-06-20 21:46:01', 1);
 
 -- ----------------------------
 -- Table structure for menus
@@ -472,7 +474,7 @@ CREATE TABLE `permission`  (
                                `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                                PRIMARY KEY (`id`) USING BTREE,
                                UNIQUE INDEX `idx_code`(`code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 62 CHARACTER SET = utf8mb4 COMMENT = '权限表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 64 CHARACTER SET = utf8mb4 COMMENT = '权限表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of permission
@@ -538,6 +540,8 @@ INSERT INTO `permission` VALUES (58, 'theme:menus', '主题管理菜单', 'menus
 INSERT INTO `permission` VALUES (59, 'role:menus', '角色管理菜单', 'menus', '2026-03-19 20:11:55');
 INSERT INTO `permission` VALUES (60, 'system:announcement:management', '公告管理', 'announcement', '2026-06-20 00:48:10');
 INSERT INTO `permission` VALUES (61, 'announcement:menus', '公告管理菜单', 'menus', '2026-06-20 00:48:10');
+INSERT INTO `permission` VALUES (62, 'system:comments:review', '审核评论', 'comments', '2026-06-20 21:46:01');
+INSERT INTO `permission` VALUES (63, 'commentreview:menus', '评论审核菜单', 'menus', '2026-06-20 21:46:01');
 
 -- ----------------------------
 -- Table structure for role
@@ -648,6 +652,8 @@ INSERT INTO `role_permission` VALUES (2, 58);
 INSERT INTO `role_permission` VALUES (1, 59);
 INSERT INTO `role_permission` VALUES (1, 60);
 INSERT INTO `role_permission` VALUES (1, 61);
+INSERT INTO `role_permission` VALUES (1, 62);
+INSERT INTO `role_permission` VALUES (1, 63);
 
 -- ----------------------------
 -- Table structure for site_config
@@ -691,6 +697,9 @@ CREATE TABLE `site_config`  (
                                 `image_compression_threads` int NULL DEFAULT 5 COMMENT '图片压缩处理线程数',
                                 `proxy_resource_download` int NULL DEFAULT 0 COMMENT '是否启动代理资源下载（1：启用，0：禁用）',
                                 `enable_comment` int NULL DEFAULT 1 COMMENT '是否启用评论区（1：启用，0：禁用）',
+                                `comment_status` int NOT NULL DEFAULT 1 COMMENT '评论默认状态（1直接发布，3待审核）',
+                                `enable_llm_comment_review` int NOT NULL DEFAULT 0 COMMENT '是否启用大模型自动审核评论（1启用，0禁用）',
+                                `admin_comment_no_review` int NOT NULL DEFAULT 1 COMMENT '管理员用户评论免审核（1启用，0禁用）',
                                 PRIMARY KEY (`id`) USING BTREE,
                                 INDEX `register_user_permission`(`register_user_permission` ASC) USING BTREE,
                                 CONSTRAINT `register_user_permission` FOREIGN KEY (`register_user_permission`) REFERENCES `role` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
@@ -699,7 +708,7 @@ CREATE TABLE `site_config`  (
 -- ----------------------------
 -- Records of site_config
 -- ----------------------------
-INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 4, '© 2025-2026 次元栈 - Dim Stack. All rights reserved.', 3, 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A3%81%E7%BA%B8/mmexport1769432250836.jpg?sign=KFQ9u-fY83wR52PdfpesYywMJi_0M4Uc66vz7A9Tal0=:0', '欢迎使用次元栈', '欢迎大家在 GitHub 上提交 Issue 或 Pull Request！', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/Image_1721230292906.png?sign=JU30z6z_RsZ3Vv7HB_5D3msYRneiga5NLjhN3EpL-3w=:0', 'default', 'https://dimstackrepo.apilinks.cn/themes.json', 0, '', NULL, '', '系统通知', '', NULL, 'smtp', 0, 1, 'UTF-8', '', '', 1, 0, 1, 0, 0, 0, '', '', '', 0, 5, 0, 1);
+INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 4, '© 2025-2026 次元栈 - Dim Stack. All rights reserved.', 3, 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A3%81%E7%BA%B8/mmexport1769432250836.jpg?sign=KFQ9u-fY83wR52PdfpesYywMJi_0M4Uc66vz7A9Tal0=:0', '欢迎使用次元栈', '欢迎大家在 GitHub 上提交 Issue 或 Pull Request！', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/Image_1721230292906.png?sign=JU30z6z_RsZ3Vv7HB_5D3msYRneiga5NLjhN3EpL-3w=:0', 'default', 'https://dimstackrepo.apilinks.cn/themes.json', 0, '', NULL, '', '系统通知', '', NULL, 'smtp', 0, 1, 'UTF-8', '', '', 1, 0, 1, 0, 0, 0, '', '', '', 0, 5, 0, 1, 1, 0, 1);
 
 -- ----------------------------
 -- Table structure for systematic_notification

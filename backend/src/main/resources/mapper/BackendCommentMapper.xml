@@ -23,7 +23,7 @@
                  LEFT JOIN `comment` tc ON c.to_comment_id = tc.comment_id
                  LEFT JOIN `user_information` tu ON tc.user_id = tu.uuid
         WHERE c.article_id = #{article_id}
-          AND c.status = 1
+          AND c.status != 0
         ORDER BY c.create_time ASC
     </select>
 
@@ -67,7 +67,7 @@
                  LEFT JOIN `article` a ON c.article_id = a.article_id
                  LEFT JOIN `comment` tc ON c.to_comment_id = tc.comment_id
                  LEFT JOIN `user_information` tu ON tc.user_id = tu.uuid
-        WHERE c.status = 1
+        WHERE c.status != 0
         ORDER BY c.create_time DESC
         LIMIT #{offset}, #{limit}
     </select>
@@ -78,7 +78,7 @@
     </select>
 
     <select id="countTotalComments" resultType="int">
-        SELECT COUNT(*) FROM `comment` WHERE status = 1
+        SELECT COUNT(*) FROM `comment` WHERE status != 0
     </select>
 
     <update id="updateCommentTime">
@@ -100,4 +100,38 @@
         ORDER BY username
         LIMIT 20
     </select>
+
+    <select id="selectCommentsByStatus" resultType="xyz.lingview.dimstack.dto.request.CommentDTO">
+        SELECT c.*, u.username, u.avatar, at.article_name AS article_title
+        FROM `comment` c
+        LEFT JOIN `user_information` u ON c.user_id = u.uuid
+        LEFT JOIN `article` at ON c.article_id = at.article_id
+        WHERE c.status = #{status}
+        ORDER BY c.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countByStatus" resultType="int">
+        SELECT COUNT(*) FROM `comment` WHERE status = #{status}
+    </select>
+
+    <select id="selectAllReviewComments" resultType="xyz.lingview.dimstack.dto.request.CommentDTO">
+        SELECT c.*, u.username, u.avatar, at.article_name AS article_title
+        FROM `comment` c
+        LEFT JOIN `user_information` u ON c.user_id = u.uuid
+        LEFT JOIN `article` at ON c.article_id = at.article_id
+        WHERE c.status IN (1, 3, 4)
+        ORDER BY c.create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="countAllReview" resultType="int">
+        SELECT COUNT(*) FROM `comment` WHERE status IN (1, 3, 4)
+    </select>
+
+    <update id="updateCommentStatus">
+        UPDATE `comment`
+        SET status = #{status}, update_time = NOW()
+        WHERE comment_id = #{comment_id}
+    </update>
 </mapper>

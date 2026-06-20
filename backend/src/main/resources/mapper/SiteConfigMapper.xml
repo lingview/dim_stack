@@ -43,7 +43,10 @@
             enable_image_compression as enable_image_compression,
             image_compression_threads as image_compression_threads,
             proxy_resource_download as proxy_resource_download,
-            enable_comment as enable_comment
+            enable_comment as enable_comment,
+            comment_status as comment_status,
+            enable_llm_comment_review as enable_llm_comment_review,
+            admin_comment_no_review as admin_comment_no_review
         FROM site_config
         WHERE id = 1
     </select>
@@ -121,7 +124,10 @@
             enable_image_compression = #{enable_image_compression},
             image_compression_threads = #{image_compression_threads},
             proxy_resource_download = #{proxy_resource_download},
-            enable_comment = #{enable_comment}
+            enable_comment = #{enable_comment},
+            comment_status = #{comment_status},
+            enable_llm_comment_review = #{enable_llm_comment_review},
+            admin_comment_no_review = #{admin_comment_no_review}
         WHERE id = 1
     </update>
 

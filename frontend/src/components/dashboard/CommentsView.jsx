@@ -3,6 +3,13 @@ import apiClient from '../../utils/axios.jsx';
 import { getConfig } from "../../utils/config.jsx";
 import {showToast} from "../../utils/toastManager.jsx";
 
+const STATUS_MAP = { 1: '已发布', 3: '待审核', 4: '违规' };
+const STATUS_COLOR = {
+    1: 'bg-green-100 text-green-800',
+    3: 'bg-blue-100 text-blue-800',
+    4: 'bg-red-100 text-red-800'
+};
+
 export default function CommentsView() {
     const [comments, setComments] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -455,6 +462,9 @@ export default function CommentsView() {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     点赞数
                                 </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    状态
+                                </th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     操作
                                 </th>
@@ -463,7 +473,7 @@ export default function CommentsView() {
                             <tbody className="bg-white divide-y divide-gray-200">
                             {comments.length === 0 ? (
                                 <tr>
-                                    <td colSpan={selectedArticle ? 5 : 6} className="px-6 py-4 text-center text-gray-500">
+                                    <td colSpan={selectedArticle ? 6 : 7} className="px-6 py-4 text-center text-gray-500">
                                         暂无评论数据
                                     </td>
                                 </tr>
@@ -613,6 +623,11 @@ export default function CommentsView() {
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-500">
                                             {comment.comment_like_count}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${STATUS_COLOR[comment.status] || 'bg-gray-100 text-gray-800'}`}>
+                                                {STATUS_MAP[comment.status] || comment.status}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 text-right text-sm font-medium">
                                             {editingComment !== comment.comment_id && editingTime !== comment.comment_id && editingUser !== comment.comment_id && (
