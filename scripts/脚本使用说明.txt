@@ -8,4 +8,7 @@ build-release.sh
 包构建脚本（linux）
 
 git_history.bat
-提交记录导出脚本
+提交记录导出脚本（Windows）
+
+git_history.sh
+提交记录导出脚本（Linux）
