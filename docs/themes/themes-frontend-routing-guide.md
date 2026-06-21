@@ -336,6 +336,35 @@ GET /api/site/footer-code
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|页脚自定义代码|[CustomCodeResponse](#schemacustomcoderesponse)|
 
+## GET 获取站点公告
+
+GET /api/announcement
+
+获取站点最新公告内容，无需登录。无公告时 data 为 null
+
+> 返回示例
+
+> 200 Response
+
+```json
+{
+  "code": 200,
+  "data": {
+    "id": 1,
+    "content": "<p>站点公告HTML内容</p>",
+    "create_time": "2025-01-01T00:00:00",
+    "update_time": "2025-01-15T12:00:00"
+  },
+  "message": "success"
+}
+```
+
+### 返回结果
+
+|状态码|状态码含义|说明|数据模型|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|公告内容|[Announcement](#schemaannouncement)|
+
 ## GET 获取验证码
 
 GET /api/captcha
@@ -2646,5 +2675,34 @@ and
 |» musicUrl|string|false|none||音频地址|
 |» createTime|string(date-time)|false|none||创建时间|
 |» status|integer(int32)|false|none||状态|
+|message|string|false|none||提示信息|
+
+<a id="schema_Announcement"></a>
+<a id="tocSannouncement"></a>
+<a id="tocsannouncement"></a>
+
+```json
+{
+  "code": 200,
+  "data": {
+    "id": 1,
+    "content": "string",
+    "create_time": "2025-01-01T00:00:00",
+    "update_time": "2025-01-15T12:00:00"
+  },
+  "message": "success"
+}
+```
+
+### 属性
+
+|名称|类型|必选|约束|中文名|说明|
+|---|---|---|---|---|---|
+|code|integer(int32)|false|none||状态码|
+|data|object|false|none||公告数据，无公告时为 null|
+|» id|integer(int32)|false|none||公告ID|
+|» content|string|false|none||公告内容（HTML）|
+|» create_time|string(date-time)|false|none||创建时间|
+|» update_time|string(date-time)|false|none||更新时间|
 |message|string|false|none||提示信息|
 
