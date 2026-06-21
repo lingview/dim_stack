@@ -74,7 +74,7 @@
 
 ### 功能说明
 
-- [大模型文章审核与生成](docs/features/ai-article.md)
+- [大模型审核与生成](docs/features/llm_generation_and_review.md)
 - [智能图片压缩](docs/features/image-compression.md)
 - [外部资源本地化](docs/features/external-resources.md)
 - [代码注入（自定义 Head/Footer）](docs/features/code-injection.md)
