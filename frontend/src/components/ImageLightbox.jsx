@@ -152,7 +152,7 @@ const ImageLightbox = ({ images, currentIndex, onClose, onNavigate }) => {
               </>
           )}
 
-          <div className="absolute top-4 left-4 flex items-center space-x-2 z-20">
+          <div className="absolute top-20 left-4 flex items-center space-x-2 z-20">
             <button
                 onClick={(e) => {
                   e.stopPropagation();
