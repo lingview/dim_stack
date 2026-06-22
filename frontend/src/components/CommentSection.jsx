@@ -46,7 +46,7 @@ const CommentSection = ({ articleAlias }) => {
       const response = await apiClient.get(`/comments/article/${articleAlias}`);
       setComments(response || []);
     } catch (err) {
-      setError('获取评论失败');
+      // setError('获取评论失败');
       console.error(err);
     } finally {
       setLoading(false);
@@ -91,7 +91,7 @@ const CommentSection = ({ articleAlias }) => {
         showToast(response.message);
       }
     } catch (err) {
-      setError('发表评论失败，请检查是否登录');
+      // setError('发表评论失败，请检查是否登录');
       console.error(err);
     } finally {
       setLoading(false);
@@ -119,7 +119,7 @@ const CommentSection = ({ articleAlias }) => {
         showToast(response.message);
       }
     } catch (err) {
-      setError('回复评论失败，请检查是否登录');
+      // setError('回复评论失败，请检查是否登录');
       console.error(err);
     } finally {
       setLoading(false);
@@ -132,7 +132,7 @@ const CommentSection = ({ articleAlias }) => {
       await apiClient.post(`/comments/${commentId}/like`);
       fetchComments();
     } catch (err) {
-      setError('点赞失败，请检查是否登录');
+      // setError('点赞失败，请检查是否登录');
       console.error(err);
     }
   };
@@ -149,7 +149,7 @@ const CommentSection = ({ articleAlias }) => {
       fetchComments();
       setError('');
     } catch (err) {
-      setError('删除评论失败');
+      // setError('删除评论失败');
       console.error(err);
     }
   };
