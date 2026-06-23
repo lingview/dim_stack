@@ -16,3 +16,4 @@ qodana.yaml
 cli/.vscode
 cli/src/o
 cli/src/nuitka-crash-report.xml
+firefly-theme/
