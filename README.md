@@ -32,6 +32,15 @@
 - 🖼️ 智能图片压缩
 - 🔍 SEO 优化：动态 Sitemap、Robots、搜索引擎友好
 
+### Star History
+<a href="https://www.star-history.com/?repos=lingview%2Fdim_stack&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=lingview/dim_stack&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=lingview/dim_stack&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=lingview/dim_stack&type=date&legend=top-left" />
+ </picture>
+</a>
+
 ---
 
 ## 🛠 技术栈
