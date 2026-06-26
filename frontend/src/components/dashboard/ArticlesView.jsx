@@ -102,31 +102,12 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
 
         try {
             const content = await file.text();
-
-            const lines = content.split('\n');
-            let title = '';
-            let articleContent = content;
-
-            if (lines.length > 0) {
-                const firstLine = lines[0].trim();
-
-                if (firstLine.startsWith('#')) {
-                    title = firstLine.replace(/^#+\s*/, '').trim();
-                    articleContent = lines.slice(1).join('\n').trim();
-                } else if (firstLine) {
-                    title = firstLine;
-                    articleContent = lines.slice(1).join('\n').trim();
-                }
-            }
-
-            if (!title) {
-                title = file.name.replace(/\.(md|markdown)$/i, '');
-            }
+            const title = file.name.replace(/\.(md|markdown)$/i, '');
 
             if (onImportArticle) {
                 onImportArticle({
                     article_name: title,
-                    article_content: articleContent
+                    article_content: content
                 });
             }
 
