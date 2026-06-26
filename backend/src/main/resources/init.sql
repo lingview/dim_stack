@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 20/06/2026 21:46:13
+ Date: 26/06/2026 16:19:55
 */
 
 SET NAMES utf8mb4;
@@ -104,7 +104,7 @@ CREATE TABLE `article_categories`  (
                                        `id` int NOT NULL AUTO_INCREMENT,
                                        `parent_id` int NULL DEFAULT NULL COMMENT '父分类ID，NULL 表示顶级分类',
                                        `article_categories` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '分类名称',
-                                       `categories_explain` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '分类说明',
+                                       `categories_explain` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '分类说明',
                                        `founder` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '创建人',
                                        `article_count` int NOT NULL DEFAULT 0 COMMENT '文章数量',
                                        `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -150,7 +150,7 @@ DROP TABLE IF EXISTS `article_tag`;
 CREATE TABLE `article_tag`  (
                                 `id` int NOT NULL AUTO_INCREMENT,
                                 `tag_name` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '标签名称',
-                                `tag_explain` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '标签说明',
+                                `tag_explain` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '标签说明',
                                 `founder` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '创建此标签的用户',
                                 `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '创建时间',
                                 `status` int NOT NULL COMMENT '标签状态：0=禁用, 1=启用',

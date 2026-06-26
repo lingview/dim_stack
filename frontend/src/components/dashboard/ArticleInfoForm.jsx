@@ -21,6 +21,15 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
     const [coverUploading, setCoverUploading] = useState(false);
     const [hasOriginalPassword, setHasOriginalPassword] = useState(false);
     const [siteCommentEnabled, setSiteCommentEnabled] = useState(true);
+    const [canCreateCategories, setCanCreateCategories] = useState(false);
+    const [canCreateTags, setCanCreateTags] = useState(false);
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [newCategoryParentId, setNewCategoryParentId] = useState('');
+    const [newTagName, setNewTagName] = useState('');
+    const [showCategoryCreate, setShowCategoryCreate] = useState(false);
+    const [showTagCreate, setShowTagCreate] = useState(false);
+    const [creatingCategory, setCreatingCategory] = useState(false);
+    const [creatingTag, setCreatingTag] = useState(false);
     const fileInputRef = useRef(null);
 
     useEffect(() => {
@@ -73,17 +82,75 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
 
     const fetchTagsAndCategories = async () => {
         try {
-            const [tagsRes, categoriesRes] = await Promise.all([
+            const [tagsRes, categoriesRes, catPermRes, tagPermRes] = await Promise.all([
                 apiClient.get('/tags'),
-                apiClient.get('/categories')
+                apiClient.get('/categories'),
+                apiClient.get('/user/has-permission', { params: { codes: ['system:categories:management'] } }),
+                apiClient.get('/user/has-permission', { params: { codes: ['system:tags:management'] } })
             ]);
 
             setTags(Array.isArray(tagsRes) ? tagsRes : []);
             setCategories(Array.isArray(categoriesRes) ? categoriesRes : []);
+
+            setCanCreateCategories(catPermRes.data?.hasPermission === true);
+            setCanCreateTags(tagPermRes.data?.hasPermission === true);
         } catch (error) {
             console.error('获取标签或分类失败:', error);
             setTags([]);
             setCategories([]);
+        }
+    };
+
+    const handleCreateCategory = async () => {
+        if (!newCategoryName.trim()) {
+            showToast('请输入分类名称');
+            return;
+        }
+        setCreatingCategory(true);
+        try {
+            const body = { category_name: newCategoryName.trim() };
+            if (newCategoryParentId) {
+                body.parent_id = parseInt(newCategoryParentId);
+            }
+            const res = await apiClient.post('/tags-categories/categories', body);
+            if (res.code === 200) {
+                showToast('分类创建成功');
+                setNewCategoryName('');
+                setNewCategoryParentId('');
+                setShowCategoryCreate(false);
+                fetchTagsAndCategories();
+            } else {
+                showToast('创建失败: ' + (res.message || '未知错误'));
+            }
+        } catch (err) {
+            console.error('创建分类失败:', err);
+        } finally {
+            setCreatingCategory(false);
+        }
+    };
+
+    const handleCreateTag = async () => {
+        if (!newTagName.trim()) {
+            showToast('请输入标签名称');
+            return;
+        }
+        setCreatingTag(true);
+        try {
+            const res = await apiClient.post('/tags-categories/tags', {
+                tag_name: newTagName.trim()
+            });
+            if (res.code === 200) {
+                showToast('标签创建成功');
+                setNewTagName('');
+                setShowTagCreate(false);
+                fetchTagsAndCategories();
+            } else {
+                showToast('创建失败: ' + (res.message || '未知错误'));
+            }
+        } catch (err) {
+            console.error('创建标签失败:', err);
+        } finally {
+            setCreatingTag(false);
         }
     };
 
@@ -310,23 +377,68 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                             <label className="block text-sm font-medium text-gray-700  mb-2">
                                 文章分类 <span className="text-red-500">*</span>
                             </label>
-                            <select
-                                name="category"
-                                value={formData.category}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300  rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white  text-gray-900 "
-                            >
-                                <option value="" className="text-gray-900  bg-white ">请选择分类</option>
-                                {categories.map(category => (
-                                    <option
-                                        key={category.id || category.article_categories}
-                                        value={category.article_categories || category}
-                                        className="text-gray-900  bg-white "
+                            <div className="flex gap-2">
+                                <select
+                                    name="category"
+                                    value={formData.category}
+                                    onChange={handleInputChange}
+                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white text-gray-900"
+                                >
+                                    <option value="" className="text-gray-900 bg-white">请选择分类</option>
+                                    {categories.map(category => (
+                                        <option
+                                            key={category.id || category.article_categories}
+                                            value={category.article_categories || category}
+                                            className="text-gray-900 bg-white"
+                                        >
+                                            {category.article_categories || category}
+                                        </option>
+                                    ))}
+                                </select>
+                                {canCreateCategories && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCategoryCreate(!showCategoryCreate)}
+                                        className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition whitespace-nowrap"
                                     >
-                                        {category.article_categories || category}
-                                    </option>
-                                ))}
-                            </select>
+                                        {showCategoryCreate ? '取消' : '+ 新建分类'}
+                                    </button>
+                                )}
+                            </div>
+                            {canCreateCategories && showCategoryCreate && (
+                                <div className="mt-2 p-3 border border-gray-200 rounded-lg bg-gray-50 space-y-2">
+                                    <input
+                                        type="text"
+                                        value={newCategoryName}
+                                        onChange={(e) => setNewCategoryName(e.target.value)}
+                                        placeholder="分类名称"
+                                        className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                    />
+                                    <select
+                                        value={newCategoryParentId}
+                                        onChange={(e) => setNewCategoryParentId(e.target.value)}
+                                        className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                    >
+                                        <option value="">顶级分类（无父分类）</option>
+                                        {categories.map(category => (
+                                            <option
+                                                key={category.id || category.article_categories}
+                                                value={category.id}
+                                            >
+                                                {category.article_categories || category}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={handleCreateCategory}
+                                        disabled={creatingCategory || !newCategoryName.trim()}
+                                        className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition"
+                                    >
+                                        {creatingCategory ? '创建中...' : '确认创建'}
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
 
@@ -368,10 +480,38 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                                         </button>
                                     );
                                 })}
-                                {tags.length === 0 && (
+                                {tags.length === 0 && !canCreateTags && (
                                     <span className="text-gray-400 text-sm">暂无可用标签</span>
                                 )}
+                                {canCreateTags && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowTagCreate(!showTagCreate)}
+                                        className="px-3 py-1 text-sm rounded-full border border-dashed border-gray-400 text-gray-500 hover:border-blue-400 hover:text-blue-600 transition"
+                                    >
+                                        {showTagCreate ? '取消' : '+ 新建标签'}
+                                    </button>
+                                )}
                             </div>
+                            {canCreateTags && showTagCreate && (
+                                <div className="mt-2 flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={newTagName}
+                                        onChange={(e) => setNewTagName(e.target.value)}
+                                        placeholder="标签名称（中文/英文/数字）"
+                                        className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleCreateTag}
+                                        disabled={creatingTag || !newTagName.trim()}
+                                        className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition"
+                                    >
+                                        {creatingTag ? '创建中...' : '确认创建'}
+                                    </button>
+                                </div>
+                            )}
                             <p className="mt-1 text-sm text-gray-500">
                                 点击标签进行选择或取消
                             </p>

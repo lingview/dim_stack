@@ -11,13 +11,16 @@ import xyz.lingview.dimstack.dto.request.UserDTO;
 import xyz.lingview.dimstack.dto.request.UserUpdateDTO;
 import xyz.lingview.dimstack.dto.response.UserStatusResponseDTO;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
+import xyz.lingview.dimstack.mapper.UserPermissionMapper;
 import xyz.lingview.dimstack.service.UserService;
 import xyz.lingview.dimstack.service.UserBlacklistService;
 import xyz.lingview.dimstack.service.UserRoleService;
 import xyz.lingview.dimstack.service.CurrentUserService;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/user")
@@ -33,6 +36,8 @@ public class UserController {
     private UserRoleService userRoleService;
     @Autowired
     private CurrentUserService currentUserService;
+    @Autowired
+    private UserPermissionMapper userPermissionMapper;
 
     @GetMapping("/status")
     public ApiResponse<UserStatusResponseDTO> getUserStatus() {
@@ -59,6 +64,26 @@ public class UserController {
         }
 
         return ApiResponse.success(responseDTO);
+    }
+
+
+    @GetMapping("/has-permission")
+    public ApiResponse<Map<String, Boolean>> hasPermission(
+            @RequestParam List<String> codes,
+            @RequestParam(defaultValue = "any") String mode) {
+        String username = currentUserService.getCurrentUsername();
+        if (!currentUserService.isAuthenticated() || username == null) {
+            return ApiResponse.success(Map.of("hasPermission", false));
+        }
+        List<String> userPermissions = userPermissionMapper.findPermissionCodesByUserName(username);
+        Set<String> userPermSet = new HashSet<>(userPermissions);
+        boolean hasPermission;
+        if ("all".equals(mode)) {
+            hasPermission = userPermSet.containsAll(codes);
+        } else {
+            hasPermission = codes.stream().anyMatch(userPermSet::contains);
+        }
+        return ApiResponse.success(Map.of("hasPermission", hasPermission));
     }
 
 

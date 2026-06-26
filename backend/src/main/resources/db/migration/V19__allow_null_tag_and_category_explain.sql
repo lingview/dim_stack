@@ -1,0 +1,2 @@
+ALTER TABLE `article_tag` MODIFY COLUMN `tag_explain` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '标签说明';
+ALTER TABLE `article_categories` MODIFY COLUMN `categories_explain` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '分类说明';
