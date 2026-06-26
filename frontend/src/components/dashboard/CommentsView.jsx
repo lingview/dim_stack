@@ -25,6 +25,7 @@ export default function CommentsView() {
     const [userSearchResults, setUserSearchResults] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const [jumpPage, setJumpPage] = useState('');
     const [pageSize] = useState(10);
 
     const escapeHtml = (unsafe) => {
@@ -283,6 +284,15 @@ export default function CommentsView() {
         }
     };
 
+    const handleJumpPage = (e) => {
+        e.preventDefault();
+        const pageNum = parseInt(jumpPage);
+        if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+            handlePageChange(pageNum);
+            setJumpPage('');
+        }
+    };
+
     // 格式化日期
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -340,7 +350,7 @@ export default function CommentsView() {
                             第 <span className="font-medium">{currentPage}</span> 页，共 <span className="font-medium">{totalPages}</span> 页
                         </p>
                     </div>
-                    <div>
+                    <div className="flex items-center gap-4">
                         <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                             <button
                                 onClick={() => handlePageChange(1)}
@@ -403,6 +413,25 @@ export default function CommentsView() {
                                 </svg>
                             </button>
                         </nav>
+
+                        <form onSubmit={handleJumpPage} className="flex items-center gap-2">
+                            <span className="text-sm text-gray-700">跳转到</span>
+                            <input
+                                type="number"
+                                min="1"
+                                max={totalPages}
+                                value={jumpPage}
+                                onChange={(e) => setJumpPage(e.target.value)}
+                                className="w-16 px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="页码"
+                            />
+                            <button
+                                type="submit"
+                                className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                            >
+                                跳转
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -413,20 +442,21 @@ export default function CommentsView() {
         <div className="bg-white rounded-lg shadow-sm p-6">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-900">评论管理</h2>
-                <div className="flex items-center space-x-4">
-                    <select
-                        value={selectedArticle}
-                        onChange={(e) => setSelectedArticle(e.target.value)}
-                        className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">所有评论</option>
-                        {articles.map(article => (
-                            <option key={article.article_id} value={article.article_id}>
-                                {unescapeHtml(article.title)}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                {/*后续再开发这个功能暂时注释*/}
+                {/*<div className="flex items-center space-x-4">*/}
+                {/*    <select*/}
+                {/*        value={selectedArticle}*/}
+                {/*        onChange={(e) => setSelectedArticle(e.target.value)}*/}
+                {/*        className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"*/}
+                {/*    >*/}
+                {/*        <option value="">所有评论</option>*/}
+                {/*        {articles.map(article => (*/}
+                {/*            <option key={article.article_id} value={article.article_id}>*/}
+                {/*                {unescapeHtml(article.title)}*/}
+                {/*            </option>*/}
+                {/*        ))}*/}
+                {/*    </select>*/}
+                {/*</div>*/}
             </div>
 
             {error && (

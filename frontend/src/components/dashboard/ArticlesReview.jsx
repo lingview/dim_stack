@@ -198,6 +198,8 @@ export default function ArticlesReview() {
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
+    const [totalItems, setTotalItems] = useState(0);
+    const [jumpPage, setJumpPage] = useState('');
     const [pageSize] = useState(10);
     const [selectedArticle, setSelectedArticle] = useState(null);
     const [showDetail, setShowDetail] = useState(false);
@@ -225,7 +227,9 @@ export default function ArticlesReview() {
             const response = res;
             if (response && response.code === 200 && response.data && Array.isArray(response.data.articles)) {
                 setArticles(response.data.articles);
-                setTotalPages(Math.ceil((response.data.total || response.data.articles.length) / (response.data.size || size)));
+                const total = response.data.total || response.data.articles.length;
+                setTotalItems(total);
+                setTotalPages(response.data.totalPages || Math.ceil(total / (response.data.size || size)));
             } else {
                 setArticles([]);
                 setTotalPages(0);
@@ -242,6 +246,15 @@ export default function ArticlesReview() {
     const handlePageChange = (newPage) => {
         if (newPage < 1 || newPage > totalPages) return;
         setCurrentPage(newPage);
+    };
+
+    const handleJumpPage = (e) => {
+        e.preventDefault();
+        const pageNum = parseInt(jumpPage);
+        if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+            handlePageChange(pageNum);
+            setJumpPage('');
+        }
     };
 
     const handleViewDetail = async (articleId) => {
@@ -610,10 +623,10 @@ export default function ArticlesReview() {
                             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                                 <div>
                                     <p className="text-sm text-gray-700">
-                                        显示第 <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> 到 <span className="font-medium">{Math.min(currentPage * pageSize, totalPages * pageSize)}</span> 条结果,共 <span className="font-medium">{totalPages * pageSize}</span> 条
+                                        显示第 <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> 到 <span className="font-medium">{Math.min(currentPage * pageSize, totalItems)}</span> 条结果,共 <span className="font-medium">{totalItems}</span> 条
                                     </p>
                                 </div>
-                                <div>
+                                <div className="flex items-center gap-4">
                                     <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
                                         <button
                                             onClick={() => handlePageChange(1)}
@@ -695,6 +708,25 @@ export default function ArticlesReview() {
                                             </svg>
                                         </button>
                                     </nav>
+
+                                    <form onSubmit={handleJumpPage} className="flex items-center gap-2">
+                                        <span className="text-sm text-gray-700">跳转到</span>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max={totalPages}
+                                            value={jumpPage}
+                                            onChange={(e) => setJumpPage(e.target.value)}
+                                            className="w-16 px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="页码"
+                                        />
+                                        <button
+                                            type="submit"
+                                            className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                                        >
+                                            跳转
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
