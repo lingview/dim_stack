@@ -2,6 +2,7 @@ import ThemeToggle from './ThemeToggle'
 import Search from './Search'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
+import { LogIn } from 'lucide-react'
 import apiClient from '../utils/axios.jsx'
 import { getConfig } from '../utils/config';
 
@@ -405,9 +406,10 @@ export default function Header() {
                                     navigate('/login')
                                     closeMobileMenu()
                                 }}
-                                className="hidden md:block bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-all duration-200"
+                                className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100 hover:bg-blue-50 text-gray-600 hover:text-blue-600 text-sm font-medium transition-all duration-200 header-login-btn"
                             >
-                                登录
+                                <LogIn className="w-3.5 h-3.5" />
+                                <span>登录</span>
                             </button>
                         )}
                     </div>

@@ -999,6 +999,19 @@
   color: #93c5fd !important;
 }
 
+/* 登录按钮暗色模式 */
+.dark .header-login-btn {
+  background-color: #374151;
+  color: #d1d5db;
+  border: 1px solid #4b5563;
+}
+
+.dark .header-login-btn:hover {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
 .dark .rich-heading-menu {
   background-color: #111827;
   border-color: #374151;
