@@ -129,8 +129,8 @@ export default function AnnouncementManager() {
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="px-4 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 
-                                       transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-4 py-1.5 bg-blue-500 text-white text-sm rounded-md hover:bg-blue-600
+                                      disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {saving ? '保存中...' : '保存公告'}
                         </button>

@@ -98,7 +98,7 @@ export default function CommentsReview() {
                             onClick={() => setMode('pending')}
                             className={`px-3 py-1.5 text-sm rounded-md transition ${
                                 mode === 'pending'
-                                    ? 'bg-blue-600 text-white'
+                                    ? 'bg-blue-500 text-white'
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                         >
@@ -108,7 +108,7 @@ export default function CommentsReview() {
                             onClick={() => setMode('all')}
                             className={`px-3 py-1.5 text-sm rounded-md transition ${
                                 mode === 'all'
-                                    ? 'bg-blue-600 text-white'
+                                    ? 'bg-blue-500 text-white'
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                         >

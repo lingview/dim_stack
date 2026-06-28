@@ -310,7 +310,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
                     <div className="flex items-center space-x-2">
                         <button
                             onClick={onNewArticle}
-                            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                            className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
                         >
                             <Plus className="h-4 w-4 mr-1" />
                             新建文章
@@ -360,14 +360,14 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
                 <div className="flex items-center space-x-2">
                     <button
                         onClick={handleImportClick}
-                        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                        className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
                     >
                         <Upload className="h-4 w-4 mr-1" />
                         导入文章
                     </button>
                     <button
                         onClick={onNewArticle}
-                        className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+                        className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
                     >
                         <Plus className="h-4 w-4 mr-1" />
                         新建文章
