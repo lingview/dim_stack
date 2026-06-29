@@ -3,7 +3,7 @@ import apiClient from '../../utils/axios';
 import { getConfig } from '../../utils/config';
 import {showToast} from "../../utils/toastManager.jsx";
 
-export default function ArticleInfoForm({ articleData, onSave, onCancel, uploading }) {
+export default function ArticleInfoForm({ articleData, initialArticleData, onSave, onCancel, uploading }) {
     const [formData, setFormData] = useState({
         title: '',
         cover: '',
@@ -16,6 +16,7 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
         enable_comment: 1
     });
 
+    const [initialData, setInitialData] = useState(null);
     const [tags, setTags] = useState([]);
     const [categories, setCategories] = useState([]);
     const [coverUploading, setCoverUploading] = useState(false);
@@ -52,7 +53,7 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                 createTime = articleData.create_time.slice(0, 16);
             }
 
-            setFormData({
+            const initialFormData = {
                 title: articleData.article_name || articleData.title || '',
                 cover: articleData.article_cover || articleData.cover || '',
                 excerpt: articleData.excerpt || '',
@@ -63,8 +64,13 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
                 create_time: createTime,
                 enable_comment: articleData.enable_comment !== undefined && articleData.enable_comment !== null
                     ? articleData.enable_comment
-                    : 1
-            });
+                    : 1,
+                initialArticleName: articleData.initialArticleName || '',
+                initialArticleContent: articleData.initialArticleContent || ''
+            };
+
+            setFormData(initialFormData);
+            setInitialData(initialFormData);
         }
     }, [articleData]);
 
@@ -229,6 +235,40 @@ export default function ArticleInfoForm({ articleData, onSave, onCancel, uploadi
         if (!formData.category) {
             showToast('请选择文章分类');
             return;
+        }
+
+        // 检查文章信息是否有更改
+        if (initialData) {
+            const normalizeTags = (tags) => {
+                if (!tags) return [];
+                if (Array.isArray(tags)) return [...tags].sort();
+                if (typeof tags === 'string') return tags.split(',').map(t => t.trim()).filter(Boolean).sort();
+                return [];
+            };
+
+            const currentArticleContent = articleData?.content || '';
+            const currentArticleTitle = articleData?.title || '';
+
+            const hasEditorChanges =
+                currentArticleTitle !== (initialData.initialArticleName || '') ||
+                currentArticleContent !== (initialData.initialArticleContent || '');
+
+            const hasInfoChanges =
+                formData.title !== initialData.title ||
+                formData.cover !== initialData.cover ||
+                formData.excerpt !== initialData.excerpt ||
+                JSON.stringify(normalizeTags(formData.tags)) !== JSON.stringify(normalizeTags(initialData.tags)) ||
+                formData.category !== initialData.category ||
+                formData.alias !== initialData.alias ||
+                formData.create_time !== initialData.create_time ||
+                formData.enable_comment !== initialData.enable_comment ||
+                (formData.password && formData.password.trim() !== '');
+
+            if (!hasEditorChanges && !hasInfoChanges) {
+                showToast('您未进行更改');
+                onCancel();
+                return;
+            }
         }
 
         const saveData = {

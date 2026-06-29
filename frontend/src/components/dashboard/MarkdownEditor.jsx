@@ -289,6 +289,15 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             return;
         }
 
+        if (initialData) {
+            const initialTitle = initialData.article_name || '';
+            const initialContent = initialData.article_content || '';
+
+            if (title === initialTitle && content === initialContent) {
+
+            }
+        }
+
         let defaultCover = initialData?.article_cover || '';
 
         if (!initialData?.article_id && !defaultCover) {
@@ -315,7 +324,9 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
             create_time: initialData?.create_time || '',
             enable_comment: initialData?.enable_comment !== undefined && initialData?.enable_comment !== null
                 ? initialData.enable_comment
-                : 1
+                : 1,
+            initialArticleName: initialData?.article_name || '',
+            initialArticleContent: initialData?.article_content || ''
         });
         setShowArticleInfo(true);
     };
@@ -336,8 +347,15 @@ export default function MarkdownEditor({ onSave, onCancel, initialData }) {
                 alias: info.alias || '',
                 status: 2,
                 enable_comment: info.enable_comment !== undefined && info.enable_comment !== null ? info.enable_comment : 1,
-                ...(info.id && { article_id: info.id })
             };
+
+
+            const articleId = info.id || initialData?.article_id;
+            if (articleId) {
+                payload.article_id = articleId;
+            }
+
+            console.log('保存文章 payload:', payload);
 
             const isUpdate = initialData && initialData.article_id;
 
@@ -1189,6 +1207,7 @@ ${cleanText}
             {showArticleInfo && (
                 <ArticleInfoForm
                     articleData={articleInfo}
+                    initialArticleData={initialData}
                     onSave={handleArticleInfoSave}
                     onCancel={() => setShowArticleInfo(false)}
                     uploading={isSaving}

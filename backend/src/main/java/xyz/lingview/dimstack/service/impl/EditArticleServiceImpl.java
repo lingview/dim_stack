@@ -217,32 +217,29 @@ public class EditArticleServiceImpl implements EditArticleService {
             paramMap.put("status", updateArticleDTO.getStatus());
             paramMap.put("enable_comment", updateArticleDTO.getEnable_comment());
             paramMap.put("create_time", updateArticleDTO.getCreate_time());
-            
-            int result = editArticleMapper.updateArticleWithCategory(paramMap);
+
+            editArticleMapper.updateArticleWithCategory(paramMap);
 
             // 更新分类计数
-            if (result > 0) {
-                String newCategory = updateArticleDTO.getCategory();
-                if (oldCategory != null && !oldCategory.equals(newCategory)) {
-                    CategoryPathUtil.CategoryPath oldPath = categoryPathUtil.parsePath(oldCategory);
-                    String oldFullPath = oldPath.getParentCategory() != null 
-                        ? oldPath.getParentCategory() + "/" + oldPath.getChildCategory()
-                        : oldPath.getChildCategory();
-                    articleCategoryMapper.decrementCount(oldFullPath);
-                    
-                    if (newCategory != null) {
-                        CategoryPathUtil.CategoryPath newPath = categoryPathUtil.parsePath(newCategory);
-                        String newFullPath = newPath.getParentCategory() != null 
-                            ? newPath.getParentCategory() + "/" + newPath.getChildCategory()
-                            : newPath.getChildCategory();
-                        articleCategoryMapper.incrementCount(newFullPath);
-                    }
+            String newCategory = updateArticleDTO.getCategory();
+            if (oldCategory != null && !oldCategory.equals(newCategory)) {
+                CategoryPathUtil.CategoryPath oldPath = categoryPathUtil.parsePath(oldCategory);
+                String oldFullPath = oldPath.getParentCategory() != null
+                    ? oldPath.getParentCategory() + "/" + oldPath.getChildCategory()
+                    : oldPath.getChildCategory();
+                articleCategoryMapper.decrementCount(oldFullPath);
+
+                if (newCategory != null) {
+                    CategoryPathUtil.CategoryPath newPath = categoryPathUtil.parsePath(newCategory);
+                    String newFullPath = newPath.getParentCategory() != null
+                        ? newPath.getParentCategory() + "/" + newPath.getChildCategory()
+                        : newPath.getChildCategory();
+                    articleCategoryMapper.incrementCount(newFullPath);
                 }
-                
-                articleService.clearArticleCache();
             }
 
-            return result > 0;
+            articleService.clearArticleCache();
+            return true;
 
         } catch (Exception e) {
             log.error("更新文章失败", e);
