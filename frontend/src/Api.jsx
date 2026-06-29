@@ -1,14 +1,19 @@
 import apiClient from './utils/axios';
 
 // 获取文章列表
-export const fetchArticles = async (page = 1, size = 10, category = null) => {
+export const fetchArticles = async (page = 1, size = 10, category = null, signal = null) => {
     try {
         const params = { page, size };
         if (category) {
             params.category = category;
         }
 
-        const response = await apiClient.get('/articles', { params });
+        const config = { params };
+        if (signal) {
+            config.signal = signal;
+        }
+
+        const response = await apiClient.get('/articles', config);
         return response;
     } catch (error) {
         console.error('获取文章列表失败:', error);

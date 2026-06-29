@@ -24,6 +24,7 @@ export default function ArticleList() {
 
     const gridRef = useRef(null);
     const [holdHeight, setHoldHeight] = useState(null);
+    const abortControllerRef = useRef(null);
 
     useEffect(() => {
         const checkMobile = () => setForceMobile(window.innerWidth < 768);
@@ -40,6 +41,11 @@ export default function ArticleList() {
 
     useEffect(() => {
         loadArticlesFromUrl();
+        return () => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+        };
     }, [location.search, location.pathname, pageParam, tagName]);
 
     useEffect(() => {
@@ -47,6 +53,12 @@ export default function ArticleList() {
     }, [showImages]);
 
     const loadArticlesFromUrl = async () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+        const abortController = new AbortController();
+        abortControllerRef.current = abortController;
+
         try {
             if (gridRef.current) {
                 setHoldHeight(gridRef.current.offsetHeight);
@@ -55,21 +67,30 @@ export default function ArticleList() {
             let result;
 
             if (categoryName) {
-                result = await apiClient.get(`/categories/articles?category=${encodeURIComponent(categoryName)}&page=${pageParam}&size=6`);
+                result = await apiClient.get(`/categories/articles?category=${encodeURIComponent(categoryName)}&page=${pageParam}&size=6`, { signal: abortController.signal });
             } else if (tagName) {
-                result = await apiClient.get(`/tags/${tagName}/articles?page=${pageParam}&size=6`);
+                result = await apiClient.get(`/tags/${tagName}/articles?page=${pageParam}&size=6`, { signal: abortController.signal });
             } else {
-                result = await fetchArticles(pageParam, 6);
+                result = await fetchArticles(pageParam, 6, null, abortController.signal);
             }
 
-            setArticles(Array.isArray(result.data) ? result.data : []);
-            setTotalPages(result.total_pages || 1);
+            if (!abortController.signal.aborted) {
+                setArticles(Array.isArray(result.data) ? result.data : []);
+                setTotalPages(result.total_pages || 1);
+            }
         } catch (error) {
+            if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
+                return;
+            }
             console.error('加载文章失败:', error);
-            setArticles([]);
-            setTotalPages(1);
+            if (!abortController.signal.aborted) {
+                setArticles([]);
+                setTotalPages(1);
+            }
         } finally {
-            setLoading(false);
+            if (!abortController.signal.aborted) {
+                setLoading(false);
+            }
         }
     };
 

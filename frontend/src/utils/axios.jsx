@@ -23,6 +23,10 @@ apiClient.interceptors.response.use(
     return response.data;
   },
   (error) => {
+    if (error.code === 'ERR_CANCELED' || error.name === 'CanceledError') {
+      return Promise.reject(error);
+    }
+
     const silent = error.config?.silent === true;
     if (error.response?.status === 429) {
       const message = error.response.data?.message || '请求过于频繁，请稍后再试';
