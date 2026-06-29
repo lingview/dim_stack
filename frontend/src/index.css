@@ -398,6 +398,41 @@
   border-color: #4b5563;
 }
 
+/* 音频播放器暗色模式 */
+.dark .audio-player .bg-blue-400 {
+  background-color: #374151 !important;
+}
+
+.dark .audio-element {
+  background-color: #1f2937;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  accent-color: #60a5fa;
+  color-scheme: dark;
+}
+
+.dark .audio-element::-webkit-media-controls-panel {
+  background-color: #1f2937;
+  border: none;
+  color: #f9fafb;
+}
+
+.dark .audio-element::-webkit-media-controls-play-button,
+.dark .audio-element::-webkit-media-controls-mute-button {
+  background-color: transparent;
+  color: #f9fafb;
+}
+
+.dark .audio-element::-webkit-media-controls-timeline {
+  background-color: #1f2937;
+}
+
+.dark .audio-element::-webkit-media-controls-current-time-display,
+.dark .audio-element::-webkit-media-controls-time-remaining-display {
+  color: #d1d5db;
+}
+
 .dark .pagination-prev-next:hover:not(.disabled) {
   background-color: #374151;
 }

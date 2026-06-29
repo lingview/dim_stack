@@ -532,7 +532,7 @@ export default function ArticlePreview({ article }) {
                 <li className="mb-1 text-gray-700 leading-relaxed" {...props} />
             ),
             blockquote: (props) => (
-                <blockquote className="border-l-4 border-blue-500 pl-4 italic my-4 text-gray-600 bg-gray-50 py-2 rounded-r" {...props} />
+                <blockquote className="border-l-4 border-gray-200 pl-4 italic my-4 text-gray-600 bg-gray-50 py-2 rounded-r" {...props} />
             ),
             table: (props) => (
                 <div className="overflow-x-auto my-4">
@@ -641,9 +641,9 @@ export default function ArticlePreview({ article }) {
                 const fullSrc = getFullImageUrl(src);
 
                 return (
-                    <div className="my-4 p-4 bg-gray-100 border border-gray-200 rounded-xl shadow-sm max-w-lg">
+                    <div className="my-4 p-4 bg-gray-100 border border-gray-200 rounded-xl shadow-sm max-w-lg audio-player">
                         <div className="flex items-center mb-3">
-                            <div className="flex-shrink-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
+                            <div className="flex-shrink-0 w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center mr-3">
                                 <Music className="h-4 w-4 text-white" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -659,7 +659,7 @@ export default function ArticlePreview({ article }) {
                             src={fullSrc}
                             controls={controls}
                             preload={preload}
-                            className="w-full rounded-md"
+                            className="w-full rounded-md audio-element"
                             style={{ height: "40px", outline: "none" }}
                             {...props}
                         >
