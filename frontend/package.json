@@ -16,6 +16,7 @@
     "dompurify": "3.4.11",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.542.0",
+    "music-metadata-browser": "^2.5.11",
     "pdfjs-dist": "5.4.296",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
@@ -33,7 +34,8 @@
     "remark-parse": "^11.0.0",
     "remark-rehype": "^11.1.2",
     "unified": "^11.0.5",
-    "unist-util-visit": "^5.1.0"
+    "unist-util-visit": "^5.1.0",
+    "vite-plugin-node-polyfills": "^0.28.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
