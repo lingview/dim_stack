@@ -15,7 +15,7 @@
 
 支持动态生成 Sitemap 和 Robots.txt，智能处理反向代理头。
 
-针对 Google、Bing 等主流搜索引擎的爬虫进行了独立优化（未覆盖百度，百度爬虫仅能获取基础信息）。
+针对 Google、Bing 等主流搜索引擎的爬虫进行了独立优化。
 
 ![SEO优化支持](../../images/seo_optimization_support.png)
 
