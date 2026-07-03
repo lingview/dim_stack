@@ -14,6 +14,8 @@ public interface ReadArticleMapper {
 
     ReadArticle selectByAlias(@Param("alias") String alias);
 
+    ReadArticle selectRandomArticle();
+
     boolean isArticleNeedPassword(@Param("alias") String alias);
 
     void updatePageViews(@Param("alias") String alias);

@@ -11,6 +11,7 @@ import java.util.List;
 public interface ReadArticleService {
     boolean isArticleNeedPassword(String alias);
     ReadArticle getArticleByAlias(String alias, String password) throws Exception;
+    ReadArticle getRandomArticle();
     void updatePageViews(String alias);
 
     // seo用

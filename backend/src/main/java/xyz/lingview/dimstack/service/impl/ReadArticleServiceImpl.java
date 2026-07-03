@@ -63,6 +63,11 @@ public class ReadArticleServiceImpl implements ReadArticleService {
     }
 
     @Override
+    public ReadArticle getRandomArticle() {
+        return readArticleMapper.selectRandomArticle();
+    }
+
+    @Override
     public ReadArticle getArticleByAlias(String alias, String password) throws Exception {
         String cacheKey = "dimstack:article:" + alias;
         ReadArticle article = cacheService.get(cacheKey, ReadArticle.class);

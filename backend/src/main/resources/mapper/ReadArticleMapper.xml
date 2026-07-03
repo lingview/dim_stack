@@ -105,6 +105,45 @@
     </select>
 
 
+    <!-- 随机获取一篇已发布文章 -->
+    <select id="selectRandomArticle" resultMap="readArticleMap">
+        SELECT
+            a.id,
+            a.uuid,
+            a.article_id,
+            a.article_name,
+            a.article_cover,
+            a.excerpt,
+            a.article_content,
+            a.page_views,
+            a.like_count,
+            a.favorite_count,
+            a.password,
+            GROUP_CONCAT(atr.article_tag) as tag,
+            CASE
+                WHEN p.article_categories IS NULL THEN c.article_categories
+                ELSE CONCAT(p.article_categories, '/', c.article_categories)
+            END AS category,
+            ui.username as author,
+            ui.avatar as avatar,
+            a.alias,
+            a.create_time,
+            a.status,
+            a.enable_comment
+        FROM article a
+                 LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
+                 LEFT JOIN article_categories c ON a.category_id = c.id
+                 LEFT JOIN article_categories p ON c.parent_id = p.id
+                 LEFT JOIN user_information ui ON a.uuid = ui.uuid
+        WHERE a.status = 1
+        GROUP BY a.id, a.uuid, a.article_id, a.article_name, a.article_cover,
+                 a.excerpt, a.article_content, a.page_views, a.like_count,
+                 a.favorite_count, a.password, c.article_categories, p.article_categories, ui.username, a.alias,
+                 a.create_time, a.status, a.enable_comment
+        ORDER BY RAND()
+        LIMIT 1
+    </select>
+
     <!-- 检查文章是否需要密码 -->
     <select id="isArticleNeedPassword" resultType="boolean">
         SELECT CASE WHEN password IS NOT NULL AND password != '' THEN true ELSE false END
