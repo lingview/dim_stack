@@ -5,7 +5,7 @@
 - **JDK**: 17+（推荐 21+ 以支持虚拟线程）
 - **MySQL**: 5.7+
 - **Redis**: 5+（可选）
-- **Node.js**: 22+（仅构建时需要）
+- **Node.js**: 22+
 
 演示站：[https://apilinks.cn/](https://apilinks.cn/)
 
