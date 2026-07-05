@@ -61,6 +61,13 @@ public class CommentServiceImpl implements CommentService {
             return new ArrayList<>();
         }
 
+        if (!siteConfigUtil.isCommentEnabled()) {
+            return new ArrayList<>();
+        }
+        if (article.getEnable_comment() != null && article.getEnable_comment() == 0) {
+            return new ArrayList<>();
+        }
+
         List<Comment> comments = commentMapper.selectCommentsByArticleId(article.getArticle_id());
 
         String currentUserUuid = null;
@@ -139,6 +146,14 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentMapper.selectCommentByCommentId(commentId);
         if (comment == null) {
             throw new RuntimeException("评论不存在");
+        }
+
+        if (!siteConfigUtil.isCommentEnabled()) {
+            throw new RuntimeException("站点评论区已关闭");
+        }
+        Article article = articleMapper.selectArticleByArticleId(comment.getArticle_id());
+        if (article != null && article.getEnable_comment() != null && article.getEnable_comment() == 0) {
+            throw new RuntimeException("该文章评论区已关闭");
         }
 
         // 检查用户是否已经点赞过该评论
