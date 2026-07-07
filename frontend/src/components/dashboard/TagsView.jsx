@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../utils/axios';
 import {showToast} from "../../utils/toastManager.jsx";
+import DataTable from './DataTable';
 
 export default function TagsView() {
     const [tags, setTags] = useState([]);
@@ -145,86 +146,53 @@ export default function TagsView() {
             : 'bg-red-100 text-red-800';
     };
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-            </div>
-        );
-    }
+    const columns = [
+        { key: 'id', label: 'ID', className: 'text-gray-500' },
+        { key: 'tag_name', label: '标签名称', className: 'font-medium text-gray-900' },
+        { key: 'tag_explain', label: '说明', className: 'text-gray-500' },
+        { key: 'founder', label: '创建者', className: 'text-gray-500' },
+        {
+            key: 'status',
+            label: '状态',
+            className: 'text-gray-500',
+            render: (status) => (
+                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(status)}`}>
+                    {getStatusText(status)}
+                </span>
+            )
+        },
+        {
+            key: 'actions',
+            label: '操作',
+            className: 'font-medium',
+            render: (_, tag) => (
+                tag.status === 1 ? (
+                    <>
+                        <button onClick={() => handleEditTag(tag)} className="text-blue-600 hover:text-blue-900 mr-3">编辑</button>
+                        <button onClick={() => handleDeleteTag(tag.id)} className="text-red-600 hover:text-red-900">禁用</button>
+                    </>
+                ) : (
+                    <button onClick={() => handleActivateTag(tag.id)} className="text-green-600 hover:text-green-900">激活</button>
+                )
+            )
+        }
+    ];
 
     return (
-        <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">标签管理</h2>
-                <button
-                    onClick={handleCreateTag}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                >
-                    新建标签
-                </button>
-            </div>
-
-            <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">标签名称</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">说明</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">创建者</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {tags.map((tag) => (
-                            <tr key={tag.id}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tag.id}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{tag.tag_name}</td>
-                                <td className="px-6 py-4 text-sm text-gray-500">{tag.tag_explain}</td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{tag.founder}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(tag.status)}`}>
-                                        {getStatusText(tag.status)}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    {tag.status === 1 ? (
-                                        <>
-                                            <button
-                                                onClick={() => handleEditTag(tag)}
-                                                className="text-blue-600 hover:text-blue-900 mr-3"
-                                            >
-                                                编辑
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteTag(tag.id)}
-                                                className="text-red-600 hover:text-red-900"
-                                            >
-                                                禁用
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <button
-                                            onClick={() => handleActivateTag(tag.id)}
-                                            className="text-green-600 hover:text-green-900"
-                                        >
-                                            激活
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-
-                {tags.length === 0 && (
-                    <div className="text-center py-12">
-                        <p className="text-gray-500">暂无标签数据</p>
-                    </div>
-                )}
-            </div>
+        <>
+            <DataTable
+                title="标签管理"
+                loading={loading}
+                columns={columns}
+                data={tags}
+                keyExtractor={(tag) => tag.id}
+                emptyText="暂无标签数据"
+                headerActions={
+                    <button onClick={handleCreateTag} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                        新建标签
+                    </button>
+                }
+            />
 
             {showModal && (
                 <>
@@ -294,6 +262,6 @@ export default function TagsView() {
                 </div>
                 </>
             )}
-        </div>
+        </>
     );
 }
