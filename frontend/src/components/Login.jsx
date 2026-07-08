@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import apiClient from '../utils/axios.jsx'
 import Header from './Header'
+import ScriptAwareHtml from './ScriptAwareHtml'
 
 export default function Login() {
   const [formData, setFormData] = useState({
@@ -333,9 +334,7 @@ export default function Login() {
                 </a>
               </p>
             )}
-            {footerCode && (
-              <div dangerouslySetInnerHTML={{ __html: footerCode }} />
-            )}
+            {footerCode && <ScriptAwareHtml html={footerCode} />}
           </div>
         </div>
       </footer>

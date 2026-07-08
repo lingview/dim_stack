@@ -7,6 +7,7 @@ import CategorySidebar from './CategorySidebar';
 import TagSidebar from './TagSidebar';
 import RecommendedArticles from './RecommendedArticles';
 import PageNotFound from './PageNotFound';
+import ScriptAwareHtml from './ScriptAwareHtml';
 
 const CustomHtmlPage = () => {
     const { alias } = useParams();
@@ -261,9 +262,7 @@ const CustomHtmlPage = () => {
                                 </a>
                             </p>
                         )}
-                        {footerCode && (
-                            <div dangerouslySetInnerHTML={{ __html: footerCode }} />
-                        )}
+                        {footerCode && <ScriptAwareHtml html={footerCode} />}
                     </div>
                 </div>
             </footer>

@@ -5,6 +5,7 @@ import Hero from './Hero';
 import CategorySidebar from './CategorySidebar';
 import TagSidebar from './TagSidebar';
 import RecommendedArticles from './RecommendedArticles';
+import ScriptAwareHtml from './ScriptAwareHtml';
 
 const FriendLinks = () => {
     const [friendLinks, setFriendLinks] = useState([]);
@@ -550,9 +551,7 @@ const FriendLinks = () => {
                                 </a>
                             </p>
                         )}
-                        {footerCode && (
-                            <div dangerouslySetInnerHTML={{ __html: footerCode }} />
-                        )}
+                        {footerCode && <ScriptAwareHtml html={footerCode} />}
                     </div>
                 </div>
             </footer>

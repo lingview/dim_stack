@@ -6,6 +6,7 @@ import ArticleList from "../components/ArticleList.jsx";
 import CategorySidebar from '../components/CategorySidebar';
 import TagSidebar from '../components/TagSidebar';
 import RecommendedArticles from '../components/RecommendedArticles';
+import ScriptAwareHtml from '../components/ScriptAwareHtml';
 
 import apiClient from '../utils/axios';
 
@@ -157,9 +158,7 @@ export default function Home() {
                                 </a>
                             </p>
                         )}
-                        {footerCode && (
-                            <div dangerouslySetInnerHTML={{ __html: footerCode }} />
-                        )}
+                        {footerCode && <ScriptAwareHtml html={footerCode} />}
                     </div>
                 </div>
             </footer>

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import apiClient from '../utils/axios'
 import Header from './Header'
+import ScriptAwareHtml from './ScriptAwareHtml'
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -262,9 +263,7 @@ export default function Register() {
                     </a>
                   </p>
                 )}
-                {footerCode && (
-                  <div dangerouslySetInnerHTML={{ __html: footerCode }} />
-                )}
+                {footerCode && <ScriptAwareHtml html={footerCode} />}
               </div>
             </div>
           </footer>
@@ -508,9 +507,7 @@ export default function Register() {
                   </a>
                 </p>
               )}
-              {footerCode && (
-                <div dangerouslySetInnerHTML={{ __html: footerCode }} />
-              )}
+              {footerCode && <ScriptAwareHtml html={footerCode} />}
             </div>
           </div>
         </footer>

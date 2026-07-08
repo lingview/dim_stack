@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import apiClient from '../utils/axios.jsx'
 import Header from './Header'
+import ScriptAwareHtml from './ScriptAwareHtml'
 
 export default function ForgotPassword() {
   const [step, setStep] = useState(1)
@@ -476,9 +477,7 @@ export default function ForgotPassword() {
                   </a>
                 </p>
               )}
-              {footerCode && (
-                <div dangerouslySetInnerHTML={{ __html: footerCode }} />
-              )}
+              {footerCode && <ScriptAwareHtml html={footerCode} />}
             </div>
           </div>
         </footer>

@@ -9,6 +9,7 @@ import ArticlePreview from './ArticlePreview.jsx';
 import CommentSection from './CommentSection.jsx';
 import TagSidebar from "./TagSidebar.jsx";
 import TableOfContents from './TableOfContents.jsx';
+import ScriptAwareHtml from './ScriptAwareHtml';
 
 export default function ArticleReader() {
     const { articleId } = useParams();
@@ -399,9 +400,7 @@ export default function ArticleReader() {
                                 </a>
                             </p>
                         )}
-                        {footerCode && (
-                            <div dangerouslySetInnerHTML={{ __html: footerCode }} />
-                        )}
+                        {footerCode && <ScriptAwareHtml html={footerCode} />}
                     </div>
                 </div>
             </footer>
