@@ -1137,11 +1137,13 @@ export default function SiteSettingsView() {
 
                                 <div
                                     onClick={() => audioFileInputRef.current?.click()}
-                                    className="music-upload-zone border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                                    className="music-upload-zone relative flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl p-8 text-center cursor-pointer hover:border-gray-300 hover:bg-gray-50/50 transition-colors group"
                                 >
-                                    <svg className="mx-auto mb-2 w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15m0-3l-3-3m0 0l-3 3m3-3V15" />
-                                    </svg>
+                                    <div className="w-12 h-12 mb-3 rounded-full bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 8.25H7.5a2.25 2.25 0 00-2.25 2.25v9a2.25 2.25 0 002.25 2.25h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25H15m0-3l-3-3m0 0l-3 3m3-3V15" />
+                                        </svg>
+                                    </div>
                                     <p className="text-sm text-gray-600">点击选择音频文件</p>
                                     <p className="text-xs text-gray-400 mt-1">支持一次选择多个文件 · 自动识别歌手名</p>
                                     <p className="text-xs text-gray-400">文件名格式：歌手 - 曲名.mp3</p>
@@ -1156,18 +1158,13 @@ export default function SiteSettingsView() {
                                 </div>
 
                                 {uploadQueue.length > 0 && (
-                                    <div className="mt-4 space-y-3">
+                                    <div className="mt-4 space-y-2">
                                         {uploadQueue.map(item => (
                                             <div
                                                 key={item.id}
-                                                className={`music-queue-item flex items-center gap-3 p-3 rounded-lg border ${
-                                                    item.status === 'uploading' ? 'border-blue-200 bg-blue-50 music-queue-uploading' :
-                                                        item.status === 'done'      ? 'border-green-200 bg-green-50 music-queue-done' :
-                                                            item.status === 'error'     ? 'border-red-200 bg-red-50 music-queue-error' :
-                                                                'border-gray-200 bg-white music-queue-pending'
-                                                }`}
+                                                className="music-queue-item flex items-start gap-3 p-4 rounded-lg border border-gray-200 bg-white"
                                             >
-                                                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 min-w-0">
                                                     <input
                                                         type="text"
                                                         value={item.musicName}
@@ -1175,7 +1172,7 @@ export default function SiteSettingsView() {
                                                         onChange={e => setUploadQueue(prev => prev.map(q =>
                                                             q.id === item.id ? { ...q, musicName: e.target.value } : q
                                                         ))}
-                                                        className="music-queue-input px-2 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                        className="music-queue-input px-2.5 py-1.5 text-sm border border-gray-200 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
                                                     />
                                                     <input
                                                         type="text"
@@ -1184,7 +1181,7 @@ export default function SiteSettingsView() {
                                                         onChange={e => setUploadQueue(prev => prev.map(q =>
                                                             q.id === item.id ? { ...q, musicAuthor: e.target.value } : q
                                                         ))}
-                                                        className="music-queue-input px-2 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                        className="music-queue-input px-2.5 py-1.5 text-sm border border-gray-200 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
                                                     />
                                                     <input
                                                         type="text"
@@ -1194,37 +1191,39 @@ export default function SiteSettingsView() {
                                                         onChange={e => setUploadQueue(prev => prev.map(q =>
                                                             q.id === item.id ? { ...q, musicUrl: e.target.value } : q
                                                         ))}
-                                                        className="music-queue-input sm:col-span-2 px-2 py-1.5 text-sm border border-gray-300 bg-white text-gray-900 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:opacity-60"
+                                                        className="music-queue-input sm:col-span-2 px-2.5 py-1.5 text-sm border border-gray-200 bg-white text-gray-900 rounded-md focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 disabled:bg-gray-50 disabled:opacity-60"
                                                     />
                                                 </div>
 
-                                                <div className="flex flex-col items-center gap-1 min-w-[52px]">
+                                                <div className="flex flex-col items-center gap-1.5 min-w-[44px] pt-0.5">
                                                     {item.status === 'uploading' && (
-                                                        <>
-                                                            <div className="music-spinner w-5 h-5 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
-                                                            <span className="text-xs text-blue-600 music-status-uploading">上传中</span>
-                                                        </>
+                                                        <div className="flex flex-col items-center gap-1">
+                                                            <div className="w-4 h-4 border-[2px] border-gray-200 border-t-gray-500 rounded-full animate-spin" />
+                                                            <span className="text-[11px] text-gray-400 whitespace-nowrap">上传中</span>
+                                                        </div>
                                                     )}
                                                     {item.status === 'done' && (
-                                                        <>
-                                                            <svg className="w-5 h-5 text-green-600 music-status-done-icon" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                                                        <div className="flex flex-col items-center gap-1">
+                                                            <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                                                             </svg>
-                                                            <span className="text-xs text-green-600 music-status-done">完成</span>
-                                                        </>
+                                                            <span className="text-[11px] text-blue-500 whitespace-nowrap">就绪</span>
+                                                        </div>
                                                     )}
                                                     {item.status === 'error' && (
-                                                        <>
-                                                            <svg className="w-5 h-5 text-red-500 music-status-error-icon" fill="currentColor" viewBox="0 0 20 20">
-                                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
-                                                            </svg>
-                                                            <span className="text-xs text-red-500 music-status-error">失败</span>
-                                                        </>
+                                                        <div className="flex flex-col items-center gap-1">
+                                                            <div className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center">
+                                                                <svg className="w-2.5 h-2.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                                                                </svg>
+                                                            </div>
+                                                            <span className="text-[11px] text-red-400 whitespace-nowrap">失败</span>
+                                                        </div>
                                                     )}
                                                     <button
                                                         type="button"
                                                         onClick={() => setUploadQueue(prev => prev.filter(q => q.id !== item.id))}
-                                                        className="music-remove-btn text-xs text-gray-400 hover:text-red-500 mt-1"
+                                                        className="text-[11px] text-gray-300 hover:text-red-400 transition-colors mt-0.5"
                                                     >
                                                         移除
                                                     </button>
@@ -1232,14 +1231,19 @@ export default function SiteSettingsView() {
                                             </div>
                                         ))}
 
-                                        <button
-                                            type="button"
-                                            onClick={addAllQueuedMusic}
-                                            disabled={!uploadQueue.some(q => q.status === 'done')}
-                                            className="mt-2 px-5 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
-                                        >
-                                            全部加入曲库（{uploadQueue.filter(q => q.status === 'done').length} 首就绪）
-                                        </button>
+                                        <div className="flex items-center justify-end gap-3 pt-2">
+                                            <span className="text-xs text-gray-400">
+                                                {uploadQueue.filter(q => q.status === 'done').length} 首上传就绪
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={addAllQueuedMusic}
+                                                disabled={!uploadQueue.some(q => q.status === 'done')}
+                                                className="px-4 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                            >
+                                                加入曲库
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -1300,12 +1304,12 @@ export default function SiteSettingsView() {
                                                     </div>
 
                                                     <div className="flex items-center justify-between pt-2 border-t border-gray-100 music-list-card-footer">
-                                                        <span className="text-xs text-green-600 font-medium music-status-enabled">启用</span>
+                                                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 music-status-enabled">已启用</span>
                                                         <div className="flex gap-2">
                                                             {editingMusic && editingMusic.id === music.id ? (
                                                                 <>
-                                                                    <button type="button" onClick={saveEditMusic} className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">保存</button>
-                                                                    <button type="button" onClick={cancelEditMusic} className="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600">取消</button>
+                                                                    <button type="button" onClick={saveEditMusic} className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">保存</button>
+                                                                    <button type="button" onClick={cancelEditMusic} className="px-3 py-1 border border-gray-300 text-gray-700 text-sm rounded hover:bg-gray-50 transition-colors">取消</button>
                                                                 </>
                                                             ) : (
                                                                 <>
@@ -1352,13 +1356,13 @@ export default function SiteSettingsView() {
                                                             )}
                                                         </td>
                                                         <td className="px-4 py-3 whitespace-nowrap music-table-cell">
-                                                            <span className="font-medium text-green-600 music-status-enabled">启用</span>
+                                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 music-status-enabled">已启用</span>
                                                         </td>
                                                         <td className="px-4 py-3 whitespace-nowrap music-table-cell">
                                                             {editingMusic && editingMusic.id === music.id ? (
                                                                 <div className="flex gap-2">
-                                                                    <button type="button" onClick={saveEditMusic} className="text-green-600 hover:text-green-900 music-btn-save-text">保存</button>
-                                                                    <button type="button" onClick={cancelEditMusic} className="text-gray-600 hover:text-gray-900 music-btn-cancel-text">取消</button>
+                                                                    <button type="button" onClick={saveEditMusic} className="text-blue-600 hover:text-blue-700 music-btn-save-text text-sm font-medium">保存</button>
+                                                                    <button type="button" onClick={cancelEditMusic} className="text-gray-400 hover:text-gray-600 music-btn-cancel-text text-sm">取消</button>
                                                                 </div>
                                                             ) : (
                                                                 <div className="flex gap-2">
