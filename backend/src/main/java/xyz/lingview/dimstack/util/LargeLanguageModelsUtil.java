@@ -21,7 +21,7 @@ public class LargeLanguageModelsUtil {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static String callDashscopeAPI(String apiKey, String apiUrl, String model, String systemContent, String userQuestion)
+    public static String callOpenAICompatibleAPI(String apiKey, String apiUrl, String model, String systemContent, String userQuestion)
             throws IOException, InterruptedException {
         int retryCount = 0;
         int maxRetries = 3;
@@ -47,7 +47,6 @@ public class LargeLanguageModelsUtil {
                 Map<String, Object> payload = Map.of(
                         "model", model,
                         "stream", false,
-                        "enable_thinking", false,
                         "messages", Arrays.asList(
                                 Map.of("role", "system", "content", systemContent),
                                 Map.of("role", "user", "content", userQuestion)

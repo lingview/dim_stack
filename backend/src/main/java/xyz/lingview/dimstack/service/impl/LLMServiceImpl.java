@@ -56,7 +56,7 @@ public class LLMServiceImpl implements LLMService {
 
             String systemContent = promptConfig.getPrompt_content();
 
-            String response = LargeLanguageModelsUtil.callDashscopeAPI(
+            String response = LargeLanguageModelsUtil.callOpenAICompatibleAPI(
                     llmConfig.getApi_key(),
                     llmConfig.getApi_url(),
                     llmConfig.getModel(),
@@ -90,7 +90,7 @@ public class LLMServiceImpl implements LLMService {
                 return "ERROR";
             }
 
-            String response = LargeLanguageModelsUtil.callDashscopeAPI(
+            String response = LargeLanguageModelsUtil.callOpenAICompatibleAPI(
                     llmConfig.getApi_key(),
                     llmConfig.getApi_url(),
                     llmConfig.getModel(),
@@ -168,7 +168,7 @@ public class LLMServiceImpl implements LLMService {
 
             String systemContent = promptConfig.getPrompt_content();
 
-            String response = LargeLanguageModelsUtil.callDashscopeAPI(
+            String response = LargeLanguageModelsUtil.callOpenAICompatibleAPI(
                     llmConfig.getApi_key(),
                     llmConfig.getApi_url(),
                     llmConfig.getModel(),

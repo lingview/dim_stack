@@ -111,6 +111,7 @@ export default function SiteSettingsView() {
     });
     const [loadingLlmConfig, setLoadingLlmConfig] = useState(false);
     const [savingLlmConfig, setSavingLlmConfig] = useState(false);
+    const [testingLlm, setTestingLlm] = useState(false);
     const [llmConfigExpanded, setLlmConfigExpanded] = useState(false);
     const [promptModal, setPromptModal] = useState({
         show: false,
@@ -301,6 +302,25 @@ export default function SiteSettingsView() {
             showToast('保存LLM配置时发生错误', 'error');
         } finally {
             setSavingLlmConfig(false);
+        }
+    };
+
+    const handleTestLlmConnection = async () => {
+        try {
+            setTestingLlm(true);
+            const response = await apiClient.get('/llm/test');
+
+            if (response.code === 200) {
+                showToast(response.data || '连接成功');
+            } else {
+                showToast(response.message || '连接测试失败', 'error');
+            }
+        } catch (error) {
+            console.error('LLM连接测试失败:', error);
+            const errorMsg = error?.response?.data?.message || '连接测试时发生错误';
+            showToast(errorMsg, 'error');
+        } finally {
+            setTestingLlm(false);
         }
     };
 
@@ -1944,7 +1964,7 @@ export default function SiteSettingsView() {
 
                                                 <div>
                                                     <label htmlFor="api_url" className="block text-sm font-medium text-gray-700 mb-1">
-                                                        API地址
+                                                        API地址（请填写完整地址 即：base_url + endpoint）
                                                     </label>
                                                     <input
                                                         type="text"
@@ -1972,7 +1992,22 @@ export default function SiteSettingsView() {
                                                     />
                                                 </div>
 
-                                                <div className="flex justify-end">
+                                                <div className="flex justify-end gap-3">
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleTestLlmConnection}
+                                                        disabled={testingLlm}
+                                                        className="px-6 py-2.5 text-sm font-medium text-blue-600 bg-white border border-blue-300 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-wait flex items-center gap-2"
+                                                    >
+                                                        {testingLlm ? (
+                                                            <>
+                                                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                                                                <span>测试中...</span>
+                                                            </>
+                                                        ) : (
+                                                            <span>测试连接</span>
+                                                        )}
+                                                    </button>
                                                     <button
                                                         type="button"
                                                         onClick={handleSaveLlmConfig}
