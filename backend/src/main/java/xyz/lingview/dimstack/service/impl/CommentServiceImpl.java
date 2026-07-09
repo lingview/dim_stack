@@ -129,6 +129,7 @@ public class CommentServiceImpl implements CommentService {
 
         // AI审核
         if (commentStatus == 3 && siteConfigUtil.isLlmCommentReviewEnabled()) {
+            log.info("评论 {}（用户：{}）进入大模型审核", comment.getComment_id(), username);
             triggerLlmCommentReview(comment, article, username);
         } else if (commentStatus == 3) {
             sendCommentReviewNotification(comment, article, username);
@@ -375,20 +376,25 @@ public class CommentServiceImpl implements CommentService {
 
     private void triggerLlmCommentReview(Comment comment, Article article, String commenterName) {
         new Thread(() -> {
+            log.info("评论 {} 开始执行大模型审核（文章：{}）", comment.getComment_id(), article.getArticle_name());
             try {
                 String result = llmService.reviewComment(comment.getContent());
                 if ("PASS".equals(result)) {
+                    log.info("评论 {} 大模型审核通过，自动发布", comment.getComment_id());
                     commentMapper.updateCommentStatus(comment.getComment_id(), 1);
                     sendReviewResultToAuthor(comment, true);
                     sendCommentNotification(comment, article, commenterName);
                 } else if ("REJECT".equals(result)) {
+                    log.warn("评论 {} 大模型审核不通过，标记为违规", comment.getComment_id());
                     commentMapper.updateCommentStatus(comment.getComment_id(), 4);
                     sendReviewResultToAuthor(comment, false);
                 } else {
+                    log.warn("评论 {} 大模型审核异常，保持待审核状态，等待人工审核", comment.getComment_id());
                     sendCommentReviewNotification(comment, article, commenterName);
                 }
             } catch (Exception e) {
-                log.warn("LLM评论审核异常: {}", e.getMessage());
+                log.error("评论 {} 大模型审核发生未预期异常，保持待审核状态，等待人工审核", comment.getComment_id(), e);
+                sendCommentReviewNotification(comment, article, commenterName);
             }
         }).start();
     }

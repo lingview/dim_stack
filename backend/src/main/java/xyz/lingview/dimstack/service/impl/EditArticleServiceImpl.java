@@ -796,8 +796,8 @@ public class EditArticleServiceImpl implements EditArticleService {
 
     private void asyncAiReview(ReviewContext context) {
         new Thread(() -> {
+            log.info("文章 {}《{}》（作者：{}）进入大模型审核", context.articleId, context.articleName, context.authorUsername);
             try {
-                log.debug("开始对文章 {} 进行异步大模型审核", context.articleId);
                 AiReviewResult reviewResult = llmService.reviewArticle(context.articleContent);
                 
                 if (reviewResult == AiReviewResult.PASS) {
