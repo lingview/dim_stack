@@ -99,6 +99,9 @@
 ### 主题
 - [面向主题开发者接口文档](docs/themes/themes-frontend-routing-guide.md)
 
+### 项目脚本
+- [项目脚本使用说明（包括构建维护等脚本）](docs/features/script_usage_instructions.md)
+
 ### 老版本迁移
 - [老版本升级说明](docs/legacy.md)
 
