@@ -25,6 +25,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -968,29 +969,35 @@ public class UploadServiceImpl implements UploadService {
             String clientIp = request.getRemoteAddr();
             boolean isLocalhostRequest = isLocalhost(clientIp);
 
-            URL resourceUrl = new URL(url);
-            String host = resourceUrl.getHost();
+            URI resourceUri = new URI(url);
+            String host = resourceUri.getHost();
             
             if (host == null || host.trim().isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "无效的URL"));
             }
 
-            boolean isTargetLocalhost = isLocalhost(host);
-            boolean isTargetPrivateIP = isPrivateIP(host);
-            
-            if (!isLocalhostRequest) {
-                if (isTargetLocalhost) {
-                    log.warn("非本地请求尝试访问localhost: {}, 客户端IP: {}", url, clientIp);
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(Map.of("error", "禁止访问本地地址"));
-                }
+            try {
+                java.net.InetAddress resolvedAddress = getByName(host);
+                String resolvedIp = resolvedAddress.getHostAddress();
 
-                boolean isClientPublicIP = !isLocalhost(clientIp) && !isPrivateIP(clientIp);
-                if (isClientPublicIP && isTargetPrivateIP) {
-                    log.warn("公网请求尝试访问内网地址: {}, 客户端IP: {}", url, clientIp);
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(Map.of("error", "禁止访问内网地址"));
+                if (!isLocalhostRequest) {
+                    if (resolvedAddress.isLoopbackAddress()) {
+                        log.warn("禁止访问本地地址: {} -> {}", host, resolvedIp);
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body(Map.of("error", "禁止访问本地地址"));
+                    }
+
+                    boolean isClientPublicIP = !isLocalhost(clientIp) && !isPrivateIP(clientIp);
+                    if (isClientPublicIP && (resolvedAddress.isSiteLocalAddress() || resolvedAddress.isLinkLocalAddress())) {
+                        log.warn("公网请求禁止访问内网地址: {} -> {}", host, resolvedIp);
+                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                .body(Map.of("error", "禁止访问内网地址"));
+                    }
                 }
+            } catch (Exception e) {
+                log.error("DNS解析失败: {}", host, e);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "DNS解析失败"));
             }
 
             String username = getUsername(request);
@@ -1007,7 +1014,7 @@ public class UploadServiceImpl implements UploadService {
                         .body(Map.of("error", "未找到用户"));
             }
 
-            HttpURLConnection connection = (HttpURLConnection) resourceUrl.openConnection();
+            HttpURLConnection connection = (HttpURLConnection) resourceUri.toURL().openConnection();
 
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(10000);
@@ -1015,36 +1022,64 @@ public class UploadServiceImpl implements UploadService {
             connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
             connection.setRequestProperty("Accept", "image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
             connection.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
-            connection.setInstanceFollowRedirects(true);
+            connection.setInstanceFollowRedirects(false);
 
-            if (!isLocalhostRequest) {
+            int responseCode = connection.getResponseCode();
+            int redirectCount = 0;
+            while ((responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
+                    responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
+                    responseCode == HttpURLConnection.HTTP_SEE_OTHER ||
+                    responseCode == 307 || responseCode == 308) && redirectCount < 5) {
+
+                String location = connection.getHeaderField("Location");
+                connection.disconnect();
+
+                if (location == null || location.trim().isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                            .body(Map.of("error", "重定向地址为空"));
+                }
+
+                URI redirectUri = new URI(location);
+                String redirectHost = redirectUri.getHost();
+                if (redirectHost == null || redirectHost.trim().isEmpty()) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "无效的重定向地址"));
+                }
+
+                String scheme = redirectUri.getScheme();
+                if (!"http".equals(scheme) && !"https".equals(scheme)) {
+                    log.warn("不安全的重定向协议: {}", scheme);
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("error", "不安全的请求"));
+                }
+
                 try {
-                    java.net.InetAddress resolvedAddress = getByName(host);
-                    String resolvedHost = resolvedAddress.getHostAddress();
-                    
-                    if (isLocalhost(resolvedHost)) {
-                        log.warn("DNS重绑定攻击检测：域名 {} 解析到localhost: {}", host, resolvedHost);
-                        connection.disconnect();
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(Map.of("error", "禁止访问本地地址"));
-                    }
-                    
-                    boolean isClientPublicIP = !isLocalhost(clientIp) && !isPrivateIP(clientIp);
-                    if (isClientPublicIP && isPrivateIP(resolvedHost)) {
-                        log.warn("DNS重绑定攻击检测：公网请求域名 {} 解析到内网IP: {}", host, resolvedHost);
-                        connection.disconnect();
+                    java.net.InetAddress redirectAddress = getByName(redirectHost);
+                    if (redirectAddress.isLoopbackAddress() ||
+                        redirectAddress.isSiteLocalAddress() ||
+                        redirectAddress.isLinkLocalAddress()) {
+                        log.warn("重定向目标为内网地址，已拦截: {} -> {}", location, redirectAddress.getHostAddress());
                         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                                 .body(Map.of("error", "禁止访问内网地址"));
                     }
                 } catch (Exception e) {
-                    log.error("DNS解析失败: {}", host, e);
-                    connection.disconnect();
+                    log.error("重定向目标DNS解析失败: {}", redirectHost, e);
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                             .body(Map.of("error", "DNS解析失败"));
                 }
+
+                connection = (HttpURLConnection) redirectUri.toURL().openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(10000);
+                connection.setReadTimeout(30000);
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+                connection.setRequestProperty("Accept", "image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
+                connection.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
+                connection.setInstanceFollowRedirects(false);
+
+                responseCode = connection.getResponseCode();
+                redirectCount++;
             }
-            
-            int responseCode = connection.getResponseCode();
+
             if (responseCode != HttpURLConnection.HTTP_OK) {
                 log.error("下载失败，HTTP状态码: {}, URL: {}", responseCode, url);
                 connection.disconnect();
