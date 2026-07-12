@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../utils/axios.jsx';
+import { showToast } from '../../utils/toastManager.jsx';
 
 export default function ThemesStoreView() {
     const [localThemes, setLocalThemes] = useState([]);
@@ -31,7 +32,7 @@ export default function ThemesStoreView() {
             setLocalThemes(themes);
         } catch (error) {
             console.error('获取本地主题列表失败:', error);
-            setMessage({ type: 'error', text: '获取本地主题列表失败' });
+            showToast('获取本地主题列表失败', 'error');
         } finally {
             setLoading(false);
         }
@@ -71,13 +72,13 @@ export default function ThemesStoreView() {
                 const themes = themesData && themesData.data ?
                     (Array.isArray(themesData.data) ? themesData.data : []) : [];
                 setCloudThemes(themes);
-                if (!silent) setMessage({ type: 'success', text: '云端主题列表获取成功' });
+                if (!silent) showToast('云端主题列表获取成功');
             } else {
-                if (!silent) setMessage({ type: 'error', text: response.message || '获取云端主题列表失败' });
+                if (!silent) showToast(response.message || '获取云端主题列表失败', 'error');
             }
         } catch (error) {
             console.error('获取云端主题列表失败:', error);
-            if (!silent) setMessage({ type: 'error', text: '获取云端主题列表失败' });
+            if (!silent) showToast('获取云端主题列表失败', 'error');
         } finally {
             setCloudLoading(false);
         }
@@ -89,15 +90,15 @@ export default function ThemesStoreView() {
             const response = await apiClient.post('/gettheme', { slug });
 
             if (response.code === 200) {
-                setMessage({ type: 'success', text: response.message || `主题 ${slug} 安装成功` });
+                showToast(response.message || `主题 ${slug} 安装成功`);
                 loadLocalThemes();
                 setShowPreview(false);
             } else {
-                setMessage({ type: 'error', text: response.message || `安装主题 ${slug} 失败` });
+                showToast(response.message || `安装主题 ${slug} 失败`, 'error');
             }
         } catch (error) {
             console.error('安装主题失败:', error);
-            setMessage({ type: 'error', text: `安装主题失败: ${error.message}` });
+            showToast(`安装主题失败: ${error.message}`, 'error');
         } finally {
             setInstalling(false);
         }
@@ -109,14 +110,14 @@ export default function ThemesStoreView() {
                 const response = await apiClient.post('/deletetheme', { slug });
 
                 if (response.code === 200) {
-                    setMessage({ type: 'success', text: response.message || `主题 ${slug} 删除成功` });
+                    showToast(response.message || `主题 ${slug} 删除成功`);
                     loadLocalThemes();
                 } else {
-                    setMessage({ type: 'error', text: response.message || `删除主题 ${slug} 失败` });
+                    showToast(response.message || `删除主题 ${slug} 失败`, 'error');
                 }
             } catch (error) {
                 console.error('删除主题失败:', error);
-                setMessage({ type: 'error', text: `删除主题失败: ${error.message}` });
+                showToast(`删除主题失败: ${error.message}`, 'error');
             }
         }
     };
@@ -124,19 +125,18 @@ export default function ThemesStoreView() {
     const switchTheme = async (themeName) => {
         try {
             const response = await apiClient.post(`/theme/switch?themeName=${themeName}`);
-            const text = typeof response === 'string' ? response : (response?.message || '');
+            const code = response?.code;
+            const message = response?.message || '';
 
-            const isSuccess = text && !text.includes('Error') && !text.includes('失败');
-
-            if (isSuccess) {
-                setMessage({ type: 'success', text: `主题已切换为 ${themeName}` });
+            if (code === 200) {
+                showToast(`主题已切换为 ${themeName}`);
                 await loadLocalThemes();
             } else {
-                setMessage({ type: 'error', text: text || '切换主题失败' });
+                showToast(message || '切换主题失败', 'error');
             }
         } catch (error) {
             console.error('切换主题失败:', error);
-            setMessage({ type: 'error', text: `切换主题失败: ${error.message}` });
+            showToast(`切换主题失败: ${error.message}`, 'error');
         }
     };
 
@@ -149,14 +149,14 @@ export default function ThemesStoreView() {
                 const isSuccess = text && !text.includes('Error') && !text.includes('失败');
 
                 if (isSuccess) {
-                    setMessage({ type: 'success', text: text || '已取消激活，已切换回默认主题' });
+                    showToast(text || '已取消激活，已切换回默认主题');
                     await loadLocalThemes();
                 } else {
-                    setMessage({ type: 'error', text: text || '取消激活失败' });
+                    showToast(text || '取消激活失败', 'error');
                 }
             } catch (error) {
                 console.error('取消激活主题失败:', error);
-                setMessage({ type: 'error', text: `取消激活主题失败: ${error.message}` });
+                showToast(`取消激活主题失败: ${error.message}`, 'error');
             }
         }
     };

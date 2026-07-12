@@ -30,26 +30,26 @@ public class ThemeController {
 
     @PostMapping("/switch")
     @RequiresPermission("system:theme:management")
-    public String switchTheme(@RequestParam String themeName) {
+    public ApiResponse<String> switchTheme(@RequestParam String themeName) {
         String themesPath = themeProperties.getThemesPath();
         Path themeDir = Path.of(themesPath, themeName);
 
         if (!Files.exists(themeDir) || !Files.isDirectory(themeDir)) {
-            return "Error: Theme directory '" + themeName + "' does not exist or is not a directory";
+            return ApiResponse.error(400, "主题目录不存在: " + themeName);
         }
 
         themeProperties.setActiveTheme(themeName);
         boolean success = siteConfigService.updateSiteTheme(themeName);
 
         if (!success) {
-            return "Error: Failed to save theme to database";
+            return ApiResponse.error(500, "主题保存到数据库失败");
         }
 
         String currentTheme = themeProperties.getActiveTheme();
         if (currentTheme.equals(themeName)) {
-            return "主题以切换至: " + themeName;
+            return ApiResponse.success("主题已切换至: " + themeName, themeName);
         } else {
-            return "Error: 主题切换失败: " + themeName;
+            return ApiResponse.error(500, "主题切换失败: " + themeName);
         }
     }
 
@@ -138,7 +138,7 @@ public class ThemeController {
                 return null;
             }
             for (String rawLine : Files.readAllLines(configFile)) {
-                String line = rawLine.replace("﻿", "").trim();
+                String line = rawLine.replace("\uFEFF", "").trim();
                 if (line.isEmpty() || line.startsWith("#") || line.startsWith(";") || line.startsWith("[")) {
                     continue;
                 }
