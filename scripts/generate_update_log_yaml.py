@@ -134,6 +134,15 @@ def generate_yaml_changelog():
 
         versions_data.append(version_entry)
 
+    seen = {}
+    for entry in versions_data:
+        seen[entry['version']] = entry
+    versions_data = list(seen.values())
+
+    def parse_version(v):
+        return tuple(int(x) for x in v.split('.'))
+    versions_data.sort(key=lambda e: e['date'], reverse=True)
+
     data = {
         'metadata': {
             'project_name': '次元栈 · Dim Stack',
