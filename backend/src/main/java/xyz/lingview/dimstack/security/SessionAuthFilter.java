@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.service.UserBlacklistService;
@@ -18,7 +17,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-@Component
 @Slf4j
 public class SessionAuthFilter implements Filter {
 

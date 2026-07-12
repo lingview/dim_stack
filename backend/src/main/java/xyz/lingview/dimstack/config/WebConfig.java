@@ -21,22 +21,21 @@ import org.springframework.web.servlet.resource.PathResourceResolver;
 public class WebConfig implements WebMvcConfigurer {
 
     @Autowired
-    private SessionAuthFilter sessionAuthFilter;
-
-//    @Autowired
-//    private ThemeProperties themeProperties;
-
-    @Autowired
     private ThemeResourceFilter themeResourceFilter;
 
     @Autowired
     private UserAgentSessionFilter userAgentSessionFilter;
 
+    @Bean
+    public SessionAuthFilter sessionAuthFilter() {
+        return new SessionAuthFilter();
+    }
+
     // 注册 SessionAuthFilter
     @Bean
     public FilterRegistrationBean<SessionAuthFilter> sessionAuthFilterRegistration() {
         FilterRegistrationBean<SessionAuthFilter> registration = new FilterRegistrationBean<>();
-        registration.setFilter(sessionAuthFilter);
+        registration.setFilter(sessionAuthFilter());
         registration.addUrlPatterns("/api/*");
         registration.setOrder(2);
         return registration;
