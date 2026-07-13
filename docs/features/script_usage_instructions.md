@@ -4,7 +4,7 @@
 
 ---
 
-## build_release.sh / build_release.ps1
+## build_release.sh（linux） / build_release.ps1（windows）
 
 **功能：** 构建前后端产物。包含工具版本检查（Java >= 17、Node.js >= 22），前端构建产物自动复制到后端静态资源目录，最终输出 JAR 包到项目根目录
 
