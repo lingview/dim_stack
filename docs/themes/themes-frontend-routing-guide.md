@@ -701,23 +701,27 @@ GET /api/tags
 > 200 Response
 
 ```json
-[
-  {
-    "id": 0,
-    "tag_name": "string",
-    "tag_explain": "string",
-    "founder": "string",
-    "create_time": "2019-08-24T14:15:22Z",
-    "status": 0
-  }
-]
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": 0,
+      "tag_name": "string",
+      "tag_explain": "string",
+      "founder": "string",
+      "create_time": "2019-08-24T14:15:22Z",
+      "status": 0
+    }
+  ]
+}
 ```
 
 ### 返回结果
 
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|标签列表|Inline|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|标签列表|[ApiResponse](#schemaapiresponse)|
 
 ### 返回数据结构
 
@@ -725,7 +729,9 @@ GET /api/tags
 
 |名称|类型|必选|约束|中文名|说明|
 |---|---|---|---|---|---|
-|*anonymous*|[[Tag](#schematag)]|false|none||none|
+|code|integer(int32)|false|none||状态码|
+|message|string|false|none||响应信息|
+|data|[[Tag](#schematag)]|false|none||标签列表|
 |» id|integer(int32)|false|none||标签ID|
 |» tag_name|string|false|none||标签名称|
 |» tag_explain|string|false|none||标签说明|
@@ -744,28 +750,32 @@ GET /api/categories
 > 200 Response
 
 ```json
-[
-  {
-    "id": 0,
-    "article_categories": "string",
-    "categories_explain": "string",
-    "founder": "string",
-    "create_time": "2019-08-24T14:15:22Z",
-    "status": 0,
-    "parent_id": 0,
-    "level": 0,
-    "full_path": "string",
-    "sort_order": 0,
-    "article_count": 0
-  }
-]
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": 0,
+      "article_categories": "string",
+      "categories_explain": "string",
+      "founder": "string",
+      "create_time": "2019-08-24T14:15:22Z",
+      "status": 0,
+      "parent_id": 0,
+      "level": 0,
+      "full_path": "string",
+      "sort_order": 0,
+      "article_count": 0
+    }
+  ]
+}
 ```
 
 ### 返回结果
 
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|分类列表|Inline|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|分类列表|[ApiResponse](#schemaapiresponse)|
 
 ### 返回数据结构
 
@@ -773,7 +783,9 @@ GET /api/categories
 
 |名称|类型|必选|约束|中文名|说明|
 |---|---|---|---|---|---|
-|*anonymous*|[[Category](#schemacategory)]|false|none||none|
+|code|integer(int32)|false|none||状态码|
+|message|string|false|none||响应信息|
+|data|[[Category](#schemacategory)]|false|none||分类列表|
 |» id|integer(int32)|false|none||分类ID|
 |» article_categories|string|false|none||分类名称|
 |» categories_explain|string|false|none||分类说明|
@@ -797,29 +809,33 @@ GET /api/categoriesandcount
 > 200 Response
 
 ```json
-[
-  {
-    "id": 0,
-    "article_categories": "string",
-    "categories_explain": "string",
-    "founder": "string",
-    "create_time": "2019-08-24T14:15:22Z",
-    "status": 0,
-    "parent_id": 0,
-    "level": 0,
-    "full_path": "string",
-    "sort_order": 0,
-    "article_count": 0,
-    "articleCount": 0
-  }
-]
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": 0,
+      "article_categories": "string",
+      "categories_explain": "string",
+      "founder": "string",
+      "create_time": "2019-08-24T14:15:22Z",
+      "status": 0,
+      "parent_id": 0,
+      "level": 0,
+      "full_path": "string",
+      "sort_order": 0,
+      "article_count": 0,
+      "articleCount": 0
+    }
+  ]
+}
 ```
 
 ### 返回结果
 
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|分类列表|Inline|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|分类列表|[ApiResponse](#schemaapiresponse)|
 
 ### 返回数据结构
 
@@ -827,31 +843,9 @@ GET /api/categoriesandcount
 
 |名称|类型|必选|约束|中文名|说明|
 |---|---|---|---|---|---|
-|*anonymous*|[allOf]|false|none||none|
-
-*allOf*
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» *anonymous*|[Category](#schemacategory)|false|none||none|
-|»» id|integer(int32)|false|none||分类ID|
-|»» article_categories|string|false|none||分类名称|
-|»» categories_explain|string|false|none||分类说明|
-|»» founder|string|false|none||创建者UUID|
-|»» create_time|string(date-time)|false|none||创建时间|
-|»» status|integer(int32)|false|none||状态（0禁用，1启用）|
-|»» parent_id|integer(int32)¦null|false|none||父分类ID（顶级为null）|
-|»» level|integer(int32)¦null|false|none||层级|
-|»» full_path|string¦null|false|none||分类完整路径|
-|»» sort_order|integer(int32)¦null|false|none||排序值|
-|»» article_count|integer(int32)¦null|false|none||文章数|
-
-*and*
-
-|名称|类型|必选|约束|中文名|说明|
-|---|---|---|---|---|---|
-|» *anonymous*|object|false|none||none|
-|»» articleCount|integer(int64)|false|none||该分类下文章数量|
+|code|integer(int32)|false|none||状态码|
+|message|string|false|none||响应信息|
+|data|[CategoryWithCount](#schemacategorywithcount)|false|none||分类及文章数列表|
 
 ## GET 获取某分类下的所有文章
 
@@ -873,26 +867,30 @@ GET /api/categories/articles
 
 ```json
 {
-  "data": [
-    {
-      "id": 0,
-      "article_id": "string",
-      "title": "string",
-      "excerpt": "string",
-      "image": "string",
-      "date": "string",
-      "author": "string",
-      "author_avatar": "string",
-      "category": "string",
-      "tag": "string",
-      "alias": "string",
-      "password": true
-    }
-  ],
-  "total": 0,
-  "page": 0,
-  "size": 0,
-  "total_pages": 0
+  "code": 200,
+  "message": "success",
+  "data": {
+    "data": [
+      {
+        "id": 0,
+        "article_id": "string",
+        "title": "string",
+        "excerpt": "string",
+        "image": "string",
+        "date": "string",
+        "author": "string",
+        "author_avatar": "string",
+        "category": "string",
+        "tag": "string",
+        "alias": "string",
+        "password": true
+      }
+    ],
+    "total": 0,
+    "page": 0,
+    "size": 0,
+    "total_pages": 0
+  }
 }
 ```
 
@@ -900,7 +898,7 @@ GET /api/categories/articles
 
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|分类文章列表|[PaginatedArticlesResponse](#schemapaginatedarticlesresponse)|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|分类文章列表|[ApiResponse](#schemaapiresponse)|
 
 ## GET 获取某标签下的所有文章
 
@@ -922,26 +920,30 @@ GET /api/tags/{tag}/articles
 
 ```json
 {
-  "data": [
-    {
-      "id": 0,
-      "article_id": "string",
-      "title": "string",
-      "excerpt": "string",
-      "image": "string",
-      "date": "string",
-      "author": "string",
-      "author_avatar": "string",
-      "category": "string",
-      "tag": "string",
-      "alias": "string",
-      "password": true
-    }
-  ],
-  "total": 0,
-  "page": 0,
-  "size": 0,
-  "total_pages": 0
+  "code": 200,
+  "message": "success",
+  "data": {
+    "data": [
+      {
+        "id": 0,
+        "article_id": "string",
+        "title": "string",
+        "excerpt": "string",
+        "image": "string",
+        "date": "string",
+        "author": "string",
+        "author_avatar": "string",
+        "category": "string",
+        "tag": "string",
+        "alias": "string",
+        "password": true
+      }
+    ],
+    "total": 0,
+    "page": 0,
+    "size": 0,
+    "total_pages": 0
+  }
 }
 ```
 
@@ -949,7 +951,7 @@ GET /api/tags/{tag}/articles
 
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|标签文章列表|[PaginatedArticlesResponse](#schemapaginatedarticlesresponse)|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|标签文章列表|[ApiResponse](#schemaapiresponse)|
 
 ## GET 获取热门文章
 
@@ -962,26 +964,30 @@ GET /api/hot/articles
 > 200 Response
 
 ```json
-[
-  {
-    "id": 0,
-    "article_id": "string",
-    "title": "string",
-    "excerpt": "string",
-    "date": "string",
-    "author": "string",
-    "category": "string",
-    "page_views": 0,
-    "alias": "string"
-  }
-]
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": 0,
+      "article_id": "string",
+      "title": "string",
+      "excerpt": "string",
+      "date": "string",
+      "author": "string",
+      "category": "string",
+      "page_views": 0,
+      "alias": "string"
+    }
+  ]
+}
 ```
 
 ### 返回结果
 
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|热门文章列表|Inline|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|热门文章列表|[ApiResponse](#schemaapiresponse)|
 
 ### 返回数据结构
 
@@ -989,7 +995,9 @@ GET /api/hot/articles
 
 |名称|类型|必选|约束|中文名|说明|
 |---|---|---|---|---|---|
-|*anonymous*|[[HotArticle](#schemahotarticle)]|false|none||none|
+|code|integer(int32)|false|none||状态码|
+|message|string|false|none||响应信息|
+|data|[[HotArticle](#schemahotarticle)]|false|none||热门文章列表|
 |» id|integer(int32)|false|none||文章ID|
 |» article_id|string|false|none||文章UUID|
 |» title|string|false|none||文章标题|
@@ -1164,70 +1172,74 @@ GET /api/comments/article/{articleAlias}
 > 200 Response
 
 ```json
-[
-  {
-    "comment_id": "string",
-    "user_id": "string",
-    "username": "string",
-    "avatar": "string",
-    "content": "string",
-    "create_time": "2019-08-24T14:15:22Z",
-    "comment_like_count": 0,
-    "to_comment_id": "string",
-    "to_comment_user_id": "string",
-    "to_comment_username": "string",
-    "article_id": "string",
-    "article_title": "string",
-    "status": 0,
-    "is_liked": true,
-    "children": [
-      {
-        "comment_id": "string",
-        "user_id": "string",
-        "username": "string",
-        "avatar": "string",
-        "content": "string",
-        "create_time": "2019-08-24T14:15:22Z",
-        "comment_like_count": 0,
-        "to_comment_id": "string",
-        "to_comment_user_id": "string",
-        "to_comment_username": "string",
-        "article_id": "string",
-        "article_title": "string",
-        "status": 0,
-        "is_liked": true,
-        "children": [
-          {
-            "comment_id": "string",
-            "user_id": "string",
-            "username": "string",
-            "avatar": "string",
-            "content": "string",
-            "create_time": "2019-08-24T14:15:22Z",
-            "comment_like_count": 0,
-            "to_comment_id": "string",
-            "to_comment_user_id": "string",
-            "to_comment_username": "string",
-            "article_id": "string",
-            "article_title": "string",
-            "status": 0,
-            "is_liked": true,
-            "children": [
-              null
-            ]
-          }
-        ]
-      }
-    ]
-  }
-]
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "comment_id": "string",
+      "user_id": "string",
+      "username": "string",
+      "avatar": "string",
+      "content": "string",
+      "create_time": "2019-08-24T14:15:22Z",
+      "comment_like_count": 0,
+      "to_comment_id": "string",
+      "to_comment_user_id": "string",
+      "to_comment_username": "string",
+      "article_id": "string",
+      "article_title": "string",
+      "status": 0,
+      "is_liked": true,
+      "children": [
+        {
+          "comment_id": "string",
+          "user_id": "string",
+          "username": "string",
+          "avatar": "string",
+          "content": "string",
+          "create_time": "2019-08-24T14:15:22Z",
+          "comment_like_count": 0,
+          "to_comment_id": "string",
+          "to_comment_user_id": "string",
+          "to_comment_username": "string",
+          "article_id": "string",
+          "article_title": "string",
+          "status": 0,
+          "is_liked": true,
+          "children": [
+            {
+              "comment_id": "string",
+              "user_id": "string",
+              "username": "string",
+              "avatar": "string",
+              "content": "string",
+              "create_time": "2019-08-24T14:15:22Z",
+              "comment_like_count": 0,
+              "to_comment_id": "string",
+              "to_comment_user_id": "string",
+              "to_comment_username": "string",
+              "article_id": "string",
+              "article_title": "string",
+              "status": 0,
+              "is_liked": true,
+              "children": [
+                null
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
 ```
 
 ### 返回结果
 
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|评论列表|Inline|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|评论列表|[ApiResponse](#schemaapiresponse)|
 
 ### 返回数据结构
 
@@ -1235,7 +1247,9 @@ GET /api/comments/article/{articleAlias}
 
 |名称|类型|必选|约束|中文名|说明|
 |---|---|---|---|---|---|
-|*anonymous*|[[Comment](#schemacomment)]|false|none||none|
+|code|integer(int32)|false|none||状态码|
+|message|string|false|none||响应信息|
+|data|[[Comment](#schemacomment)]|false|none||评论列表|
 |» comment_id|string|false|none||评论唯一标识|
 |» user_id|string|false|none||评论者UUID|
 |» username|string|false|none||评论者用户名|
@@ -1364,24 +1378,28 @@ GET /api/frontendgetmenus
 > 200 Response
 
 ```json
-[
-  {
-    "menus_id": "string",
-    "menus_name": "string",
-    "menus_url": "string",
-    "sort_order": 0,
-    "status": 0,
-    "user_id": "string",
-    "username": "string"
-  }
-]
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "menus_id": "string",
+      "menus_name": "string",
+      "menus_url": "string",
+      "sort_order": 0,
+      "status": 0,
+      "user_id": "string",
+      "username": "string"
+    }
+  ]
+}
 ```
 
 ### 返回结果
 
 |状态码|状态码含义|说明|数据模型|
 |---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|导航菜单列表|Inline|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|导航菜单列表|[ApiResponse](#schemaapiresponse)|
 
 ### 返回数据结构
 
@@ -1389,7 +1407,9 @@ GET /api/frontendgetmenus
 
 |名称|类型|必选|约束|中文名|说明|
 |---|---|---|---|---|---|
-|*anonymous*|[[Menu](#schemamenu)]|false|none||none|
+|code|integer(int32)|false|none||状态码|
+|message|string|false|none||响应信息|
+|data|[[Menu](#schemamenu)]|false|none||导航菜单列表|
 |» menus_id|string|false|none||菜单ID|
 |» menus_name|string|false|none||菜单名称|
 |» menus_url|string|false|none||菜单链接|
