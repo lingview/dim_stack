@@ -68,7 +68,7 @@ export default function UsersView() {
       setLoading(true);
       const response = await apiClient.get('/user/list');
       console.log('原始用户数据:', response);
-      const usersWithRoles = (response || []).map(user => {
+      const usersWithRoles = (response.data || []).map(user => {
         const parseRoleField = (field) => {
           if (!field && field !== 0) return [];
           if (Array.isArray(field)) return field;
@@ -102,7 +102,7 @@ export default function UsersView() {
   const fetchRoles = async () => {
     try {
       const response = await apiClient.get('/user/roles');
-      setRoles(response || []);
+      setRoles(response.data || []);
     } catch (error) {
       console.error('获取角色列表失败:', error);
     }
