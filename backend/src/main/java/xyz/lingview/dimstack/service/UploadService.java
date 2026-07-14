@@ -1,6 +1,5 @@
 package xyz.lingview.dimstack.service;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.lingview.dimstack.domain.UploadAttachment;
 
@@ -16,12 +15,12 @@ import java.util.Map;
 public interface UploadService {
     UploadAttachment selectByAccessKey(String accessKey);
 
-    ResponseEntity<Map<String, String>> uploadAttachment(HttpServletRequest request, MultipartFile file);
-    ResponseEntity<Map<String, String>> initMultipartUpload(HttpServletRequest request, Map<String, String> payload);
-    ResponseEntity<Map<String, String>> uploadChunk(HttpServletRequest request, String uploadId, int chunkIndex, byte[] chunkData);
-    ResponseEntity<Map<String, String>> completeUpload(HttpServletRequest request, Map<String, String> payload);
-    ResponseEntity<Map<String, Object>> uploadArticle(HttpServletRequest request, xyz.lingview.dimstack.domain.UploadArticle uploadArticle);
-    ResponseEntity<Map<String, String>> uploadAvatar(HttpServletRequest request, MultipartFile file);
-    ResponseEntity<Map<String, String>> adminUploadAvatar(HttpServletRequest request, MultipartFile file);
-    ResponseEntity<Map<String, String>> downloadAndUploadExternalResource(HttpServletRequest request, String url);
+    Map<String, String> uploadAttachment(HttpServletRequest request, MultipartFile file);
+    Map<String, String> initMultipartUpload(HttpServletRequest request, Map<String, String> payload);
+    Map<String, String> uploadChunk(HttpServletRequest request, String uploadId, int chunkIndex, byte[] chunkData);
+    Map<String, String> completeUpload(HttpServletRequest request, Map<String, String> payload);
+    Map<String, Object> uploadArticle(HttpServletRequest request, xyz.lingview.dimstack.domain.UploadArticle uploadArticle);
+    Map<String, String> uploadAvatar(HttpServletRequest request, MultipartFile file);
+    Map<String, String> adminUploadAvatar(HttpServletRequest request, MultipartFile file);
+    Map<String, String> downloadAndUploadExternalResource(HttpServletRequest request, String url);
 }

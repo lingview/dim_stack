@@ -4,8 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.lingview.dimstack.domain.UploadArticle;
@@ -239,33 +237,29 @@ public class UploadServiceImpl implements UploadService {
     }
 
     @Override
-    public ResponseEntity<Map<String, String>> uploadAttachment(HttpServletRequest request, MultipartFile file) {
+    public Map<String, String> uploadAttachment(HttpServletRequest request, MultipartFile file) {
         log.info("开始附件上传流程");
 
         if (file.isEmpty()) {
             log.warn("尝试上传空文件");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "文件为空"));
+            return Map.of("error", "文件为空");
         }
 
         if (file.getSize() > MAX_FILE_SIZE) {
             log.warn("尝试上传过大文件: {} 字节", file.getSize());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "文件过大"));
+            return Map.of("error", "文件过大");
         }
 
         String username = getUsername(request);
         if (username == null) {
             log.warn("未授权的上传尝试");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "用户未登录或用户名无效"));
+            return Map.of("error", "用户未登录或用户名无效");
         }
 
         String userUUID = getUserUUID(username);
         if (userUUID == null) {
             log.error("未找到用户名 {} 的UUID", username);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "未找到用户"));
+            return Map.of("error", "未找到用户");
         }
 
         String contentType = file.getContentType();
@@ -278,8 +272,7 @@ public class UploadServiceImpl implements UploadService {
 
         if (!isMimeAllowed(contentType) || !isExtensionAllowed(extension)) {
             log.warn("尝试上传被禁止的文件类型。MIME: {}, 扩展名: {}", contentType, extension);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "文件类型不被允许"));
+            return Map.of("error", "文件类型不被允许");
         }
 
         String subFolder = getFolderByMime(contentType);
@@ -288,8 +281,7 @@ public class UploadServiceImpl implements UploadService {
 
         if (!uploadPath.startsWith(allowedRoot)) {
             log.error("检测到无效的上传路径: {}", uploadPath);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "上传路径无效"));
+            return Map.of("error", "上传路径无效");
         }
 
         try {
@@ -297,8 +289,7 @@ public class UploadServiceImpl implements UploadService {
             log.debug("创建目录: {}", uploadPath);
         } catch (IOException e) {
             log.error("创建目录失败: {}", uploadPath, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "创建目录失败"));
+            return Map.of("error", "创建目录失败");
         }
 
 
@@ -318,8 +309,7 @@ public class UploadServiceImpl implements UploadService {
         int insertResult = uploadMapper.insertUploadAttachment(uploadFile);
         if (insertResult != 1) {
             log.error("插入附件记录到数据库失败。文件: {}", fileName);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "插入数据库失败"));
+            return Map.of("error", "插入数据库失败");
         }
 
         try {
@@ -327,31 +317,28 @@ public class UploadServiceImpl implements UploadService {
             log.info("文件上传成功。路径: {}", filePath);
         } catch (IOException e) {
             log.error("保存文件失败: {}", filePath, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "保存文件失败"));
+            return Map.of("error", "保存文件失败");
         }
 
         String fileUrl = "/file/" + accessKey;
         log.info("附件上传完成。URL: {}", fileUrl);
-        return ResponseEntity.ok(Map.of("fileUrl", fileUrl));
+        return Map.of("fileUrl", fileUrl);
     }
 
     @Override
-    public ResponseEntity<Map<String, String>> initMultipartUpload(HttpServletRequest request, Map<String, String> payload) {
+    public Map<String, String> initMultipartUpload(HttpServletRequest request, Map<String, String> payload) {
         log.info("初始化分片上传");
 
         String username = getUsername(request);
         if (username == null) {
             log.warn("未授权的分片上传初始化尝试");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "用户未登录或用户名无效"));
+            return Map.of("error", "用户未登录或用户名无效");
         }
 
         String filename = payload.get("filename");
         if (filename == null || filename.isEmpty()) {
             log.warn("分片上传初始化时未提供文件名");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "文件名是必需的"));
+            return Map.of("error", "文件名是必需的");
         }
 
         String extension = "";
@@ -361,24 +348,22 @@ public class UploadServiceImpl implements UploadService {
 
         if (!isExtensionAllowed(extension)) {
             log.warn("分片上传初始化时使用了被禁止的扩展名: {}", extension);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "文件扩展名不被允许"));
+            return Map.of("error", "文件扩展名不被允许");
         }
 
         String uploadId = UUID.randomUUID().toString();
         log.info("分片上传初始化成功。上传ID: {}", uploadId);
-        return ResponseEntity.ok(Map.of("uploadId", uploadId));
+        return Map.of("uploadId", uploadId);
     }
 
     @Override
-    public ResponseEntity<Map<String, String>> uploadChunk(HttpServletRequest request, String uploadId, int chunkIndex, byte[] chunkData) {
+    public Map<String, String> uploadChunk(HttpServletRequest request, String uploadId, int chunkIndex, byte[] chunkData) {
         log.debug("上传分片 {}/{}，上传ID: {}", chunkIndex, uploadId);
 
         String username = getUsername(request);
         if (username == null) {
             log.warn("未授权的分片上传尝试");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "用户未登录或用户名无效"));
+            return Map.of("error", "用户未登录或用户名无效");
         }
 
         Path uploadPath = buildFileSystemPath(username, "temp", uploadId);
@@ -386,8 +371,7 @@ public class UploadServiceImpl implements UploadService {
 
         if (!uploadPath.startsWith(allowedRoot)) {
             log.error("分片的上传路径无效: {}", uploadPath);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "上传路径无效"));
+            return Map.of("error", "上传路径无效");
         }
 
         try {
@@ -397,15 +381,14 @@ public class UploadServiceImpl implements UploadService {
             log.debug("分片 {}/{} 上传成功", chunkIndex, uploadId);
         } catch (IOException e) {
             log.error("保存分片 {}/{} 失败", chunkIndex, uploadId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "保存分片失败"));
+            return Map.of("error", "保存分片失败");
         }
 
-        return ResponseEntity.ok(Map.of("message", "分片上传成功"));
+        return Map.of("message", "分片上传成功");
     }
 
     @Override
-    public ResponseEntity<Map<String, String>> completeUpload(HttpServletRequest request, Map<String, String> payload) {
+    public Map<String, String> completeUpload(HttpServletRequest request, Map<String, String> payload) {
         log.info("完成分片上传");
 
         String uploadId = payload.get("uploadId");
@@ -413,22 +396,19 @@ public class UploadServiceImpl implements UploadService {
 
         if (uploadId == null || uploadId.isEmpty() || filename == null || filename.isEmpty()) {
             log.warn("完成上传请求缺少必要参数");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "uploadId和文件名是必需的"));
+            return Map.of("error", "uploadId和文件名是必需的");
         }
 
         String username = getUsername(request);
         if (username == null) {
             log.warn("未授权的分片上传完成尝试");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "用户未登录或用户名无效"));
+            return Map.of("error", "用户未登录或用户名无效");
         }
 
         String userUUID = getUserUUID(username);
         if (userUUID == null) {
             log.error("未找到用户名 {} 的UUID", username);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "未找到用户"));
+            return Map.of("error", "未找到用户");
         }
 
         String extension = "";
@@ -438,22 +418,19 @@ public class UploadServiceImpl implements UploadService {
 
         if (!isExtensionAllowed(extension)) {
             log.warn("分片上传完成时使用了被禁止的扩展名: {}", extension);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "文件扩展名不被允许"));
+            return Map.of("error", "文件扩展名不被允许");
         }
 
         Path tempDir = buildFileSystemPath(username, "temp", uploadId);
         Path allowedRoot = getBasePath();
         if (!tempDir.startsWith(allowedRoot)) {
             log.error("完成操作的上传路径无效: {}", tempDir);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "上传路径无效"));
+            return Map.of("error", "上传路径无效");
         }
 
         if (!Files.exists(tempDir)) {
             log.error("临时目录不存在: {}", tempDir);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "临时目录不存在"));
+            return Map.of("error", "临时目录不存在");
         }
 
         String fileUUID = RandomUtil.generateUUID();
@@ -476,8 +453,7 @@ public class UploadServiceImpl implements UploadService {
 
             if (chunks.isEmpty()) {
                 log.warn("未找到任何分片文件在目录: {}", tempDir);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", "未找到任何分片文件"));
+                return Map.of("error", "未找到任何分片文件");
             }
 
             log.debug("找到 {} 个分片文件准备合并", chunks.size());
@@ -527,8 +503,7 @@ public class UploadServiceImpl implements UploadService {
                 log.warn("清理不完整的文件 {} 失败", finalFilePath, cleanupEx);
             }
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "合并分片失败: " + e.getMessage()));
+            return Map.of("error", "合并分片失败: " + e.getMessage());
         } catch (Exception e) {
             log.error("合并上传ID为 {} 的分片时发生未预期错误", uploadId, e);
 
@@ -538,8 +513,7 @@ public class UploadServiceImpl implements UploadService {
                 log.warn("清理不完整的文件 {} 失败", finalFilePath, cleanupEx);
             }
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "合并分片时发生错误: " + e.getMessage()));
+            return Map.of("error", "合并分片时发生错误: " + e.getMessage());
         }
 
         String detectedMimeType = detectMimeTypeFromFile(finalFilePath);
@@ -552,8 +526,7 @@ public class UploadServiceImpl implements UploadService {
             }
 
             log.warn("检测后发现文件类型不被允许: {}", detectedMimeType);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "文件类型不被允许: " + detectedMimeType));
+            return Map.of("error", "文件类型不被允许: " + detectedMimeType);
         }
 
         String accessKey = UUID.randomUUID().toString().replace("-", "");
@@ -573,13 +546,12 @@ public class UploadServiceImpl implements UploadService {
             } catch (IOException e) {
                 log.warn("清理文件 {} 失败", finalFilePath, e);
             }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "保存文件信息失败"));
+            return Map.of("error", "保存文件信息失败");
         }
 
         String fileUrl = "/file/" + accessKey;
         log.info("分片上传完成。URL: {}", fileUrl);
-        return ResponseEntity.ok(Map.of("fileUrl", fileUrl));
+        return Map.of("fileUrl", fileUrl);
     }
 
     private boolean isAliasExists(String alias, String uuid) {
@@ -587,39 +559,34 @@ public class UploadServiceImpl implements UploadService {
     }
 
     @Override
-    public ResponseEntity<Map<String, Object>> uploadArticle(HttpServletRequest request, UploadArticle uploadArticle) {
+    public Map<String, Object> uploadArticle(HttpServletRequest request, UploadArticle uploadArticle) {
         log.info("开始文章上传流程");
 
         String username = getUsername(request);
         if (username == null) {
             log.warn("未授权的文章上传尝试");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "用户未登录或用户名无效"));
+            return Map.of("error", "用户未登录或用户名无效");
         }
 
         String userUUID = getUserUUID(username);
         if (userUUID == null) {
             log.error("未找到用户名 {} 的UUID", username);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "未找到用户"));
+            return Map.of("error", "未找到用户");
         }
 
         if (uploadArticle.getArticle_name() == null || uploadArticle.getArticle_name().trim().isEmpty()) {
             log.warn("文章标题为空");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "文章标题不能为空"));
+            return Map.of("error", "文章标题不能为空");
         }
 
         if (uploadArticle.getArticle_content() == null || uploadArticle.getArticle_content().trim().isEmpty()) {
             log.warn("文章内容为空");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "文章内容不能为空"));
+            return Map.of("error", "文章内容不能为空");
         }
 
         if (uploadArticle.getCategory() == null || uploadArticle.getCategory().trim().isEmpty()) {
             log.warn("文章分类为空");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "文章分类不能为空"));
+            return Map.of("error", "文章分类不能为空");
         }
 
         CategoryPathUtil.CategoryPath categoryPath = categoryPathUtil.parsePath(uploadArticle.getCategory());
@@ -637,8 +604,7 @@ public class UploadServiceImpl implements UploadService {
 
             if (isAliasExists(alias, userUUID)) {
                 log.warn("文章别名已存在: {}", alias);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", "文章别名不能重复"));
+                return Map.of("error", "文章别名不能重复");
             }
         }
 
@@ -686,52 +652,46 @@ public class UploadServiceImpl implements UploadService {
                     : parsedPath.getChildCategory();
                 articleCategoryMapper.incrementCount(fullPath);
                 log.info("文章上传成功，文章ID: {}", uploadArticle.getArticle_id());
-                return ResponseEntity.ok(Map.of(
+                return Map.of(
                         "message", "文章保存成功",
                         "articleId", uploadArticle.getArticle_id()
-                ));
+                );
             } else {
                 log.error("插入文章记录到数据库失败");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("error", "保存文章失败"));
+                return Map.of("error", "保存文章失败");
             }
         } catch (Exception e) {
             log.error("保存文章时发生错误", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "保存文章时发生内部错误"));
+            return Map.of("error", "保存文章时发生内部错误");
         }
     }
 
     @Override
-    public ResponseEntity<Map<String, String>> uploadAvatar(HttpServletRequest request, MultipartFile file) {
+    public Map<String, String> uploadAvatar(HttpServletRequest request, MultipartFile file) {
         log.info("开始头像上传流程");
 
         if (file.isEmpty()) {
             log.warn("尝试上传空文件");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "文件为空"));
+            return Map.of("error", "文件为空");
         }
 
         // 头像文件大小限制为50MB
         long MAX_AVATAR_SIZE = 50 * 1024 * 1024;
         if (file.getSize() > MAX_AVATAR_SIZE) {
             log.warn("尝试上传过大的头像文件: {} 字节", file.getSize());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "头像文件过大，最大支持50MB"));
+            return Map.of("error", "头像文件过大，最大支持50MB");
         }
 
         String username = getUsername(request);
         if (username == null) {
             log.warn("未授权的头像上传尝试");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "用户未登录或用户名无效"));
+            return Map.of("error", "用户未登录或用户名无效");
         }
 
         String userUUID = getUserUUID(username);
         if (userUUID == null) {
             log.error("未找到用户名 {} 的UUID", username);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "未找到用户"));
+            return Map.of("error", "未找到用户");
         }
 
         String contentType = file.getContentType();
@@ -745,8 +705,7 @@ public class UploadServiceImpl implements UploadService {
         List<String> allowedImageTypes = SUPPORTED_FILE_TYPES.get("image");
         if (contentType == null || !allowedImageTypes.contains(contentType) || !isExtensionAllowed(extension)) {
             log.warn("尝试上传非图片类型作为头像。MIME: {}, 扩展名: {}", contentType, extension);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "头像文件必须是图片格式"));
+            return Map.of("error", "头像文件必须是图片格式");
         }
 
         Path uploadPath = buildFileSystemPath(username, "avatar");
@@ -754,8 +713,7 @@ public class UploadServiceImpl implements UploadService {
 
         if (!uploadPath.startsWith(allowedRoot)) {
             log.error("检测到无效的头像上传路径: {}", uploadPath);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "上传路径无效"));
+            return Map.of("error", "上传路径无效");
         }
 
         try {
@@ -763,8 +721,7 @@ public class UploadServiceImpl implements UploadService {
             log.debug("创建头像目录: {}", uploadPath);
         } catch (IOException e) {
             log.error("创建头像目录失败: {}", uploadPath, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "创建目录失败"));
+            return Map.of("error", "创建目录失败");
         }
 
         String timestamp = String.valueOf(Instant.now().getEpochSecond());
@@ -781,8 +738,7 @@ public class UploadServiceImpl implements UploadService {
             log.info("头像上传成功。路径: {}", filePath);
         } catch (IOException e) {
             log.error("保存头像文件失败: {}", filePath, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "保存头像文件失败"));
+            return Map.of("error", "保存头像文件失败");
         }
 
         try {
@@ -814,40 +770,36 @@ public class UploadServiceImpl implements UploadService {
         cacheService.deleteByPrefix("article:home:");
         log.info("用户头像修改,已自动清除文章列表分页缓存");
 
-        return ResponseEntity.ok(Map.of("fileUrl", fileUrl));
+        return Map.of("fileUrl", fileUrl);
     }
 
     // 用户管理模块头像上传
     @Override
-    public ResponseEntity<Map<String, String>> adminUploadAvatar(HttpServletRequest request, MultipartFile file) {
+    public Map<String, String> adminUploadAvatar(HttpServletRequest request, MultipartFile file) {
         log.info("管理员修改用户头像流程开始");
 
         if (file.isEmpty()) {
             log.warn("尝试上传空文件");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "文件为空"));
+            return Map.of("error", "文件为空");
         }
 
         // 头像文件大小限制为50MB
         long MAX_AVATAR_SIZE = 50 * 1024 * 1024;
         if (file.getSize() > MAX_AVATAR_SIZE) {
             log.warn("尝试上传过大的头像文件: {} 字节", file.getSize());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "头像文件过大，最大支持50MB"));
+            return Map.of("error", "头像文件过大，最大支持50MB");
         }
 
         String username = getUsername(request);
         if (username == null) {
             log.warn("未授权的头像上传尝试");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "用户未登录或用户名无效"));
+            return Map.of("error", "用户未登录或用户名无效");
         }
 
         String callerUUID = getUserUUID(username);
         if (callerUUID == null) {
             log.error("未找到调用者用户名 {} 的UUID", username);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "未找到调用者用户"));
+            return Map.of("error", "未找到调用者用户");
         }
 
         String contentType = file.getContentType();
@@ -861,22 +813,19 @@ public class UploadServiceImpl implements UploadService {
         List<String> allowedImageTypes = SUPPORTED_FILE_TYPES.get("image");
         if (contentType == null || !allowedImageTypes.contains(contentType) || !isExtensionAllowed(extension)) {
             log.warn("尝试上传非图片类型作为头像。MIME: {}, 扩展名: {}", contentType, extension);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "头像文件必须是图片格式"));
+            return Map.of("error", "头像文件必须是图片格式");
         }
 
         String targetUserUUID = request.getParameter("targetUserUUID");
         if (targetUserUUID == null || targetUserUUID.isEmpty()) {
             log.warn("未提供目标用户UUID");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("error", "目标用户UUID不能为空"));
+            return Map.of("error", "目标用户UUID不能为空");
         }
 
         String targetUsername = userInformationMapper.selectUsernameByUUID(targetUserUUID);
         if (targetUsername == null) {
             log.error("未找到目标用户UUID {} 对应的用户", targetUserUUID);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "目标用户不存在"));
+            return Map.of("error", "目标用户不存在");
         }
 
         Path uploadPath = buildFileSystemPath(targetUsername, "avatar");
@@ -884,8 +833,7 @@ public class UploadServiceImpl implements UploadService {
 
         if (!uploadPath.startsWith(allowedRoot)) {
             log.error("检测到无效的头像上传路径: {}", uploadPath);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "上传路径无效"));
+            return Map.of("error", "上传路径无效");
         }
 
         try {
@@ -893,8 +841,7 @@ public class UploadServiceImpl implements UploadService {
             log.debug("创建头像目录: {}", uploadPath);
         } catch (IOException e) {
             log.error("创建头像目录失败: {}", uploadPath, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "创建目录失败"));
+            return Map.of("error", "创建目录失败");
         }
 
         String timestamp = String.valueOf(Instant.now().getEpochSecond());
@@ -911,8 +858,7 @@ public class UploadServiceImpl implements UploadService {
             log.info("头像上传成功。路径: {}", filePath);
         } catch (IOException e) {
             log.error("保存头像文件失败: {}", filePath, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "保存头像文件失败"));
+            return Map.of("error", "保存头像文件失败");
         }
 
         try {
@@ -939,18 +885,17 @@ public class UploadServiceImpl implements UploadService {
             log.debug("用户头像信息更新成功，用户UUID: {}", targetUserUUID);
         } catch (Exception e) {
             log.error("更新用户头像信息失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "更新用户头像信息失败"));
+            return Map.of("error", "更新用户头像信息失败");
         }
 
         cacheService.deleteByPrefix("article:home:");
         log.info("用户头像修改,已自动清除文章列表分页缓存");
 
-        return ResponseEntity.ok(Map.of("fileUrl", fileUrl, "message", "头像上传成功"));
+        return Map.of("fileUrl", fileUrl, "message", "头像上传成功");
     }
 
     @Override
-    public ResponseEntity<Map<String, String>> downloadAndUploadExternalResource(HttpServletRequest request, String url) {
+    public Map<String, String> downloadAndUploadExternalResource(HttpServletRequest request, String url) {
         try {
             log.info("开始下载并上传外部资源: {}", url);
 
@@ -958,17 +903,16 @@ public class UploadServiceImpl implements UploadService {
             Integer proxyEnabled = siteConfigService.getProxyResourceDownload();
             if (proxyEnabled == null || proxyEnabled != 1) {
                 log.warn("外部资源代理下载功能未启用");
-                return ResponseEntity.status(400)
-                        .body(Map.of("error", "外部资源代理下载功能未启用"));
+                return Map.of("error", "外部资源代理下载功能未启用");
             }
 
             if (url == null || url.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "URL不能为空"));
+                return Map.of("error", "URL不能为空");
             }
 
             if (!url.startsWith("http://") && !url.startsWith("https://")) {
                 log.warn("不支持的URL协议: {}", url);
-                return ResponseEntity.badRequest().body(Map.of("error", "只支持HTTP/HTTPS协议"));
+                return Map.of("error", "只支持HTTP/HTTPS协议");
             }
 
             String clientIp = request.getRemoteAddr();
@@ -978,7 +922,7 @@ public class UploadServiceImpl implements UploadService {
             String host = resourceUri.getHost();
             
             if (host == null || host.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "无效的URL"));
+                return Map.of("error", "无效的URL");
             }
 
             try {
@@ -988,35 +932,30 @@ public class UploadServiceImpl implements UploadService {
                 if (!isLocalhostRequest) {
                     if (resolvedAddress.isLoopbackAddress()) {
                         log.warn("禁止访问本地地址: {} -> {}", host, resolvedIp);
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(Map.of("error", "禁止访问本地地址"));
+                        return Map.of("error", "禁止访问本地地址");
                     }
 
                     boolean isClientPublicIP = !isLocalhost(clientIp) && !isPrivateIP(clientIp);
                     if (isClientPublicIP && (resolvedAddress.isSiteLocalAddress() || resolvedAddress.isLinkLocalAddress())) {
                         log.warn("公网请求禁止访问内网地址: {} -> {}", host, resolvedIp);
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(Map.of("error", "禁止访问内网地址"));
+                        return Map.of("error", "禁止访问内网地址");
                     }
                 }
             } catch (Exception e) {
                 log.error("DNS解析失败: {}", host, e);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", "DNS解析失败"));
+                return Map.of("error", "DNS解析失败");
             }
 
             String username = getUsername(request);
             if (username == null) {
                 log.warn("未授权的下载尝试");
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "用户未登录或用户名无效"));
+                return Map.of("error", "用户未登录或用户名无效");
             }
 
             String userUUID = getUserUUID(username);
             if (userUUID == null) {
                 log.error("未找到用户名 {} 的UUID", username);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Map.of("error", "未找到用户"));
+                return Map.of("error", "未找到用户");
             }
 
             HttpURLConnection connection = (HttpURLConnection) resourceUri.toURL().openConnection();
@@ -1040,21 +979,19 @@ public class UploadServiceImpl implements UploadService {
                 connection.disconnect();
 
                 if (location == null || location.trim().isEmpty()) {
-                    return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                            .body(Map.of("error", "重定向地址为空"));
+                    return Map.of("error", "重定向地址为空");
                 }
 
                 URI redirectUri = new URI(location);
                 String redirectHost = redirectUri.getHost();
                 if (redirectHost == null || redirectHost.trim().isEmpty()) {
-                    return ResponseEntity.badRequest().body(Map.of("error", "无效的重定向地址"));
+                    return Map.of("error", "无效的重定向地址");
                 }
 
                 String scheme = redirectUri.getScheme();
                 if (!"http".equals(scheme) && !"https".equals(scheme)) {
                     log.warn("不安全的重定向协议: {}", scheme);
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                            .body(Map.of("error", "不安全的请求"));
+                    return Map.of("error", "不安全的请求");
                 }
 
                 try {
@@ -1063,13 +1000,11 @@ public class UploadServiceImpl implements UploadService {
                         redirectAddress.isSiteLocalAddress() ||
                         redirectAddress.isLinkLocalAddress()) {
                         log.warn("重定向目标为内网地址，已拦截: {} -> {}", location, redirectAddress.getHostAddress());
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body(Map.of("error", "禁止访问内网地址"));
+                        return Map.of("error", "禁止访问内网地址");
                     }
                 } catch (Exception e) {
                     log.error("重定向目标DNS解析失败: {}", redirectHost, e);
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body(Map.of("error", "DNS解析失败"));
+                    return Map.of("error", "DNS解析失败");
                 }
 
                 connection = (HttpURLConnection) redirectUri.toURL().openConnection();
@@ -1088,15 +1023,14 @@ public class UploadServiceImpl implements UploadService {
             if (responseCode != HttpURLConnection.HTTP_OK) {
                 log.error("下载失败，HTTP状态码: {}, URL: {}", responseCode, url);
                 connection.disconnect();
-                return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                        .body(Map.of("error", "下载失败，HTTP状态码: " + responseCode));
+                return Map.of("error", "下载失败，HTTP状态码: " + responseCode);
             }
 
             byte[] data = connection.getInputStream().readAllBytes();
             int contentLength = connection.getContentLength();
             if (contentLength > MAX_EXTERNAL_SIZE) {
                 log.warn("外部资源过大");
-                return ResponseEntity.badRequest().body(Map.of("error", "外部资源过大"));
+                return Map.of("error", "外部资源过大");
             }
             String contentType = connection.getContentType();
             connection.disconnect();
@@ -1147,8 +1081,7 @@ public class UploadServiceImpl implements UploadService {
             String mimeType = getMimeTypeByExtension(extension);
             if (!isMimeAllowed(mimeType)) {
                 log.warn("不支持的文件类型: {}", mimeType);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("error", "文件类型不被允许"));
+                return Map.of("error", "文件类型不被允许");
             }
             
             String subFolder = getFolderByMime(mimeType);
@@ -1157,8 +1090,7 @@ public class UploadServiceImpl implements UploadService {
 
             if (!uploadPath.startsWith(allowedRoot)) {
                 log.error("检测到无效的上传路径: {}", uploadPath);
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("error", "上传路径无效"));
+                return Map.of("error", "上传路径无效");
             }
 
             try {
@@ -1166,8 +1098,7 @@ public class UploadServiceImpl implements UploadService {
                 log.debug("创建目录: {}", uploadPath);
             } catch (IOException e) {
                 log.error("创建目录失败: {}", uploadPath, e);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("error", "创建目录失败"));
+                return Map.of("error", "创建目录失败");
             }
 
             String fileUUID = RandomUtil.generateUUID();
@@ -1180,8 +1111,7 @@ public class UploadServiceImpl implements UploadService {
                 log.info("文件保存成功。路径: {}", filePath);
             } catch (IOException e) {
                 log.error("保存文件失败: {}", filePath, e);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("error", "保存文件失败"));
+                return Map.of("error", "保存文件失败");
             }
 
             UploadAttachment uploadFile = new UploadAttachment();
@@ -1195,18 +1125,16 @@ public class UploadServiceImpl implements UploadService {
             if (insertResult != 1) {
                 log.error("插入附件记录到数据库失败。文件: {}", fileName);
                 try { Files.deleteIfExists(filePath); } catch (IOException ignored) {}
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("error", "插入数据库失败"));
+                return Map.of("error", "插入数据库失败");
             }
 
             String fileUrl = "/file/" + accessKey;
             log.info("外部资源上传完成。URL: {}", fileUrl);
-            return ResponseEntity.ok(Map.of("fileUrl", fileUrl));
+            return Map.of("fileUrl", fileUrl);
                     
         } catch (Exception e) {
             log.error("下载并上传外部资源失败: {}", url, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "处理失败: " + e.getMessage()));
+            return Map.of("error", "处理失败: " + e.getMessage());
         }
     }
 

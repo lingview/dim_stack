@@ -3,7 +3,6 @@ package xyz.lingview.dimstack.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
@@ -25,14 +24,13 @@ public class UploadController {
     @RequiresPermission("attachment:add")
     public ApiResponse<Map<String, String>> uploadAttachment(HttpServletRequest request,
                                                              @RequestParam("file") MultipartFile file) {
-        ResponseEntity<Map<String, String>> result = uploadService.uploadAttachment(request, file);
-        Map<String, String> body = result.getBody();
-        if (result.getStatusCode().is2xxSuccessful()) {
-            String message = body != null && body.get("message") != null ? body.get("message") : "上传成功";
-            return ApiResponse.success(message, body);
+        Map<String, String> result = uploadService.uploadAttachment(request, file);
+        if (result != null && !result.containsKey("error")) {
+            String message = result.getOrDefault("message", "上传成功");
+            return ApiResponse.success(message, result);
         } else {
-            String message = body != null && body.get("error") != null ? body.get("error") : "上传失败";
-            return ApiResponse.error(result.getStatusCode().value(), message, body);
+            String message = result != null ? result.get("error") : "上传失败";
+            return ApiResponse.error(400, message, result);
         }
     }
 
@@ -40,13 +38,12 @@ public class UploadController {
     @RequiresPermission("attachment:add")
     public ApiResponse<Map<String, String>> initMultipartUpload(HttpServletRequest request,
                                                                 @RequestBody Map<String, String> payload) {
-        ResponseEntity<Map<String, String>> result = uploadService.initMultipartUpload(request, payload);
-        Map<String, String> body = result.getBody();
-        if (result.getStatusCode().is2xxSuccessful()) {
-            return ApiResponse.success(body);
+        Map<String, String> result = uploadService.initMultipartUpload(request, payload);
+        if (result != null && !result.containsKey("error")) {
+            return ApiResponse.success(result);
         } else {
-            String message = body != null && body.get("error") != null ? body.get("error") : "初始化上传失败";
-            return ApiResponse.error(result.getStatusCode().value(), message, body);
+            String message = result != null ? result.get("error") : "初始化上传失败";
+            return ApiResponse.error(400, message, result);
         }
     }
 
@@ -57,14 +54,13 @@ public class UploadController {
             @RequestHeader("Upload-Id") String uploadId,
             @RequestHeader("Chunk-Index") int chunkIndex,
             @RequestBody byte[] chunkData) {
-        ResponseEntity<Map<String, String>> result = uploadService.uploadChunk(request, uploadId, chunkIndex, chunkData);
-        Map<String, String> body = result.getBody();
-        if (result.getStatusCode().is2xxSuccessful()) {
-            String message = body != null && body.get("message") != null ? body.get("message") : "分片上传成功";
-            return ApiResponse.success(message, body);
+        Map<String, String> result = uploadService.uploadChunk(request, uploadId, chunkIndex, chunkData);
+        if (result != null && !result.containsKey("error")) {
+            String message = result.getOrDefault("message", "分片上传成功");
+            return ApiResponse.success(message, result);
         } else {
-            String message = body != null && body.get("error") != null ? body.get("error") : "分片上传失败";
-            return ApiResponse.error(result.getStatusCode().value(), message, body);
+            String message = result != null ? result.get("error") : "分片上传失败";
+            return ApiResponse.error(400, message, result);
         }
     }
 
@@ -73,13 +69,12 @@ public class UploadController {
     public ApiResponse<Map<String, String>> completeUpload(
             HttpServletRequest request,
             @RequestBody Map<String, String> payload) {
-        ResponseEntity<Map<String, String>> result = uploadService.completeUpload(request, payload);
-        Map<String, String> body = result.getBody();
-        if (result.getStatusCode().is2xxSuccessful()) {
-            return ApiResponse.success(body);
+        Map<String, String> result = uploadService.completeUpload(request, payload);
+        if (result != null && !result.containsKey("error")) {
+            return ApiResponse.success(result);
         } else {
-            String message = body != null && body.get("error") != null ? body.get("error") : "合并上传失败";
-            return ApiResponse.error(result.getStatusCode().value(), message, body);
+            String message = result != null ? result.get("error") : "合并上传失败";
+            return ApiResponse.error(400, message, result);
         }
     }
 
@@ -87,30 +82,26 @@ public class UploadController {
     @RequiresPermission({"post:add", "post:edit"})
     public ApiResponse<Map<String, Object>> uploadArticle(HttpServletRequest request,
                                                           @RequestBody UploadArticle uploadArticle) {
-        ResponseEntity<Map<String, Object>> result = uploadService.uploadArticle(request, uploadArticle);
-        Map<String, Object> body = result.getBody();
-        if (result.getStatusCode().is2xxSuccessful()) {
-            String message = body != null && body.get("message") != null
-                    ? body.get("message").toString() : "文章保存成功";
-            return ApiResponse.success(message, body);
+        Map<String, Object> result = uploadService.uploadArticle(request, uploadArticle);
+        if (result != null && !result.containsKey("error")) {
+            String message = result.containsKey("message") ? result.get("message").toString() : "文章保存成功";
+            return ApiResponse.success(message, result);
         } else {
-            String message = body != null && body.get("error") != null
-                    ? body.get("error").toString() : "文章保存失败";
-            return ApiResponse.error(result.getStatusCode().value(), message, body);
+            String message = result != null ? result.get("error").toString() : "文章保存失败";
+            return ApiResponse.error(400, message, result);
         }
     }
 
     @PostMapping("/uploadavatar")
     public ApiResponse<Map<String, String>> uploadAvatar(HttpServletRequest request,
                                                          @RequestParam("file") MultipartFile file) {
-        ResponseEntity<Map<String, String>> result = uploadService.uploadAvatar(request, file);
-        Map<String, String> body = result.getBody();
-        if (result.getStatusCode().is2xxSuccessful()) {
-            String message = body != null && body.get("message") != null ? body.get("message") : "上传成功";
-            return ApiResponse.success(message, body);
+        Map<String, String> result = uploadService.uploadAvatar(request, file);
+        if (result != null && !result.containsKey("error")) {
+            String message = result.getOrDefault("message", "上传成功");
+            return ApiResponse.success(message, result);
         } else {
-            String message = body != null && body.get("error") != null ? body.get("error") : "上传失败";
-            return ApiResponse.error(result.getStatusCode().value(), message, body);
+            String message = result != null ? result.get("error") : "上传失败";
+            return ApiResponse.error(400, message, result);
         }
     }
 
@@ -121,15 +112,13 @@ public class UploadController {
             HttpServletRequest request,
             @RequestParam("file") MultipartFile file) {
 
-        ResponseEntity<Map<String, String>> result = uploadService.adminUploadAvatar(request, file);
+        Map<String, String> result = uploadService.adminUploadAvatar(request, file);
 
-        if (result.getStatusCode().is2xxSuccessful()) {
-            Map<String, String> body = result.getBody();
-            return ApiResponse.success(body);
+        if (result != null && !result.containsKey("error")) {
+            return ApiResponse.success(result);
         } else {
-            Map<String, String> body = result.getBody();
-            String errorMessage = body != null ? body.get("error") : "上传失败";
-            return ApiResponse.error(result.getStatusCode().value(), errorMessage);
+            String errorMessage = result != null ? result.get("error") : "上传失败";
+            return ApiResponse.error(400, errorMessage);
         }
     }
 
@@ -140,14 +129,13 @@ public class UploadController {
             HttpServletRequest request,
             @RequestBody Map<String, String> payload) {
         String url = payload.get("url");
-        ResponseEntity<Map<String, String>> result = uploadService.downloadAndUploadExternalResource(request, url);
-        Map<String, String> body = result.getBody();
-        if (result.getStatusCode().is2xxSuccessful()) {
-            String message = body != null && body.get("message") != null ? body.get("message") : "下载成功";
-            return ApiResponse.success(message, body);
+        Map<String, String> result = uploadService.downloadAndUploadExternalResource(request, url);
+        if (result != null && !result.containsKey("error")) {
+            String message = result.getOrDefault("message", "下载成功");
+            return ApiResponse.success(message, result);
         } else {
-            String message = body != null && body.get("error") != null ? body.get("error") : "下载失败";
-            return ApiResponse.error(result.getStatusCode().value(), message, body);
+            String message = result != null ? result.get("error") : "下载失败";
+            return ApiResponse.error(400, message, result);
         }
     }
 
