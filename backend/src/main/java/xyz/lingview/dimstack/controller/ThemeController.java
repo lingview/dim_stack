@@ -55,31 +55,32 @@ public class ThemeController {
 
     @PostMapping("/deactivate")
     @RequiresPermission("system:theme:management")
-    public String deactivateTheme() {
+    public ApiResponse<String> deactivateTheme() {
         String activeTheme = themeProperties.getActiveTheme();
         if (DEFAULT_THEME.equals(activeTheme)) {
-            return "Error: 默认主题为系统内置主题，无需取消激活";
+            return ApiResponse.error(400, "默认主题为系统内置主题，无需取消激活");
         }
 
         themeProperties.setActiveTheme(DEFAULT_THEME);
         boolean success = siteConfigService.updateSiteTheme(DEFAULT_THEME);
 
         if (!success) {
-            return "Error: Failed to save theme to database";
+            return ApiResponse.error(500, "Failed to save theme to database");
         }
 
-        return "已取消激活，已切换回默认主题";
+        return ApiResponse.success("已取消激活，已切换回默认主题", DEFAULT_THEME);
     }
 
     @GetMapping("/current")
     @RequiresPermission("system:theme:management")
-    public String getCurrentTheme() {
-        return themeProperties.getActiveTheme();
+    public ApiResponse<String> getCurrentTheme() {
+        String activeTheme = themeProperties.getActiveTheme();
+        return ApiResponse.success("", activeTheme);
     }
 
     @GetMapping("/list")
     @RequiresPermission("system:theme:management")
-    public String listAvailableThemes() {
+    public ApiResponse<String> listAvailableThemes() {
         try {
             StringBuilder result = new StringBuilder("Available themes:\n");
             String themesPath = themeProperties.getThemesPath();
@@ -97,37 +98,37 @@ public class ThemeController {
                 result.append("Themes directory not found: ").append(themesPath);
             }
 
-            return result.toString();
+            return ApiResponse.success("", result.toString());
         } catch (Exception e) {
             log.error("主题读取失败", e);
-            return "主题读取失败";
+            return ApiResponse.error(500, "主题读取失败");
         }
     }
 
     @PostMapping("/validate")
     @RequiresPermission("system:theme:management")
-    public String validateTheme(@RequestParam String themeName) {
+    public ApiResponse<String> validateTheme(@RequestParam String themeName) {
         try {
             String themesPath = themeProperties.getThemesPath();
             Path themeDir = Path.of(themesPath, themeName);
 
             if (!Files.exists(themeDir)) {
-                return "Theme '" + themeName + "' does not exist";
+                return ApiResponse.error(400, "Theme '" + themeName + "' does not exist");
             }
 
             if (!Files.isDirectory(themeDir)) {
-                return "Path '" + themeName + "' is not a directory";
+                return ApiResponse.error(400, "Path '" + themeName + "' is not a directory");
             }
 
             Path indexFile = themeDir.resolve("index.html");
             if (Files.exists(indexFile)) {
-                return "Theme '" + themeName + "' is valid and has index.html";
+                return ApiResponse.success("", "Theme '" + themeName + "' is valid and has index.html");
             } else {
-                return "Theme '" + themeName + "' is valid but does not have index.html";
+                return ApiResponse.success("", "Theme '" + themeName + "' is valid but does not have index.html");
             }
         } catch (Exception e) {
             log.error("主题验证出错", e);
-            return "Error 验证主题出错";
+            return ApiResponse.error(500, "Error 验证主题出错");
         }
     }
 

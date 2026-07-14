@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.domain.SystematicNotification;
 import xyz.lingview.dimstack.dto.request.PageResult;
-import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.CurrentUserService;
 import xyz.lingview.dimstack.service.NotificationService;
+import xyz.lingview.dimstack.service.UserService;
 
 /**
  * @Author: lingview
@@ -27,7 +27,7 @@ public class SystematicNotificationController {
     private NotificationService notificationService;
 
     @Autowired
-    private UserInformationMapper userInformationMapper;
+    private UserService userService;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -39,7 +39,7 @@ public class SystematicNotificationController {
         try {
             String username = currentUserService.getCurrentUsername();
 
-            String uuid = userInformationMapper.selectUserUUID(username);
+            String uuid = userService.getUserUUID(username);
             PageResult<SystematicNotification> notifications =
                 notificationService.getSystematicNotifications(uuid, pageNum, pageSize);
             return ApiResponse.success(notifications);
@@ -56,7 +56,7 @@ public class SystematicNotificationController {
         try {
             String username = currentUserService.getCurrentUsername();
 
-            String uuid = userInformationMapper.selectUserUUID(username);
+            String uuid = userService.getUserUUID(username);
             PageResult<SystematicNotification> notifications =
                 notificationService.getReadNotifications(uuid, pageNum, pageSize);
             return ApiResponse.success(notifications);
@@ -73,7 +73,7 @@ public class SystematicNotificationController {
         try {
             String username = currentUserService.getCurrentUsername();
 
-            String uuid = userInformationMapper.selectUserUUID(username);
+            String uuid = userService.getUserUUID(username);
             PageResult<SystematicNotification> notifications =
                 notificationService.getUnreadNotifications(uuid, pageNum, pageSize);
             return ApiResponse.success(notifications);
@@ -89,7 +89,7 @@ public class SystematicNotificationController {
         try {
             String username = currentUserService.getCurrentUsername();
 
-            String uuid = userInformationMapper.selectUserUUID(username);
+            String uuid = userService.getUserUUID(username);
             boolean success = notificationService.updateNotificationStatus(id, uuid);
             if (success) {
                 return ApiResponse.success("操作成功");
@@ -108,7 +108,7 @@ public class SystematicNotificationController {
         try {
             String username = currentUserService.getCurrentUsername();
 
-            String uuid = userInformationMapper.selectUserUUID(username);
+            String uuid = userService.getUserUUID(username);
             boolean success = notificationService.deleteSystematicNotification(id, uuid);
             if (success) {
                 return ApiResponse.success("删除成功");

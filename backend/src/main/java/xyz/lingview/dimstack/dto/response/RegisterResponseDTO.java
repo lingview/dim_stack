@@ -6,4 +6,5 @@ import lombok.Data;
 public class RegisterResponseDTO {
     private boolean success;
     private String message;
+    private int code;
 }

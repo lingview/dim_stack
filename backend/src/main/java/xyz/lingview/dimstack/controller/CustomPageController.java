@@ -7,9 +7,9 @@ import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.dto.request.CustomPageRequest;
 import xyz.lingview.dimstack.dto.response.CustomPageResponse;
-import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.CurrentUserService;
 import xyz.lingview.dimstack.service.CustomPageService;
+import xyz.lingview.dimstack.service.UserService;
 
 import java.util.List;
 
@@ -27,7 +27,7 @@ public class CustomPageController {
     private CustomPageService customPageService;
 
     @Autowired
-    private UserInformationMapper userInformationMapper;
+    private UserService userService;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -126,7 +126,7 @@ public class CustomPageController {
     private String getCurrentUserUuid(HttpServletRequest request) {
         String username = currentUserService.getCurrentUsername();
         if (username != null) {
-            return userInformationMapper.selectUserUUID(username);
+            return userService.getUserUUID(username);
         }
         return null;
     }

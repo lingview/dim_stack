@@ -6,7 +6,6 @@ import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.domain.Permission;
 import xyz.lingview.dimstack.domain.Role;
-import xyz.lingview.dimstack.mapper.RoleMapper;
 import xyz.lingview.dimstack.service.RoleService;
 
 import java.util.List;
@@ -17,9 +16,6 @@ public class RoleController {
 
     @Autowired
     private RoleService roleService;
-
-    @Autowired
-    private RoleMapper roleMapper;
 
     // 获取所有角色
     @GetMapping("/role/list")
@@ -33,7 +29,7 @@ public class RoleController {
     @GetMapping("/permission/list")
     @RequiresPermission("system:role:management")
     public ApiResponse<List<Permission>> getAllPermissions() {
-        List<Permission> permissions = roleMapper.selectAllPermissions();
+        List<Permission> permissions = roleService.selectAllPermissions();
         return ApiResponse.success(permissions);
     }
 
@@ -72,7 +68,7 @@ public class RoleController {
     // 为角色添加权限（通过权限码）
     @PostMapping("/role/{roleId}/permission/add")
     @RequiresPermission("system:role:management")
-    public ApiResponse<Void> addPermissionToRole(@PathVariable Integer roleId, 
+    public ApiResponse<Void> addPermissionToRole(@PathVariable Integer roleId,
                                                   @RequestParam String permissionCode) {
         return roleService.addPermissionToRole(roleId, permissionCode);
     }
@@ -80,7 +76,7 @@ public class RoleController {
     // 从角色移除权限（通过权限码）
     @DeleteMapping("/role/{roleId}/permission/remove")
     @RequiresPermission("system:role:management")
-    public ApiResponse<Void> removePermissionFromRole(@PathVariable Integer roleId, 
+    public ApiResponse<Void> removePermissionFromRole(@PathVariable Integer roleId,
                                                        @RequestParam String permissionCode) {
         return roleService.removePermissionFromRole(roleId, permissionCode);
     }
@@ -92,11 +88,4 @@ public class RoleController {
         List<String> permissionCodes = roleService.getPermissionCodesByRoleId(roleId);
         return ApiResponse.success(permissionCodes);
     }
-
-// 创建新权限（暂时还用不到，以后或许有用，先注释）
-//    @PostMapping("/role/permission/create")
-//    @RequiresPermission("user:management")
-//    public ApiResponse<Permission> createPermission(@RequestBody Permission permission) {
-//        return roleService.createPermission(permission);
-//    }
 }

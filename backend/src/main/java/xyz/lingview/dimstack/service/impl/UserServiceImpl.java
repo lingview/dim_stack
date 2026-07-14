@@ -11,6 +11,7 @@ import xyz.lingview.dimstack.dto.request.UserDTO;
 import xyz.lingview.dimstack.dto.request.UserUpdateDTO;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
+import xyz.lingview.dimstack.mapper.UserPermissionMapper;
 import xyz.lingview.dimstack.mapper.UserRoleMapper;
 import xyz.lingview.dimstack.service.UserService;
 import xyz.lingview.dimstack.service.UserBlacklistService;
@@ -33,6 +34,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private SiteConfigMapper siteConfigMapper;
+
+    @Autowired
+    private UserPermissionMapper userPermissionMapper;
 
     @Autowired
     private UserRoleMapper userRoleMapper;
@@ -252,6 +256,16 @@ public class UserServiceImpl implements UserService {
         return ApiResponse.success("更新成功");
     }
 
+
+    @Override
+    public String getAvatarByUsername(String username) {
+        return userInformationMapper.selectAvatarByUsername(username);
+    }
+
+    @Override
+    public List<String> getPermissionCodesByUsername(String username) {
+        return userPermissionMapper.findPermissionCodesByUserName(username);
+    }
 
     @Override
     public ApiResponse<Void> addUser(UserUpdateDTO userUpdateDTO) {

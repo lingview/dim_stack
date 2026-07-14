@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.ArticleTag;
+import xyz.lingview.dimstack.dto.request.ArticleDTO;
 import xyz.lingview.dimstack.dto.request.ArticleTagDTO;
 import xyz.lingview.dimstack.mapper.ArticleTagMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
@@ -120,6 +121,21 @@ public class ArticleTagServiceImpl implements ArticleTagService {
 
     private List<ArticleTagDTO> convertToDTOList(List<ArticleTag> tags) {
         return tags.stream().map(this::convertToDTO).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ArticleTag> findAllEnabledTags() {
+        return articleTagMapper.findAllEnabledTags();
+    }
+
+    @Override
+    public List<ArticleDTO> findArticlesByTag(String tagName, int offset, int size) {
+        return articleTagMapper.findArticlesByTag(tagName, offset, size);
+    }
+
+    @Override
+    public int countArticlesByTag(String tagName) {
+        return articleTagMapper.countArticlesByTag(tagName);
     }
 
     private ArticleTagDTO convertToDTO(ArticleTag tag) {

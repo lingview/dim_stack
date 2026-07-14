@@ -2,6 +2,7 @@ package xyz.lingview.dimstack.service;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
+import xyz.lingview.dimstack.domain.UploadAttachment;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
@@ -13,6 +14,8 @@ import java.util.Map;
  * @Version: 1.0
  */
 public interface UploadService {
+    UploadAttachment selectByAccessKey(String accessKey);
+
     ResponseEntity<Map<String, String>> uploadAttachment(HttpServletRequest request, MultipartFile file);
     ResponseEntity<Map<String, String>> initMultipartUpload(HttpServletRequest request, Map<String, String> payload);
     ResponseEntity<Map<String, String>> uploadChunk(HttpServletRequest request, String uploadId, int chunkIndex, byte[] chunkData);

@@ -146,6 +146,11 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    public List<Permission> selectAllPermissions() {
+        return roleMapper.selectAllPermissions();
+    }
+
+    @Override
     public ApiResponse<Permission> createPermission(Permission permission) {
         Integer existingId = roleMapper.selectPermissionIdByCode(permission.getCode());
         if (existingId != null) {

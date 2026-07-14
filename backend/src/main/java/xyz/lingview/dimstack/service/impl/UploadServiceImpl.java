@@ -234,6 +234,11 @@ public class UploadServiceImpl implements UploadService {
     }
 
     @Override
+    public UploadAttachment selectByAccessKey(String accessKey) {
+        return uploadMapper.selectByAccessKey(accessKey);
+    }
+
+    @Override
     public ResponseEntity<Map<String, String>> uploadAttachment(HttpServletRequest request, MultipartFile file) {
         log.info("开始附件上传流程");
 

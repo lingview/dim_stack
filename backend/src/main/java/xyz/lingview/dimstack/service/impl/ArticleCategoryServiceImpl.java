@@ -4,7 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.ArticleCategory;
+import xyz.lingview.dimstack.domain.ArticleCategoryAndCount;
 import xyz.lingview.dimstack.dto.request.ArticleCategoryDTO;
+import xyz.lingview.dimstack.dto.request.ArticleDTO;
 import xyz.lingview.dimstack.mapper.ArticleCategoryMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.ArticleCategoryService;
@@ -171,6 +173,26 @@ public class ArticleCategoryServiceImpl implements ArticleCategoryService {
             log.error("激活分类失败", e);
             return false;
         }
+    }
+
+    @Override
+    public List<ArticleCategory> findAllEnabledCategories() {
+        return articleCategoryMapper.findAllEnabledCategories();
+    }
+
+    @Override
+    public List<ArticleCategoryAndCount> findAllEnabledCategoriesAndCount() {
+        return articleCategoryMapper.findAllEnabledCategoriesAndCount();
+    }
+
+    @Override
+    public List<ArticleDTO> findArticlesByCategory(String category, int offset, int size) {
+        return articleCategoryMapper.findArticlesByCategory(category, offset, size);
+    }
+
+    @Override
+    public int countArticlesByCategory(String category) {
+        return articleCategoryMapper.countArticlesByCategory(category);
     }
 
     private List<ArticleCategoryDTO> convertToDTOList(List<ArticleCategory> categories) {

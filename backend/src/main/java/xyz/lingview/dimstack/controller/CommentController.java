@@ -24,9 +24,10 @@ public class CommentController {
 
     // 获取文章的评论列表
     @GetMapping("/article/{articleAlias}")
-    public List<CommentDTO> getCommentsByArticle(@PathVariable String articleAlias) {
+    public ApiResponse<List<CommentDTO>> getCommentsByArticle(@PathVariable String articleAlias) {
         String username = currentUserService.getCurrentUsername();
-        return commentService.getCommentsByArticleAlias(articleAlias, username);
+        List<CommentDTO> comments = commentService.getCommentsByArticleAlias(articleAlias, username);
+        return ApiResponse.success(comments);
     }
 
     // 添加评论
@@ -46,17 +47,19 @@ public class CommentController {
     @PostMapping("/{commentId}/like")
     @RequiresPermission({"comments:like", "comments:edit"})
     @RateLimit(window = 60, maxRequests = 5)
-    public void likeComment(@PathVariable String commentId) {
+    public ApiResponse<Void> likeComment(@PathVariable String commentId) {
         String username = currentUserService.getCurrentUsername();
         commentService.likeComment(username, commentId);
+        return ApiResponse.success("点赞成功");
     }
 
     // 删除评论
     @DeleteMapping("/{commentId}")
     @RateLimit(window = 60, maxRequests = 5)
     @RequiresPermission({"comments:delete", "comments:edit"})
-    public void deleteComment(@PathVariable String commentId) {
+    public ApiResponse<Void> deleteComment(@PathVariable String commentId) {
         String username = currentUserService.getCurrentUsername();
         commentService.deleteComment(username, commentId);
+        return ApiResponse.success("删除成功");
     }
 }

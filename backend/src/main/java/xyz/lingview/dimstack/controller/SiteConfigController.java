@@ -8,11 +8,10 @@ import xyz.lingview.dimstack.domain.Role;
 import xyz.lingview.dimstack.domain.SiteConfig;
 import xyz.lingview.dimstack.dto.request.HeroDTO;
 import xyz.lingview.dimstack.dto.request.TestSmtpRequestDTO;
-import xyz.lingview.dimstack.mapper.SiteConfigMapper;
-import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.MailService;
 import xyz.lingview.dimstack.service.SiteConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
+import xyz.lingview.dimstack.service.UserService;
 import xyz.lingview.dimstack.service.impl.ImageCompressionServiceImpl;
 
 import java.util.List;
@@ -27,12 +26,6 @@ public class SiteConfigController {
     private SiteConfigService siteConfigService;
 
     @Autowired
-    private SiteConfigMapper siteConfigMapper;
-
-    @Autowired
-    private UserInformationMapper userInformationMapper;
-
-    @Autowired
     private MailService mailService;
 
     @Autowired
@@ -40,6 +33,9 @@ public class SiteConfigController {
 
     @Autowired
     private ImageCompressionServiceImpl imageCompressionService;
+
+    @Autowired
+    private UserService userService;
 
     @GetMapping("/hero")
     public HeroDTO getHeroConfig() {
@@ -88,7 +84,7 @@ public class SiteConfigController {
         log.info("更新站点配置信息");
         try {
             // 从数据库获取最新配置，避免内存缓存模式下的密码被污染
-            SiteConfig dbConfig = siteConfigMapper.getSiteConfig();
+            SiteConfig dbConfig = siteConfigService.getSiteConfig();
             if (dbConfig == null) {
                 return ApiResponse.error(500, "无法获取当前站点配置");
             }
@@ -290,7 +286,7 @@ public class SiteConfigController {
     public ApiResponse<List<Role>> getAllRoles() {
         log.info("获取所有角色列表");
         try {
-            List<Role> roles = userInformationMapper.selectAllRoles();
+            List<Role> roles = userService.getAllRoles();
             return ApiResponse.success(roles);
         } catch (Exception e) {
             log.error("获取角色列表失败", e);

@@ -51,4 +51,10 @@ public interface UserService {
     // 后台添加新用户
     ApiResponse<Void> addUser(UserUpdateDTO userUpdateDTO);
 
+    // 根据用户名获取头像
+    String getAvatarByUsername(String username);
+
+    // 根据用户名获取权限码列表
+    List<String> getPermissionCodesByUsername(String username);
+
 }

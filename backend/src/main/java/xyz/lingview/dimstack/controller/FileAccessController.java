@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.lingview.dimstack.domain.UploadAttachment;
-import xyz.lingview.dimstack.mapper.UploadMapper;
 import xyz.lingview.dimstack.service.ImageCompressionService;
 import xyz.lingview.dimstack.service.SiteConfigService;
+import xyz.lingview.dimstack.service.UploadService;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -35,7 +35,7 @@ import java.nio.file.Path;
 public class FileAccessController {
 
     @Autowired
-    private UploadMapper uploadMapper;
+    private UploadService uploadService;
 
     @Autowired
     private ImageCompressionService imageCompressionService;
@@ -62,7 +62,7 @@ public class FileAccessController {
         try {
             log.debug("尝试访问文件，访问键: {}, 下载模式: {}", accessKey, download);
 
-            UploadAttachment attachment = uploadMapper.selectByAccessKey(accessKey);
+            UploadAttachment attachment = uploadService.selectByAccessKey(accessKey);
             if (attachment == null) {
                 log.warn("未找到访问键对应的文件: {}", accessKey);
                 return ResponseEntity.notFound().build();
@@ -83,11 +83,11 @@ public class FileAccessController {
 
             boolean isImage = contentType.startsWith("image/");
             Resource resource;
-            
+
             if (isImage && !download) {
                 Integer enableCompression = siteConfigService.getEnableImageCompression();
                 boolean shouldCompress = enableCompression != null && enableCompression == 1;
-                
+
                 if (shouldCompress) {
                     Path compressedPath = getCompressedImagePath(filePath);
                     if (Files.exists(compressedPath)) {
@@ -141,14 +141,14 @@ public class FileAccessController {
         Path parentDir = originalPath.getParent();
         String fileName = originalPath.getFileName().toString();
         int dotIndex = fileName.lastIndexOf('.');
-        
+
         String baseName;
         if (dotIndex > 0) {
             baseName = fileName.substring(0, dotIndex);
         } else {
             baseName = fileName;
         }
-        
+
         String compressedFileName = baseName + "_compressed.jpg";
         return parentDir.resolve("compressor").resolve(compressedFileName);
     }

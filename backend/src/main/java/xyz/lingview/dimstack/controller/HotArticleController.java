@@ -1,5 +1,6 @@
 package xyz.lingview.dimstack.controller;
 
+import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.dto.request.HotArticleDTO;
 import xyz.lingview.dimstack.service.HotArticleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,8 @@ public class HotArticleController {
     private HotArticleService hotArticleService;
 
     @GetMapping("/articles")
-    public List<HotArticleDTO> getHotArticles() {
-        return hotArticleService.getHotArticles();
+    public ApiResponse<List<HotArticleDTO>> getHotArticles() {
+        List<HotArticleDTO> articles = hotArticleService.getHotArticles();
+        return ApiResponse.success(articles);
     }
 }

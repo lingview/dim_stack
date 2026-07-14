@@ -4,15 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.domain.ArticleCategory;
 import xyz.lingview.dimstack.domain.ArticleCategoryAndCount;
 import xyz.lingview.dimstack.domain.ArticleTag;
 import xyz.lingview.dimstack.dto.request.ArticleDTO;
-import xyz.lingview.dimstack.mapper.ArticleCategoryMapper;
-import xyz.lingview.dimstack.mapper.ArticleTagMapper;
+import xyz.lingview.dimstack.dto.request.PageResult;
+import xyz.lingview.dimstack.service.ArticleCategoryService;
+import xyz.lingview.dimstack.service.ArticleTagService;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
-import xyz.lingview.dimstack.dto.request.PageResult;
 
 import java.util.List;
 
@@ -21,28 +22,28 @@ import java.util.List;
 public class TagAndCategoryController {
 
     @Autowired
-    private ArticleTagMapper articleTagMapper;
+    private ArticleTagService articleTagService;
 
     @Autowired
-    private ArticleCategoryMapper articleCategoryMapper;
+    private ArticleCategoryService articleCategoryService;
 
     @GetMapping("/tags")
-    public List<ArticleTag> getAllEnabledTags() {
-        return articleTagMapper.findAllEnabledTags();
+    public ApiResponse<List<ArticleTag>> getAllEnabledTags() {
+        return ApiResponse.success(articleTagService.findAllEnabledTags());
     }
 
     @GetMapping("/categories")
-    public List<ArticleCategory> getAllEnabledCategories() {
-        return articleCategoryMapper.findAllEnabledCategories();
+    public ApiResponse<List<ArticleCategory>> getAllEnabledCategories() {
+        return ApiResponse.success(articleCategoryService.findAllEnabledCategories());
     }
 
     @GetMapping("/categoriesandcount")
-    public List<ArticleCategoryAndCount> getAllEnabledCategoriesAndCount() {
-        return articleCategoryMapper.findAllEnabledCategoriesAndCount();
+    public ApiResponse<List<ArticleCategoryAndCount>> getAllEnabledCategoriesAndCount() {
+        return ApiResponse.success(articleCategoryService.findAllEnabledCategoriesAndCount());
     }
 
     @GetMapping("/categories/articles")
-    public PageResult<ArticleDTO> getArticlesByCategory(
+    public ApiResponse<PageResult<ArticleDTO>> getArticlesByCategory(
             @RequestParam String category,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -50,10 +51,10 @@ public class TagAndCategoryController {
         int offset = (page - 1) * size;
 
         // 获取文章列表
-        List<ArticleDTO> articles = articleCategoryMapper.findArticlesByCategory(category, offset, size);
+        List<ArticleDTO> articles = articleCategoryService.findArticlesByCategory(category, offset, size);
 
         // 获取总数
-        int total = articleCategoryMapper.countArticlesByCategory(category);
+        int total = articleCategoryService.countArticlesByCategory(category);
 
         // 计算总页数
         int total_pages = (int) Math.ceil((double) total / size);
@@ -65,21 +66,20 @@ public class TagAndCategoryController {
         pageResult.setSize(size);
         pageResult.setTotal_pages(total_pages);
 
-        return pageResult;
+        return ApiResponse.success(pageResult);
     }
 
 
     @GetMapping("/tags/{tag}/articles")
-    public PageResult<ArticleDTO> getArticlesByTag(
+    public ApiResponse<PageResult<ArticleDTO>> getArticlesByTag(
             @PathVariable String tag,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
 
         int offset = (page - 1) * size;
 
-        List<ArticleDTO> articles = articleTagMapper.findArticlesByTag(tag, offset, size);
-//        System.out.println(articles);
-        int total = articleTagMapper.countArticlesByTag(tag);
+        List<ArticleDTO> articles = articleTagService.findArticlesByTag(tag, offset, size);
+        int total = articleTagService.countArticlesByTag(tag);
 
         int total_pages = (int) Math.ceil((double) total / size);
 
@@ -90,6 +90,6 @@ public class TagAndCategoryController {
         pageResult.setSize(size);
         pageResult.setTotal_pages(total_pages);
 
-        return pageResult;
+        return ApiResponse.success(pageResult);
     }
 }

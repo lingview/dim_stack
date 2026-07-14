@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.domain.Music;
-import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.CurrentUserService;
 import xyz.lingview.dimstack.service.MusicService;
+import xyz.lingview.dimstack.service.UserService;
 import xyz.lingview.dimstack.util.SiteConfigUtil;
 
 /**
@@ -28,7 +28,7 @@ public class MusicController {
     private MusicService musicService;
 
     @Autowired
-    private UserInformationMapper userInformationMapper;
+    private UserService userService;
 
     @Autowired
     private SiteConfigUtil siteConfigUtil;
@@ -71,7 +71,7 @@ public class MusicController {
     public ApiResponse<Void> addMusic(HttpServletRequest request ,@RequestBody Music music) {
         try {
             String username = currentUserService.getCurrentUsername();
-            String currentUser = userInformationMapper.selectUserUUID(username);
+            String currentUser = userService.getUserUUID(username);
 
             music.setUuid(currentUser);
 

@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.common.ApiResponse;
-import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.AttachmentManagementService;
 import xyz.lingview.dimstack.service.CurrentUserService;
+import xyz.lingview.dimstack.service.UserService;
 
 import java.util.Map;
 
@@ -25,7 +25,7 @@ public class AttachmentManagementController {
     private AttachmentManagementService attachmentManagementService;
 
     @Autowired
-    private UserInformationMapper userInformationMapper;
+    private UserService userService;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -114,7 +114,7 @@ public class AttachmentManagementController {
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request) {
         String username = currentUserService.getCurrentUsername();
-        String uuid = userInformationMapper.selectUserUUID(username);
+        String uuid = userService.getUserUUID(username);
 
         Map<String, Object> result = attachmentManagementService.getPageByUuid(uuid, page, size);
         return ApiResponse.success(result);
@@ -130,7 +130,7 @@ public class AttachmentManagementController {
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request) {
         String username = currentUserService.getCurrentUsername();
-        String uuid = userInformationMapper.selectUserUUID(username);
+        String uuid = userService.getUserUUID(username);
 
         Map<String, Object> result = attachmentManagementService.getDeletedPageByUuidOnly(uuid, page, size);
         return ApiResponse.success(result);
@@ -146,7 +146,7 @@ public class AttachmentManagementController {
             @RequestParam(defaultValue = "10") int size,
             HttpServletRequest request) {
         String username = currentUserService.getCurrentUsername();
-        String uuid = userInformationMapper.selectUserUUID(username);
+        String uuid = userService.getUserUUID(username);
 
         Map<String, Object> result = attachmentManagementService.getPageByUuidWithRecentDeleted(uuid, page, size);
         return ApiResponse.success(result);
@@ -195,7 +195,7 @@ public class AttachmentManagementController {
             HttpServletRequest request) {
 
         String username = currentUserService.getCurrentUsername();
-        String userUuid = userInformationMapper.selectUserUUID(username);
+        String userUuid = userService.getUserUUID(username);
 
         String attachmentOwnerUuid = attachmentManagementService.getAttachmentOwnerUuid(attachmentId);
         if (attachmentOwnerUuid == null) {
@@ -224,7 +224,7 @@ public class AttachmentManagementController {
             HttpServletRequest request) {
 
         String username = currentUserService.getCurrentUsername();
-        String userUuid = userInformationMapper.selectUserUUID(username);
+        String userUuid = userService.getUserUUID(username);
 
         String attachmentOwnerUuid = attachmentManagementService.getAttachmentOwnerUuid(attachmentId);
         if (attachmentOwnerUuid == null) {
