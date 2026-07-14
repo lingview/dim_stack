@@ -44,8 +44,8 @@ export default function MenusView() {
       setLoading(true);
       const response = await apiClient.get('/getmenus');
 
-      if (Array.isArray(response)) {
-        const escapedMenus = response.map(menu => ({
+      if (Array.isArray(response.data)) {
+        const escapedMenus = response.data.map(menu => ({
           ...menu,
           menus_name: escapeHtml(menu.menus_name) || '',
           menus_url: escapeHtml(menu.menus_url) || '',

@@ -17,7 +17,7 @@ export default function CategorySidebar({ selectedCategory }) {
             try {
                 setLoading(true);
                 const data = await apiClient.get('/categoriesandcount');
-                setCategories(data);
+                setCategories(Array.isArray(data.data) ? data.data : []);
                 setError(null);
             } catch (err) {
                 console.error('获取分类数据失败:', err);

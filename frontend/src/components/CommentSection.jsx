@@ -44,7 +44,7 @@ const CommentSection = ({ articleAlias }) => {
     try {
       setLoading(true);
       const response = await apiClient.get(`/comments/article/${articleAlias}`);
-      setComments(response || []);
+      setComments(response.data || []);
     } catch (err) {
       // setError('获取评论失败');
       console.error(err);

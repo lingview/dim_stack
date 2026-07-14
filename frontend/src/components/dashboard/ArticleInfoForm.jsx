@@ -95,8 +95,8 @@ export default function ArticleInfoForm({ articleData, initialArticleData, onSav
                 apiClient.get('/user/has-permission', { params: { codes: ['system:tags:management'] } })
             ]);
 
-            setTags(Array.isArray(tagsRes) ? tagsRes : []);
-            setCategories(Array.isArray(categoriesRes) ? categoriesRes : []);
+            setTags(Array.isArray(tagsRes.data) ? tagsRes.data : []);
+            setCategories(Array.isArray(categoriesRes.data) ? categoriesRes.data : []);
 
             setCanCreateCategories(catPermRes.data?.hasPermission === true);
             setCanCreateTags(tagPermRes.data?.hasPermission === true);
@@ -204,7 +204,7 @@ export default function ArticleInfoForm({ articleData, initialArticleData, onSav
 
             setFormData(prev => ({
                 ...prev,
-                cover: response.fileUrl || ''
+                cover: response.data?.fileUrl || ''
             }));
         } catch (error) {
             console.error('封面上传失败:', error);

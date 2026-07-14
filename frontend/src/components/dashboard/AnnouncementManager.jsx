@@ -65,7 +65,7 @@ export default function AnnouncementManager() {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            const fileUrl = response.fileUrl || '';
+            const fileUrl = response.data?.fileUrl || '';
             if (fileUrl) {
                 const imgTag = `<img src="${fileUrl}" alt="" />`;
                 const textarea = textareaRef.current;

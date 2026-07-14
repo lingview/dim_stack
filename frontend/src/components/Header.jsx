@@ -129,8 +129,8 @@ export default function Header() {
         const fetchMenus = async () => {
             try {
                 const response = await apiClient.get('/frontendgetmenus')
-                if (response && Array.isArray(response)) {
-                    const escapedMenus = response.map(menu => ({
+                if (response && Array.isArray(response.data)) {
+                    const escapedMenus = response.data.map(menu => ({
                         ...menu,
                         menus_name: escapeHtml(menu.menus_name) || '',
                         menus_url: escapeHtml(menu.menus_url) || ''

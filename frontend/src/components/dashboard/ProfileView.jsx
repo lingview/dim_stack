@@ -79,8 +79,8 @@ export default function ProfileView() {
             const statusResponse = await apiClient.get('/user/status');
             if (statusResponse.code === 200 && statusResponse.data.loggedIn) {
                 const uuidResponse = await apiClient.get(`/user/uuid?username=${statusResponse.data.username}`);
-                if (uuidResponse && uuidResponse.uuid) {
-                    const profileResponse = await apiClient.get(`/user/${uuidResponse.uuid}`);
+                if (uuidResponse && uuidResponse.data?.uuid) {
+                    const profileResponse = await apiClient.get(`/user/${uuidResponse.data.uuid}`);
                     if (profileResponse) {
                         const birthdayFormatted = profileResponse.birthday
                             ? profileResponse.birthday.substring(0, 10)
@@ -207,13 +207,13 @@ export default function ProfileView() {
                 }
             });
 
-            if (response && response.fileUrl) {
+            if (response && response.data?.fileUrl) {
                 setUser(prev => ({
                     ...prev,
-                    avatar: response.fileUrl
+                    avatar: response.data.fileUrl
                 }));
 
-                const processedAvatar = getFullImageUrl(response.fileUrl);
+                const processedAvatar = getFullImageUrl(response.data.fileUrl);
                 setPreviewAvatar(processedAvatar || '/image_error.svg');
                 showMessage('头像上传成功', 'success');
             } else {

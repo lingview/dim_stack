@@ -75,8 +75,8 @@ export default function ArticleList() {
             }
 
             if (!abortController.signal.aborted) {
-                setArticles(Array.isArray(result.data) ? result.data : []);
-                setTotalPages(result.total_pages || 1);
+                setArticles(Array.isArray(result.data?.data) ? result.data.data : []);
+                setTotalPages(result.data?.total_pages || 1);
             }
         } catch (error) {
             if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {

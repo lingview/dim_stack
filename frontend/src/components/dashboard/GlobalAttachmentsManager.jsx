@@ -29,8 +29,8 @@ const GlobalAttachmentsManager = () => {
         setUserLoading(true);
         try {
             const response = await apiClient.get('/user/listall');
-            if (response && Array.isArray(response)) {
-                setUsers(response);
+            if (response && Array.isArray(response.data)) {
+                setUsers(response.data);
             }
         } catch (error) {
             console.error('获取用户列表失败:', error);

@@ -17,7 +17,7 @@ export default function TagSidebar({ selectedTag }) {
             try {
                 setLoading(true);
                 const data = await apiClient.get('/tags');
-                setTags(data);
+                setTags(Array.isArray(data.data) ? data.data : []);
                 setError(null);
             } catch (err) {
                 console.error('获取标签数据失败:', err);

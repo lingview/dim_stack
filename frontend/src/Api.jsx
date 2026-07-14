@@ -42,10 +42,10 @@ export const fetchStatistics = async () => {
 
         return {
             stats: [
-                { label: '文章', value: articleCount, icon: 'article' },
-                { label: '用户', value: userCount, icon: 'user' },
-                { label: '评论', value: commentCount, icon: 'comment' },
-                { label: '浏览量', value: browseCount, icon: 'view' }
+                { label: '文章', value: articleCount.data, icon: 'article' },
+                { label: '用户', value: userCount.data, icon: 'user' },
+                { label: '评论', value: commentCount.data, icon: 'comment' },
+                { label: '浏览量', value: browseCount.data, icon: 'view' }
             ]
         };
     } catch (error) {

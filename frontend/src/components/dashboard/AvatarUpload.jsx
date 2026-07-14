@@ -66,8 +66,8 @@ export default function AvatarUpload({ currentAvatar, onAvatarUpdate }) {
                 }
             });
 
-            if (response && response.fileUrl) {
-                const fullUrl = getFullImageUrl(response.fileUrl);
+            if (response && response.data?.fileUrl) {
+                const fullUrl = getFullImageUrl(response.data.fileUrl);
                 onAvatarUpdate(fullUrl);
                 setPreview(fullUrl);
             } else {
