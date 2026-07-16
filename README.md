@@ -2,7 +2,7 @@
 
 > 一个简单易用的个人博客系统
 
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.0.6-green.svg)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-4.1.0-green.svg)
 
 ![React](https://img.shields.io/badge/React-19.1.1-%2361DAFB.svg)
 
