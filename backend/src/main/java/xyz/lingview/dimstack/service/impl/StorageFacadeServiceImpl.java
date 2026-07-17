@@ -85,7 +85,7 @@ public class StorageFacadeServiceImpl implements StorageFacadeService {
             return newStorage;
         } catch (Exception e) {
             log.error("初始化S3存储失败: {}", uuid, e);
-            return localFileStorage;
+            throw new RuntimeException("S3存储初始化失败: " + method.getName(), e);
         }
     }
 

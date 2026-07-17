@@ -5,9 +5,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.AttachmentManagement;
+import xyz.lingview.dimstack.domain.StorageMethod;
 import xyz.lingview.dimstack.mapper.AttachmentManagementMapper;
+import xyz.lingview.dimstack.mapper.StorageMethodMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.AttachmentManagementService;
+import xyz.lingview.dimstack.service.FileStorage;
+import xyz.lingview.dimstack.service.StorageFacadeService;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -32,7 +36,13 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
     
     @Autowired
     private UserInformationMapper userInformationMapper;
-    
+
+    @Autowired
+    private StorageFacadeService storageFacadeService;
+
+    @Autowired
+    private StorageMethodMapper storageMethodMapper;
+
     @Value("${file.data-root:.}")
     private String dataRoot;
     
@@ -253,13 +263,26 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
         for (AttachmentManagement attachment : expiredAttachments) {
             try {
                 String filePath = attachment.getAttachment_path();
-                log.debug("准备清理过期附件: {}", filePath);
-                
-                boolean fileDeleted = deletePhysicalFile(filePath);
-                
+                String storageId = attachment.getStorage_id();
+                log.debug("准备清理过期附件: {}, storage_id: {}", filePath, storageId);
+
+                boolean fileDeleted;
+
+                if (storageId != null && !isLocalStorage(storageId)) {
+                    // 删 S3
+                    deleteFromStorage(attachment, filePath);
+                    // 同时删本地（兼容旧回退逻辑遗留的本地文件）
+                    deletePhysicalFile(filePath);
+                    fileDeleted = true;
+                } else {
+                    fileDeleted = deletePhysicalFile(filePath);
+                }
+
                 if (fileDeleted) {
-                    deleteCompressedFile(filePath);
-                    
+                    if (storageId == null || isLocalStorage(storageId)) {
+                        deleteCompressedFile(filePath);
+                    }
+
                     int result = attachmentManagementMapper.physicallyDeleteAttachment(attachment.getAttachment_id());
                     if (result > 0) {
                         cleanedCount++;
@@ -273,6 +296,27 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
         
         log.info("附件清理任务完成，共清理 {} 个附件", cleanedCount);
         return cleanedCount;
+    }
+
+    private boolean isLocalStorage(String storageId) {
+        try {
+            StorageMethod method = storageMethodMapper.selectByUuid(storageId);
+            return method != null && "local".equals(method.getType());
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    private boolean deleteFromStorage(AttachmentManagement attachment, String filePath) {
+        try {
+            FileStorage storage = storageFacadeService.getStorage(attachment.getStorage_id());
+            storage.delete(filePath);
+            log.info("成功从存储删除文件: {}/{}", attachment.getStorage_id(), filePath);
+            return true;
+        } catch (Exception e) {
+            log.warn("从存储删除文件失败: {}, 错误: {}", filePath, e.getMessage());
+            return false;
+        }
     }
 
     private void deleteCompressedFile(String originalFilePath) {

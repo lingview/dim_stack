@@ -539,7 +539,16 @@ public class UploadServiceImpl implements UploadService {
         String objectKey = databasePath;
         String defaultStorageUuid = siteConfigService.getSiteConfig().getDefault_storage();
         String storageId = defaultStorageUuid != null ? defaultStorageUuid : storageMethodMapper.selectByType("local").getUuid();
-        FileStorage storage = storageFacadeService.getDefaultStorage(defaultStorageUuid);
+        FileStorage storage;
+        try {
+            storage = storageFacadeService.getDefaultStorage(defaultStorageUuid);
+        } catch (Exception e) {
+            log.error("默认存储方式不可用: {}", e.getMessage());
+            try {
+                Files.deleteIfExists(finalFilePath);
+            } catch (IOException ignored) {}
+            return Map.of("error", "默认存储方式不可用，请检查存储配置");
+        }
 
         try (InputStream fileIn = Files.newInputStream(finalFilePath, StandardOpenOption.READ)) {
             storage.store(objectKey, fileIn, Files.size(finalFilePath), detectedMimeType);
@@ -764,7 +773,13 @@ public class UploadServiceImpl implements UploadService {
         // 获取当前默认存储方式
         String defaultStorageUuid = siteConfigService.getSiteConfig().getDefault_storage();
         String storageId = defaultStorageUuid != null ? defaultStorageUuid : storageMethodMapper.selectByType("local").getUuid();
-        FileStorage storage = storageFacadeService.getDefaultStorage(defaultStorageUuid);
+        FileStorage storage;
+        try {
+            storage = storageFacadeService.getDefaultStorage(defaultStorageUuid);
+        } catch (Exception e) {
+            log.error("默认存储方式不可用: {}", e.getMessage());
+            return Map.of("error", "默认存储方式不可用，请检查存储配置");
+        }
 
         try {
             storage.store(objectKey, file.getInputStream(), file.getSize(), contentType);
@@ -891,7 +906,13 @@ public class UploadServiceImpl implements UploadService {
         // 获取当前默认存储方式
         String defaultStorageUuid = siteConfigService.getSiteConfig().getDefault_storage();
         String storageId = defaultStorageUuid != null ? defaultStorageUuid : storageMethodMapper.selectByType("local").getUuid();
-        FileStorage storage = storageFacadeService.getDefaultStorage(defaultStorageUuid);
+        FileStorage storage;
+        try {
+            storage = storageFacadeService.getDefaultStorage(defaultStorageUuid);
+        } catch (Exception e) {
+            log.error("默认存储方式不可用: {}", e.getMessage());
+            return Map.of("error", "默认存储方式不可用，请检查存储配置");
+        }
 
         try {
             storage.store(objectKey, file.getInputStream(), file.getSize(), contentType);
@@ -1135,7 +1156,13 @@ public class UploadServiceImpl implements UploadService {
             // 获取当前默认存储方式
             String defaultStorageUuid = siteConfigService.getSiteConfig().getDefault_storage();
             String storageId = defaultStorageUuid != null ? defaultStorageUuid : storageMethodMapper.selectByType("local").getUuid();
-            FileStorage storage = storageFacadeService.getDefaultStorage(defaultStorageUuid);
+            FileStorage storage;
+            try {
+                storage = storageFacadeService.getDefaultStorage(defaultStorageUuid);
+            } catch (Exception e) {
+                log.error("默认存储方式不可用: {}", e.getMessage());
+                return Map.of("error", "默认存储方式不可用，请检查存储配置");
+            }
 
             try (ByteArrayInputStream dataStream = new ByteArrayInputStream(data)) {
                 storage.store(objectKey, dataStream, data.length, mimeType);
