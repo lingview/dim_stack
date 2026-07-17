@@ -81,23 +81,24 @@ export default function ProfileView() {
                 const uuidResponse = await apiClient.get(`/user/uuid?username=${statusResponse.data.username}`);
                 if (uuidResponse && uuidResponse.data?.uuid) {
                     const profileResponse = await apiClient.get(`/user/${uuidResponse.data.uuid}`);
-                    if (profileResponse) {
-                        const birthdayFormatted = profileResponse.birthday
-                            ? profileResponse.birthday.substring(0, 10)
+                    if (profileResponse && profileResponse.data) {
+                        const data = profileResponse.data;
+                        const birthdayFormatted = data.birthday
+                            ? data.birthday.substring(0, 10)
                             : '';
 
-                        const processedAvatar = profileResponse.avatar
-                            ? getFullImageUrl(profileResponse.avatar)
+                        const processedAvatar = data.avatar
+                            ? getFullImageUrl(data.avatar)
                             : '/image_error.svg';
 
                         // 用户信息转义避免潜在的xss
                         const userData = {
-                            uuid: profileResponse.uuid || '',
-                            username: escapeHtml(profileResponse.username) || '',
-                            avatar: profileResponse.avatar || '',
-                            phone: escapeHtml(profileResponse.phone) || '',
-                            email: escapeHtml(profileResponse.email) || '',
-                            gender: escapeHtml(profileResponse.gender) || '',
+                            uuid: data.uuid || '',
+                            username: escapeHtml(data.username) || '',
+                            avatar: data.avatar || '',
+                            phone: escapeHtml(data.phone) || '',
+                            email: escapeHtml(data.email) || '',
+                            gender: escapeHtml(data.gender) || '',
                             birthday: birthdayFormatted,
                         };
 
@@ -207,13 +208,13 @@ export default function ProfileView() {
                 }
             });
 
-            if (response && response.data?.fileUrl) {
+            if (response && response.fileUrl) {
                 setUser(prev => ({
                     ...prev,
-                    avatar: response.data.fileUrl
+                    avatar: response.fileUrl
                 }));
 
-                const processedAvatar = getFullImageUrl(response.data.fileUrl);
+                const processedAvatar = getFullImageUrl(response.fileUrl);
                 setPreviewAvatar(processedAvatar || '/image_error.svg');
                 showMessage('头像上传成功', 'success');
             } else {
