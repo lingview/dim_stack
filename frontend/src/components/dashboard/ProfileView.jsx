@@ -208,13 +208,13 @@ export default function ProfileView() {
                 }
             });
 
-            if (response && response.fileUrl) {
+            if (response && response.data?.fileUrl) {
                 setUser(prev => ({
                     ...prev,
-                    avatar: response.fileUrl
+                    avatar: response.data.fileUrl
                 }));
 
-                const processedAvatar = getFullImageUrl(response.fileUrl);
+                const processedAvatar = getFullImageUrl(response.data.fileUrl);
                 setPreviewAvatar(processedAvatar || '/image_error.svg');
                 showMessage('头像上传成功', 'success');
             } else {
