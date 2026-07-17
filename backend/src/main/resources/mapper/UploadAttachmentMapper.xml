@@ -8,12 +8,14 @@
         <result property="attachment_id" column="attachment_id" />
         <result property="original_filename" column="original_filename" />
         <result property="attachment_path" column="attachment_path" />
+        <result property="access_key" column="access_key" />
+        <result property="storage_id" column="storage_id" />
         <result property="status" column="status" />
     </resultMap>
 
     <insert id="insertUploadAttachment" parameterType="xyz.lingview.dimstack.domain.UploadAttachment">
-        INSERT INTO attachment(uuid, attachment_id, original_filename, attachment_path, access_key, status)
-        VALUES (#{uuid}, #{attachment_id}, #{original_filename}, #{attachment_path}, #{access_key}, 1)
+        INSERT INTO attachment(uuid, attachment_id, original_filename, attachment_path, access_key, storage_id, status)
+        VALUES (#{uuid}, #{attachment_id}, #{original_filename}, #{attachment_path}, #{access_key}, #{storage_id}, 1)
     </insert>
 
     <select id="selectByAccessKey" resultMap="UploadAttachment">

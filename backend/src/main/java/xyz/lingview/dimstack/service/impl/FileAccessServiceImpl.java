@@ -6,16 +6,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import xyz.lingview.dimstack.domain.StorageMethod;
 import xyz.lingview.dimstack.domain.UploadAttachment;
+import xyz.lingview.dimstack.mapper.StorageMethodMapper;
 import xyz.lingview.dimstack.service.FileAccessService;
+import xyz.lingview.dimstack.service.FileStorage;
 import xyz.lingview.dimstack.service.ImageCompressionService;
 import xyz.lingview.dimstack.service.SiteConfigService;
+import xyz.lingview.dimstack.service.StorageFacadeService;
 import xyz.lingview.dimstack.service.UploadService;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 
 @Slf4j
 @Service
@@ -30,6 +35,12 @@ public class FileAccessServiceImpl implements FileAccessService {
     @Autowired
     private SiteConfigService siteConfigService;
 
+    @Autowired
+    private StorageMethodMapper storageMethodMapper;
+
+    @Autowired
+    private StorageFacadeService storageFacadeService;
+
     @Value("${file.data-root:.}")
     private String dataRoot;
 
@@ -38,15 +49,29 @@ public class FileAccessServiceImpl implements FileAccessService {
         UploadAttachment attachment = uploadService.selectByAccessKey(accessKey);
         if (attachment == null) {
             log.warn("未找到访问键对应的文件: {}", accessKey);
-            return new FileAccessResult(null, null, null, false);
+            return new FileAccessResult(null, null, null, false, null);
         }
 
+        String storageId = attachment.getStorage_id();
+        try {
+            FileStorage storage = storageFacadeService.getStorage(storageId);
+            if (storage instanceof LocalFileStorageImpl) {
+                return handleLocalStorage(attachment, download);
+            }
+            return handleExternalStorage(attachment, download);
+        } catch (Exception e) {
+            log.warn("存储方式不可用，文件无法访问: {}", e.getMessage());
+            return new FileAccessResult(null, null, null, false, null);
+        }
+    }
+
+    private FileAccessResult handleLocalStorage(UploadAttachment attachment, boolean download) {
         Path basePath = Path.of(dataRoot).toAbsolutePath().normalize();
         Path filePath = basePath.resolve(attachment.getAttachment_path()).normalize();
 
         if (!Files.exists(filePath)) {
             log.warn("文件不存在: {}", filePath);
-            return new FileAccessResult(null, null, null, false);
+            return new FileAccessResult(null, null, null, false, null);
         }
 
         String contentType = detectContentType(filePath);
@@ -55,7 +80,38 @@ public class FileAccessServiceImpl implements FileAccessService {
         String filename = filePath.getFileName().toString();
         String disposition = buildDisposition(filename, download);
 
-        return new FileAccessResult(resource, contentType, disposition, true);
+        return new FileAccessResult(resource, contentType, disposition, true, null);
+    }
+
+    private FileAccessResult handleExternalStorage(UploadAttachment attachment, boolean download) {
+        StorageMethod method = storageMethodMapper.selectByUuid(attachment.getStorage_id());
+        if (method == null || method.getStatus() == 0) {
+            log.warn("存储方式不可用，回退到本地存储: {}", attachment.getStorage_id());
+            return handleLocalStorage(attachment, download);
+        }
+
+        if (!"s3".equals(method.getType()) && !"oss".equals(method.getType()) && !"cos".equals(method.getType())) {
+            return handleLocalStorage(attachment, download);
+        }
+
+        try {
+            String objectKey = attachment.getAttachment_path();
+            S3FileStorageImpl s3Storage = (S3FileStorageImpl) storageFacadeService.getStorage(attachment.getStorage_id());
+            Duration expiration = download ? Duration.ofMinutes(5) : Duration.ofHours(1);
+            String presignedUrl = s3Storage.generatePresignedUrl(objectKey, expiration);
+
+            if (download) {
+                presignedUrl += "&response-content-disposition=attachment";
+            }
+
+            String filename = Path.of(attachment.getAttachment_path()).getFileName().toString();
+            String disposition = buildDisposition(filename, download);
+
+            return new FileAccessResult(null, null, disposition, true, presignedUrl);
+        } catch (Exception e) {
+            log.error("生成Presigned URL失败，回退到本地存储: {}", attachment.getAttachment_id(), e);
+            return handleLocalStorage(attachment, download);
+        }
     }
 
     private String detectContentType(Path filePath) {

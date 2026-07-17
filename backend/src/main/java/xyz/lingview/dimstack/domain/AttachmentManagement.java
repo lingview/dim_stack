@@ -17,6 +17,7 @@ public class AttachmentManagement {
     private String original_filename;
     private String attachment_path;
     private String access_key;
+    private String storage_id;
     private LocalDateTime create_time;
     private LocalDateTime deleted_time;
     private int status;

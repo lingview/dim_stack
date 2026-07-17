@@ -9,5 +9,6 @@ public class UploadAttachment {
     private String original_filename;
     private String attachment_path;
     private String access_key;
+    private String storage_id;
     private int status;
 }

@@ -44,4 +44,5 @@ public class SiteConfig {
     private Integer comment_status;
     private Integer enable_llm_comment_review;
     private Integer admin_comment_no_review;
+    private String default_storage;
 }

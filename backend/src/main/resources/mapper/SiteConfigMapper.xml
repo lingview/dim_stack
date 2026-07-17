@@ -46,7 +46,8 @@
             enable_comment as enable_comment,
             comment_status as comment_status,
             enable_llm_comment_review as enable_llm_comment_review,
-            admin_comment_no_review as admin_comment_no_review
+            admin_comment_no_review as admin_comment_no_review,
+            default_storage as default_storage
         FROM site_config
         WHERE id = 1
     </select>
@@ -127,7 +128,8 @@
             enable_comment = #{enable_comment},
             comment_status = #{comment_status},
             enable_llm_comment_review = #{enable_llm_comment_review},
-            admin_comment_no_review = #{admin_comment_no_review}
+            admin_comment_no_review = #{admin_comment_no_review},
+            default_storage = #{default_storage}
         WHERE id = 1
     </update>
 

@@ -19,6 +19,7 @@ public interface FileAccessService {
             Resource resource,
             String contentType,
             String filename,
-            boolean found
+            boolean found,
+            String redirectUrl
     ) {}
 }

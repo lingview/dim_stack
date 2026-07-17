@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../../utils/axios';
 import {getConfig} from "../../utils/config.jsx";
 import { showToast } from '../../utils/toastManager.jsx';
+import StorageConfigSection from './StorageConfigSection';
 
 const getFullImageUrl = (url) => {
     if (!url) return null;
@@ -133,7 +134,8 @@ export default function SiteSettingsView() {
         { id: 'llm', name: '大模型配置' },
         { id: 'extension', name: '扩展设置' },
         { id: 'codeinjection', name: '代码注入' },
-        { id: 'cache', name: '缓存管理' }
+        { id: 'cache', name: '缓存管理' },
+        { id: 'storage', name: '存储配置' }
     ];
 
     useEffect(() => {
@@ -704,14 +706,14 @@ export default function SiteSettingsView() {
                 }
             });
 
-            if (response.fileUrl) {
+            if (response.data?.fileUrl) {
                 setFormData(prev => ({
                     ...prev,
-                    hero_image: response.fileUrl
+                    hero_image: response.data.fileUrl
                 }));
                 showToast('图片上传成功');
             } else {
-                showToast(response.error || '图片上传失败', 'error');
+                showToast(response.data?.error || '图片上传失败', 'error');
             }
         } catch (error) {
             console.error('图片上传失败:', error);
@@ -739,14 +741,14 @@ export default function SiteSettingsView() {
                 }
             });
 
-            if (response.fileUrl) {
+            if (response.data?.fileUrl) {
                 setFormData(prev => ({
                     ...prev,
-                    site_icon: response.fileUrl
+                    site_icon: response.data.fileUrl
                 }));
                 showToast('站点图标上传成功');
             } else {
-                showToast(response.error || '站点图标上传失败', 'error');
+                showToast(response.data?.error || '站点图标上传失败', 'error');
             }
         } catch (error) {
             console.error('站点图标上传失败:', error);
@@ -2187,7 +2189,13 @@ export default function SiteSettingsView() {
                     )}
                 </div>
 
-                {activeTab !== 'cache' && (
+                {activeTab === 'storage' && (
+                    <div className="px-4 md:px-6 py-6">
+                        <StorageConfigSection />
+                    </div>
+                )}
+
+                {activeTab !== 'cache' && activeTab !== 'storage' && (
                     <div className="border-t border-gray-200 px-4 md:px-6 py-4 bg-gray-50 flex justify-end gap-3">
                         <button
                             type="submit"

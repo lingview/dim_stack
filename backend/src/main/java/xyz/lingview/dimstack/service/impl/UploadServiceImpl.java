@@ -14,13 +14,18 @@ import xyz.lingview.dimstack.mapper.UploadMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.CacheService;
 import xyz.lingview.dimstack.service.CurrentUserService;
+import xyz.lingview.dimstack.service.FileStorage;
 import xyz.lingview.dimstack.service.SiteConfigService;
+import xyz.lingview.dimstack.service.StorageFacadeService;
 import xyz.lingview.dimstack.service.UploadService;
+import xyz.lingview.dimstack.mapper.StorageMethodMapper;
 import xyz.lingview.dimstack.util.CategoryPathUtil;
 import xyz.lingview.dimstack.util.RandomUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URI;
@@ -66,6 +71,12 @@ public class UploadServiceImpl implements UploadService {
 
     @Autowired
     private CacheService cacheService;
+
+    @Autowired
+    private StorageFacadeService storageFacadeService;
+
+    @Autowired
+    private StorageMethodMapper storageMethodMapper;
 
     // 注入配置属性
     @Value("${file.data-root:.}")
@@ -276,36 +287,30 @@ public class UploadServiceImpl implements UploadService {
         }
 
         String subFolder = getFolderByMime(contentType);
-        Path uploadPath = buildFileSystemPath(username, "attachment", subFolder);
-        Path allowedRoot = getBasePath();
-
-        if (!uploadPath.startsWith(allowedRoot)) {
-            log.error("检测到无效的上传路径: {}", uploadPath);
-            return Map.of("error", "上传路径无效");
-        }
-
-        try {
-            Files.createDirectories(uploadPath);
-            log.debug("创建目录: {}", uploadPath);
-        } catch (IOException e) {
-            log.error("创建目录失败: {}", uploadPath, e);
-            return Map.of("error", "创建目录失败");
-        }
-
-
         String fileUUID = RandomUtil.generateUUID();
         String fileName = fileUUID + extension;
-
         String accessKey = UUID.randomUUID().toString().replace("-", "");
+        String databasePath = buildDatabasePath(username, "attachment", subFolder, fileName);
+        String objectKey = databasePath;
 
-        Path filePath = uploadPath.resolve(fileName);
+        // 获取当前默认存储方式
+        String defaultStorageUuid = siteConfigService.getSiteConfig().getDefault_storage();
+        String storageId = defaultStorageUuid != null ? defaultStorageUuid : storageMethodMapper.selectByType("local").getUuid();
+        FileStorage storage;
+        try {
+            storage = storageFacadeService.getDefaultStorage(defaultStorageUuid);
+        } catch (Exception e) {
+            log.error("默认存储方式不可用: {}", e.getMessage());
+            return Map.of("error", "默认存储方式不可用，请检查存储配置");
+        }
 
         UploadAttachment uploadFile = new UploadAttachment();
         uploadFile.setUuid(userUUID);
         uploadFile.setAttachment_id(fileUUID);
         uploadFile.setOriginal_filename(originalFilename);
-        uploadFile.setAttachment_path(buildDatabasePath(username, "attachment", subFolder, fileName));
+        uploadFile.setAttachment_path(databasePath);
         uploadFile.setAccess_key(accessKey);
+        uploadFile.setStorage_id(storageId);
         int insertResult = uploadMapper.insertUploadAttachment(uploadFile);
         if (insertResult != 1) {
             log.error("插入附件记录到数据库失败。文件: {}", fileName);
@@ -313,10 +318,10 @@ public class UploadServiceImpl implements UploadService {
         }
 
         try {
-            file.transferTo(filePath);
-            log.info("文件上传成功。路径: {}", filePath);
-        } catch (IOException e) {
-            log.error("保存文件失败: {}", filePath, e);
+            storage.store(objectKey, file.getInputStream(), file.getSize(), contentType);
+            log.info("文件上传成功。Key: {}", objectKey);
+        } catch (Exception e) {
+            log.error("保存文件失败: {}", objectKey, e);
             return Map.of("error", "保存文件失败");
         }
 
@@ -529,14 +534,36 @@ public class UploadServiceImpl implements UploadService {
             return Map.of("error", "文件类型不被允许: " + detectedMimeType);
         }
 
+        // 通过存储抽象层写入目标存储
+        String databasePath = buildDatabasePath(username, "attachment", subFolder, newFileName);
+        String objectKey = databasePath;
+        String defaultStorageUuid = siteConfigService.getSiteConfig().getDefault_storage();
+        String storageId = defaultStorageUuid != null ? defaultStorageUuid : storageMethodMapper.selectByType("local").getUuid();
+        FileStorage storage = storageFacadeService.getDefaultStorage(defaultStorageUuid);
+
+        try (InputStream fileIn = Files.newInputStream(finalFilePath, StandardOpenOption.READ)) {
+            storage.store(objectKey, fileIn, Files.size(finalFilePath), detectedMimeType);
+            log.info("分片合并文件已上传到存储。Key: {}", objectKey);
+        } catch (Exception e) {
+            log.error("分片合并文件上传到存储失败: {}", objectKey, e);
+            return Map.of("error", "保存文件到存储失败");
+        } finally {
+            try {
+                Files.deleteIfExists(finalFilePath);
+            } catch (IOException e) {
+                log.warn("清理本地临时文件失败: {}", finalFilePath, e);
+            }
+        }
+
         String accessKey = UUID.randomUUID().toString().replace("-", "");
 
         UploadAttachment uploadFile = new UploadAttachment();
         uploadFile.setUuid(userUUID);
         uploadFile.setAttachment_id(fileUUID);
         uploadFile.setOriginal_filename(filename);
-        uploadFile.setAttachment_path(buildDatabasePath(username, "attachment", subFolder, newFileName));
+        uploadFile.setAttachment_path(databasePath);
         uploadFile.setAccess_key(accessKey);
+        uploadFile.setStorage_id(storageId);
 
         int insertResult = uploadMapper.insertUploadAttachment(uploadFile);
         if (insertResult != 1) {
@@ -731,13 +758,19 @@ public class UploadServiceImpl implements UploadService {
 
         String accessKey = UUID.randomUUID().toString().replace("-", "");
 
-        Path filePath = uploadPath.resolve(fileName);
+        String databasePath = buildDatabasePath(username, "avatar", fileName);
+        String objectKey = databasePath;
+
+        // 获取当前默认存储方式
+        String defaultStorageUuid = siteConfigService.getSiteConfig().getDefault_storage();
+        String storageId = defaultStorageUuid != null ? defaultStorageUuid : storageMethodMapper.selectByType("local").getUuid();
+        FileStorage storage = storageFacadeService.getDefaultStorage(defaultStorageUuid);
 
         try {
-            file.transferTo(filePath);
-            log.info("头像上传成功。路径: {}", filePath);
-        } catch (IOException e) {
-            log.error("保存头像文件失败: {}", filePath, e);
+            storage.store(objectKey, file.getInputStream(), file.getSize(), contentType);
+            log.info("头像上传成功。Key: {}", objectKey);
+        } catch (Exception e) {
+            log.error("保存头像文件失败: {}", objectKey, e);
             return Map.of("error", "保存头像文件失败");
         }
 
@@ -748,6 +781,7 @@ public class UploadServiceImpl implements UploadService {
             uploadFile.setOriginal_filename(originalFilename);
             uploadFile.setAttachment_path(buildDatabasePath(username, "avatar", fileName));
             uploadFile.setAccess_key(accessKey);
+            uploadFile.setStorage_id(storageId);
 
             uploadMapper.insertUploadAttachment(uploadFile);
         } catch (Exception e) {
@@ -851,13 +885,19 @@ public class UploadServiceImpl implements UploadService {
 
         String accessKey = UUID.randomUUID().toString().replace("-", "");
 
-        Path filePath = uploadPath.resolve(fileName);
+        String databasePath = buildDatabasePath(targetUsername, "avatar", fileName);
+        String objectKey = databasePath;
+
+        // 获取当前默认存储方式
+        String defaultStorageUuid = siteConfigService.getSiteConfig().getDefault_storage();
+        String storageId = defaultStorageUuid != null ? defaultStorageUuid : storageMethodMapper.selectByType("local").getUuid();
+        FileStorage storage = storageFacadeService.getDefaultStorage(defaultStorageUuid);
 
         try {
-            file.transferTo(filePath);
-            log.info("头像上传成功。路径: {}", filePath);
-        } catch (IOException e) {
-            log.error("保存头像文件失败: {}", filePath, e);
+            storage.store(objectKey, file.getInputStream(), file.getSize(), contentType);
+            log.info("头像上传成功。Key: {}", objectKey);
+        } catch (Exception e) {
+            log.error("保存头像文件失败: {}", objectKey, e);
             return Map.of("error", "保存头像文件失败");
         }
 
@@ -868,6 +908,7 @@ public class UploadServiceImpl implements UploadService {
             uploadFile.setOriginal_filename(originalFilename);
             uploadFile.setAttachment_path(buildDatabasePath(targetUsername, "avatar", fileName));
             uploadFile.setAccess_key(accessKey);
+            uploadFile.setStorage_id(storageId);
 
             uploadMapper.insertUploadAttachment(uploadFile);
         } catch (Exception e) {
@@ -1085,32 +1126,22 @@ public class UploadServiceImpl implements UploadService {
             }
             
             String subFolder = getFolderByMime(mimeType);
-            Path uploadPath = buildFileSystemPath(username, "attachment", subFolder);
-            Path allowedRoot = getBasePath();
-
-            if (!uploadPath.startsWith(allowedRoot)) {
-                log.error("检测到无效的上传路径: {}", uploadPath);
-                return Map.of("error", "上传路径无效");
-            }
-
-            try {
-                Files.createDirectories(uploadPath);
-                log.debug("创建目录: {}", uploadPath);
-            } catch (IOException e) {
-                log.error("创建目录失败: {}", uploadPath, e);
-                return Map.of("error", "创建目录失败");
-            }
-
             String fileUUID = RandomUtil.generateUUID();
             String fileName = fileUUID + extension;
             String accessKey = UUID.randomUUID().toString().replace("-", "");
-            Path filePath = uploadPath.resolve(fileName);
+            String databasePath = buildDatabasePath(username, "attachment", subFolder, fileName);
+            String objectKey = databasePath;
 
-            try {
-                Files.write(filePath, data);
-                log.info("文件保存成功。路径: {}", filePath);
-            } catch (IOException e) {
-                log.error("保存文件失败: {}", filePath, e);
+            // 获取当前默认存储方式
+            String defaultStorageUuid = siteConfigService.getSiteConfig().getDefault_storage();
+            String storageId = defaultStorageUuid != null ? defaultStorageUuid : storageMethodMapper.selectByType("local").getUuid();
+            FileStorage storage = storageFacadeService.getDefaultStorage(defaultStorageUuid);
+
+            try (ByteArrayInputStream dataStream = new ByteArrayInputStream(data)) {
+                storage.store(objectKey, dataStream, data.length, mimeType);
+                log.info("外部资源保存成功。Key: {}", objectKey);
+            } catch (Exception e) {
+                log.error("保存外部资源失败: {}", objectKey, e);
                 return Map.of("error", "保存文件失败");
             }
 
@@ -1120,11 +1151,11 @@ public class UploadServiceImpl implements UploadService {
             uploadFile.setOriginal_filename("external_resource" + extension);
             uploadFile.setAttachment_path(buildDatabasePath(username, "attachment", subFolder, fileName));
             uploadFile.setAccess_key(accessKey);
+            uploadFile.setStorage_id(storageId);
             
             int insertResult = uploadMapper.insertUploadAttachment(uploadFile);
             if (insertResult != 1) {
                 log.error("插入附件记录到数据库失败。文件: {}", fileName);
-                try { Files.deleteIfExists(filePath); } catch (IOException ignored) {}
                 return Map.of("error", "插入数据库失败");
             }
 

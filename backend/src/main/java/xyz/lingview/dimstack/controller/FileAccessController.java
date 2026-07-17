@@ -3,6 +3,7 @@ package xyz.lingview.dimstack.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.lingview.dimstack.service.FileAccessService;
+
+import java.net.URI;
 
 /**
  * @Author: lingview
@@ -37,6 +40,15 @@ public class FileAccessController {
                 return ResponseEntity.notFound().build();
             }
 
+            // 外部存储：302 重定向
+            if (result.redirectUrl() != null) {
+                return ResponseEntity.status(HttpStatus.FOUND)
+                        .location(URI.create(result.redirectUrl()))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, result.filename())
+                        .build();
+            }
+
+            // 本地存储：直接返回文件内容
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(result.contentType()))
                     .header(HttpHeaders.CONTENT_DISPOSITION, result.filename())

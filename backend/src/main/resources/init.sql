@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 26/06/2026 16:19:55
+ Date: 17/07/2026 21:05:05
 */
 
 SET NAMES utf8mb4;
@@ -198,6 +198,7 @@ CREATE TABLE `attachment`  (
                                `original_filename` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '原始文件名',
                                `attachment_path` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '附件路径',
                                `access_key` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '文件访问键',
+                               `storage_id` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '存储方式UUID',
                                `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间',
                                `deleted_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
                                `status` tinyint NOT NULL COMMENT '附件状态：0=软删除, 1=正常, 2=物理文件已删除',
@@ -700,6 +701,7 @@ CREATE TABLE `site_config`  (
                                 `comment_status` int NOT NULL DEFAULT 1 COMMENT '评论默认状态（1直接发布，3待审核）',
                                 `enable_llm_comment_review` int NOT NULL DEFAULT 0 COMMENT '是否启用大模型自动审核评论（1启用，0禁用）',
                                 `admin_comment_no_review` int NOT NULL DEFAULT 1 COMMENT '管理员用户评论免审核（1启用，0禁用）',
+                                `default_storage` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '默认存储方式UUID',
                                 PRIMARY KEY (`id`) USING BTREE,
                                 INDEX `register_user_permission`(`register_user_permission` ASC) USING BTREE,
                                 CONSTRAINT `register_user_permission` FOREIGN KEY (`register_user_permission`) REFERENCES `role` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
@@ -708,7 +710,32 @@ CREATE TABLE `site_config`  (
 -- ----------------------------
 -- Records of site_config
 -- ----------------------------
-INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 4, '© 2025-2026 次元栈 - Dim Stack. All rights reserved.', 3, 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A3%81%E7%BA%B8/mmexport1769432250836.jpg?sign=KFQ9u-fY83wR52PdfpesYywMJi_0M4Uc66vz7A9Tal0=:0', '欢迎使用次元栈', '欢迎大家在 GitHub 上提交 Issue 或 Pull Request！', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/Image_1721230292906.png?sign=JU30z6z_RsZ3Vv7HB_5D3msYRneiga5NLjhN3EpL-3w=:0', 'default', 'https://dimstackrepo.apilinks.cn/themes.json', 0, '', NULL, '', '系统通知', '', NULL, 'smtp', 0, 1, 'UTF-8', '', '', 1, 0, 1, 0, 0, 0, '', '', '', 0, 5, 0, 1, 1, 0, 1);
+INSERT INTO `site_config` VALUES (1, '次元栈 - Dim Stack', 4, '© 2025-2026 次元栈 - Dim Stack. All rights reserved.', 3, 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A3%81%E7%BA%B8/mmexport1769432250836.jpg?sign=KFQ9u-fY83wR52PdfpesYywMJi_0M4Uc66vz7A9Tal0=:0', '欢迎使用次元栈', '欢迎大家在 GitHub 上提交 Issue 或 Pull Request！', 'https://pan.lingview.xyz/d/%E9%9B%A8%E4%BA%91%E8%8A%82%E7%82%B9/%E5%9B%BE%E5%BA%93/%E5%A4%A9%E4%BE%9D/Image_1721230292906.png?sign=JU30z6z_RsZ3Vv7HB_5D3msYRneiga5NLjhN3EpL-3w=:0', 'default', 'https://dimstackrepo.apilinks.cn/themes.json', 0, '', NULL, '', '系统通知', '', NULL, 'smtp', 0, 1, 'UTF-8', '', '', 1, 0, 1, 0, 0, 0, '', '', '', 0, 5, 0, 1, 1, 0, 1, 'a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4f47ac10b48bf511eb9a5eb9b5a8f1c2d172121853800042356789');
+
+-- ----------------------------
+-- Table structure for storage_method
+-- ----------------------------
+DROP TABLE IF EXISTS `storage_method`;
+CREATE TABLE `storage_method`  (
+                                   `uuid` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '存储方式唯一标识',
+                                   `user_uuid` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '创建人UUID，关联管理员用户表',
+                                   `name` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '存储方式名称，如：本地存储、阿里云OSS',
+                                   `type` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '存储类型：local、s3、oss、cos等',
+                                   `config` text CHARACTER SET utf8mb4 NULL COMMENT '存储配置信息，JSON字符串格式',
+                                   `status` int NOT NULL DEFAULT 1 COMMENT '状态：0-禁用，1-启用',
+                                   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                   PRIMARY KEY (`uuid`) USING BTREE,
+                                   INDEX `idx_type`(`type` ASC) USING BTREE,
+                                   INDEX `idx_status`(`status` ASC) USING BTREE,
+                                   INDEX `user_uuid`(`user_uuid` ASC) USING BTREE,
+                                   CONSTRAINT `storage_method_ibfk_1` FOREIGN KEY (`user_uuid`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COMMENT = '存储方式管理表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of storage_method
+-- ----------------------------
+INSERT INTO `storage_method` VALUES ('a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4f47ac10b48bf511eb9a5eb9b5a8f1c2d172121853800042356789', '075eb86f721743e3940f35869154a140175689381296899805858', 'local', 'local', NULL, 1, '2026-07-17 21:02:55', '2026-07-17 21:02:55');
 
 -- ----------------------------
 -- Table structure for systematic_notification
