@@ -369,7 +369,7 @@ export default function StorageConfigSection() {
                                     value={form.name}
                                     onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                                    placeholder="如：阿里云OSS-上海"
+                                    placeholder="如：阿里云OSS-北京"
                                 />
                             </div>
 
@@ -388,29 +388,29 @@ export default function StorageConfigSection() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Endpoint（终端地址）</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">端点</label>
                                 <input
                                     type="text"
                                     value={form.config.endpoint}
                                     onChange={(e) => handleConfigChange('endpoint', e.target.value)}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
-                                    placeholder="https://s3.ap-northeast-1.amazonaws.com"
+                                    placeholder="https://oss-cn-beijing.aliyuncs.com"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Region（区域）</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">区域</label>
                                 <input
                                     type="text"
                                     value={form.config.region}
                                     onChange={(e) => handleConfigChange('region', e.target.value)}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
-                                    placeholder="ap-northeast-1"
+                                    placeholder="华北2（北京）"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Bucket（存储桶）</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">存储桶</label>
                                 <input
                                     type="text"
                                     value={form.config.bucket}
@@ -421,7 +421,7 @@ export default function StorageConfigSection() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Access Key（访问密钥）</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">访问密钥 ID</label>
                                 <input
                                     type="text"
                                     value={form.config.accessKey}
@@ -435,7 +435,7 @@ export default function StorageConfigSection() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Secret Key（秘密密钥）</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">访问密钥</label>
                                 <input
                                     type="password"
                                     value={form.config.secretKey}

@@ -4,10 +4,13 @@ import tools.jackson.databind.ObjectMapper;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.StorageMethod;
 import xyz.lingview.dimstack.mapper.StorageMethodMapper;
 import xyz.lingview.dimstack.service.FileStorage;
+import xyz.lingview.dimstack.service.SiteConfigService;
 import xyz.lingview.dimstack.service.StorageFacadeService;
 
 import java.util.Map;
@@ -29,9 +32,28 @@ public class StorageFacadeServiceImpl implements StorageFacadeService {
     @Autowired
     private StorageMethodMapper storageMethodMapper;
 
+    @Autowired
+    private SiteConfigService siteConfigService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final Map<String, S3FileStorageImpl> s3StorageCache = new ConcurrentHashMap<>();
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        try {
+            String defaultStorageUuid = siteConfigService.getSiteConfig().getDefault_storage();
+            if (defaultStorageUuid != null) {
+                StorageMethod method = storageMethodMapper.selectByUuid(defaultStorageUuid);
+                if (method != null && method.getStatus() == 1 && !"local".equals(method.getType())) {
+                    getDefaultStorage(defaultStorageUuid);
+                    log.info("默认存储已预热: {}", method.getName());
+                }
+            }
+        } catch (Exception e) {
+            log.info("默认存储预热跳过（数据库可能尚未就绪或无外部存储配置）: {}", e.getMessage());
+        }
+    }
 
     public FileStorage getDefaultStorage(String defaultStorageUuid) {
         if (defaultStorageUuid == null) {
@@ -50,19 +72,29 @@ public class StorageFacadeServiceImpl implements StorageFacadeService {
             return cached;
         }
 
-        StorageMethod method = storageMethodMapper.selectByUuid(storageId);
-        if (method == null) {
-            throw new RuntimeException("存储方式不存在: " + storageId);
-        }
-        if (method.getStatus() == 0) {
-            throw new RuntimeException("存储方式已禁用: " + method.getName());
-        }
+        // 缓存未命中，同步初始化（防止并发重复创建桶）
+        synchronized (this) {
+            cached = s3StorageCache.get(storageId);
+            if (cached != null) {
+                return cached;
+            }
 
-        if ("local".equals(method.getType())) {
-            return localFileStorage;
-        }
+            StorageMethod method = storageMethodMapper.selectByUuid(storageId);
+            if (method == null) {
+                throw new RuntimeException("存储方式不存在: " + storageId);
+            }
+            if (method.getStatus() == 0) {
+                throw new RuntimeException("存储方式已禁用: " + method.getName());
+            }
 
-        return initS3Storage(method);
+            if ("local".equals(method.getType())) {
+                return localFileStorage;
+            }
+
+            S3FileStorageImpl newStorage = (S3FileStorageImpl) initS3Storage(method);
+            s3StorageCache.put(storageId, newStorage);
+            return newStorage;
+        }
     }
 
     private FileStorage initS3Storage(StorageMethod method) {

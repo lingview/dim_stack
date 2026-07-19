@@ -253,6 +253,36 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
         AttachmentManagement attachment = attachmentManagementMapper.selectByAttachmentId(attachmentId);
         return attachment != null ? attachment.getUuid() : null;
     }
+
+    @Override
+    public boolean physicallyDeleteAttachment(String attachmentId) {
+        AttachmentManagement attachment = attachmentManagementMapper.selectByAttachmentId(attachmentId);
+        if (attachment == null) {
+            return false;
+        }
+
+        try {
+            String filePath = attachment.getAttachment_path();
+            String storageId = attachment.getStorage_id();
+
+            if (storageId != null && !isLocalStorage(storageId)) {
+                if (!deleteFromStorage(attachment, filePath)) {
+                    log.warn("存储删除失败，附件可能存储在已禁用的存储方式中，请先启用存储方式后重试");
+                    return false;
+                }
+            }
+
+            deletePhysicalFile(filePath);
+
+            deleteCompressedFile(filePath);
+
+            int result = attachmentManagementMapper.physicallyDeleteAttachment(attachmentId);
+            return result > 0;
+        } catch (Exception e) {
+            log.error("彻底删除附件失败: {}", attachmentId, e);
+            return false;
+        }
+    }
     
     @Override
     public int cleanupExpiredDeletedAttachments() {
@@ -370,7 +400,7 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
                 }
                 return deleted;
             } else if (!file.exists()) {
-                log.warn("文件不存在，可能已被删除: {}", fullPath);
+                log.info("未找到本地残留，跳过删除: {}", fullPath);
                 return true;
             } else {
                 log.warn("路径不是普通文件，跳过删除: {}", fullPath);

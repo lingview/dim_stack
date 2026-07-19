@@ -319,14 +319,14 @@ public class UploadServiceImpl implements UploadService {
 
         try {
             storage.store(objectKey, file.getInputStream(), file.getSize(), contentType);
-            log.info("文件上传成功。Key: {}", objectKey);
+            log.info("文件上传成功 Key: {}", objectKey);
         } catch (Exception e) {
             log.error("保存文件失败: {}", objectKey, e);
             return Map.of("error", "保存文件失败");
         }
 
         String fileUrl = "/file/" + accessKey;
-        log.info("附件上传完成。URL: {}", fileUrl);
+        log.info("附件上传完成 URL: {}", fileUrl);
         return Map.of("fileUrl", fileUrl);
     }
 

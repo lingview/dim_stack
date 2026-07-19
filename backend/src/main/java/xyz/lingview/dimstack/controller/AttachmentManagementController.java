@@ -241,4 +241,42 @@ public class AttachmentManagementController {
             return ApiResponse.error(400, "撤销删除失败");
         }
     }
+
+    @PostMapping("/admin/{attachmentId}/physically-delete")
+    @RequiresPermission({"system:attachment:delete", "system:attachment:management"})
+    public ApiResponse<Void> physicallyDeleteAttachmentAdmin(
+            @PathVariable String attachmentId) {
+        boolean success = attachmentManagementService.physicallyDeleteAttachment(attachmentId);
+        if (success) {
+            return ApiResponse.success("彻底删除成功");
+        } else {
+            return ApiResponse.error(400, "彻底删除失败");
+        }
+    }
+
+    @PostMapping("/{attachmentId}/physically-delete")
+    @RequiresPermission({"attachment:delete", "attachment:edit"})
+    public ApiResponse<Void> physicallyDeleteAttachment(
+            @PathVariable String attachmentId,
+            HttpServletRequest request) {
+
+        String username = currentUserService.getCurrentUsername();
+        String userUuid = userService.getUserUUID(username);
+
+        String attachmentOwnerUuid = attachmentManagementService.getAttachmentOwnerUuid(attachmentId);
+        if (attachmentOwnerUuid == null) {
+            return ApiResponse.error(400, "附件不存在");
+        }
+
+        if (!attachmentOwnerUuid.equals(userUuid)) {
+            return ApiResponse.error(403, "无权限操作此附件");
+        }
+
+        boolean success = attachmentManagementService.physicallyDeleteAttachment(attachmentId);
+        if (success) {
+            return ApiResponse.success("彻底删除成功");
+        } else {
+            return ApiResponse.error(400, "彻底删除失败");
+        }
+    }
 }

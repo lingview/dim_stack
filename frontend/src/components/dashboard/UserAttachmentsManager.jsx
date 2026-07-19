@@ -80,6 +80,22 @@ const UserAttachmentsManager = () => {
         }
     };
 
+    const handlePhysicallyDelete = async (attachmentId) => {
+        if (!window.confirm('确定要彻底删除此附件吗？此操作不可恢复。')) return;
+        try {
+            const response = await apiClient.post(`/attachments/${attachmentId}/physically-delete`);
+            if (response.code === 200) {
+                showToast('彻底删除成功');
+                fetchUserAttachments();
+            } else {
+                showToast('彻底删除失败: ' + (response.message || ''));
+            }
+        } catch (error) {
+            console.error('彻底删除附件错误:', error);
+            showToast('彻底删除失败');
+        }
+    };
+
     const getFileType = (attachmentPath) => {
         if (!attachmentPath) return 'other';
 
@@ -368,12 +384,20 @@ const UserAttachmentsManager = () => {
                                                     </button>
                                                 </div>
                                             ) : (
+                                                <div className="flex gap-2">
                                                 <button
                                                     onClick={() => handleRestore(attachment.attachment_id)}
                                                     className="text-green-600 hover:text-green-900"
                                                 >
                                                     撤销删除
                                                 </button>
+                                                <button
+                                                    onClick={() => handlePhysicallyDelete(attachment.attachment_id)}
+                                                    className="text-red-600 hover:text-red-900"
+                                                >
+                                                    彻底删除
+                                                </button>
+                                                </div>
                                             )}
                                         </td>
                                     </tr>
