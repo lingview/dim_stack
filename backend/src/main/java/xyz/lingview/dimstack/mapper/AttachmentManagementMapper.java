@@ -87,4 +87,16 @@ public interface AttachmentManagementMapper {
     
     // 物理删除附件记录（将状态改为2）
     int physicallyDeleteAttachment(@Param("attachmentId") String attachmentId);
+
+    // 批量删除附件（软删除）
+    int batchDeleteByAttachmentIds(@Param("attachmentIds") List<String> attachmentIds, @Param("deletedTime") LocalDateTime deletedTime);
+
+    // 批量撤销删除附件
+    int batchRestoreByAttachmentIds(@Param("attachmentIds") List<String> attachmentIds);
+
+    // 根据存储方式UUID查询所有附件
+    List<AttachmentManagement> selectByStorageId(@Param("storageId") String storageId);
+
+    // 更新附件的存储方式
+    int updateStorageId(@Param("attachmentId") String attachmentId, @Param("storageId") String storageId);
 }

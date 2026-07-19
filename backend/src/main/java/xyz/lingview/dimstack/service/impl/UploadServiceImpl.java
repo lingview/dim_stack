@@ -239,7 +239,7 @@ public class UploadServiceImpl implements UploadService {
     }
 
     private String buildDatabasePath(String... paths) {
-        return Path.of(uploadDir, paths).toString();
+        return Path.of(uploadDir, paths).toString().replace('\\', '/');
     }
 
     @Override

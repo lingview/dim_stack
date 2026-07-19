@@ -14,6 +14,7 @@ import xyz.lingview.dimstack.service.FileStorage;
 import xyz.lingview.dimstack.service.StorageFacadeService;
 
 import java.io.File;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -241,6 +242,23 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
         int result = attachmentManagementMapper.deleteByAttachmentId(attachmentId, deletedTime);
         return result > 0;
     }
+
+    @Override
+    public int batchDeleteAttachments(List<String> attachmentIds) {
+        if (attachmentIds == null || attachmentIds.isEmpty()) {
+            return 0;
+        }
+        LocalDateTime deletedTime = LocalDateTime.now();
+        return attachmentManagementMapper.batchDeleteByAttachmentIds(attachmentIds, deletedTime);
+    }
+
+    @Override
+    public int batchRestoreAttachments(List<String> attachmentIds) {
+        if (attachmentIds == null || attachmentIds.isEmpty()) {
+            return 0;
+        }
+        return attachmentManagementMapper.batchRestoreByAttachmentIds(attachmentIds);
+    }
     
     @Override
     public boolean restoreAttachment(String attachmentId) {
@@ -282,6 +300,22 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
             log.error("彻底删除附件失败: {}", attachmentId, e);
             return false;
         }
+    }
+
+    @Override
+    public int batchPhysicallyDeleteAttachments(List<String> attachmentIds) {
+        if (attachmentIds == null || attachmentIds.isEmpty()) {
+            return 0;
+        }
+        int successCount = 0;
+        for (String attachmentId : attachmentIds) {
+            if (physicallyDeleteAttachment(attachmentId)) {
+                successCount++;
+            } else {
+                log.warn("批量彻底删除失败，跳过: {}", attachmentId);
+            }
+        }
+        return successCount;
     }
     
     @Override
@@ -410,5 +444,81 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
             log.error("物理删除文件时发生错误，路径: {}", filePath, e);
             return false;
         }
+    }
+
+    @Override
+    public Map<String, Object> migrateStorage(String sourceStorageId, String targetStorageId) {
+        List<AttachmentManagement> attachments = attachmentManagementMapper.selectByStorageId(sourceStorageId);
+        return doMigrate(attachments, sourceStorageId, targetStorageId);
+    }
+
+    @Override
+    public Map<String, Object> retryMigrateStorage(String sourceStorageId, String targetStorageId, List<String> attachmentIds) {
+        List<AttachmentManagement> attachments = attachmentIds.stream()
+                .map(attachmentManagementMapper::selectByAttachmentId)
+                .filter(a -> a != null && sourceStorageId.equals(a.getStorage_id()))
+                .toList();
+        return doMigrate(attachments, sourceStorageId, targetStorageId);
+    }
+
+    private Map<String, Object> doMigrate(List<AttachmentManagement> attachments, String sourceStorageId, String targetStorageId) {
+        int total = attachments.size();
+        int success = 0;
+        List<Map<String, String>> failedItems = new java.util.ArrayList<>();
+
+        FileStorage sourceStorage;
+        FileStorage targetStorage;
+        try {
+            sourceStorage = storageFacadeService.getStorage(sourceStorageId);
+            targetStorage = storageFacadeService.getStorage(targetStorageId);
+        } catch (Exception e) {
+            return Map.of("total", total, "success", 0, "failed", total,
+                    "failedItems", List.of(Map.of("error", "存储方式不可用: " + e.getMessage())));
+        }
+
+        for (AttachmentManagement attachment : attachments) {
+            String filePath = attachment.getAttachment_path();
+            try {
+                if (!sourceStorage.exists(filePath)) {
+                    log.info("源文件不存在，跳过文件操作: {}", filePath);
+                    attachmentManagementMapper.updateStorageId(attachment.getAttachment_id(), targetStorageId);
+                    success++;
+                    continue;
+                }
+
+                byte[] fileData;
+                try (InputStream in = sourceStorage.retrieve(filePath)) {
+                    fileData = in.readAllBytes();
+                }
+
+                try (InputStream in = new java.io.ByteArrayInputStream(fileData)) {
+                    targetStorage.store(filePath, in, fileData.length, null);
+                }
+
+                try {
+                    sourceStorage.delete(filePath);
+                } catch (Exception e) {
+                    log.warn("迁移后删除源文件失败（不影响迁移结果）: {}", filePath);
+                }
+
+                attachmentManagementMapper.updateStorageId(attachment.getAttachment_id(), targetStorageId);
+                success++;
+                log.info("迁移成功: {} -> {}", filePath, targetStorageId);
+            } catch (Exception e) {
+                log.error("迁移失败: {}, 错误: {}", filePath, e.getMessage());
+                failedItems.add(Map.of(
+                        "attachmentId", attachment.getAttachment_id(),
+                        "filePath", filePath,
+                        "error", e.getMessage() != null ? e.getMessage() : "未知错误"
+                ));
+            }
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("total", total);
+        result.put("success", success);
+        result.put("failed", failedItems.size());
+        result.put("failedItems", failedItems);
+        return result;
     }
 }

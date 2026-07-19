@@ -9,6 +9,7 @@ import xyz.lingview.dimstack.service.AttachmentManagementService;
 import xyz.lingview.dimstack.service.CurrentUserService;
 import xyz.lingview.dimstack.service.UserService;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -169,6 +170,42 @@ public class AttachmentManagementController {
         }
     }
 
+    // 管理员批量删除附件
+    @PostMapping("/admin/batch-delete")
+    @RequiresPermission({"system:attachment:delete", "system:attachment:management"})
+    public ApiResponse<Integer> batchDeleteAttachmentAdmin(@RequestBody List<String> attachmentIds) {
+        if (attachmentIds == null || attachmentIds.isEmpty()) {
+            return ApiResponse.error(400, "请选择要删除的附件");
+        }
+
+        int count = attachmentManagementService.batchDeleteAttachments(attachmentIds);
+        return ApiResponse.success("成功删除 " + count + " 个附件", count);
+    }
+
+    // 管理员批量撤销删除附件
+    @PostMapping("/admin/batch-restore")
+    @RequiresPermission({"system:attachment:undelete", "system:attachment:management"})
+    public ApiResponse<Integer> batchRestoreAttachmentAdmin(@RequestBody List<String> attachmentIds) {
+        if (attachmentIds == null || attachmentIds.isEmpty()) {
+            return ApiResponse.error(400, "请选择要撤销的附件");
+        }
+
+        int count = attachmentManagementService.batchRestoreAttachments(attachmentIds);
+        return ApiResponse.success("成功撤销 " + count + " 个附件", count);
+    }
+
+    // 管理员批量彻底删除附件
+    @PostMapping("/admin/batch-physically-delete")
+    @RequiresPermission({"system:attachment:delete", "system:attachment:management"})
+    public ApiResponse<Integer> batchPhysicallyDeleteAttachmentAdmin(@RequestBody List<String> attachmentIds) {
+        if (attachmentIds == null || attachmentIds.isEmpty()) {
+            return ApiResponse.error(400, "请选择要彻底删除的附件");
+        }
+
+        int count = attachmentManagementService.batchPhysicallyDeleteAttachments(attachmentIds);
+        return ApiResponse.success("成功彻底删除 " + count + " 个附件", count);
+    }
+
     /**
      * 撤销删除附件（管理员接口）
      */
@@ -278,5 +315,41 @@ public class AttachmentManagementController {
         } else {
             return ApiResponse.error(400, "彻底删除失败");
         }
+    }
+
+    @PostMapping("/admin/migrate-storage")
+    @RequiresPermission({"system:attachment:management"})
+    public ApiResponse<Map<String, Object>> migrateStorage(@RequestBody Map<String, String> payload) {
+        String sourceStorageId = payload.get("sourceStorageId");
+        String targetStorageId = payload.get("targetStorageId");
+
+        if (sourceStorageId == null || targetStorageId == null) {
+            return ApiResponse.error(400, "源存储和目标存储不能为空");
+        }
+        if (sourceStorageId.equals(targetStorageId)) {
+            return ApiResponse.error(400, "源存储和目标存储不能相同");
+        }
+
+        Map<String, Object> result = attachmentManagementService.migrateStorage(sourceStorageId, targetStorageId);
+        return ApiResponse.success(result);
+    }
+
+    @PostMapping("/admin/migrate-storage/retry")
+    @RequiresPermission({"system:attachment:management"})
+    public ApiResponse<Map<String, Object>> retryMigrateStorage(@RequestBody Map<String, Object> payload) {
+        String sourceStorageId = (String) payload.get("sourceStorageId");
+        String targetStorageId = (String) payload.get("targetStorageId");
+        @SuppressWarnings("unchecked")
+        List<String> attachmentIds = (List<String>) payload.get("attachmentIds");
+
+        if (sourceStorageId == null || targetStorageId == null || attachmentIds == null || attachmentIds.isEmpty()) {
+            return ApiResponse.error(400, "参数不完整");
+        }
+        if (sourceStorageId.equals(targetStorageId)) {
+            return ApiResponse.error(400, "源存储和目标存储不能相同");
+        }
+
+        Map<String, Object> result = attachmentManagementService.retryMigrateStorage(sourceStorageId, targetStorageId, attachmentIds);
+        return ApiResponse.success(result);
     }
 }

@@ -86,6 +86,7 @@
 - [大模型审核与生成](docs/features/llm_generation_and_review.md)
 - [智能图片压缩](docs/features/image-compression.md)
 - [外部资源本地化](docs/features/external-resources.md)
+- [外置存储](docs/features/storage.md)
 - [代码注入（自定义 Head/Footer）](docs/features/code-injection.md)
 - [SEO 优化与大模型读取](docs/features/seo.md)
 - [评论区功能](docs/features/comments.md)

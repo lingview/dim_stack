@@ -17,6 +17,15 @@ const GlobalAttachmentsManager = () => {
     const [selectedUser, setSelectedUser] = useState('');
     const [userLoading, setUserLoading] = useState(false);
 
+    const [showMigrateModal, setShowMigrateModal] = useState(false);
+    const [storageMethods, setStorageMethods] = useState([]);
+    const [migrateSource, setMigrateSource] = useState('');
+    const [migrateTarget, setMigrateTarget] = useState('');
+    const [migrating, setMigrating] = useState(false);
+    const [migrateResult, setMigrateResult] = useState(null);
+
+    const [selectedIds, setSelectedIds] = useState(new Set());
+
     useEffect(() => {
         fetchUsers();
     }, []);
@@ -40,6 +49,7 @@ const GlobalAttachmentsManager = () => {
     };
 
     const fetchAttachments = async () => {
+        setSelectedIds(new Set());
         setLoading(true);
         try {
             let endpoint;
@@ -130,6 +140,176 @@ const GlobalAttachmentsManager = () => {
             console.error('彻底删除附件错误:', error);
             showToast('彻底删除失败');
         }
+    };
+
+    const fetchStorageMethods = async () => {
+        try {
+            const response = await apiClient.get('/storage/list');
+            if (response.code === 200) {
+                setStorageMethods(response.data.filter(m => m.status === 1));
+            }
+        } catch (error) {
+            console.error('获取存储方式失败:', error);
+        }
+    };
+
+    const handleOpenMigrateModal = () => {
+        fetchStorageMethods();
+        setMigrateSource('');
+        setMigrateTarget('');
+        setMigrateResult(null);
+        setShowMigrateModal(true);
+    };
+
+    const handleMigrate = async () => {
+        if (!migrateSource || !migrateTarget) {
+            showToast('请选择源存储和目标存储', 'error');
+            return;
+        }
+        if (migrateSource === migrateTarget) {
+            showToast('源存储和目标存储不能相同', 'error');
+            return;
+        }
+        setMigrating(true);
+        setMigrateResult(null);
+        try {
+            const response = await apiClient.post('/attachments/admin/migrate-storage', {
+                sourceStorageId: migrateSource,
+                targetStorageId: migrateTarget
+            });
+            if (response.code === 200) {
+                setMigrateResult(response.data);
+                if (response.data.failed === 0) {
+                    showToast(`迁移完成，成功 ${response.data.success} 个`);
+                } else {
+                    showToast(`迁移完成，成功 ${response.data.success} 个，失败 ${response.data.failed} 个`, 'error');
+                }
+            } else {
+                showToast(response.message || '迁移失败', 'error');
+            }
+        } catch (error) {
+            console.error('迁移失败:', error);
+            showToast('迁移时发生错误', 'error');
+        } finally {
+            setMigrating(false);
+        }
+    };
+
+    const handleRetryMigrate = async () => {
+        if (!migrateResult || !migrateResult.failedItems || migrateResult.failedItems.length === 0) return;
+        setMigrating(true);
+        try {
+            const response = await apiClient.post('/attachments/admin/migrate-storage/retry', {
+                sourceStorageId: migrateSource,
+                targetStorageId: migrateTarget,
+                attachmentIds: migrateResult.failedItems.map(item => item.attachmentId)
+            });
+            if (response.code === 200) {
+                setMigrateResult(response.data);
+                if (response.data.failed === 0) {
+                    showToast(`重试完成，成功 ${response.data.success} 个`);
+                } else {
+                    showToast(`重试完成，成功 ${response.data.success} 个，仍有 ${response.data.failed} 个失败`, 'error');
+                }
+            } else {
+                showToast(response.message || '重试失败', 'error');
+            }
+        } catch (error) {
+            console.error('重试迁移失败:', error);
+            showToast('重试迁移时发生错误', 'error');
+        } finally {
+            setMigrating(false);
+        }
+    };
+
+    // 批量删除处理
+    const handleBatchDelete = async () => {
+        if (selectedIds.size === 0) return;
+        if (!window.confirm(`确定要删除选中的 ${selectedIds.size} 个附件吗？删除后6小时内可以撤销。`)) {
+            return;
+        }
+
+        try {
+            const response = await apiClient.post('/attachments/admin/batch-delete', Array.from(selectedIds));
+
+            if (response.code === 200) {
+                const deletedCount = response.data || selectedIds.size;
+                showToast(`成功删除 ${deletedCount} 个附件`);
+                setSelectedIds(new Set());
+                fetchAttachments();
+            } else {
+                showToast('批量删除失败: ' + response.message);
+            }
+        } catch (error) {
+            console.error('批量删除附件错误:', error);
+            showToast('批量删除失败');
+        }
+    };
+
+    // 批量撤销删除处理
+    const handleBatchRestore = async () => {
+        if (selectedIds.size === 0) return;
+        if (!window.confirm(`确定要撤销删除选中的 ${selectedIds.size} 个附件吗？`)) {
+            return;
+        }
+
+        try {
+            const response = await apiClient.post('/attachments/admin/batch-restore', Array.from(selectedIds));
+
+            if (response.code === 200) {
+                const restoredCount = response.data || selectedIds.size;
+                showToast(`成功撤销 ${restoredCount} 个附件`);
+                setSelectedIds(new Set());
+                fetchAttachments();
+            } else {
+                showToast('批量撤销失败: ' + response.message);
+            }
+        } catch (error) {
+            console.error('批量撤销删除附件错误:', error);
+            showToast('批量撤销失败');
+        }
+    };
+
+    // 批量彻底删除处理
+    const handleBatchPhysicallyDelete = async () => {
+        if (selectedIds.size === 0) return;
+        if (!window.confirm(`确定要彻底删除选中的 ${selectedIds.size} 个附件吗？此操作不可恢复。`)) {
+            return;
+        }
+
+        try {
+            const response = await apiClient.post('/attachments/admin/batch-physically-delete', Array.from(selectedIds));
+
+            if (response.code === 200) {
+                const deletedCount = response.data || selectedIds.size;
+                showToast(`成功彻底删除 ${deletedCount} 个附件`);
+                setSelectedIds(new Set());
+                fetchAttachments();
+            } else {
+                showToast('批量彻底删除失败: ' + response.message);
+            }
+        } catch (error) {
+            console.error('批量彻底删除附件错误:', error);
+            showToast('批量彻底删除失败');
+        }
+    };
+
+    const handleSelectAll = () => {
+        if (selectedIds.size === attachments.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(attachments.map(a => a.attachment_id)));
+        }
+    };
+
+    const handleSelectOne = (attachmentId) => {
+        const newSelected = new Set(selectedIds);
+        if (newSelected.has(attachmentId)) {
+            newSelected.delete(attachmentId);
+        } else {
+            newSelected.add(attachmentId);
+        }
+        setSelectedIds(newSelected);
     };
 
     const handleUserChange = (userUuid) => {
@@ -321,6 +501,12 @@ const GlobalAttachmentsManager = () => {
                         </p>
                     </div>
                     <div className="flex items-center gap-4">
+                        <button
+                            onClick={handleOpenMigrateModal}
+                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                        >
+                            存储迁移
+                        </button>
                         <div className="flex bg-gray-100 rounded-lg p-1">
                             <button
                                 onClick={() => {
@@ -385,10 +571,48 @@ const GlobalAttachmentsManager = () => {
                     </div>
                 ) : (
                     <>
+                        {selectedIds.size > 0 && (
+                            <div className="flex items-center justify-between mb-4 px-4 py-2 bg-gray-50 rounded-lg border border-gray-200">
+                                <span className="text-sm text-gray-700">
+                                    已选择 <span className="font-medium text-blue-600">{selectedIds.size}</span> 项
+                                </span>
+                                {viewMode === 'normal' ? (
+                                    <button
+                                        onClick={handleBatchDelete}
+                                        className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+                                    >
+                                        批量删除
+                                    </button>
+                                ) : (
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={handleBatchRestore}
+                                            className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
+                                        >
+                                            批量撤销删除
+                                        </button>
+                                        <button
+                                            onClick={handleBatchPhysicallyDelete}
+                                            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+                                        >
+                                            批量彻底删除
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                 <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                                        <input
+                                            type="checkbox"
+                                            checked={attachments.length > 0 && selectedIds.size === attachments.length}
+                                            onClick={handleSelectAll}
+                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                    </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         预览
                                     </th>
@@ -418,6 +642,14 @@ const GlobalAttachmentsManager = () => {
                                 <tbody className="bg-white divide-y divide-gray-200">
                                 {attachments.map((attachment) => (
                                     <tr key={attachment.attachment_id || attachment.uuid} className="hover:bg-gray-50">
+                                        <td className="px-6 py-4">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.has(attachment.attachment_id)}
+                                                onChange={() => handleSelectOne(attachment.attachment_id)}
+                                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                            />
+                                        </td>
                                         <td className="px-6 py-4">
                                             {renderPreview(attachment)}
                                         </td>
@@ -625,6 +857,96 @@ const GlobalAttachmentsManager = () => {
                     </>
                 )}
             </div>
+
+            {showMigrateModal && (
+                <>
+                <div className="fixed inset-0 backdrop-blur-sm bg-transparent z-40" onClick={() => setShowMigrateModal(false)}></div>
+                <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                            <h3 className="text-lg font-medium text-gray-900">存储迁移</h3>
+                            <button onClick={() => setShowMigrateModal(false)} className="text-gray-400 hover:text-gray-500">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="px-6 py-4 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">源存储（被迁移）</label>
+                                <select
+                                    value={migrateSource}
+                                    onChange={(e) => setMigrateSource(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">请选择</option>
+                                    {storageMethods.map(m => (
+                                        <option key={m.uuid} value={m.uuid}>{m.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">目标存储（迁移到）</label>
+                                <select
+                                    value={migrateTarget}
+                                    onChange={(e) => setMigrateTarget(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">请选择</option>
+                                    {storageMethods.filter(m => m.uuid !== migrateSource).map(m => (
+                                        <option key={m.uuid} value={m.uuid}>{m.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {migrateResult && (
+                                <div className="bg-gray-50 rounded-lg p-4">
+                                    <div className="text-sm text-gray-700 mb-2">
+                                        迁移结果：共 {migrateResult.total} 个，成功 {migrateResult.success} 个，失败 {migrateResult.failed} 个
+                                    </div>
+                                    {migrateResult.failedItems && migrateResult.failedItems.length > 0 && (
+                                        <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                                            {migrateResult.failedItems.map((item, idx) => (
+                                                <div key={idx} className="text-xs text-red-600 bg-red-50 rounded px-2 py-1">
+                                                    {item.filePath} — {item.error}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                            <button
+                                onClick={() => setShowMigrateModal(false)}
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                            >
+                                关闭
+                            </button>
+                            {migrateResult && migrateResult.failed > 0 && (
+                                <button
+                                    onClick={handleRetryMigrate}
+                                    disabled={migrating}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 disabled:opacity-50"
+                                >
+                                    {migrating ? '重试中...' : `重试失败项 (${migrateResult.failed})`}
+                                </button>
+                            )}
+                            <button
+                                onClick={handleMigrate}
+                                disabled={migrating || !migrateSource || !migrateTarget}
+                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
+                            >
+                                {migrating ? '迁移中...' : '执行迁移'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                </>
+            )}
         </div>
     );
 };

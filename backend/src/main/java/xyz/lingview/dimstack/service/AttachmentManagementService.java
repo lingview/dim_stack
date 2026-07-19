@@ -1,6 +1,7 @@
 package xyz.lingview.dimstack.service;
 
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,11 +32,21 @@ public interface AttachmentManagementService {
 
     boolean deleteAttachment(String attachmentId);
 
+    int batchDeleteAttachments(List<String> attachmentIds);
+
+    int batchRestoreAttachments(List<String> attachmentIds);
+
     boolean restoreAttachment(String attachmentId);
 
     String getAttachmentOwnerUuid(String attachmentId);
 
     boolean physicallyDeleteAttachment(String attachmentId);
+
+    int batchPhysicallyDeleteAttachments(List<String> attachmentIds);
+
+    Map<String, Object> migrateStorage(String sourceStorageId, String targetStorageId);
+
+    Map<String, Object> retryMigrateStorage(String sourceStorageId, String targetStorageId, List<String> attachmentIds);
 
     int cleanupExpiredDeletedAttachments();
 }

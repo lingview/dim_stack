@@ -198,4 +198,36 @@
         WHERE attachment_id = #{attachmentId}
     </update>
 
+    <update id="batchDeleteByAttachmentIds">
+        UPDATE attachment
+        SET status = 0, deleted_time = #{deletedTime}
+        WHERE attachment_id IN
+        <foreach collection="attachmentIds" item="attachmentId" open="(" separator="," close=")">
+            #{attachmentId}
+        </foreach>
+    </update>
+
+    <update id="batchRestoreByAttachmentIds">
+        UPDATE attachment
+        SET status = 1, deleted_time = NULL
+        WHERE attachment_id IN
+        <foreach collection="attachmentIds" item="attachmentId" open="(" separator="," close=")">
+            #{attachmentId}
+        </foreach>
+    </update>
+
+    <select id="selectByStorageId" resultType="xyz.lingview.dimstack.domain.AttachmentManagement">
+        SELECT a.attachment_id, a.original_filename, a.attachment_path, a.access_key, a.storage_id, a.create_time, a.deleted_time, a.status, u.username
+        FROM attachment a
+        JOIN user_information u ON a.uuid = u.uuid
+        WHERE a.storage_id = #{storageId}
+          AND a.status != 2
+    </select>
+
+    <update id="updateStorageId">
+        UPDATE attachment
+        SET storage_id = #{storageId}
+        WHERE attachment_id = #{attachmentId}
+    </update>
+
 </mapper>
