@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.common.ApiResponse;
+import xyz.lingview.dimstack.domain.StorageMigrationLog;
 import xyz.lingview.dimstack.service.AttachmentManagementService;
 import xyz.lingview.dimstack.service.CurrentUserService;
 import xyz.lingview.dimstack.service.UserService;
@@ -351,5 +352,21 @@ public class AttachmentManagementController {
 
         Map<String, Object> result = attachmentManagementService.retryMigrateStorage(sourceStorageId, targetStorageId, attachmentIds);
         return ApiResponse.success(result);
+    }
+
+    @GetMapping("/admin/migrate-logs")
+    @RequiresPermission({"system:attachment:management"})
+    public ApiResponse<List<StorageMigrationLog>> getMigrateLogs() {
+        return ApiResponse.success(attachmentManagementService.getMigrateLogs());
+    }
+
+    @GetMapping("/admin/migrate-logs/{id}")
+    @RequiresPermission({"system:attachment:management"})
+    public ApiResponse<StorageMigrationLog> getMigrateLogDetail(@PathVariable int id) {
+        StorageMigrationLog log = attachmentManagementService.getMigrateLogDetail(id);
+        if (log == null) {
+            return ApiResponse.error(400, "记录不存在");
+        }
+        return ApiResponse.success(log);
     }
 }

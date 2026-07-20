@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 17/07/2026 21:05:05
+ Date: 20/07/2026 13:05:11
 */
 
 SET NAMES utf8mb4;
@@ -730,12 +730,56 @@ CREATE TABLE `storage_method`  (
                                    INDEX `idx_status`(`status` ASC) USING BTREE,
                                    INDEX `user_uuid`(`user_uuid` ASC) USING BTREE,
                                    CONSTRAINT `storage_method_ibfk_1` FOREIGN KEY (`user_uuid`) REFERENCES `user_information` (`uuid`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COMMENT = '存储方式管理表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COMMENT = '存储方式管理表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of storage_method
 -- ----------------------------
 INSERT INTO `storage_method` VALUES ('a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4f47ac10b48bf511eb9a5eb9b5a8f1c2d172121853800042356789', '075eb86f721743e3940f35869154a140175689381296899805858', 'local', 'local', NULL, 1, '2026-07-17 21:02:55', '2026-07-17 21:02:55');
+
+-- ----------------------------
+-- Table structure for storage_migration_failed_item
+-- ----------------------------
+DROP TABLE IF EXISTS `storage_migration_failed_item`;
+CREATE TABLE `storage_migration_failed_item`  (
+                                                  `id` int NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+                                                  `migration_id` int NOT NULL COMMENT '关联迁移记录ID',
+                                                  `attachment_id` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '附件ID',
+                                                  `file_path` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '文件路径',
+                                                  `error_msg` text CHARACTER SET utf8mb4 NULL COMMENT '错误信息',
+                                                  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                                  PRIMARY KEY (`id`) USING BTREE,
+                                                  INDEX `idx_migration_id`(`migration_id` ASC) USING BTREE,
+                                                  CONSTRAINT `fk_migration_item` FOREIGN KEY (`migration_id`) REFERENCES `storage_migration_log` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COMMENT = '迁移失败明细' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of storage_migration_failed_item
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for storage_migration_log
+-- ----------------------------
+DROP TABLE IF EXISTS `storage_migration_log`;
+CREATE TABLE `storage_migration_log`  (
+                                          `id` int NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+                                          `source_storage_id` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '源存储UUID',
+                                          `target_storage_id` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '目标存储UUID',
+                                          `total` int NOT NULL DEFAULT 0 COMMENT '总附件数',
+                                          `success` int NOT NULL DEFAULT 0 COMMENT '成功数',
+                                          `failed` int NOT NULL DEFAULT 0 COMMENT '失败数',
+                                          `status` int NOT NULL DEFAULT 0 COMMENT '状态：0-进行中，1-已完成，2-失败',
+                                          `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                          `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                          PRIMARY KEY (`id`) USING BTREE,
+                                          INDEX `idx_source`(`source_storage_id` ASC) USING BTREE,
+                                          INDEX `idx_target`(`target_storage_id` ASC) USING BTREE,
+                                          INDEX `idx_created_at`(`created_at` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COMMENT = '存储迁移记录' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of storage_migration_log
+-- ----------------------------
 
 -- ----------------------------
 -- Table structure for systematic_notification

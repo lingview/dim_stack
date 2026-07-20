@@ -6,8 +6,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import xyz.lingview.dimstack.domain.AttachmentManagement;
 import xyz.lingview.dimstack.domain.StorageMethod;
+import xyz.lingview.dimstack.domain.StorageMigrationFailedItem;
+import xyz.lingview.dimstack.domain.StorageMigrationLog;
 import xyz.lingview.dimstack.mapper.AttachmentManagementMapper;
 import xyz.lingview.dimstack.mapper.StorageMethodMapper;
+import xyz.lingview.dimstack.mapper.StorageMigrationLogMapper;
 import xyz.lingview.dimstack.mapper.UserInformationMapper;
 import xyz.lingview.dimstack.service.AttachmentManagementService;
 import xyz.lingview.dimstack.service.FileStorage;
@@ -43,6 +46,9 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
 
     @Autowired
     private StorageMethodMapper storageMethodMapper;
+
+    @Autowired
+    private StorageMigrationLogMapper storageMigrationLogMapper;
 
     @Value("${file.data-root:.}")
     private String dataRoot;
@@ -466,12 +472,23 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
         int success = 0;
         List<Map<String, String>> failedItems = new java.util.ArrayList<>();
 
+        // 创建迁移记录
+        StorageMigrationLog migrationLog = new StorageMigrationLog();
+        migrationLog.setSource_storage_id(sourceStorageId);
+        migrationLog.setTarget_storage_id(targetStorageId);
+        migrationLog.setTotal(total);
+        migrationLog.setStatus(0);
+        storageMigrationLogMapper.insertLog(migrationLog);
+        int logId = migrationLog.getId();
+
         FileStorage sourceStorage;
         FileStorage targetStorage;
         try {
             sourceStorage = storageFacadeService.getStorage(sourceStorageId);
             targetStorage = storageFacadeService.getStorage(targetStorageId);
         } catch (Exception e) {
+            migrationLog.setStatus(2);
+            storageMigrationLogMapper.updateLog(migrationLog);
             return Map.of("total", total, "success", 0, "failed", total,
                     "failedItems", List.of(Map.of("error", "存储方式不可用: " + e.getMessage())));
         }
@@ -514,11 +531,40 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
             }
         }
 
+        // 更新迁移记录
+        migrationLog.setSuccess(success);
+        migrationLog.setFailed(failedItems.size());
+        migrationLog.setStatus(1);
+        storageMigrationLogMapper.updateLog(migrationLog);
+
+        // 写入失败明细
+        if (!failedItems.isEmpty()) {
+            List<StorageMigrationFailedItem> items = failedItems.stream().map(f -> {
+                StorageMigrationFailedItem item = new StorageMigrationFailedItem();
+                item.setMigration_id(logId);
+                item.setAttachment_id(f.get("attachmentId"));
+                item.setFile_path(f.get("filePath"));
+                item.setError_msg(f.get("error"));
+                return item;
+            }).toList();
+            storageMigrationLogMapper.insertFailedItems(items);
+        }
+
         Map<String, Object> result = new HashMap<>();
         result.put("total", total);
         result.put("success", success);
         result.put("failed", failedItems.size());
         result.put("failedItems", failedItems);
         return result;
+    }
+
+    @Override
+    public List<StorageMigrationLog> getMigrateLogs() {
+        return storageMigrationLogMapper.selectAll();
+    }
+
+    @Override
+    public StorageMigrationLog getMigrateLogDetail(int id) {
+        return storageMigrationLogMapper.selectById(id);
     }
 }

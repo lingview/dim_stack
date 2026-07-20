@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="xyz.lingview.dimstack.mapper.StorageMigrationLogMapper">
+
+    <resultMap id="LogResultMap" type="xyz.lingview.dimstack.domain.StorageMigrationLog">
+        <result property="id" column="id"/>
+        <result property="source_storage_id" column="source_storage_id"/>
+        <result property="target_storage_id" column="target_storage_id"/>
+        <result property="total" column="total"/>
+        <result property="success" column="success"/>
+        <result property="failed" column="failed"/>
+        <result property="status" column="status"/>
+        <result property="created_at" column="created_at"/>
+        <result property="updated_at" column="updated_at"/>
+        <collection property="failedItems" ofType="xyz.lingview.dimstack.domain.StorageMigrationFailedItem"
+                    select="selectFailedItemsByMigrationId" column="id" fetchType="lazy"/>
+    </resultMap>
+
+    <resultMap id="FailedItemResultMap" type="xyz.lingview.dimstack.domain.StorageMigrationFailedItem">
+        <result property="id" column="id"/>
+        <result property="migration_id" column="migration_id"/>
+        <result property="attachment_id" column="attachment_id"/>
+        <result property="file_path" column="file_path"/>
+        <result property="error_msg" column="error_msg"/>
+        <result property="created_at" column="created_at"/>
+    </resultMap>
+
+    <insert id="insertLog" parameterType="xyz.lingview.dimstack.domain.StorageMigrationLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO storage_migration_log (source_storage_id, target_storage_id, total, success, failed, status)
+        VALUES (#{source_storage_id}, #{target_storage_id}, #{total}, #{success}, #{failed}, #{status})
+    </insert>
+
+    <update id="updateLog" parameterType="xyz.lingview.dimstack.domain.StorageMigrationLog">
+        UPDATE storage_migration_log
+        SET total = #{total}, success = #{success}, failed = #{failed}, status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <insert id="insertFailedItem" parameterType="xyz.lingview.dimstack.domain.StorageMigrationFailedItem">
+        INSERT INTO storage_migration_failed_item (migration_id, attachment_id, file_path, error_msg)
+        VALUES (#{migration_id}, #{attachment_id}, #{file_path}, #{error_msg})
+    </insert>
+
+    <insert id="insertFailedItems" parameterType="java.util.List">
+        INSERT INTO storage_migration_failed_item (migration_id, attachment_id, file_path, error_msg)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.migration_id}, #{item.attachment_id}, #{item.file_path}, #{item.error_msg})
+        </foreach>
+    </insert>
+
+    <select id="selectById" resultMap="LogResultMap">
+        SELECT * FROM storage_migration_log WHERE id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="LogResultMap">
+        SELECT * FROM storage_migration_log ORDER BY created_at DESC
+    </select>
+
+    <select id="selectFailedItemsByMigrationId" resultMap="FailedItemResultMap">
+        SELECT * FROM storage_migration_failed_item WHERE migration_id = #{migration_id}
+    </select>
+</mapper>

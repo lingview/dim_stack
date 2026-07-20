@@ -23,11 +23,17 @@ const GlobalAttachmentsManager = () => {
     const [migrateTarget, setMigrateTarget] = useState('');
     const [migrating, setMigrating] = useState(false);
     const [migrateResult, setMigrateResult] = useState(null);
+    const [migrateLogs, setMigrateLogs] = useState([]);
+    const [migrateLogDetail, setMigrateLogDetail] = useState(null);
+    const [migrateTab, setMigrateTab] = useState('migrate');
+    const [loadingLogs, setLoadingLogs] = useState(false);
 
     const [selectedIds, setSelectedIds] = useState(new Set());
+    const [allStorageMethods, setAllStorageMethods] = useState([]);
 
     useEffect(() => {
         fetchUsers();
+        fetchAllStorageMethods();
     }, []);
 
     useEffect(() => {
@@ -153,11 +159,50 @@ const GlobalAttachmentsManager = () => {
         }
     };
 
+    const fetchAllStorageMethods = async () => {
+        try {
+            const response = await apiClient.get('/storage/list');
+            if (response.code === 200) {
+                setAllStorageMethods(response.data || []);
+            }
+        } catch (error) {
+            console.error('获取存储方式失败:', error);
+        }
+    };
+
+    const fetchMigrateLogs = async () => {
+        setLoadingLogs(true);
+        try {
+            const response = await apiClient.get('/attachments/admin/migrate-logs');
+            if (response.code === 200) {
+                setMigrateLogs(response.data || []);
+            }
+        } catch (error) {
+            console.error('获取迁移历史失败:', error);
+        } finally {
+            setLoadingLogs(false);
+        }
+    };
+
+    const fetchMigrateLogDetail = async (id) => {
+        try {
+            const response = await apiClient.get(`/attachments/admin/migrate-logs/${id}`);
+            if (response.code === 200) {
+                setMigrateLogDetail(response.data);
+            }
+        } catch (error) {
+            console.error('获取迁移详情失败:', error);
+        }
+    };
+
     const handleOpenMigrateModal = () => {
         fetchStorageMethods();
         setMigrateSource('');
         setMigrateTarget('');
         setMigrateResult(null);
+        setMigrateLogDetail(null);
+        setMigrateTab('migrate');
+        fetchMigrateLogs();
         setShowMigrateModal(true);
     };
 
@@ -634,6 +679,9 @@ const GlobalAttachmentsManager = () => {
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         文件路径
                                     </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        存储位置
+                                    </th>
                                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         操作
                                     </th>
@@ -654,7 +702,7 @@ const GlobalAttachmentsManager = () => {
                                             {renderPreview(attachment)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" title={attachment.original_filename || '未记录'}>
-                                            {attachment.original_filename 
+                                            {attachment.original_filename
                                                 ? truncateText(attachment.original_filename, 30)
                                                 : '未记录'
                                             }
@@ -676,6 +724,12 @@ const GlobalAttachmentsManager = () => {
                                         <td className="px-6 py-4 text-sm text-gray-500" title={attachment.attachment_path}>
                                             {truncateText(attachment.attachment_path)}
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {(() => {
+                                                const s = allStorageMethods.find(m => m.uuid === attachment.storage_id);
+                                                return s ? s.name : '未知';
+                                            })()}
+                                        </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             {viewMode === 'normal' ? (
                                                 <div className="flex items-center justify-end gap-3">
@@ -695,18 +749,18 @@ const GlobalAttachmentsManager = () => {
                                                 </div>
                                             ) : (
                                                 <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => handleRestore(attachment.attachment_id)}
-                                                    className="text-green-600 hover:text-green-900"
-                                                >
-                                                    撤销删除
-                                                </button>
-                                                <button
-                                                    onClick={() => handlePhysicallyDelete(attachment.attachment_id)}
-                                                    className="text-red-600 hover:text-red-900"
-                                                >
-                                                    彻底删除
-                                                </button>
+                                                    <button
+                                                        onClick={() => handleRestore(attachment.attachment_id)}
+                                                        className="text-green-600 hover:text-green-900"
+                                                    >
+                                                        撤销删除
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handlePhysicallyDelete(attachment.attachment_id)}
+                                                        className="text-red-600 hover:text-red-900"
+                                                    >
+                                                        彻底删除
+                                                    </button>
                                                 </div>
                                             )}
                                         </td>
@@ -860,91 +914,134 @@ const GlobalAttachmentsManager = () => {
 
             {showMigrateModal && (
                 <>
-                <div className="fixed inset-0 backdrop-blur-sm bg-transparent z-40" onClick={() => setShowMigrateModal(false)}></div>
-                <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-                            <h3 className="text-lg font-medium text-gray-900">存储迁移</h3>
-                            <button onClick={() => setShowMigrateModal(false)} className="text-gray-400 hover:text-gray-500">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div className="px-6 py-4 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">源存储（被迁移）</label>
-                                <select
-                                    value={migrateSource}
-                                    onChange={(e) => setMigrateSource(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">请选择</option>
-                                    {storageMethods.map(m => (
-                                        <option key={m.uuid} value={m.uuid}>{m.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">目标存储（迁移到）</label>
-                                <select
-                                    value={migrateTarget}
-                                    onChange={(e) => setMigrateTarget(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">请选择</option>
-                                    {storageMethods.filter(m => m.uuid !== migrateSource).map(m => (
-                                        <option key={m.uuid} value={m.uuid}>{m.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {migrateResult && (
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                    <div className="text-sm text-gray-700 mb-2">
-                                        迁移结果：共 {migrateResult.total} 个，成功 {migrateResult.success} 个，失败 {migrateResult.failed} 个
-                                    </div>
-                                    {migrateResult.failedItems && migrateResult.failedItems.length > 0 && (
-                                        <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
-                                            {migrateResult.failedItems.map((item, idx) => (
-                                                <div key={idx} className="text-xs text-red-600 bg-red-50 rounded px-2 py-1">
-                                                    {item.filePath} — {item.error}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
-                            <button
-                                onClick={() => setShowMigrateModal(false)}
-                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                            >
-                                关闭
-                            </button>
-                            {migrateResult && migrateResult.failed > 0 && (
-                                <button
-                                    onClick={handleRetryMigrate}
-                                    disabled={migrating}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 disabled:opacity-50"
-                                >
-                                    {migrating ? '重试中...' : `重试失败项 (${migrateResult.failed})`}
+                    <div className="fixed inset-0 backdrop-blur-sm bg-transparent z-40" onClick={() => setShowMigrateModal(false)}></div>
+                    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                                <h3 className="text-lg font-medium text-gray-900">存储迁移</h3>
+                                <button onClick={() => setShowMigrateModal(false)} className="text-gray-400 hover:text-gray-500">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
                                 </button>
+                            </div>
+
+                            <div className="flex border-b border-gray-200">
+                                <button onClick={() => { setMigrateTab('migrate'); setMigrateLogDetail(null); }} className={`px-4 py-2 text-sm font-medium ${migrateTab === 'migrate' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}>迁移</button>
+                                <button onClick={() => { setMigrateTab('history'); fetchMigrateLogs(); }} className={`px-4 py-2 text-sm font-medium ${migrateTab === 'history' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}>历史记录</button>
+                            </div>
+
+                            {migrateTab === 'migrate' && (
+                            <div className="px-6 py-4 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">源存储（被迁移）</label>
+                                    <select
+                                        value={migrateSource}
+                                        onChange={(e) => setMigrateSource(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">请选择</option>
+                                        {storageMethods.map(m => (
+                                            <option key={m.uuid} value={m.uuid}>{m.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">目标存储（迁移到）</label>
+                                    <select
+                                        value={migrateTarget}
+                                        onChange={(e) => setMigrateTarget(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="">请选择</option>
+                                        {storageMethods.filter(m => m.uuid !== migrateSource).map(m => (
+                                            <option key={m.uuid} value={m.uuid}>{m.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {migrateResult && (
+                                    <div className="bg-gray-50 rounded-lg p-4">
+                                        <div className="text-sm text-gray-700 mb-2">
+                                            迁移结果：共 {migrateResult.total} 个，成功 {migrateResult.success} 个，失败 {migrateResult.failed} 个
+                                        </div>
+                                        {migrateResult.failedItems && migrateResult.failedItems.length > 0 && (
+                                            <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                                                {migrateResult.failedItems.map((item, idx) => (
+                                                    <div key={idx} className="text-xs text-red-600 bg-red-50 rounded px-2 py-1">
+                                                        {item.filePath} — {item.error}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                             )}
-                            <button
-                                onClick={handleMigrate}
-                                disabled={migrating || !migrateSource || !migrateTarget}
-                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
-                            >
-                                {migrating ? '迁移中...' : '执行迁移'}
-                            </button>
+
+                            {migrateTab === 'history' && (
+                            <div className="px-6 py-4 space-y-2">
+                                {loadingLogs ? (
+                                    <div className="text-center py-4 text-sm text-gray-400">加载中...</div>
+                                ) : migrateLogs.length === 0 ? (
+                                    <div className="text-center py-4 text-sm text-gray-400">暂无迁移记录</div>
+                                ) : migrateLogDetail ? (
+                                    <div>
+                                        <button onClick={() => setMigrateLogDetail(null)} className="text-sm text-blue-600 hover:text-blue-800 mb-3">← 返回列表</button>
+                                        <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                                            <div className="text-sm text-gray-700">{new Date(migrateLogDetail.created_at).toLocaleString()} — 共 {migrateLogDetail.total} 个，成功 {migrateLogDetail.success} 个，失败 {migrateLogDetail.failed} 个</div>
+                                            <div className="text-xs text-gray-500">状态：{migrateLogDetail.status === 0 ? '进行中' : migrateLogDetail.status === 1 ? '已完成' : '失败'}</div>
+                                            {migrateLogDetail.failedItems && migrateLogDetail.failedItems.length > 0 && (
+                                                <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                                                    <div className="text-xs font-medium text-red-600 mb-1">失败明细：</div>
+                                                    {migrateLogDetail.failedItems.map((item, idx) => (
+                                                        <div key={idx} className="text-xs text-red-600 bg-red-50 rounded px-2 py-1">{item.file_path} — {item.error_msg}</div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    migrateLogs.map(log => (
+                                        <div key={log.id} onClick={() => fetchMigrateLogDetail(log.id)} className="border border-gray-200 rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+                                            <div className="flex items-center justify-between">
+                                                <div className="text-sm text-gray-700">{new Date(log.created_at).toLocaleString()}</div>
+                                                <span className={`text-xs px-1.5 py-0.5 rounded ${log.status === 1 ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100'}`}>{log.status === 0 ? '进行中' : log.status === 1 ? '已完成' : '失败'}</span>
+                                            </div>
+                                            <div className="text-xs text-gray-400 mt-1">共 {log.total} 个 · 成功 {log.success} · 失败 {log.failed}</div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                            )}
+
+                            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
+                                <button
+                                    onClick={() => setShowMigrateModal(false)}
+                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                                >
+                                    关闭
+                                </button>
+                                {migrateResult && migrateResult.failed > 0 && (
+                                    <button
+                                        onClick={handleRetryMigrate}
+                                        disabled={migrating}
+                                        className="px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 disabled:opacity-50"
+                                    >
+                                        {migrating ? '重试中...' : `重试失败项 (${migrateResult.failed})`}
+                                    </button>
+                                )}
+                                <button
+                                    onClick={handleMigrate}
+                                    disabled={migrating || !migrateSource || !migrateTarget}
+                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
+                                >
+                                    {migrating ? '迁移中...' : '执行迁移'}
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
                 </>
             )}
         </div>

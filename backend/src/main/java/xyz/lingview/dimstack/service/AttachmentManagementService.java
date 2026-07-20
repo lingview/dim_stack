@@ -1,6 +1,8 @@
 package xyz.lingview.dimstack.service;
 
 
+import xyz.lingview.dimstack.domain.StorageMigrationLog;
+
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +49,10 @@ public interface AttachmentManagementService {
     Map<String, Object> migrateStorage(String sourceStorageId, String targetStorageId);
 
     Map<String, Object> retryMigrateStorage(String sourceStorageId, String targetStorageId, List<String> attachmentIds);
+
+    List<StorageMigrationLog> getMigrateLogs();
+
+    StorageMigrationLog getMigrateLogDetail(int id);
 
     int cleanupExpiredDeletedAttachments();
 }
