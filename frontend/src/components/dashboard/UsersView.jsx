@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import apiClient from '../../utils/axios.jsx';
 import {getConfig} from "../../utils/config.jsx";
 import ImageCropper from '../ImageCropper.jsx';
+import { uploadProgress } from '../../utils/uploadProgressManager';
 
 const getFullImageUrl = (url) => {
   if (!url) return null;
@@ -345,24 +346,35 @@ export default function UsersView() {
     formData.append('file', file);
     formData.append('targetUserUUID', editingUser.uuid);
 
+    const progressId = `avatar-${Date.now()}`;
+    uploadProgress.start(progressId, file.name, file.type);
+
     try {
       setUploading(true);
       const response = await apiClient.post('/admin/uploadavatar', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
+        },
+        onUploadProgress: (e) => {
+          if (!e.total) return;
+          uploadProgress.progress(progressId, (e.loaded / e.total) * 85);
+          if (e.loaded >= e.total) uploadProgress.processing(progressId);
         }
       });
 
       if (response && response.code === 200) {
+        uploadProgress.done(progressId);
         fetchUsers();
         setShowAvatarModal(false);
         setSelectedAvatar(null);
         setError('');
       } else {
+        uploadProgress.error(progressId, response.message || '头像上传失败');
         setError(response.message || '头像上传失败');
       }
     } catch (error) {
       console.error('头像上传失败:', error);
+      uploadProgress.error(progressId, error.response?.data?.message || error.message);
       if (error.response && error.response.data) {
         setError(error.response.data.message || '头像上传失败');
       } else {

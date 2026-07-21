@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import apiClient from '../../utils/axios.jsx';
 import { showToast } from '../../utils/toastManager.jsx';
+import { uploadProgress } from '../../utils/uploadProgressManager';
 import DOMPurify from 'dompurify';
 
 export default function AnnouncementManager() {
@@ -57,16 +58,24 @@ export default function AnnouncementManager() {
         if (!file) return;
 
         setUploading(true);
+        const progressId = `announcement-${Date.now()}`;
+        uploadProgress.start(progressId, file.name, file.type);
         try {
             const formData = new FormData();
             formData.append('file', file);
 
             const response = await apiClient.post('/uploadattachment', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+                headers: { 'Content-Type': 'multipart/form-data' },
+                onUploadProgress: (ev) => {
+                    if (!ev.total) return;
+                    uploadProgress.progress(progressId, (ev.loaded / ev.total) * 85);
+                    if (ev.loaded >= ev.total) uploadProgress.processing(progressId);
+                }
             });
 
             const fileUrl = response.data?.fileUrl || '';
             if (fileUrl) {
+                uploadProgress.done(progressId);
                 const imgTag = `<img src="${fileUrl}" alt="" />`;
                 const textarea = textareaRef.current;
                 const cursor = cursorPosRef.current;
@@ -81,8 +90,11 @@ export default function AnnouncementManager() {
                     }, 0);
                 }
                 showToast('图片上传成功');
+            } else {
+                uploadProgress.error(progressId, '图片上传失败');
             }
         } catch (err) {
+            uploadProgress.error(progressId, err.response?.data?.error || err.message);
             showToast('图片上传失败: ' + (err.response?.data?.error || err.message));
         } finally {
             setUploading(false);

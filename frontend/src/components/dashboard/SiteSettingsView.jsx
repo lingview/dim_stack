@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../../utils/axios';
 import {getConfig} from "../../utils/config.jsx";
 import { showToast } from '../../utils/toastManager.jsx';
+import { uploadProgress } from '../../utils/uploadProgressManager';
 import StorageConfigSection from './StorageConfigSection';
 
 const getFullImageUrl = (url) => {
@@ -447,7 +448,7 @@ export default function SiteSettingsView() {
     };
 
     // 普通上传(小文件)
-    const normalAudioUpload = async (file) => {
+    const normalAudioUpload = async (file, progressId) => {
         const formData = new FormData();
         formData.append('file', file);
 
@@ -455,6 +456,11 @@ export default function SiteSettingsView() {
             const response = await apiClient.post('/uploadattachment', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: (e) => {
+                    if (!e.total) return;
+                    uploadProgress.progress(progressId, (e.loaded / e.total) * 85);
+                    if (e.loaded >= e.total) uploadProgress.processing(progressId);
                 }
             });
 
@@ -470,7 +476,7 @@ export default function SiteSettingsView() {
     };
 
     // 分片上传
-    const multipartAudioUpload = async (file) => {
+    const multipartAudioUpload = async (file, progressId) => {
         const CHUNK_SIZE = 5 * 1024 * 1024;
         const chunks = Math.ceil(file.size / CHUNK_SIZE);
 
@@ -489,9 +495,16 @@ export default function SiteSettingsView() {
                         'Upload-Id': uploadId,
                         'Chunk-Index': i,
                         'Content-Type': 'application/octet-stream'
+                    },
+                    onUploadProgress: (e) => {
+                        if (!e.total) return;
+                        const overall = ((i + e.loaded / e.total) / chunks) * 85;
+                        uploadProgress.progress(progressId, overall);
                     }
                 });
             }
+
+            uploadProgress.processing(progressId);
 
             const completeResponse = await apiClient.post('/uploadattachment/complete', {
                 uploadId,
@@ -506,13 +519,13 @@ export default function SiteSettingsView() {
     };
 
     // 上传音频文件
-    const uploadAudioFile = async (file) => {
+    const uploadAudioFile = async (file, progressId) => {
         const FILE_SIZE_THRESHOLD = 10 * 1024 * 1024; // 10MB
 
         if (file.size > FILE_SIZE_THRESHOLD) {
-            return await multipartAudioUpload(file);
+            return await multipartAudioUpload(file, progressId);
         } else {
-            return await normalAudioUpload(file);
+            return await normalAudioUpload(file, progressId);
         }
     };
 
@@ -543,12 +556,16 @@ export default function SiteSettingsView() {
         setUploadQueue(prev => [...prev, ...newItems]);
 
         await Promise.all(newItems.map(async (item) => {
+            const progressId = `music-${item.id}`;
+            uploadProgress.start(progressId, item.file.name, item.file.type);
             try {
-                const url = await uploadAudioFile(item.file);
+                const url = await uploadAudioFile(item.file, progressId);
+                uploadProgress.done(progressId);
                 setUploadQueue(prev => prev.map(q =>
                     q.id === item.id ? { ...q, musicUrl: url, status: 'done' } : q
                 ));
             } catch (err) {
+                uploadProgress.error(progressId, err.message);
                 setUploadQueue(prev => prev.map(q =>
                     q.id === item.id ? { ...q, status: 'error' } : q
                 ));
@@ -698,25 +715,36 @@ export default function SiteSettingsView() {
         const formData = new FormData();
         formData.append('file', file);
 
+        const progressId = `hero-image-${Date.now()}`;
+        uploadProgress.start(progressId, file.name, file.type);
+
         try {
             setUploading(true);
             const response = await apiClient.post('/uploadattachment', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: (e) => {
+                    if (!e.total) return;
+                    uploadProgress.progress(progressId, (e.loaded / e.total) * 85);
+                    if (e.loaded >= e.total) uploadProgress.processing(progressId);
                 }
             });
 
             if (response.data?.fileUrl) {
+                uploadProgress.done(progressId);
                 setFormData(prev => ({
                     ...prev,
                     hero_image: response.data.fileUrl
                 }));
                 showToast('图片上传成功');
             } else {
+                uploadProgress.error(progressId, response.data?.error || '图片上传失败');
                 showToast(response.data?.error || '图片上传失败', 'error');
             }
         } catch (error) {
             console.error('图片上传失败:', error);
+            uploadProgress.error(progressId, '图片上传时发生错误');
             showToast('图片上传时发生错误', 'error');
         } finally {
             setUploading(false);
@@ -733,25 +761,36 @@ export default function SiteSettingsView() {
         const formData = new FormData();
         formData.append('file', file);
 
+        const progressId = `site-icon-${Date.now()}`;
+        uploadProgress.start(progressId, file.name, file.type);
+
         try {
             setIconUploading(true);
             const response = await apiClient.post('/uploadattachment', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: (e) => {
+                    if (!e.total) return;
+                    uploadProgress.progress(progressId, (e.loaded / e.total) * 85);
+                    if (e.loaded >= e.total) uploadProgress.processing(progressId);
                 }
             });
 
             if (response.data?.fileUrl) {
+                uploadProgress.done(progressId);
                 setFormData(prev => ({
                     ...prev,
                     site_icon: response.data.fileUrl
                 }));
                 showToast('站点图标上传成功');
             } else {
+                uploadProgress.error(progressId, response.data?.error || '站点图标上传失败');
                 showToast(response.data?.error || '站点图标上传失败', 'error');
             }
         } catch (error) {
             console.error('站点图标上传失败:', error);
+            uploadProgress.error(progressId, '站点图标上传时发生错误');
             showToast('站点图标上传时发生错误', 'error');
         } finally {
             setIconUploading(false);

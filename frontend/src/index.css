@@ -150,6 +150,71 @@
   color: #dbeafe !important;
 }
 
+/* 上传进度面板 */
+.upload-progress-panel {
+  animation: upload-progress-slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.upload-progress-panel-out {
+  animation: upload-progress-slide-out 0.28s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+}
+.upload-progress-item {
+  animation: upload-progress-item-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.upload-progress-item + .upload-progress-item {
+  border-top: 1px solid #f3f4f6;
+}
+.upload-progress-item-leaving-done {
+  animation: upload-progress-item-out 0.35s ease 1.1s forwards;
+}
+.upload-progress-item-leaving-error {
+  animation: upload-progress-item-out 0.35s ease 3.6s forwards;
+}
+.upload-progress-track {
+  background-color: #f3f4f6;
+}
+.upload-progress-fill-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.upload-progress-fill-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  animation: upload-progress-shimmer 1.2s infinite;
+}
+.upload-progress-processing-text {
+  animation: upload-progress-pulse 1.5s ease-in-out infinite;
+}
+@keyframes upload-progress-slide-in {
+  from { transform: translateX(calc(100% + 48px)); }
+  to { transform: translateX(0); }
+}
+@keyframes upload-progress-slide-out {
+  to { transform: translateX(calc(100% + 48px)); }
+}
+@keyframes upload-progress-item-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes upload-progress-item-out {
+  to { opacity: 0; transform: translateX(24px); }
+}
+@keyframes upload-progress-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@keyframes upload-progress-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.dark .upload-progress-item + .upload-progress-item {
+  border-top-color: #374151;
+}
+.dark .upload-progress-track {
+  background-color: #374151;
+}
+
 /* 暗色模式下输入控件文字颜色 */
 .dark input,
 .dark textarea,

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import apiClient from '../../utils/axios';
 import { getConfig } from '../../utils/config';
 import {showToast} from "../../utils/toastManager.jsx";
+import { uploadProgress } from '../../utils/uploadProgressManager';
 
 export default function ArticleInfoForm({ articleData, initialArticleData, onSave, onCancel, uploading }) {
     const [formData, setFormData] = useState({
@@ -192,6 +193,8 @@ export default function ArticleInfoForm({ articleData, initialArticleData, onSav
         }
 
         setCoverUploading(true);
+        const progressId = `cover-${Date.now()}`;
+        uploadProgress.start(progressId, file.name, file.type);
         try {
             const uploadFormData = new FormData();
             uploadFormData.append('file', file);
@@ -199,15 +202,27 @@ export default function ArticleInfoForm({ articleData, initialArticleData, onSav
             const response = await apiClient.post('/uploadattachment', uploadFormData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: (e) => {
+                    if (!e.total) return;
+                    uploadProgress.progress(progressId, (e.loaded / e.total) * 85);
+                    if (e.loaded >= e.total) uploadProgress.processing(progressId);
                 }
             });
 
+            const coverUrl = response.data?.fileUrl || '';
+            if (coverUrl) {
+                uploadProgress.done(progressId);
+            } else {
+                uploadProgress.error(progressId, '封面上传失败');
+            }
             setFormData(prev => ({
                 ...prev,
-                cover: response.data?.fileUrl || ''
+                cover: coverUrl
             }));
         } catch (error) {
             console.error('封面上传失败:', error);
+            uploadProgress.error(progressId, error.response?.data?.error || error.message);
             showToast('封面上传失败: ' + (error.response?.data?.error || error.message));
         } finally {
             setCoverUploading(false);

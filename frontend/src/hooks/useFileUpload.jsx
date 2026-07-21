@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { showToast } from '../utils/toastManager';
+import { uploadProgress } from '../utils/uploadProgressManager';
 
 const SUPPORTED_FILE_TYPES = {
     image: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp'],
@@ -35,13 +36,20 @@ export function useFileUpload(apiClient, getConfig) {
     const uploadingFiles = useRef(new Set());
     const uploadPositionsRef = useRef(new Map());
 
-    const normalUpload = async (file) => {
+    const normalUpload = async (file, progressId) => {
         const formData = new FormData();
         formData.append('file', file);
 
         try {
             const response = await apiClient.post('/uploadattachment', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
+                headers: { 'Content-Type': 'multipart/form-data' },
+                onUploadProgress: (e) => {
+                    if (!e.total) return;
+                    uploadProgress.progress(progressId, (e.loaded / e.total) * 85);
+                    if (e.loaded >= e.total) {
+                        uploadProgress.processing(progressId);
+                    }
+                }
             });
             return response.data?.fileUrl || response.fileUrl;
         } catch (error) {
@@ -49,7 +57,7 @@ export function useFileUpload(apiClient, getConfig) {
         }
     };
 
-    const multipartUpload = async (file) => {
+    const multipartUpload = async (file, progressId) => {
         const CHUNK_SIZE = 5 * 1024 * 1024;
         const chunks = Math.ceil(file.size / CHUNK_SIZE);
 
@@ -68,9 +76,16 @@ export function useFileUpload(apiClient, getConfig) {
                         'Upload-Id': uploadId,
                         'Chunk-Index': i,
                         'Content-Type': 'application/octet-stream'
+                    },
+                    onUploadProgress: (e) => {
+                        if (!e.total) return;
+                        const overall = ((i + e.loaded / e.total) / chunks) * 85;
+                        uploadProgress.progress(progressId, overall);
                     }
                 });
             }
+
+            uploadProgress.processing(progressId);
 
             const completeResponse = await apiClient.post('/uploadattachment/complete', {
                 uploadId,
@@ -98,12 +113,16 @@ export function useFileUpload(apiClient, getConfig) {
         uploadPositionsRef.current.set(fileKey, insertPosition);
         setUploading(true);
 
+        const progressId = `${fileKey}-${Date.now()}`;
+        uploadProgress.start(progressId, file.name, file.type);
+
         try {
             const fileUrl = file.size > 10 * 1024 * 1024
-                ? await multipartUpload(file)
-                : await normalUpload(file);
+                ? await multipartUpload(file, progressId)
+                : await normalUpload(file, progressId);
 
             if (fileUrl) {
+                uploadProgress.done(progressId);
                 const fullUrl = getConfig().getFullUrl(fileUrl);
                 const mediaType = getMediaType(file.type);
 
@@ -120,8 +139,10 @@ export function useFileUpload(apiClient, getConfig) {
                     position: uploadPositionsRef.current.get(fileKey)
                 };
             }
+            uploadProgress.error(progressId, '上传失败');
             return null;
         } catch (error) {
+            uploadProgress.error(progressId, error.message);
             showToast('文件上传失败: ' + error.message, 'error');
             return null;
         } finally {

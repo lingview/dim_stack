@@ -3,6 +3,7 @@ import apiClient from '../../utils/axios.jsx';
 import { getConfig } from '../../utils/config';
 import ImageCropper from '../ImageCropper.jsx';
 import ApiKeyManager from './ApiKeyManager.jsx';
+import { uploadProgress } from '../../utils/uploadProgressManager';
 
 const getFullImageUrl = (url) => {
     if (!url) return null;
@@ -198,6 +199,9 @@ export default function ProfileView() {
     };
 
     const uploadAvatar = async (file) => {
+        const progressId = `avatar-${Date.now()}`;
+        uploadProgress.start(progressId, file.name, file.type);
+
         try {
             const formData = new FormData();
             formData.append('file', file);
@@ -205,10 +209,16 @@ export default function ProfileView() {
             const response = await apiClient.post('/uploadavatar', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: (e) => {
+                    if (!e.total) return;
+                    uploadProgress.progress(progressId, (e.loaded / e.total) * 85);
+                    if (e.loaded >= e.total) uploadProgress.processing(progressId);
                 }
             });
 
             if (response && response.data?.fileUrl) {
+                uploadProgress.done(progressId);
                 setUser(prev => ({
                     ...prev,
                     avatar: response.data.fileUrl
@@ -218,6 +228,7 @@ export default function ProfileView() {
                 setPreviewAvatar(processedAvatar || '/image_error.svg');
                 showMessage('头像上传成功', 'success');
             } else {
+                uploadProgress.error(progressId, '头像上传失败');
                 showMessage('头像上传失败', 'error');
                 const currentAvatar = user.avatar
                     ? getFullImageUrl(user.avatar)
@@ -226,6 +237,7 @@ export default function ProfileView() {
             }
         } catch (err) {
             console.error('头像上传错误:', err);
+            uploadProgress.error(progressId, err.response?.data?.error || err.message);
             showMessage('头像上传失败: ' + (err.response?.data?.error || err.message), 'error');
             const currentAvatar = user.avatar
                 ? getFullImageUrl(user.avatar)

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import apiClient from '../../utils/axios.jsx';
+import { uploadProgress } from '../../utils/uploadProgressManager';
 
 const getFullImageUrl = (url) => {
     if (!url) return null;
@@ -56,6 +57,9 @@ export default function AvatarUpload({ currentAvatar, onAvatarUpdate }) {
         setUploading(true);
         setError('');
 
+        const progressId = `avatar-${Date.now()}`;
+        uploadProgress.start(progressId, file.name, file.type);
+
         try {
             const formData = new FormData();
             formData.append('file', file);
@@ -63,18 +67,26 @@ export default function AvatarUpload({ currentAvatar, onAvatarUpdate }) {
             const response = await apiClient.post('/uploadavatar', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: (e) => {
+                    if (!e.total) return;
+                    uploadProgress.progress(progressId, (e.loaded / e.total) * 85);
+                    if (e.loaded >= e.total) uploadProgress.processing(progressId);
                 }
             });
 
             if (response && response.data?.fileUrl) {
+                uploadProgress.done(progressId);
                 const fullUrl = getFullImageUrl(response.data.fileUrl);
                 onAvatarUpdate(fullUrl);
                 setPreview(fullUrl);
             } else {
+                uploadProgress.error(progressId, '头像上传失败');
                 setError('头像上传失败');
             }
         } catch (err) {
             console.error('头像上传错误:', err);
+            uploadProgress.error(progressId, err.response?.data?.error || err.message);
             setError('头像上传失败: ' + (err.response?.data?.error || err.message));
         } finally {
             setUploading(false);
