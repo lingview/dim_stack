@@ -21,4 +21,11 @@ public interface FileStorage {
     void copy(String sourceKey, String destKey);
 
     String getType();
+
+    default boolean supportsPresignedUrl() {
+        return false;
+    }
+
+    default void close() {
+    }
 }

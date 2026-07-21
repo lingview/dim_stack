@@ -11,7 +11,7 @@
  Target Server Version : 80405 (8.4.5)
  File Encoding         : 65001
 
- Date: 20/07/2026 13:05:11
+ Date: 22/07/2026 01:05:56
 */
 
 SET NAMES utf8mb4;
@@ -199,6 +199,7 @@ CREATE TABLE `attachment`  (
                                `attachment_path` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '附件路径',
                                `access_key` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '文件访问键',
                                `storage_id` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '存储方式UUID',
+                               `content_type` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '文件MIME类型',
                                `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间',
                                `deleted_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
                                `status` tinyint NOT NULL COMMENT '附件状态：0=软删除, 1=正常, 2=物理文件已删除',
@@ -751,7 +752,7 @@ CREATE TABLE `storage_migration_failed_item`  (
                                                   PRIMARY KEY (`id`) USING BTREE,
                                                   INDEX `idx_migration_id`(`migration_id` ASC) USING BTREE,
                                                   CONSTRAINT `fk_migration_item` FOREIGN KEY (`migration_id`) REFERENCES `storage_migration_log` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COMMENT = '迁移失败明细' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COMMENT = '迁移失败明细' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of storage_migration_failed_item
@@ -775,7 +776,7 @@ CREATE TABLE `storage_migration_log`  (
                                           INDEX `idx_source`(`source_storage_id` ASC) USING BTREE,
                                           INDEX `idx_target`(`target_storage_id` ASC) USING BTREE,
                                           INDEX `idx_created_at`(`created_at` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COMMENT = '存储迁移记录' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COMMENT = '存储迁移记录' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of storage_migration_log

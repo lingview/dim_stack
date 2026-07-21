@@ -37,7 +37,7 @@ public class StorageFacadeServiceImpl implements StorageFacadeService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final Map<String, S3FileStorageImpl> s3StorageCache = new ConcurrentHashMap<>();
+    private final Map<String, FileStorage> storageCache = new ConcurrentHashMap<>();
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
@@ -67,14 +67,14 @@ public class StorageFacadeServiceImpl implements StorageFacadeService {
             return localFileStorage;
         }
 
-        S3FileStorageImpl cached = s3StorageCache.get(storageId);
+        FileStorage cached = storageCache.get(storageId);
         if (cached != null) {
             return cached;
         }
 
-        // 缓存未命中，同步初始化（防止并发重复创建桶）
+        // 缓存未命中，同步初始化（防止并发重复创建）
         synchronized (this) {
-            cached = s3StorageCache.get(storageId);
+            cached = storageCache.get(storageId);
             if (cached != null) {
                 return cached;
             }
@@ -87,12 +87,15 @@ public class StorageFacadeServiceImpl implements StorageFacadeService {
                 throw new RuntimeException("存储方式已禁用: " + method.getName());
             }
 
-            if ("local".equals(method.getType())) {
+            String type = method.getType();
+            if ("local".equals(type)) {
                 return localFileStorage;
             }
 
-            S3FileStorageImpl newStorage = (S3FileStorageImpl) initS3Storage(method);
-            s3StorageCache.put(storageId, newStorage);
+            FileStorage newStorage = "webdav".equals(type)
+                    ? initWebDavStorage(method)
+                    : initS3Storage(method);
+            storageCache.put(storageId, newStorage);
             return newStorage;
         }
     }
@@ -111,7 +114,6 @@ public class StorageFacadeServiceImpl implements StorageFacadeService {
             boolean pathStyleAccess = config.get("pathStyleAccess") != null && (boolean) config.get("pathStyleAccess");
 
             S3FileStorageImpl newStorage = new S3FileStorageImpl(endpoint, region, bucket, accessKey, secretKey, pathStyleAccess);
-            s3StorageCache.put(uuid, newStorage);
             log.info("S3存储初始化完成: {} ({})", method.getName(), uuid);
 
             return newStorage;
@@ -121,18 +123,39 @@ public class StorageFacadeServiceImpl implements StorageFacadeService {
         }
     }
 
+    private FileStorage initWebDavStorage(StorageMethod method) {
+        String uuid = method.getUuid();
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> config = objectMapper.readValue(method.getConfig(), Map.class);
+
+            String url = (String) config.get("url");
+            String username = (String) config.get("username");
+            String password = (String) config.get("password");
+            String pathPrefix = (String) config.get("pathPrefix");
+
+            WebDavFileStorageImpl newStorage = new WebDavFileStorageImpl(url, username, password, pathPrefix);
+            log.info("WebDAV存储初始化完成: {} ({})", method.getName(), uuid);
+
+            return newStorage;
+        } catch (Exception e) {
+            log.error("初始化WebDAV存储失败: {}", uuid, e);
+            throw new RuntimeException("WebDAV存储初始化失败: " + method.getName(), e);
+        }
+    }
+
     public void invalidateCache(String uuid) {
-        S3FileStorageImpl removed = s3StorageCache.remove(uuid);
+        FileStorage removed = storageCache.remove(uuid);
         if (removed != null) {
-            removed.shutdown();
-            log.debug("S3存储缓存已清除: {}", uuid);
+            removed.close();
+            log.debug("存储缓存已清除: {}", uuid);
         }
     }
 
     @PreDestroy
     public void shutdown() {
-        s3StorageCache.values().forEach(S3FileStorageImpl::shutdown);
-        s3StorageCache.clear();
-        log.info("所有S3存储连接已关闭");
+        storageCache.values().forEach(FileStorage::close);
+        storageCache.clear();
+        log.info("所有外置存储连接已关闭");
     }
 }

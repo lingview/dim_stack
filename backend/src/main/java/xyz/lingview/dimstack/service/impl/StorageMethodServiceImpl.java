@@ -36,6 +36,8 @@ public class StorageMethodServiceImpl implements StorageMethodService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private static final List<String> SENSITIVE_KEYS = List.of("accessKey", "secretKey", "password");
+
     @Override
     public List<StorageMethod> list() {
         List<StorageMethod> list = storageMethodMapper.selectAll();
@@ -45,8 +47,11 @@ public class StorageMethodServiceImpl implements StorageMethodService {
                 try {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> config = objectMapper.readValue(method.getConfig(), Map.class);
-                    config.put("accessKey", "");
-                    config.put("secretKey", "");
+                    for (String key : SENSITIVE_KEYS) {
+                        if (config.containsKey(key)) {
+                            config.put(key, "");
+                        }
+                    }
                     method.setConfig(objectMapper.writeValueAsString(config));
                 } catch (Exception e) {
                     method.setConfig(null);
@@ -93,14 +98,12 @@ public class StorageMethodServiceImpl implements StorageMethodService {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> oldConfig = objectMapper.readValue(existing.getConfig(), Map.class);
 
-                String newAccessKey = (String) newConfig.get("accessKey");
-                String newSecretKey = (String) newConfig.get("secretKey");
-
-                if (newAccessKey == null || newAccessKey.isEmpty()) {
-                    newConfig.put("accessKey", oldConfig.get("accessKey"));
-                }
-                if (newSecretKey == null || newSecretKey.isEmpty()) {
-                    newConfig.put("secretKey", oldConfig.get("secretKey"));
+                for (String key : SENSITIVE_KEYS) {
+                    Object newValue = newConfig.get(key);
+                    boolean isEmpty = newValue == null || (newValue instanceof String s && s.isEmpty());
+                    if (isEmpty && oldConfig.containsKey(key)) {
+                        newConfig.put(key, oldConfig.get(key));
+                    }
                 }
 
                 storageMethod.setConfig(objectMapper.writeValueAsString(newConfig));

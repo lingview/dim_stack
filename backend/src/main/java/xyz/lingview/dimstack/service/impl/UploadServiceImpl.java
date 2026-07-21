@@ -311,6 +311,7 @@ public class UploadServiceImpl implements UploadService {
         uploadFile.setAttachment_path(databasePath);
         uploadFile.setAccess_key(accessKey);
         uploadFile.setStorage_id(storageId);
+        uploadFile.setContent_type(contentType);
         int insertResult = uploadMapper.insertUploadAttachment(uploadFile);
         if (insertResult != 1) {
             log.error("插入附件记录到数据库失败。文件: {}", fileName);
@@ -550,17 +551,21 @@ public class UploadServiceImpl implements UploadService {
             return Map.of("error", "默认存储方式不可用，请检查存储配置");
         }
 
-        try (InputStream fileIn = Files.newInputStream(finalFilePath, StandardOpenOption.READ)) {
-            storage.store(objectKey, fileIn, Files.size(finalFilePath), detectedMimeType);
-            log.info("分片合并文件已上传到存储。Key: {}", objectKey);
-        } catch (Exception e) {
-            log.error("分片合并文件上传到存储失败: {}", objectKey, e);
-            return Map.of("error", "保存文件到存储失败");
-        } finally {
-            try {
-                Files.deleteIfExists(finalFilePath);
-            } catch (IOException e) {
-                log.warn("清理本地临时文件失败: {}", finalFilePath, e);
+        if (storage instanceof LocalFileStorageImpl) {
+            log.info("本地存储合并完成，文件路径: {}", finalFilePath);
+        } else {
+            try (InputStream fileIn = Files.newInputStream(finalFilePath, StandardOpenOption.READ)) {
+                storage.store(objectKey, fileIn, Files.size(finalFilePath), detectedMimeType);
+                log.info("分片合并文件已上传到存储。Key: {}", objectKey);
+            } catch (Exception e) {
+                log.error("分片合并文件上传到存储失败: {}", objectKey, e);
+                return Map.of("error", "保存文件到存储失败");
+            } finally {
+                try {
+                    Files.deleteIfExists(finalFilePath);
+                } catch (IOException e) {
+                    log.warn("清理本地临时文件失败: {}", finalFilePath, e);
+                }
             }
         }
 
@@ -573,6 +578,7 @@ public class UploadServiceImpl implements UploadService {
         uploadFile.setAttachment_path(databasePath);
         uploadFile.setAccess_key(accessKey);
         uploadFile.setStorage_id(storageId);
+        uploadFile.setContent_type(detectedMimeType);
 
         int insertResult = uploadMapper.insertUploadAttachment(uploadFile);
         if (insertResult != 1) {
@@ -797,6 +803,7 @@ public class UploadServiceImpl implements UploadService {
             uploadFile.setAttachment_path(buildDatabasePath(username, "avatar", fileName));
             uploadFile.setAccess_key(accessKey);
             uploadFile.setStorage_id(storageId);
+            uploadFile.setContent_type(contentType);
 
             uploadMapper.insertUploadAttachment(uploadFile);
         } catch (Exception e) {
@@ -930,6 +937,7 @@ public class UploadServiceImpl implements UploadService {
             uploadFile.setAttachment_path(buildDatabasePath(targetUsername, "avatar", fileName));
             uploadFile.setAccess_key(accessKey);
             uploadFile.setStorage_id(storageId);
+            uploadFile.setContent_type(contentType);
 
             uploadMapper.insertUploadAttachment(uploadFile);
         } catch (Exception e) {
@@ -1179,7 +1187,8 @@ public class UploadServiceImpl implements UploadService {
             uploadFile.setAttachment_path(buildDatabasePath(username, "attachment", subFolder, fileName));
             uploadFile.setAccess_key(accessKey);
             uploadFile.setStorage_id(storageId);
-            
+            uploadFile.setContent_type(mimeType);
+
             int insertResult = uploadMapper.insertUploadAttachment(uploadFile);
             if (insertResult != 1) {
                 log.error("插入附件记录到数据库失败。文件: {}", fileName);

@@ -4,18 +4,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import xyz.lingview.dimstack.domain.StorageMethod;
 import xyz.lingview.dimstack.domain.UploadAttachment;
-import xyz.lingview.dimstack.mapper.StorageMethodMapper;
 import xyz.lingview.dimstack.service.FileAccessService;
 import xyz.lingview.dimstack.service.FileStorage;
 import xyz.lingview.dimstack.service.ImageCompressionService;
 import xyz.lingview.dimstack.service.SiteConfigService;
 import xyz.lingview.dimstack.service.StorageFacadeService;
 import xyz.lingview.dimstack.service.UploadService;
+import xyz.lingview.dimstack.util.MimeTypeUtil;
 
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.file.Files;
@@ -34,9 +35,6 @@ public class FileAccessServiceImpl implements FileAccessService {
 
     @Autowired
     private SiteConfigService siteConfigService;
-
-    @Autowired
-    private StorageMethodMapper storageMethodMapper;
 
     @Autowired
     private StorageFacadeService storageFacadeService;
@@ -58,7 +56,7 @@ public class FileAccessServiceImpl implements FileAccessService {
             if (storage instanceof LocalFileStorageImpl) {
                 return handleLocalStorage(attachment, download);
             }
-            return handleExternalStorage(attachment, download);
+            return handleExternalStorage(attachment, download, storage);
         } catch (Exception e) {
             log.warn("存储方式不可用，文件无法访问: {}", e.getMessage());
             return new FileAccessResult(null, null, null, false, null);
@@ -83,17 +81,14 @@ public class FileAccessServiceImpl implements FileAccessService {
         return new FileAccessResult(resource, contentType, disposition, true, null);
     }
 
-    private FileAccessResult handleExternalStorage(UploadAttachment attachment, boolean download) {
-        StorageMethod method = storageMethodMapper.selectByUuid(attachment.getStorage_id());
-        if (method == null || method.getStatus() == 0) {
-            log.warn("存储方式不可用，回退到本地存储: {}", attachment.getStorage_id());
-            return handleLocalStorage(attachment, download);
+    private FileAccessResult handleExternalStorage(UploadAttachment attachment, boolean download, FileStorage storage) {
+        if (storage.supportsPresignedUrl()) {
+            return handleS3Storage(attachment, download);
         }
+        return handleStreamingStorage(attachment, download);
+    }
 
-        if (!"s3".equals(method.getType()) && !"oss".equals(method.getType()) && !"cos".equals(method.getType())) {
-            return handleLocalStorage(attachment, download);
-        }
-
+    private FileAccessResult handleS3Storage(UploadAttachment attachment, boolean download) {
         try {
             String objectKey = attachment.getAttachment_path();
             S3FileStorageImpl s3Storage = (S3FileStorageImpl) storageFacadeService.getStorage(attachment.getStorage_id());
@@ -112,6 +107,37 @@ public class FileAccessServiceImpl implements FileAccessService {
             log.error("生成Presigned URL失败，回退到本地存储: {}", attachment.getAttachment_id(), e);
             return handleLocalStorage(attachment, download);
         }
+    }
+
+    private FileAccessResult handleStreamingStorage(UploadAttachment attachment, boolean download) {
+        try {
+            FileStorage storage = storageFacadeService.getStorage(attachment.getStorage_id());
+            String objectKey = attachment.getAttachment_path();
+            InputStream data = storage.retrieve(objectKey);
+            String contentType = resolveContentType(attachment);
+            String filename = Path.of(objectKey).getFileName().toString();
+            String disposition = buildDisposition(filename, download);
+            Resource resource = new InputStreamResource(data);
+            return new FileAccessResult(resource, contentType, disposition, true, null);
+        } catch (Exception e) {
+            log.error("流式读取文件失败: {}", attachment.getAttachment_id(), e);
+            return new FileAccessResult(null, null, null, false, null);
+        }
+    }
+
+    private String resolveContentType(UploadAttachment attachment) {
+        if (attachment.getContent_type() != null && !attachment.getContent_type().isEmpty()) {
+            return attachment.getContent_type();
+        }
+        String filename = attachment.getOriginal_filename();
+        if (filename == null || filename.isEmpty()) {
+            filename = attachment.getAttachment_path();
+        }
+        if (filename != null && filename.contains(".")) {
+            String extension = filename.substring(filename.lastIndexOf("."));
+            return MimeTypeUtil.getByExtension(extension);
+        }
+        return "application/octet-stream";
     }
 
     private String detectContentType(Path filePath) {

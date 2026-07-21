@@ -140,6 +140,11 @@ public class S3FileStorageImpl implements FileStorage {
         return "s3";
     }
 
+    @Override
+    public boolean supportsPresignedUrl() {
+        return true;
+    }
+
     /**
      * 生成预签名URL（用于文件访问）
      */
@@ -161,5 +166,10 @@ public class S3FileStorageImpl implements FileStorage {
     public void shutdown() {
         s3Client.close();
         s3Presigner.close();
+    }
+
+    @Override
+    public void close() {
+        shutdown();
     }
 }

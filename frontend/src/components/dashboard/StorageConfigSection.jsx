@@ -4,9 +4,10 @@ import { showToast } from '../../utils/toastManager';
 
 const STORAGE_TYPE_OPTIONS = [
     { value: 's3', label: '对象存储' },
+    { value: 'webdav', label: 'WebDAV' },
 ];
 
-const EMPTY_CONFIG = {
+const EMPTY_S3_CONFIG = {
     endpoint: '',
     region: '',
     bucket: '',
@@ -14,6 +15,15 @@ const EMPTY_CONFIG = {
     secretKey: '',
     pathStyleAccess: false,
 };
+
+const EMPTY_WEBDAV_CONFIG = {
+    url: '',
+    username: '',
+    password: '',
+    pathPrefix: '',
+};
+
+const emptyConfigFor = (type) => (type === 'webdav' ? { ...EMPTY_WEBDAV_CONFIG } : { ...EMPTY_S3_CONFIG });
 
 export default function StorageConfigSection() {
     const [storageMethods, setStorageMethods] = useState([]);
@@ -24,7 +34,7 @@ export default function StorageConfigSection() {
     const [form, setForm] = useState({
         name: '',
         type: 's3',
-        config: { ...EMPTY_CONFIG },
+        config: emptyConfigFor('s3'),
     });
 
     const fetchStorageMethods = useCallback(async () => {
@@ -60,22 +70,23 @@ export default function StorageConfigSection() {
     }, [fetchStorageMethods, fetchDefaultStorage]);
 
     const handleOpenAdd = () => {
-        setForm({ name: '', type: 's3', config: { ...EMPTY_CONFIG } });
+        setForm({ name: '', type: 's3', config: emptyConfigFor('s3') });
         setModal({ show: true, editing: null });
     };
 
     const handleOpenEdit = (method) => {
-        let config = { ...EMPTY_CONFIG };
+        let config = emptyConfigFor(method.type);
         if (method.config) {
             try {
                 const parsed = JSON.parse(method.config);
                 config = { ...config, ...parsed };
-                config.accessKey = '';
-                config.secretKey = '';
             } catch (e) {
                 console.error('解析配置失败:', e);
             }
         }
+        ['accessKey', 'secretKey', 'password'].forEach(k => {
+            if (k in config) config[k] = '';
+        });
         setForm({ name: method.name, type: method.type, config });
         setModal({ show: true, editing: method.uuid });
     };
@@ -96,7 +107,16 @@ export default function StorageConfigSection() {
             showToast('请输入存储方式名称', 'error');
             return;
         }
-        if (!form.config.endpoint || !form.config.region || !form.config.bucket) {
+        if (form.type === 'webdav') {
+            if (!form.config.url || !form.config.username) {
+                showToast('请填写WebDAV地址和用户名', 'error');
+                return;
+            }
+            if (!modal.editing && !form.config.password) {
+                showToast('请填写WebDAV密码', 'error');
+                return;
+            }
+        } else if (!form.config.endpoint || !form.config.region || !form.config.bucket) {
             showToast('请填写完整的S3配置信息', 'error');
             return;
         }
@@ -198,7 +218,9 @@ export default function StorageConfigSection() {
     };
 
     const getTypeLabel = (type) => {
-        return type === 'local' ? '本地存储' : '对象存储';
+        if (type === 'local') return '本地存储';
+        if (type === 'webdav') return 'WebDAV';
+        return '对象存储';
     };
 
     if (loading) {
@@ -251,6 +273,12 @@ export default function StorageConfigSection() {
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                                             </svg>
                                         </div>
+                                    ) : method.type === 'webdav' ? (
+                                        <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
+                                            <svg className="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
                                     ) : (
                                         <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                                             <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -275,6 +303,9 @@ export default function StorageConfigSection() {
                                             {(() => {
                                                 try {
                                                     const c = JSON.parse(method.config);
+                                                    if (method.type === 'webdav') {
+                                                        return c.pathPrefix ? `${c.url} / ${c.pathPrefix}` : c.url;
+                                                    }
                                                     return `${c.endpoint} / ${c.bucket}`;
                                                 } catch (e) {
                                                     return '';
@@ -377,7 +408,10 @@ export default function StorageConfigSection() {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">类型</label>
                                 <select
                                     value={form.type}
-                                    onChange={(e) => setForm(prev => ({ ...prev, type: e.target.value }))}
+                                    onChange={(e) => {
+                                        const newType = e.target.value;
+                                        setForm(prev => ({ ...prev, type: newType, config: emptyConfigFor(newType) }));
+                                    }}
                                     disabled={modal.editing}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                 >
@@ -387,6 +421,8 @@ export default function StorageConfigSection() {
                                 </select>
                             </div>
 
+                            {form.type !== 'webdav' ? (
+                            <>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">端点</label>
                                 <input
@@ -458,6 +494,60 @@ export default function StorageConfigSection() {
                                 />
                                 <label htmlFor="pathStyleAccess" className="text-sm text-gray-700">Path Style Access（MinIO 需要开启）</label>
                             </div>
+                            </>
+                            ) : (
+                            <>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">WebDAV 地址</label>
+                                <input
+                                    type="text"
+                                    value={form.config.url}
+                                    onChange={(e) => handleConfigChange('url', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
+                                    placeholder="https://cloud.example.com/remote.php/dav/files/user"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">用户名</label>
+                                <input
+                                    type="text"
+                                    value={form.config.username}
+                                    onChange={(e) => handleConfigChange('username', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
+                                    placeholder={modal.editing ? '留空则不修改' : ''}
+                                />
+                                {modal.editing && (
+                                    <p className="text-xs text-gray-400 mt-1">留空则保留原有值</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">密码</label>
+                                <input
+                                    type="password"
+                                    value={form.config.password}
+                                    onChange={(e) => handleConfigChange('password', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
+                                    placeholder={modal.editing ? '留空则不修改' : ''}
+                                />
+                                {modal.editing && (
+                                    <p className="text-xs text-gray-400 mt-1">留空则保留原有值</p>
+                                )}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">根路径前缀（可选）</label>
+                                <input
+                                    type="text"
+                                    value={form.config.pathPrefix}
+                                    onChange={(e) => handleConfigChange('pathPrefix', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
+                                    placeholder="留空使用根目录"
+                                />
+                            </div>
+                            </>
+                            )}
                         </div>
 
                         <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200">
