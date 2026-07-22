@@ -20,7 +20,6 @@ const EMPTY_WEBDAV_CONFIG = {
     url: '',
     username: '',
     password: '',
-    pathPrefix: '',
 };
 
 const emptyConfigFor = (type) => (type === 'webdav' ? { ...EMPTY_WEBDAV_CONFIG } : { ...EMPTY_S3_CONFIG });
@@ -304,7 +303,7 @@ export default function StorageConfigSection() {
                                                 try {
                                                     const c = JSON.parse(method.config);
                                                     if (method.type === 'webdav') {
-                                                        return c.pathPrefix ? `${c.url} / ${c.pathPrefix}` : c.url;
+                                                        return c.url;
                                                     }
                                                     return `${c.endpoint} / ${c.bucket}`;
                                                 } catch (e) {
@@ -534,17 +533,6 @@ export default function StorageConfigSection() {
                                 {modal.editing && (
                                     <p className="text-xs text-gray-400 mt-1">留空则保留原有值</p>
                                 )}
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">根路径前缀（可选）</label>
-                                <input
-                                    type="text"
-                                    value={form.config.pathPrefix}
-                                    onChange={(e) => handleConfigChange('pathPrefix', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
-                                    placeholder="留空使用根目录"
-                                />
                             </div>
                             </>
                             )}

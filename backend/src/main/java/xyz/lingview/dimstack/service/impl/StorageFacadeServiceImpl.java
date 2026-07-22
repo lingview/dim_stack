@@ -132,9 +132,8 @@ public class StorageFacadeServiceImpl implements StorageFacadeService {
             String url = (String) config.get("url");
             String username = (String) config.get("username");
             String password = (String) config.get("password");
-            String pathPrefix = (String) config.get("pathPrefix");
 
-            WebDavFileStorageImpl newStorage = new WebDavFileStorageImpl(url, username, password, pathPrefix);
+            WebDavFileStorageImpl newStorage = new WebDavFileStorageImpl(url, username, password);
             log.info("WebDAV存储初始化完成: {} ({})", method.getName(), uuid);
 
             return newStorage;

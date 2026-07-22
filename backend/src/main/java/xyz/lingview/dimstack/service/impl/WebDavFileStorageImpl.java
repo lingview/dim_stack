@@ -26,11 +26,9 @@ public class WebDavFileStorageImpl implements FileStorage {
 
     private final RestClient restClient;
     private final String baseUrl;
-    private final String pathPrefix;
 
-    public WebDavFileStorageImpl(String url, String username, String password, String pathPrefix) {
+    public WebDavFileStorageImpl(String url, String username, String password) {
         this.baseUrl = stripTrailingSlash(url);
-        this.pathPrefix = normalizePrefix(pathPrefix);
         this.restClient = RestClient.builder()
                 .requestFactory(new JdkClientHttpRequestFactory())
                 .defaultHeader(HttpHeaders.AUTHORIZATION, basicAuth(username, password))
@@ -181,8 +179,7 @@ public class WebDavFileStorageImpl implements FileStorage {
 
 
     private void ensureParentCollections(String objectKey) {
-        String combined = pathPrefix.isEmpty() ? objectKey : pathPrefix + "/" + objectKey;
-        String[] segments = combined.split("/");
+        String[] segments = objectKey.split("/");
         StringBuilder path = new StringBuilder();
         for (int i = 0; i < segments.length - 1; i++) {
             if (segments[i].isEmpty()) {
@@ -212,8 +209,7 @@ public class WebDavFileStorageImpl implements FileStorage {
     }
 
     private String resolveUrl(String objectKey) {
-        String combined = pathPrefix.isEmpty() ? objectKey : pathPrefix + "/" + objectKey;
-        return baseUrl + "/" + encodePath(combined);
+        return baseUrl + "/" + encodePath(objectKey);
     }
 
     private String encodePath(String path) {
@@ -231,20 +227,6 @@ public class WebDavFileStorageImpl implements FileStorage {
             result = result.substring(0, result.length() - 1);
         }
         return result;
-    }
-
-    private static String normalizePrefix(String prefix) {
-        if (prefix == null || prefix.trim().isEmpty()) {
-            return "";
-        }
-        String p = prefix.trim();
-        while (p.startsWith("/")) {
-            p = p.substring(1);
-        }
-        while (p.endsWith("/")) {
-            p = p.substring(0, p.length() - 1);
-        }
-        return p;
     }
 
     private static String basicAuth(String username, String password) {
