@@ -27,6 +27,7 @@ const GlobalAttachmentsManager = () => {
     const [migrateLogDetail, setMigrateLogDetail] = useState(null);
     const [migrateTab, setMigrateTab] = useState('migrate');
     const [loadingLogs, setLoadingLogs] = useState(false);
+    const [retryingFromHistory, setRetryingFromHistory] = useState(false);
 
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [allStorageMethods, setAllStorageMethods] = useState([]);
@@ -264,6 +265,34 @@ const GlobalAttachmentsManager = () => {
             showToast('重试迁移时发生错误', 'error');
         } finally {
             setMigrating(false);
+        }
+    };
+
+    const handleRetryFromHistory = async () => {
+        if (!migrateLogDetail || !migrateLogDetail.failedItems || migrateLogDetail.failedItems.length === 0) return;
+        setRetryingFromHistory(true);
+        try {
+            const response = await apiClient.post('/attachments/admin/migrate-storage/retry', {
+                sourceStorageId: migrateLogDetail.source_storage_id,
+                targetStorageId: migrateLogDetail.target_storage_id,
+                attachmentIds: migrateLogDetail.failedItems.map(item => item.attachment_id)
+            });
+            if (response.code === 200) {
+                if (response.data.failed === 0) {
+                    showToast(`重试完成，成功 ${response.data.success} 个`);
+                } else {
+                    showToast(`重试完成，成功 ${response.data.success} 个，仍有 ${response.data.failed} 个失败`, 'error');
+                }
+                fetchMigrateLogs();
+                setMigrateLogDetail(null);
+            } else {
+                showToast(response.message || '重试失败', 'error');
+            }
+        } catch (error) {
+            console.error('重试迁移失败:', error);
+            showToast('重试迁移时发生错误', 'error');
+        } finally {
+            setRetryingFromHistory(false);
         }
     };
 
@@ -999,6 +1028,15 @@ const GlobalAttachmentsManager = () => {
                                                         <div key={idx} className="text-xs text-red-600 bg-red-50 rounded px-2 py-1">{item.file_path} — {item.error_msg}</div>
                                                     ))}
                                                 </div>
+                                            )}
+                                            {migrateLogDetail.failedItems && migrateLogDetail.failedItems.length > 0 && (
+                                                <button
+                                                    onClick={handleRetryFromHistory}
+                                                    disabled={retryingFromHistory}
+                                                    className="w-full mt-3 px-3 py-1.5 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md hover:bg-orange-700 disabled:opacity-50"
+                                                >
+                                                    {retryingFromHistory ? '重试中...' : `重试失败项 (${migrateLogDetail.failedItems.length})`}
+                                                </button>
                                             )}
                                         </div>
                                     </div>

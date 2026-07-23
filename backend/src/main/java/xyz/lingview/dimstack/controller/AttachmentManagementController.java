@@ -332,6 +332,9 @@ public class AttachmentManagementController {
         }
 
         Map<String, Object> result = attachmentManagementService.migrateStorage(sourceStorageId, targetStorageId);
+        if (result.containsKey("error")) {
+            return ApiResponse.error(400, (String) result.get("error"));
+        }
         return ApiResponse.success(result);
     }
 
@@ -351,6 +354,9 @@ public class AttachmentManagementController {
         }
 
         Map<String, Object> result = attachmentManagementService.retryMigrateStorage(sourceStorageId, targetStorageId, attachmentIds);
+        if (result.containsKey("error")) {
+            return ApiResponse.error(400, (String) result.get("error"));
+        }
         return ApiResponse.success(result);
     }
 

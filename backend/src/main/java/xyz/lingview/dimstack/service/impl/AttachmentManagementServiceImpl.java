@@ -472,6 +472,15 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
         int success = 0;
         List<Map<String, String>> failedItems = new java.util.ArrayList<>();
 
+        FileStorage sourceStorage;
+        FileStorage targetStorage;
+        try {
+            sourceStorage = storageFacadeService.getStorage(sourceStorageId);
+            targetStorage = storageFacadeService.getStorage(targetStorageId);
+        } catch (Exception e) {
+            return Map.of("error", "存储方式不可用: " + e.getMessage());
+        }
+
         // 创建迁移记录
         StorageMigrationLog migrationLog = new StorageMigrationLog();
         migrationLog.setSource_storage_id(sourceStorageId);
@@ -481,25 +490,14 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
         storageMigrationLogMapper.insertLog(migrationLog);
         int logId = migrationLog.getId();
 
-        FileStorage sourceStorage;
-        FileStorage targetStorage;
-        try {
-            sourceStorage = storageFacadeService.getStorage(sourceStorageId);
-            targetStorage = storageFacadeService.getStorage(targetStorageId);
-        } catch (Exception e) {
-            migrationLog.setStatus(2);
-            storageMigrationLogMapper.updateLog(migrationLog);
-            return Map.of("total", total, "success", 0, "failed", total,
-                    "failedItems", List.of(Map.of("error", "存储方式不可用: " + e.getMessage())));
-        }
-
         for (AttachmentManagement attachment : attachments) {
             String filePath = attachment.getAttachment_path();
             try {
                 if (!sourceStorage.exists(filePath)) {
-                    log.info("源文件不存在，跳过文件操作: {}", filePath);
-                    attachmentManagementMapper.updateStorageId(attachment.getAttachment_id(), targetStorageId);
-                    success++;
+                    failedItems.add(Map.of(
+                        "attachmentId", attachment.getAttachment_id(),
+                        "filePath", filePath,
+                        "error", "源文件不存在，无法迁移"));
                     continue;
                 }
 
