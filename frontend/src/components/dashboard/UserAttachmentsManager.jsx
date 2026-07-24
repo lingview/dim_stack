@@ -13,6 +13,8 @@ const UserAttachmentsManager = () => {
     const [totalPages, setTotalPages] = useState(0);
     const [jumpPage, setJumpPage] = useState('');
     const [viewMode, setViewMode] = useState('normal');
+    const [previewImage, setPreviewImage] = useState(null);
+    const [previewVideo, setPreviewVideo] = useState(null);
 
     useEffect(() => {
         fetchUserAttachments();
@@ -193,7 +195,8 @@ const UserAttachmentsManager = () => {
         switch (fileType) {
             case 'image':
                 return (
-                    <div className={`w-32 h-32 flex items-center justify-center bg-gray-100 rounded ${opacityClass}`}>
+                    <div className={`w-32 h-32 flex items-center justify-center bg-gray-100 rounded cursor-pointer ${opacityClass}`}
+                         onClick={() => setPreviewImage({ url: fileUrl, name: FilePath })}>
                         <img
                             src={fileUrl}
                             alt={FilePath}
@@ -219,11 +222,19 @@ const UserAttachmentsManager = () => {
 
             case 'video':
                 return (
-                    <div className={`w-64 ${opacityClass}`}>
+                    <div className={`w-64 relative cursor-pointer ${opacityClass}`}
+                         onClick={() => setPreviewVideo({ url: fileUrl, name: FilePath })}>
                         <video controls className="w-full max-h-48" preload="metadata">
                             <source src={fileUrl} />
                             您的浏览器不支持视频播放
                         </video>
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-12 h-12 bg-black/50 rounded-full flex items-center justify-center">
+                                <svg className="w-6 h-6 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 );
 
@@ -546,6 +557,39 @@ const UserAttachmentsManager = () => {
                     </>
                 )}
             </div>
+
+            {previewImage && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+                     onClick={() => setPreviewImage(null)}>
+                    <button onClick={() => setPreviewImage(null)}
+                            className="absolute top-4 right-4 text-white/80 hover:text-white z-10">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <img src={previewImage.url}
+                         alt={previewImage.name}
+                         className="max-w-[90vw] max-h-[90vh] object-contain rounded"
+                         onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
+
+            {previewVideo && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+                     onClick={() => setPreviewVideo(null)}>
+                    <button onClick={() => setPreviewVideo(null)}
+                            className="absolute top-4 right-4 text-white/80 hover:text-white z-10">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <video controls autoPlay className="max-w-[90vw] max-h-[90vh] rounded"
+                           onClick={(e) => e.stopPropagation()}>
+                        <source src={previewVideo.url} />
+                    </video>
+                </div>
+            )}
         </div>
     );
 };

@@ -30,6 +30,11 @@ const GlobalAttachmentsManager = () => {
     const [retryingFromHistory, setRetryingFromHistory] = useState(false);
 
     const [selectedIds, setSelectedIds] = useState(new Set());
+    const [previewImage, setPreviewImage] = useState(null);
+    const [previewVideo, setPreviewVideo] = useState(null);
+    const [switchingId, setSwitchingId] = useState(null);
+    const [switchPos, setSwitchPos] = useState({ x: 0, y: 0 });
+    const [switchLoading, setSwitchLoading] = useState(new Set());
     const [allStorageMethods, setAllStorageMethods] = useState([]);
 
     useEffect(() => {
@@ -40,6 +45,18 @@ const GlobalAttachmentsManager = () => {
     useEffect(() => {
         fetchAttachments();
     }, [currentPage, viewMode, selectedUser]);
+
+    useEffect(() => {
+        if (switchingId) {
+            const handler = (e) => {
+                if (!e.target.closest('[data-switch-dropdown]') && !e.target.closest('[data-switch-menu]')) {
+                    setSwitchingId(null);
+                }
+            };
+            document.addEventListener('click', handler);
+            return () => document.removeEventListener('click', handler);
+        }
+    }, [switchingId]);
 
     const fetchUsers = async () => {
         setUserLoading(true);
@@ -386,6 +403,34 @@ const GlobalAttachmentsManager = () => {
         setSelectedIds(newSelected);
     };
 
+    const handleSwitchStorage = async (attachmentId, targetStorageId) => {
+        setSwitchingId(null);
+        setSwitchLoading(prev => new Set(prev).add(attachmentId));
+        try {
+            const response = await apiClient.post('/attachments/admin/switch-storage', {
+                attachmentId,
+                targetStorageId
+            });
+            if (response.code === 200) {
+                showToast('存储切换成功');
+                setAttachments(prev => prev.map(a =>
+                    a.attachment_id === attachmentId ? { ...a, storage_id: targetStorageId } : a
+                ));
+            } else {
+                showToast('切换失败: ' + (response.message || ''), 'error');
+            }
+        } catch (error) {
+            console.error('切换存储失败:', error);
+            showToast('切换失败', 'error');
+        } finally {
+            setSwitchLoading(prev => {
+                const next = new Set(prev);
+                next.delete(attachmentId);
+                return next;
+            });
+        }
+    };
+
     const handleUserChange = (userUuid) => {
         setSelectedUser(userUuid);
         setCurrentPage(1);
@@ -488,7 +533,8 @@ const GlobalAttachmentsManager = () => {
         switch (fileType) {
             case 'image':
                 return (
-                    <div className={`w-32 h-32 flex items-center justify-center bg-gray-100 rounded ${opacityClass}`}>
+                    <div className={`w-32 h-32 flex items-center justify-center bg-gray-100 rounded cursor-pointer ${opacityClass}`}
+                         onClick={() => setPreviewImage({ url: fileUrl, name: FilePath })}>
                         <img
                             src={fileUrl}
                             alt={FilePath}
@@ -514,11 +560,19 @@ const GlobalAttachmentsManager = () => {
 
             case 'video':
                 return (
-                    <div className={`w-64 ${opacityClass}`}>
+                    <div className={`w-64 relative cursor-pointer ${opacityClass}`}
+                         onClick={() => setPreviewVideo({ url: fileUrl, name: FilePath })}>
                         <video controls className="w-full max-h-48" preload="metadata">
                             <source src={fileUrl} />
                             您的浏览器不支持视频播放
                         </video>
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-12 h-12 bg-black/50 rounded-full flex items-center justify-center">
+                                <svg className="w-6 h-6 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
                 );
 
@@ -753,10 +807,44 @@ const GlobalAttachmentsManager = () => {
                                         <td className="px-6 py-4 text-sm text-gray-500" title={attachment.attachment_path}>
                                             {truncateText(attachment.attachment_path)}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {(() => {
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm relative" data-switch-dropdown>
+                                            {switchLoading.has(attachment.attachment_id) ? (
+                                                <div className="flex items-center gap-2 text-gray-500">
+                                                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                                    <span className="text-xs">切换中...</span>
+                                                </div>
+                                            ) : (() => {
                                                 const s = allStorageMethods.find(m => m.uuid === attachment.storage_id);
-                                                return s ? s.name : '未知';
+                                                const name = s ? s.name : '未知';
+                                                return (
+                                                    <>
+                                                        <button onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSwitchPos({ x: e.clientX, y: e.clientY });
+                                                                setSwitchingId(switchingId === attachment.attachment_id ? null : attachment.attachment_id);
+                                                            }}
+                                                                className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
+                                                            {name}
+                                                        </button>
+                                                        {switchingId === attachment.attachment_id && (
+                                                            <div className="fixed z-50 bg-white border border-gray-200 rounded-md shadow-lg min-w-[160px]"
+                                                                 data-switch-menu
+                                                                 style={{ left: switchPos.x, top: switchPos.y }}>
+                                                                {allStorageMethods.filter(m => m.uuid !== attachment.storage_id).length > 0 ? (
+                                                                    allStorageMethods.filter(m => m.uuid !== attachment.storage_id).map(m => (
+                                                                        <button key={m.uuid}
+                                                                                onClick={() => handleSwitchStorage(attachment.attachment_id, m.uuid)}
+                                                                                className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 whitespace-nowrap">
+                                                                            {m.name}
+                                                                        </button>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className="px-3 py-2 text-sm text-gray-400">无可切换的存储方式</div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                );
                                             })()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -1081,6 +1169,39 @@ const GlobalAttachmentsManager = () => {
                         </div>
                     </div>
                 </>
+            )}
+
+            {previewImage && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+                     onClick={() => setPreviewImage(null)}>
+                    <button onClick={() => setPreviewImage(null)}
+                            className="absolute top-4 right-4 text-white/80 hover:text-white z-10">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <img src={previewImage.url}
+                         alt={previewImage.name}
+                         className="max-w-[90vw] max-h-[90vh] object-contain rounded"
+                         onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
+
+            {previewVideo && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+                     onClick={() => setPreviewVideo(null)}>
+                    <button onClick={() => setPreviewVideo(null)}
+                            className="absolute top-4 right-4 text-white/80 hover:text-white z-10">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    <video controls autoPlay className="max-w-[90vw] max-h-[90vh] rounded"
+                           onClick={(e) => e.stopPropagation()}>
+                        <source src={previewVideo.url} />
+                    </video>
+                </div>
             )}
         </div>
     );

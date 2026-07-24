@@ -16,6 +16,7 @@ import xyz.lingview.dimstack.service.AttachmentManagementService;
 import xyz.lingview.dimstack.service.FileStorage;
 import xyz.lingview.dimstack.service.StorageFacadeService;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -456,6 +457,56 @@ public class AttachmentManagementServiceImpl implements AttachmentManagementServ
     public Map<String, Object> migrateStorage(String sourceStorageId, String targetStorageId) {
         List<AttachmentManagement> attachments = attachmentManagementMapper.selectByStorageId(sourceStorageId);
         return doMigrate(attachments, sourceStorageId, targetStorageId);
+    }
+
+    @Override
+    public Map<String, Object> switchAttachmentStorage(String attachmentId, String targetStorageId) {
+        AttachmentManagement attachment = attachmentManagementMapper.selectByAttachmentId(attachmentId);
+        if (attachment == null) {
+            return Map.of("error", "附件不存在");
+        }
+        String sourceStorageId = attachment.getStorage_id();
+        if (targetStorageId.equals(sourceStorageId)) {
+            return Map.of("error", "目标存储与当前存储相同");
+        }
+
+        FileStorage sourceStorage;
+        FileStorage targetStorage;
+        try {
+            sourceStorage = storageFacadeService.getStorage(sourceStorageId);
+            targetStorage = storageFacadeService.getStorage(targetStorageId);
+        } catch (Exception e) {
+            return Map.of("error", "存储方式不可用: " + e.getMessage());
+        }
+
+        String filePath = attachment.getAttachment_path();
+        try {
+            if (!sourceStorage.exists(filePath)) {
+                return Map.of("error", "源文件不存在，无法迁移");
+            }
+
+            byte[] fileData;
+            try (InputStream in = sourceStorage.retrieve(filePath)) {
+                fileData = in.readAllBytes();
+            }
+
+            try (InputStream in = new ByteArrayInputStream(fileData)) {
+                targetStorage.store(filePath, in, fileData.length, null);
+            }
+
+            try {
+                sourceStorage.delete(filePath);
+            } catch (Exception e) {
+                log.warn("切换后删除源文件失败（不影响切换结果）: {}", filePath);
+            }
+
+            attachmentManagementMapper.updateStorageId(attachment.getAttachment_id(), targetStorageId);
+            log.info("附件存储切换成功: {} -> {}", filePath, targetStorageId);
+            return Map.of("success", true, "filePath", filePath);
+        } catch (Exception e) {
+            log.error("附件存储切换失败: {}, 错误: {}", filePath, e.getMessage());
+            return Map.of("error", "迁移失败: " + (e.getMessage() != null ? e.getMessage() : "未知错误"));
+        }
     }
 
     @Override

@@ -338,6 +338,23 @@ public class AttachmentManagementController {
         return ApiResponse.success(result);
     }
 
+    @PostMapping("/admin/switch-storage")
+    @RequiresPermission({"system:attachment:management"})
+    public ApiResponse<Map<String, Object>> switchAttachmentStorage(@RequestBody Map<String, String> payload) {
+        String attachmentId = payload.get("attachmentId");
+        String targetStorageId = payload.get("targetStorageId");
+
+        if (attachmentId == null || targetStorageId == null) {
+            return ApiResponse.error(400, "参数不完整");
+        }
+
+        Map<String, Object> result = attachmentManagementService.switchAttachmentStorage(attachmentId, targetStorageId);
+        if (result.containsKey("error")) {
+            return ApiResponse.error(400, (String) result.get("error"));
+        }
+        return ApiResponse.success(result);
+    }
+
     @PostMapping("/admin/migrate-storage/retry")
     @RequiresPermission({"system:attachment:management"})
     public ApiResponse<Map<String, Object>> retryMigrateStorage(@RequestBody Map<String, Object> payload) {

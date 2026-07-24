@@ -48,6 +48,8 @@ public interface AttachmentManagementService {
 
     Map<String, Object> migrateStorage(String sourceStorageId, String targetStorageId);
 
+    Map<String, Object> switchAttachmentStorage(String attachmentId, String targetStorageId);
+
     Map<String, Object> retryMigrateStorage(String sourceStorageId, String targetStorageId, List<String> attachmentIds);
 
     List<StorageMigrationLog> getMigrateLogs();
