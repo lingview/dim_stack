@@ -1,6 +1,7 @@
-backend/target/
-backend/docs/
-backend/src/main/resources/static/
+backend/dimstack-app/target/
+backend/dimstack-app/docs/
+backend/dimstack-app/src/main/resources/static/
+backend/dimstack-plugin-api/target/
 dimstack_expansion_server/target/
 dimstack_expansion_server/docs/
 frontend/node_modules/

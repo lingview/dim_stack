@@ -92,7 +92,7 @@ if ! $SKIP_FRONTEND; then
     cd ..
 
     echo "复制前端构建产物到后端..."
-    BACKEND_STATIC="backend/src/main/resources/static"
+    BACKEND_STATIC="backend/dimstack-app/src/main/resources/static"
     mkdir -p "$BACKEND_STATIC"
     rm -rf "${BACKEND_STATIC:?}"/*
     cp -r frontend/dist/* "$BACKEND_STATIC"/
@@ -105,7 +105,7 @@ fi
 
 if ! $SKIP_BACKEND; then
     echo "清理旧后端构建产物..."
-    rm -rf backend/target
+    rm -rf backend/dimstack-app/target
 
     echo "构建后端 (Maven)..."
     cd backend
@@ -113,12 +113,12 @@ if ! $SKIP_BACKEND; then
     cd ..
 
     echo "移动 JAR 包到当前目录..."
-    JAR_COUNT=$(ls backend/target/*.jar 2>/dev/null | wc -l)
+    JAR_COUNT=$(ls backend/dimstack-app/target/*.jar 2>/dev/null | wc -l)
     if [ "$JAR_COUNT" -eq 0 ]; then
-        echo "未在 backend/target/ 中找到 JAR 文件"
+        echo "未在 backend/dimstack-app/target/ 中找到 JAR 文件"
         exit 1
     fi
-    mv backend/target/*.jar ./
+    mv backend/dimstack-app/target/*.jar ./
     echo "JAR 已移至项目根目录"
 
     if $SKIP_FRONTEND; then
