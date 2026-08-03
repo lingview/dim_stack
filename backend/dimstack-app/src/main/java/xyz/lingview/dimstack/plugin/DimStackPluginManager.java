@@ -1,5 +1,6 @@
 package xyz.lingview.dimstack.plugin;
 
+import lombok.extern.slf4j.Slf4j;
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginDescriptorFinder;
 import org.pf4j.PluginFactory;
@@ -15,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Description: 插件管理器
  * @Version: 1.0
  */
+@Slf4j
 public class DimStackPluginManager extends DefaultPluginManager {
 
     private final PluginApplicationContextFactory contextFactory;
@@ -85,5 +87,22 @@ public class DimStackPluginManager extends DefaultPluginManager {
     public void cleanupPlugin(String pluginId) {
         removePluginContext(pluginId);
         removeManifest(pluginId);
+    }
+
+    public void unloadAndClose(String pluginId) {
+        ClassLoader classLoader = getPluginClassLoader(pluginId);
+        log.info("卸载插件前获取类加载器: {} -> {}", pluginId, classLoader);
+        unloadPlugin(pluginId);
+        cleanupPlugin(pluginId);
+        if (classLoader instanceof AutoCloseable closeable) {
+            try {
+                closeable.close();
+                log.info("插件类加载器已关闭: {}", pluginId);
+            } catch (Exception e) {
+                log.warn("关闭插件类加载器失败: {}", pluginId, e);
+            }
+        } else {
+            log.warn("插件类加载器不是 AutoCloseable: {}", classLoader);
+        }
     }
 }

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="xyz.lingview.dimstack.mapper.PluginMapper">
+
+    <select id="selectAll" resultType="xyz.lingview.dimstack.domain.PluginInfo">
+        SELECT * FROM plugin ORDER BY id DESC
+    </select>
+
+    <select id="selectByName" resultType="xyz.lingview.dimstack.domain.PluginInfo">
+        SELECT * FROM plugin WHERE name = #{name}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO plugin (name, version, display_name, description, author, requires,
+                            jar_file, enabled, setting_name, config_map_name)
+        VALUES (#{name}, #{version}, #{display_name}, #{description}, #{author}, #{requires},
+                #{jar_file}, #{enabled}, #{setting_name}, #{config_map_name})
+    </insert>
+
+    <update id="updateEnabled">
+        UPDATE plugin SET enabled = #{enabled} WHERE name = #{name}
+    </update>
+
+    <update id="updateInfo">
+        UPDATE plugin
+        SET version = #{version},
+            jar_file = #{jar_file},
+            display_name = #{display_name},
+            description = #{description},
+            author = #{author},
+            requires = #{requires},
+            setting_name = #{setting_name},
+            config_map_name = #{config_map_name}
+        WHERE name = #{name}
+    </update>
+
+    <delete id="deleteByName">
+        DELETE FROM plugin WHERE name = #{name}
+    </delete>
+
+</mapper>
