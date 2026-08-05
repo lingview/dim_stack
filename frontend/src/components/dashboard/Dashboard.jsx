@@ -30,6 +30,7 @@ const UserAttachmentsManager = lazy(() => import('./UserAttachmentsManager'));
 const RoleManager = lazy(() => import('./RoleManager'));
 const AnnouncementManager = lazy(() => import('./AnnouncementManager'));
 const CommentsReview = lazy(() => import('./CommentsReview'));
+const PluginManager = lazy(() => import('./PluginManager'));
 
 const FadeIn = ({ children, duration = 200 }) => {
     const [isVisible, setIsVisible] = useState(false);
@@ -537,6 +538,14 @@ export default function Dashboard() {
                             <Suspense fallback={<SimpleLoading />}>
                                 <FadeIn>
                                     <RoleManager />
+                                </FadeIn>
+                            </Suspense>
+                        )}
+
+                        {activeTab === 'plugins' && (
+                            <Suspense fallback={<SimpleLoading />}>
+                                <FadeIn>
+                                    <PluginManager />
                                 </FadeIn>
                             </Suspense>
                         )}
