@@ -1,7 +1,6 @@
 package xyz.lingview.dimstack.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.pf4j.PluginManager;
 import org.pf4j.PluginRuntimeException;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
@@ -10,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import xyz.lingview.dimstack.domain.PluginInfo;
 import xyz.lingview.dimstack.mapper.PluginMapper;
 import xyz.lingview.dimstack.plugin.DimStackPluginManager;
+import xyz.lingview.dimstack.plugin.PluginExtensionLoader;
 import xyz.lingview.dimstack.plugin.PluginManifest;
 import xyz.lingview.dimstack.plugin.YamlPluginDescriptorFinder;
 import xyz.lingview.dimstack.service.PluginService;
@@ -33,15 +33,18 @@ public class PluginServiceImpl implements PluginService {
     private final DimStackPluginManager pluginManager;
     private final PluginMapper pluginMapper;
     private final YamlPluginDescriptorFinder descriptorFinder;
+    private final PluginExtensionLoader extensionLoader;
 
     private final Path pluginDir = Path.of(System.getProperty("user.dir"), "plugins");
 
     public PluginServiceImpl(DimStackPluginManager pluginManager,
                              PluginMapper pluginMapper,
-                             YamlPluginDescriptorFinder descriptorFinder) {
+                             YamlPluginDescriptorFinder descriptorFinder,
+                             PluginExtensionLoader extensionLoader) {
         this.pluginManager = pluginManager;
         this.pluginMapper = pluginMapper;
         this.descriptorFinder = descriptorFinder;
+        this.extensionLoader = extensionLoader;
     }
 
     @Override
@@ -122,6 +125,11 @@ public class PluginServiceImpl implements PluginService {
         PluginState state = pluginManager.startPlugin(name);
         if (state == PluginState.STARTED) {
             pluginMapper.updateEnabled(name, true);
+
+            PluginWrapper started = pluginManager.getPlugin(name);
+            if (started != null) {
+                extensionLoader.loadPluginExtensions(name, started);
+            }
             log.info("插件已启用: {}", name);
             return true;
         }
@@ -179,6 +187,8 @@ public class PluginServiceImpl implements PluginService {
             }
         }
         pluginMapper.deleteByName(name);
+
+        extensionLoader.cleanupPluginExtensions(name);
         log.info("插件已卸载: {}", name);
         return true;
     }
@@ -265,6 +275,42 @@ public class PluginServiceImpl implements PluginService {
             return true;
         } catch (Exception e) {
             throw new PluginRuntimeException("插件重载失败: " + name, e);
+        }
+    }
+
+    @Override
+    public void syncLoadedPlugins() {
+        List<PluginWrapper> wrappers = pluginManager.getPlugins();
+        int synced = 0;
+        for (PluginWrapper wrapper : wrappers) {
+            String name = wrapper.getPluginId();
+            if (pluginMapper.selectByName(name) == null) {
+                PluginManifest manifest = pluginManager.getManifest(name);
+                PluginInfo info = new PluginInfo();
+                info.setName(name);
+                info.setVersion(wrapper.getDescriptor().getVersion());
+                info.setDisplay_name(manifest != null ? manifest.getDisplayName() : name);
+                info.setDescription(manifest != null ? manifest.getDescription() : null);
+                info.setAuthor(manifest != null ? manifest.getAuthor() : null);
+                info.setRequires(wrapper.getDescriptor().getRequires());
+                info.setJar_file(wrapper.getPluginPath() != null ? wrapper.getPluginPath().getFileName().toString() : name + ".jar");
+                info.setEnabled(wrapper.getPluginState() == PluginState.STARTED);
+                info.setSetting_name(manifest != null ? manifest.getSettingName() : null);
+                info.setConfig_map_name(manifest != null ? manifest.getConfigMapName() : null);
+                try {
+                    pluginMapper.insert(info);
+                    synced++;
+                } catch (Exception e) {
+                    log.warn("同步插件记录失败: {}", name, e);
+                }
+            }
+
+            if (wrapper.getPluginState() == PluginState.STARTED) {
+                extensionLoader.loadPluginExtensions(name, wrapper);
+            }
+        }
+        if (synced > 0) {
+            log.info("插件启动同步完成: 补录 {} 个插件", synced);
         }
     }
 

@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.HandlerMapping;
 import xyz.lingview.dimstack.plugin.api.SettingFetcher;
+import xyz.lingview.dimstack.service.PluginService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -71,6 +72,8 @@ public class PluginAutoConfiguration implements SmartInitializingSingleton {
     public void afterSingletonsInstantiated() {
         DimStackPluginManager manager = applicationContext.getBean(DimStackPluginManager.class);
         manager.startPlugins();
+
+        applicationContext.getBean(PluginService.class).syncLoadedPlugins();
 
     }
 }

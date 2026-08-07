@@ -26,4 +26,6 @@ public interface PluginService {
     PluginInfo upgrade(String name, MultipartFile file);
 
     boolean reload(String name);
+
+    void syncLoadedPlugins();
 }
