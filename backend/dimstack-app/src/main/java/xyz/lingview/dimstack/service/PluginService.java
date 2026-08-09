@@ -4,6 +4,7 @@ import org.springframework.web.multipart.MultipartFile;
 import xyz.lingview.dimstack.domain.PluginInfo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author: lingview
@@ -28,4 +29,8 @@ public interface PluginService {
     boolean reload(String name);
 
     void syncLoadedPlugins();
+
+    Map<String, Object> getConfig(String name);
+
+    boolean saveConfig(String name, Map<String, Object> config);
 }

@@ -6,7 +6,10 @@ import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.yaml.snakeyaml.Yaml;
+import tools.jackson.databind.ObjectMapper;
 import xyz.lingview.dimstack.domain.PluginInfo;
+import xyz.lingview.dimstack.mapper.PluginConfigMapper;
 import xyz.lingview.dimstack.mapper.PluginMapper;
 import xyz.lingview.dimstack.plugin.DimStackPluginManager;
 import xyz.lingview.dimstack.plugin.PluginExtensionLoader;
@@ -15,10 +18,13 @@ import xyz.lingview.dimstack.plugin.YamlPluginDescriptorFinder;
 import xyz.lingview.dimstack.service.PluginService;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author: lingview
@@ -30,21 +36,27 @@ import java.util.List;
 @Service
 public class PluginServiceImpl implements PluginService {
 
+    private static final String CONFIG_KEY = "config";
+
     private final DimStackPluginManager pluginManager;
     private final PluginMapper pluginMapper;
     private final YamlPluginDescriptorFinder descriptorFinder;
     private final PluginExtensionLoader extensionLoader;
+    private final PluginConfigMapper configMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final Path pluginDir = Path.of(System.getProperty("user.dir"), "plugins");
 
     public PluginServiceImpl(DimStackPluginManager pluginManager,
                              PluginMapper pluginMapper,
                              YamlPluginDescriptorFinder descriptorFinder,
-                             PluginExtensionLoader extensionLoader) {
+                             PluginExtensionLoader extensionLoader,
+                             PluginConfigMapper configMapper) {
         this.pluginManager = pluginManager;
         this.pluginMapper = pluginMapper;
         this.descriptorFinder = descriptorFinder;
         this.extensionLoader = extensionLoader;
+        this.configMapper = configMapper;
     }
 
     @Override
@@ -188,6 +200,7 @@ public class PluginServiceImpl implements PluginService {
         }
         pluginMapper.deleteByName(name);
 
+        configMapper.deleteByPluginName(name);
         extensionLoader.cleanupPluginExtensions(name);
         log.info("插件已卸载: {}", name);
         return true;
@@ -312,6 +325,61 @@ public class PluginServiceImpl implements PluginService {
         if (synced > 0) {
             log.info("插件启动同步完成: 补录 {} 个插件", synced);
         }
+    }
+
+    @Override
+    public Map<String, Object> getConfig(String name) {
+        Map<String, Object> config = new HashMap<>();
+
+        PluginWrapper wrapper = pluginManager.getPlugin(name);
+        if (wrapper != null) {
+            try (InputStream in = wrapper.getPluginClassLoader().getResourceAsStream("config.yaml")) {
+                if (in != null) {
+                    Object loaded = new Yaml().load(in);
+                    if (loaded instanceof Map<?, ?> map) {
+                        flatten("", (Map<String, Object>) map, config);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("读取插件默认配置失败: {}", name, e);
+            }
+        }
+
+        String json = configMapper.selectValue(name, CONFIG_KEY);
+        if (json != null && !json.isBlank()) {
+            try {
+                Map<String, Object> userConfig = objectMapper.readValue(json, Map.class);
+                config.putAll(userConfig);
+            } catch (Exception e) {
+                log.warn("读取插件用户配置失败: {}", name, e);
+            }
+        }
+        return config;
+    }
+
+    @Override
+    public boolean saveConfig(String name, Map<String, Object> config) {
+        if (config == null) {
+            throw new PluginRuntimeException("配置内容为空");
+        }
+        try {
+            String json = objectMapper.writeValueAsString(config);
+            return configMapper.upsert(name, CONFIG_KEY, json) > 0;
+        } catch (Exception e) {
+            throw new PluginRuntimeException("插件配置保存失败: " + e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void flatten(String prefix, Map<String, Object> source, Map<String, Object> target) {
+        source.forEach((key, value) -> {
+            String fullKey = prefix.isEmpty() ? key : prefix + "." + key;
+            if (value instanceof Map<?, ?> nested) {
+                flatten(fullKey, (Map<String, Object>) nested, target);
+            } else {
+                target.put(fullKey, value);
+            }
+        });
     }
 
     private void validateJar(MultipartFile file) {

@@ -6,11 +6,13 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
+import org.yaml.snakeyaml.Yaml;
 import xyz.lingview.dimstack.plugin.api.ExtensionGetter;
 import xyz.lingview.dimstack.plugin.api.PluginContext;
 import xyz.lingview.dimstack.plugin.api.SettingFetcher;
@@ -18,7 +20,10 @@ import xyz.lingview.dimstack.service.CacheService;
 import xyz.lingview.dimstack.service.SiteConfigService;
 import xyz.lingview.dimstack.service.StorageFacadeService;
 
+import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -66,7 +71,9 @@ public class DefaultPluginApplicationContextFactory implements PluginApplication
                 manifest != null ? manifest.getConfigMapName() : null,
                 PluginContext.RuntimeMode.DEPLOYMENT);
         context.registerBean(PluginContext.class, () -> pluginContext);
-        context.registerBean(SettingFetcher.class, () -> settingFetcher);
+
+        context.registerBean(SettingFetcher.class, () -> new BoundSettingFetcher(wrapper.getPluginId(), settingFetcher));
+        registerConfigYaml(context, wrapper);
 
         registerComponents(context, wrapper, manifest);
 
@@ -141,6 +148,43 @@ public class DefaultPluginApplicationContextFactory implements PluginApplication
             }
         }
         log.info("插件 {} 注册组件 {} 个", wrapper.getPluginId(), candidates.size());
+    }
+
+    private void registerConfigYaml(AnnotationConfigApplicationContext context, PluginWrapper wrapper) {
+        try (InputStream in = wrapper.getPluginClassLoader().getResourceAsStream("config.yaml")) {
+            if (in == null) {
+                return;
+            }
+            Object loaded = new Yaml().load(in);
+            if (!(loaded instanceof Map<?, ?> map) || map.isEmpty()) {
+                return;
+            }
+            Map<String, Object> flat = new HashMap<>();
+            flatten("", (Map<String, Object>) map, flat);
+            context.getEnvironment().getPropertySources().addLast(
+                    new MapPropertySource("plugin-config-" + wrapper.getPluginId(), flat));
+        } catch (Exception e) {
+            log.warn("插件默认配置加载失败: {}", wrapper.getPluginId(), e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void flatten(String prefix, Map<String, Object> source, Map<String, Object> target) {
+        source.forEach((key, value) -> {
+            String fullKey = prefix.isEmpty() ? key : prefix + "." + key;
+            if (value instanceof Map<?, ?> nested) {
+                flatten(fullKey, (Map<String, Object>) nested, target);
+            } else {
+                target.put(fullKey, value);
+            }
+        });
+    }
+
+    private record BoundSettingFetcher(String pluginId, SettingFetcher delegate) implements SettingFetcher {
+        @Override
+        public <T> T fetch(String configMapName, String key, Class<T> clazz) {
+            return delegate.fetch(pluginId, key, clazz);
+        }
     }
 
     private record SharedBean(Class<?> type, java.util.function.Function<ApplicationContext, Object> resolver) {

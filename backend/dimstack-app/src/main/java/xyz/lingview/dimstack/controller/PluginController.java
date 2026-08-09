@@ -10,6 +10,7 @@ import xyz.lingview.dimstack.domain.PluginInfo;
 import xyz.lingview.dimstack.service.PluginService;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author: lingview
@@ -104,6 +105,29 @@ public class PluginController {
         } catch (Exception e) {
             log.error("重载插件失败: {}", name, e);
             return ApiResponse.error(500, "重载插件失败: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/{name}/config")
+    @RequiresPermission("plugin:management")
+    public ApiResponse<Map<String, Object>> getConfig(@PathVariable String name) {
+        try {
+            return ApiResponse.success(pluginService.getConfig(name));
+        } catch (Exception e) {
+            log.error("读取插件配置失败: {}", name, e);
+            return ApiResponse.error(500, "读取插件配置失败: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/{name}/config")
+    @RequiresPermission("plugin:management")
+    public ApiResponse<Void> saveConfig(@PathVariable String name, @RequestBody Map<String, Object> config) {
+        try {
+            pluginService.saveConfig(name, config);
+            return ApiResponse.success("插件配置已保存");
+        } catch (Exception e) {
+            log.error("保存插件配置失败: {}", name, e);
+            return ApiResponse.error(500, "保存插件配置失败: " + e.getMessage());
         }
     }
 }
