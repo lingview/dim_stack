@@ -14,9 +14,9 @@
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO plugin (name, version, display_name, description, author, requires,
-                            jar_file, enabled, setting_name, config_map_name)
+                            jar_file, sha256, enabled, setting_name, config_map_name)
         VALUES (#{name}, #{version}, #{display_name}, #{description}, #{author}, #{requires},
-                #{jar_file}, #{enabled}, #{setting_name}, #{config_map_name})
+                #{jar_file}, #{sha256}, #{enabled}, #{setting_name}, #{config_map_name})
     </insert>
 
     <update id="updateEnabled">
@@ -27,6 +27,7 @@
         UPDATE plugin
         SET version = #{version},
             jar_file = #{jar_file},
+            sha256 = #{sha256},
             display_name = #{display_name},
             description = #{description},
             author = #{author},

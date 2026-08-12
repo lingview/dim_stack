@@ -18,6 +18,8 @@ public interface PluginService {
 
     PluginInfo install(MultipartFile file);
 
+    PluginInfo installFromUri(String url);
+
     boolean start(String name);
 
     boolean stop(String name);

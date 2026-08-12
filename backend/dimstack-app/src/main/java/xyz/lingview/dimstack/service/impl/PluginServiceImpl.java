@@ -12,6 +12,7 @@ import xyz.lingview.dimstack.domain.PluginInfo;
 import xyz.lingview.dimstack.mapper.PluginConfigMapper;
 import xyz.lingview.dimstack.mapper.PluginMapper;
 import xyz.lingview.dimstack.plugin.DimStackPluginManager;
+import xyz.lingview.dimstack.plugin.PluginAuditLogger;
 import xyz.lingview.dimstack.plugin.PluginExtensionLoader;
 import xyz.lingview.dimstack.plugin.PluginManifest;
 import xyz.lingview.dimstack.plugin.YamlPluginDescriptorFinder;
@@ -19,12 +20,21 @@ import xyz.lingview.dimstack.service.PluginService;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * @Author: lingview
@@ -37,12 +47,14 @@ import java.util.Map;
 public class PluginServiceImpl implements PluginService {
 
     private static final String CONFIG_KEY = "config";
+    private static final long MAX_PLUGIN_SIZE = 50L * 1024 * 1024;
 
     private final DimStackPluginManager pluginManager;
     private final PluginMapper pluginMapper;
     private final YamlPluginDescriptorFinder descriptorFinder;
     private final PluginExtensionLoader extensionLoader;
     private final PluginConfigMapper configMapper;
+    private final PluginAuditLogger auditLogger;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final Path pluginDir = Path.of(System.getProperty("user.dir"), "plugins");
@@ -51,12 +63,14 @@ public class PluginServiceImpl implements PluginService {
                              PluginMapper pluginMapper,
                              YamlPluginDescriptorFinder descriptorFinder,
                              PluginExtensionLoader extensionLoader,
-                             PluginConfigMapper configMapper) {
+                             PluginConfigMapper configMapper,
+                             PluginAuditLogger auditLogger) {
         this.pluginManager = pluginManager;
         this.pluginMapper = pluginMapper;
         this.descriptorFinder = descriptorFinder;
         this.extensionLoader = extensionLoader;
         this.configMapper = configMapper;
+        this.auditLogger = auditLogger;
     }
 
     @Override
@@ -83,29 +97,7 @@ public class PluginServiceImpl implements PluginService {
         try {
             temp = Files.createTempFile("plugin-upload-", ".jar");
             file.transferTo(temp.toFile());
-            PluginManifest manifest = parseManifest(temp);
-            if (pluginMapper.selectByName(manifest.getId()) != null) {
-                throw new PluginRuntimeException("插件已存在: " + manifest.getId());
-            }
-            String fileName = manifest.getId() + "-" + manifest.getVersion() + ".jar";
-            Path dest = pluginDir.resolve(fileName);
-            Files.copy(temp, dest, StandardCopyOption.REPLACE_EXISTING);
-
-            PluginInfo info = new PluginInfo();
-            info.setName(manifest.getId());
-            info.setVersion(manifest.getVersion());
-            info.setDisplay_name(manifest.getDisplayName());
-            info.setDescription(manifest.getDescription());
-            info.setAuthor(manifest.getAuthor());
-            info.setRequires(manifest.getRequires());
-            info.setJar_file(fileName);
-            info.setEnabled(false);
-            info.setSetting_name(manifest.getSettingName());
-            info.setConfig_map_name(manifest.getConfigMapName());
-            pluginMapper.insert(info);
-            info.setState(PluginState.UNLOADED.name());
-            log.info("插件安装成功: {}@{}", info.getName(), info.getVersion());
-            return info;
+            return installJar(temp, "本地上传");
         } catch (PluginRuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -117,6 +109,72 @@ public class PluginServiceImpl implements PluginService {
                 } catch (IOException ignored) {
                 }
             }
+        }
+    }
+
+    @Override
+    public PluginInfo installFromUri(String url) {
+        validateDownloadUrl(url);
+        Path temp = null;
+        try {
+            temp = Files.createTempFile("plugin-uri-", ".jar");
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setConnectTimeout(10_000);
+            connection.setReadTimeout(60_000);
+            connection.setInstanceFollowRedirects(true);
+            try (InputStream in = connection.getInputStream();
+                 java.io.OutputStream out = Files.newOutputStream(temp)) {
+                in.transferTo(out);
+            }
+            return installJar(temp, "URL 安装: " + url);
+        } catch (PluginRuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new PluginRuntimeException("插件下载或安装失败: " + e.getMessage(), e);
+        } finally {
+            if (temp != null) {
+                try {
+                    Files.deleteIfExists(temp);
+                } catch (IOException ignored) {
+                }
+            }
+        }
+    }
+
+    private PluginInfo installJar(Path jar, String source) {
+        try {
+            validateJarPath(jar);
+            PluginManifest manifest = parseManifest(jar);
+            if (pluginMapper.selectByName(manifest.getId()) != null) {
+                throw new PluginRuntimeException("插件已存在: " + manifest.getId());
+            }
+            String fileName = manifest.getId() + "-" + manifest.getVersion() + ".jar";
+            Path dest = pluginDir.resolve(fileName);
+            Files.copy(jar, dest, StandardCopyOption.REPLACE_EXISTING);
+
+            PluginInfo info = new PluginInfo();
+            info.setName(manifest.getId());
+            info.setVersion(manifest.getVersion());
+            info.setDisplay_name(manifest.getDisplayName());
+            info.setDescription(manifest.getDescription());
+            info.setAuthor(manifest.getAuthor());
+            info.setRequires(manifest.getRequires());
+            info.setJar_file(fileName);
+            info.setSha256(sha256Hex(jar));
+            info.setEnabled(false);
+            info.setSetting_name(manifest.getSettingName());
+            info.setConfig_map_name(manifest.getConfigMapName());
+            pluginMapper.insert(info);
+            info.setState(PluginState.UNLOADED.name());
+            auditLogger.log("install", info.getName(), info.getVersion(), true, source);
+            log.info("插件安装成功: {}@{} ({})", info.getName(), info.getVersion(), source);
+            return info;
+        } catch (PluginRuntimeException e) {
+            auditLogger.log("install", "?", null, false, e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            auditLogger.log("install", "?", null, false, e.getMessage());
+            throw new PluginRuntimeException("插件安装失败: " + e.getMessage(), e);
         }
     }
 
@@ -202,6 +260,7 @@ public class PluginServiceImpl implements PluginService {
 
         configMapper.deleteByPluginName(name);
         extensionLoader.cleanupPluginExtensions(name);
+        auditLogger.log("uninstall", name, info != null ? info.getVersion() : null, true, "卸载完成");
         log.info("插件已卸载: {}", name);
         return true;
     }
@@ -239,6 +298,7 @@ public class PluginServiceImpl implements PluginService {
 
             info.setVersion(manifest.getVersion());
             info.setJar_file(newFileName);
+            info.setSha256(sha256Hex(temp));
             info.setDisplay_name(manifest.getDisplayName());
             info.setDescription(manifest.getDescription());
             info.setAuthor(manifest.getAuthor());
@@ -251,6 +311,7 @@ public class PluginServiceImpl implements PluginService {
             if (Boolean.TRUE.equals(info.getEnabled())) {
                 pluginManager.startPlugin(name);
             }
+            auditLogger.log("upgrade", name, manifest.getVersion(), true, "升级成功");
             log.info("插件升级成功: {}@{}", name, manifest.getVersion());
             return info;
         } catch (PluginRuntimeException e) {
@@ -390,8 +451,77 @@ public class PluginServiceImpl implements PluginService {
         if (name == null || !name.toLowerCase().endsWith(".jar")) {
             throw new PluginRuntimeException("仅支持 jar 格式的插件文件");
         }
-        if (file.getSize() > 50 * 1024 * 1024) {
+        if (file.getSize() > MAX_PLUGIN_SIZE) {
             throw new PluginRuntimeException("插件文件超过 50MB 限制");
+        }
+    }
+
+    private void validateJarPath(Path path) {
+        try {
+            if (!Files.exists(path) || Files.size(path) == 0) {
+                throw new PluginRuntimeException("插件文件为空");
+            }
+            if (Files.size(path) > MAX_PLUGIN_SIZE) {
+                throw new PluginRuntimeException("插件文件超过 50MB 限制");
+            }
+            try (InputStream in = Files.newInputStream(path)) {
+                byte[] magic = in.readNBytes(4);
+                if (magic.length != 4 || magic[0] != 0x50 || magic[1] != 0x4B
+                        || magic[2] != 0x03 || magic[3] != 0x04) {
+                    throw new PluginRuntimeException("文件不是有效的 jar(zip) 格式");
+                }
+            }
+            try (ZipFile zip = new ZipFile(path.toFile())) {
+                Enumeration<? extends ZipEntry> entries = zip.entries();
+                while (entries.hasMoreElements()) {
+                    String entryName = entries.nextElement().getName();
+                    if (entryName.contains("..") || entryName.startsWith("/") || entryName.contains("\\")) {
+                        throw new PluginRuntimeException("插件包内含非法路径条目: " + entryName);
+                    }
+                }
+            }
+        } catch (PluginRuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new PluginRuntimeException("插件文件校验失败: " + e.getMessage(), e);
+        }
+    }
+
+    private String sha256Hex(Path path) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            try (InputStream in = Files.newInputStream(path)) {
+                byte[] buffer = new byte[8192];
+                int read;
+                while ((read = in.read(buffer)) > 0) {
+                    digest.update(buffer, 0, read);
+                }
+            }
+            return HexFormat.of().formatHex(digest.digest());
+        } catch (Exception e) {
+            throw new PluginRuntimeException("插件完整性校验失败: " + e.getMessage(), e);
+        }
+    }
+
+    private void validateDownloadUrl(String url) {
+        try {
+            URI uri = new URI(url);
+            String scheme = uri.getScheme();
+            if (scheme == null || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
+                throw new PluginRuntimeException("仅支持 http/https 的下载地址");
+            }
+            String host = uri.getHost();
+            if (host == null || host.isBlank()) {
+                throw new PluginRuntimeException("下载地址无效");
+            }
+            InetAddress address = InetAddress.getByName(host);
+            if (address.isLoopbackAddress() || address.isAnyLocalAddress() || address.isSiteLocalAddress()) {
+                throw new PluginRuntimeException("禁止安装来自内网/本机地址的插件");
+            }
+        } catch (PluginRuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new PluginRuntimeException("下载地址解析失败: " + e.getMessage(), e);
         }
     }
 

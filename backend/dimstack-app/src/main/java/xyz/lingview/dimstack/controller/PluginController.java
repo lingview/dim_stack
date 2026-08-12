@@ -48,6 +48,18 @@ public class PluginController {
         }
     }
 
+    @PostMapping("/install-from-uri")
+    @RequiresPermission("plugin:management")
+    public ApiResponse<PluginInfo> installFromUri(@RequestBody Map<String, String> payload) {
+        try {
+            String url = payload.get("url");
+            return ApiResponse.success(pluginService.installFromUri(url));
+        } catch (Exception e) {
+            log.error("URL 安装插件失败", e);
+            return ApiResponse.error(500, "URL 安装插件失败: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/{name}/start")
     @RequiresPermission("plugin:management")
     public ApiResponse<Void> start(@PathVariable String name) {

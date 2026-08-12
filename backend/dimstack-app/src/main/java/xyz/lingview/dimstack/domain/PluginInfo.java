@@ -26,6 +26,8 @@ public class PluginInfo {
 
     private String jar_file;
 
+    private String sha256;
+
     private Boolean enabled;
     private String setting_name;
     private String config_map_name;
