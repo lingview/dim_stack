@@ -33,6 +33,8 @@ export default defineConfig(({ mode }) => {
       minify: 'esbuild',
       chunkSizeWarningLimit: 700,
       rollupOptions: {
+        // 共享依赖 external: 生产构建由 index.html 的 import map 提供, 保证 React 单实例(插件前端模块共享)
+        external: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', 'react-router-dom'],
         output: {
           assetFileNames: 'assets/[name].[hash].[ext]',
           chunkFileNames: 'assets/[name].[hash].js',
@@ -43,7 +45,6 @@ export default defineConfig(({ mode }) => {
             if (id.includes('react-syntax-highlighter') || id.includes('refractor')) return 'syntax-highlight';
             if (id.includes('framer-motion') || id.includes('motion-dom') || id.includes('motion-utils')) return 'animation';
             if (id.includes('docx-preview') || id.includes('jszip')) return 'docx';
-            if (id.includes('react-dom') || id.includes('react-router') || id.includes('/react/') || id.includes('scheduler')) return 'react-vendor';
           },
         },
       },

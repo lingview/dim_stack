@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { getIcon, getIconColor } from '../../utils/IconUtils';
 import { useNavigate } from 'react-router-dom';
 import apiClient from "../../utils/axios.jsx";
+import { ExtensionSlot } from '../ExtensionSlot.jsx';
 
 export default function DashboardView({ stats, quickActions }) {
     const navigate = useNavigate();
@@ -195,6 +196,8 @@ export default function DashboardView({ stats, quickActions }) {
                     ))}
                 </div>
             </div>
+
+            <ExtensionSlot name="dashboard:widgets:create" />
 
             {/* 通知 */}
             <div className="notification-container bg-white rounded-lg shadow-sm border border-gray-200 p-6">

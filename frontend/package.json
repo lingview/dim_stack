@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:vendor": "vite build --config vite.vendor.config.js --mode react && vite build --config vite.vendor.config.js --mode react-dom && vite build --config vite.vendor.config.js --mode react-dom-client && vite build --config vite.vendor.config.js --mode react-jsx-runtime && vite build --config vite.vendor.config.js --mode react-router-dom",
     "lint": "eslint .",
     "preview": "vite preview"
   },

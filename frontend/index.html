@@ -5,6 +5,18 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title></title>
+    <!-- 共享依赖 Import Map: 宿主与插件前端模块共用同一份 React 实例(必须在首个 module script 之前) -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "/vendor/react.js",
+        "react-dom": "/vendor/react-dom.js",
+        "react-dom/client": "/vendor/react-dom-client.js",
+        "react/jsx-runtime": "/vendor/react-jsx-runtime.js",
+        "react-router-dom": "/vendor/react-router-dom.js"
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
