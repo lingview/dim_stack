@@ -1,14 +1,17 @@
 import { Fragment } from 'react'
 import { getExtensionPoints } from '../plugin/ExtensionPointRegistry'
 
-export function ExtensionSlot({ name, ...props }) {
+export function ExtensionSlot({ name, pluginName, ...props }) {
     const items = getExtensionPoints(name)
-    if (items.length === 0) {
+    const visible = pluginName
+        ? items.filter((item) => item.id.startsWith(`${pluginName}:`))
+        : items
+    if (visible.length === 0) {
         return null
     }
     return (
         <Fragment>
-            {items.map((item, index) => (
+            {visible.map((item, index) => (
                 <Fragment key={item.id || index}>{item.fn(props)}</Fragment>
             ))}
         </Fragment>

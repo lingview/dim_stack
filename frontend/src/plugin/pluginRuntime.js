@@ -42,6 +42,23 @@ function createPluginContext(provider) {
         pluginVersion: provider.version,
 
         registerExtensionPoint: (name, fn) => registerExtensionPoint(name, fn, provider.name),
+
+        fetchConfig: async () => {
+            const response = await fetch(`/api/plugins/${provider.name}/config`)
+            const body = await response.json()
+            if (body.code !== 200) throw new Error(body.message || '读取配置失败')
+            return body.data || {}
+        },
+        saveConfig: async (config) => {
+            const response = await fetch(`/api/plugins/${provider.name}/config`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config),
+            })
+            const body = await response.json()
+            if (body.code !== 200) throw new Error(body.message || '保存配置失败')
+            return body
+        },
     }
 }
 
