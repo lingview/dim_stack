@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../../utils/axios.jsx';
 import { showToast } from '../../utils/toastManager.jsx';
+import DataTable from './DataTable';
 import { ExtensionSlot } from '../ExtensionSlot.jsx';
 
 const formatTime = (value) => {
@@ -15,22 +16,16 @@ const formatTime = (value) => {
     }
 };
 
-const stateBadge = (plugin) => {
-    const state = plugin.state || 'UNLOADED';
-    if (state === 'STARTED') {
-        return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">启用</span>;
-    }
-    if (state === 'FAILED') {
-        return (
-            <span
-                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 cursor-help"
-                title={plugin.last_error || '插件启动失败'}
-            >
-                失败
-            </span>
-        );
-    }
-    return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">停用</span>;
+const getStatusText = (state) => {
+    if (state === 'STARTED') return '启用';
+    if (state === 'FAILED') return '失败';
+    return '停用';
+};
+
+const getStatusClass = (state) => {
+    if (state === 'STARTED') return 'bg-green-100 text-green-800';
+    if (state === 'FAILED') return 'bg-red-100 text-red-800';
+    return 'bg-gray-100 text-gray-600';
 };
 
 export default function PluginManager() {
@@ -38,9 +33,10 @@ export default function PluginManager() {
     const [loading, setLoading] = useState(true);
     const [operating, setOperating] = useState('');
     const [settingsPlugin, setSettingsPlugin] = useState(null);
+    const [upgradingPlugin, setUpgradingPlugin] = useState(null);
 
     const installInputRef = useRef(null);
-    const upgradeInputRefs = useRef({});
+    const upgradeInputRef = useRef(null);
 
     useEffect(() => {
         fetchPlugins();
@@ -89,10 +85,12 @@ export default function PluginManager() {
         uploadPlugin(file, '/plugins/install', '插件安装成功');
     };
 
-    const handleUpgrade = (plugin, event) => {
+    const handleUpgrade = (event) => {
         const file = event.target.files && event.target.files[0];
         event.target.value = '';
-        if (!file) return;
+        if (!file || !upgradingPlugin) return;
+        const plugin = upgradingPlugin;
+        setUpgradingPlugin(null);
         uploadPlugin(file, `/plugins/${plugin.name}/upgrade`, '插件升级成功');
     };
 
@@ -137,149 +135,158 @@ export default function PluginManager() {
         }
     };
 
-    return (
-        <div className="mt-8 border-t border-gray-200 pt-6">
-            <div className="flex items-center justify-between mb-4">
+    const columns = [
+        {
+            key: 'display_name',
+            label: '名称',
+            className: 'font-medium text-gray-900',
+            render: (_, plugin) => (
                 <div>
-                    <h3 className="text-lg font-semibold text-gray-900">插件管理</h3>
-                    <p className="text-sm text-gray-500 mt-1">
-                        管理已安装的插件：启用 / 停用 / 升级 / 卸载。插件为 jar 文件，仅支持系统管理员操作。
-                    </p>
+                    <div className="text-sm font-medium text-gray-900">{plugin.display_name}</div>
+                    <div className="text-xs text-gray-400">{plugin.name}</div>
+                    {plugin.last_error && (
+                        <div className="text-xs text-red-500 mt-0.5" title={plugin.last_error}>
+                            失败原因: {plugin.last_error}
+                        </div>
+                    )}
                 </div>
-                <button
-                    type="button"
-                    onClick={() => installInputRef.current && installInputRef.current.click()}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 whitespace-nowrap"
-                >
-                    安装插件
-                </button>
-                <input
-                    ref={installInputRef}
-                    type="file"
-                    accept=".jar"
-                    className="hidden"
-                    onChange={handleInstall}
-                />
-            </div>
+            )
+        },
+        { key: 'version', label: '版本', className: 'text-gray-500' },
+        { key: 'author', label: '作者', className: 'text-gray-500' },
+        {
+            key: 'state',
+            label: '状态',
+            className: 'text-gray-500',
+            render: (state) => (
+                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(state)}`}>
+                    {getStatusText(state)}
+                </span>
+            )
+        },
+        {
+            key: 'create_time',
+            label: '安装时间',
+            className: 'text-gray-500',
+            render: (value) => formatTime(value)
+        },
+        {
+            key: 'actions',
+            label: '操作',
+            className: 'font-medium',
+            render: (_, plugin) => (
+                <>
+                    {plugin.state === 'STARTED' ? (
+                        <button
+                            type="button"
+                            onClick={() => doAction('stop', plugin.name, '插件已停用')}
+                            disabled={!!operating}
+                            className="text-blue-600 hover:text-blue-900 mr-3 disabled:opacity-50"
+                        >
+                            停用
+                        </button>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={() => doAction('start', plugin.name, '插件已启用')}
+                            disabled={!!operating || plugin.state === 'FAILED'}
+                            className="text-blue-600 hover:text-blue-900 mr-3 disabled:opacity-50"
+                        >
+                            启用
+                        </button>
+                    )}
+                    <button
+                        type="button"
+                        onClick={() => setSettingsPlugin(plugin)}
+                        disabled={!!operating}
+                        className="text-blue-600 hover:text-blue-900 mr-3 disabled:opacity-50"
+                    >
+                        设置
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setUpgradingPlugin(plugin);
+                            upgradeInputRef.current && upgradeInputRef.current.click();
+                        }}
+                        disabled={!!operating}
+                        className="text-blue-600 hover:text-blue-900 mr-3 disabled:opacity-50"
+                    >
+                        升级
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleUninstall(plugin)}
+                        disabled={!!operating}
+                        className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                    >
+                        卸载
+                    </button>
+                </>
+            )
+        }
+    ];
 
-            {loading ? (
-                <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                    <span className="ml-3 text-gray-600">加载中...</span>
-                </div>
-            ) : plugins.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 text-sm">暂无插件，点击右上角「安装插件」上传 jar 文件</div>
-            ) : (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead>
-                            <tr className="text-left text-gray-500">
-                                <th className="px-4 py-2 font-medium">名称</th>
-                                <th className="px-4 py-2 font-medium">版本</th>
-                                <th className="px-4 py-2 font-medium">作者</th>
-                                <th className="px-4 py-2 font-medium">状态</th>
-                                <th className="px-4 py-2 font-medium">安装时间</th>
-                                <th className="px-4 py-2 font-medium text-right">操作</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {plugins.map((plugin) => (
-                                <tr key={plugin.name}>
-                                    <td className="px-4 py-3">
-                                        <div className="text-gray-900">{plugin.display_name}</div>
-                                        <div className="text-xs text-gray-400">{plugin.name}</div>
-                                        {plugin.last_error && (
-                                            <div className="text-xs text-red-500 mt-0.5" title={plugin.last_error}>
-                                                失败原因: {plugin.last_error}
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-3 text-gray-600">{plugin.version}</td>
-                                    <td className="px-4 py-3 text-gray-600">{plugin.author || '-'}</td>
-                                    <td className="px-4 py-3">{stateBadge(plugin)}</td>
-                                    <td className="px-4 py-3 text-gray-500">{formatTime(plugin.create_time)}</td>
-                                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                                        {plugin.state === 'STARTED' ? (
-                                            <button
-                                                type="button"
-                                                onClick={() => doAction('stop', plugin.name, '插件已停用')}
-                                                disabled={!!operating}
-                                                className="text-blue-600 hover:text-blue-800 mr-4 disabled:opacity-50"
-                                            >
-                                                停用
-                                            </button>
-                                        ) : (
-                                            <button
-                                                type="button"
-                                                onClick={() => doAction('start', plugin.name, '插件已启用')}
-                                                disabled={!!operating || plugin.state === 'FAILED'}
-                                                className="text-blue-600 hover:text-blue-800 mr-4 disabled:opacity-50"
-                                            >
-                                                启用
-                                            </button>
-                                        )}
-                                        <button
-                                            type="button"
-                                            onClick={() => upgradeInputRefs.current[plugin.name] && upgradeInputRefs.current[plugin.name].click()}
-                                            disabled={!!operating}
-                                            className="text-blue-600 hover:text-blue-800 mr-4 disabled:opacity-50"
-                                        >
-                                            升级
-                                        </button>
-                                        <input
-                                            ref={(el) => (upgradeInputRefs.current[plugin.name] = el)}
-                                            type="file"
-                                            accept=".jar"
-                                            className="hidden"
-                                            onChange={(e) => handleUpgrade(plugin, e)}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setSettingsPlugin(plugin)}
-                                            disabled={!!operating}
-                                            className="text-blue-600 hover:text-blue-800 mr-4 disabled:opacity-50"
-                                        >
-                                            设置
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleUninstall(plugin)}
-                                            disabled={!!operating}
-                                            className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                                        >
-                                            卸载
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+    return (
+        <>
+            <DataTable
+                title="插件管理"
+                loading={loading}
+                columns={columns}
+                data={plugins}
+                keyExtractor={(plugin) => plugin.name}
+                emptyText="暂无插件，点击右上角「安装插件」上传 jar 文件"
+                headerActions={
+                    <>
+                        <button
+                            type="button"
+                            onClick={() => installInputRef.current && installInputRef.current.click()}
+                            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                        >
+                            安装插件
+                        </button>
+                        <input
+                            ref={installInputRef}
+                            type="file"
+                            accept=".jar"
+                            className="hidden"
+                            onChange={handleInstall}
+                        />
+                        <input
+                            ref={upgradeInputRef}
+                            type="file"
+                            accept=".jar"
+                            className="hidden"
+                            onChange={handleUpgrade}
+                        />
+                    </>
+                }
+            />
 
             {settingsPlugin && (
                 <>
-                    <div className="fixed inset-0 bg-black/20 z-40" onClick={() => setSettingsPlugin(null)}></div>
+                    <div className="fixed inset-0 backdrop-blur-sm bg-transparent z-40" onClick={() => setSettingsPlugin(null)}></div>
                     <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6 relative">
-                            <div className="flex items-center justify-between mb-4">
-                                <h4 className="text-lg font-semibold text-gray-900">{settingsPlugin.display_name} 设置</h4>
+                        <div className="bg-white rounded-lg shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                            <div className="px-6 py-4 border-b border-gray-200">
+                                <h3 className="text-lg font-medium text-gray-900">{settingsPlugin.display_name} 设置</h3>
+                            </div>
+                            <div className="px-6 py-4">
+                                <ExtensionSlot name="plugin:settings:create" pluginName={settingsPlugin.name} />
+                            </div>
+                            <div className="px-6 py-4 bg-gray-50 flex justify-end">
                                 <button
                                     type="button"
                                     onClick={() => setSettingsPlugin(null)}
-                                    className="text-gray-400 hover:text-gray-600 focus:outline-none"
-                                    aria-label="关闭"
+                                    className="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                                    </svg>
+                                    关闭
                                 </button>
                             </div>
-                            <ExtensionSlot name="plugin:settings:create" pluginName={settingsPlugin.name} />
                         </div>
                     </div>
                 </>
             )}
-        </div>
+        </>
     );
 }
