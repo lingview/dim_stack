@@ -5,6 +5,7 @@ import { fetchSiteName, fetchSiteIcon } from './Api.jsx'
 import { getConfig } from './utils/config.jsx'
 import MusicPlayer from './components/MusicPlayer';
 import AnnouncementModal from './components/AnnouncementModal';
+import { getPluginRoutes } from './plugin/pluginRuntime.js';
 
 const importArticleReader = () => import('./components/ArticleReader')
 
@@ -20,6 +21,8 @@ const CustomHtmlPage = lazy(() => import('./components/CustomHtmlPage.jsx'))
 
 function App() {
     const [faviconUrl, setFaviconUrl] = useState('/favicon.ico')
+    // 插件贡献的路由(插件前端模块 setup 时注册, main.jsx 在 setup 完成后才渲染本组件)
+    const [pluginRoutes] = useState(() => getPluginRoutes())
     const location = useLocation()
 
     const isDashboardRoute = location.pathname.startsWith('/dashboard')
@@ -89,8 +92,11 @@ function App() {
                     <Route path="/dashboard/*" element={<Dashboard />} />
                     <Route path="/article/:articleId" element={<ArticleReader />} />
                     <Route path="/friend-links" element={<FriendLinks />}></Route>
-                    <Route path="*" element={<PageNotFound />} />
                     <Route path="/custom-page/:alias" element={<CustomHtmlPage />} />
+                    {pluginRoutes.map((route, index) => (
+                        <Route key={index} path={route.path} element={route.element} />
+                    ))}
+                    <Route path="*" element={<PageNotFound />} />
                 </Routes>
             </Suspense>
             {!isDashboardRoute && <MusicPlayer />}

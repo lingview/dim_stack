@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
@@ -79,6 +80,10 @@ public class YamlPluginDescriptorFinder implements PluginDescriptorFinder {
         manifest.setConfigMapName(toString(data.get("configMapName")));
         manifest.setScanPackage(toString(data.get("scanPackage")));
         manifest.setPluginClass(toString(data.get("pluginClass")));
+        Object publicPaths = data.get("publicApiPaths");
+        if (publicPaths instanceof List<?> list && !list.isEmpty()) {
+            manifest.setPublicApiPaths(list.stream().map(String::valueOf).toList());
+        }
         Object enabled = data.get("enabled");
         manifest.setEnabled(enabled instanceof Boolean b && b);
         return manifest;

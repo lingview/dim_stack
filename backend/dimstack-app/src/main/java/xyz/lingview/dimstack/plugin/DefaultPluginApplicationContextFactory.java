@@ -3,6 +3,8 @@ package xyz.lingview.dimstack.plugin;
 import lombok.extern.slf4j.Slf4j;
 import org.pf4j.PluginWrapper;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -70,9 +72,17 @@ public class DefaultPluginApplicationContextFactory implements PluginApplication
                 manifest != null ? manifest.getSettingName() : null,
                 manifest != null ? manifest.getConfigMapName() : null,
                 PluginContext.RuntimeMode.DEPLOYMENT);
-        context.registerBean(PluginContext.class, () -> pluginContext);
 
-        context.registerBean(SettingFetcher.class, () -> new BoundSettingFetcher(wrapper.getPluginId(), settingFetcher));
+        DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) context.getBeanFactory();
+        RootBeanDefinition pluginContextDef = new RootBeanDefinition(PluginContext.class);
+        pluginContextDef.setInstanceSupplier(() -> pluginContext);
+        pluginContextDef.setPrimary(true);
+        beanFactory.registerBeanDefinition("pluginContext", pluginContextDef);
+
+        RootBeanDefinition settingFetcherDef = new RootBeanDefinition(SettingFetcher.class);
+        settingFetcherDef.setInstanceSupplier(() -> new BoundSettingFetcher(wrapper.getPluginId(), settingFetcher));
+        settingFetcherDef.setPrimary(true);
+        beanFactory.registerBeanDefinition("boundSettingFetcher", settingFetcherDef);
         registerConfigYaml(context, wrapper);
 
         registerComponents(context, wrapper, manifest);
@@ -105,9 +115,14 @@ public class DefaultPluginApplicationContextFactory implements PluginApplication
                     AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
                     context.setParent(rootContext);
                     context.setId("plugin-shared");
+                    DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) context.getBeanFactory();
                     for (SharedBean bean : SHARED_BEANS) {
-                        context.getBeanFactory().registerSingleton(
-                                bean.type.getName(), bean.resolver.apply(rootContext));
+                        @SuppressWarnings({"rawtypes", "unchecked"})
+                        Class<?> beanType = (Class) bean.type;
+                        RootBeanDefinition definition = new RootBeanDefinition(beanType);
+                        definition.setInstanceSupplier(() -> bean.resolver.apply(rootContext));
+                        definition.setPrimary(true);
+                        beanFactory.registerBeanDefinition(beanType.getName(), definition);
                     }
                     context.refresh();
                     sharedContext = context;

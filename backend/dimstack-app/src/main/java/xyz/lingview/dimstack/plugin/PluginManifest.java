@@ -2,6 +2,8 @@ package xyz.lingview.dimstack.plugin;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @Author: lingview
  * @Date: 2026/07/31 22:47:09
@@ -30,6 +32,8 @@ public class PluginManifest {
     private String scanPackage;
 
     private String pluginClass;
+
+    private List<String> publicApiPaths;
 
     private boolean enabled;
 }

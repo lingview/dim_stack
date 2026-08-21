@@ -2,6 +2,12 @@
 
 import { registerExtensionPoint, unregisterPluginExtensions } from './ExtensionPointRegistry'
 
+const pluginRoutes = []
+
+export function getPluginRoutes() {
+    return pluginRoutes
+}
+
 export async function setupPluginRuntime() {
     let providers = []
     try {
@@ -42,6 +48,12 @@ function createPluginContext(provider) {
         pluginVersion: provider.version,
 
         registerExtensionPoint: (name, fn) => registerExtensionPoint(name, fn, provider.name),
+
+        registerRoute: (route) => {
+            if (route && route.path && route.element) {
+                pluginRoutes.push(route)
+            }
+        },
 
         fetchConfig: async () => {
             const response = await fetch(`/api/plugins/${provider.name}/config`)

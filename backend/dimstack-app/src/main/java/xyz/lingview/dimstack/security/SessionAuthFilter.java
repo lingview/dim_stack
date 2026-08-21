@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.method.HandlerMethod;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
+import xyz.lingview.dimstack.plugin.DimStackPluginManager;
+import xyz.lingview.dimstack.plugin.PluginManifest;
 import xyz.lingview.dimstack.service.UserBlacklistService;
 import xyz.lingview.dimstack.service.UserPermissionCheckService;
 
@@ -28,6 +30,10 @@ public class SessionAuthFilter implements Filter {
 
     @Autowired
     private TokenAuthResolver tokenAuthResolver;
+
+    /** 插件管理器(用于插件公开 API 路径判断) */
+    @Autowired(required = false)
+    private DimStackPluginManager pluginManager;
 
     // 不需要认证的路径
     private static final Set<String> WHITE_LIST = new HashSet<>(Arrays.asList(
@@ -180,7 +186,32 @@ public class SessionAuthFilter implements Filter {
                 return requestURI.equals(pattern);
             }
         });
+        if (!isWhitelisted) {
+            isWhitelisted = isPluginPublicPath(requestURI);
+        }
         log.debug("路径是否在白名单中: {} -> {}", requestURI, isWhitelisted);
         return isWhitelisted;
+    }
+
+    /**
+     * 插件声明的公开 API 路径(plugin.yaml 的 publicApiPaths, 相对 /api/plugins/{name}),
+     * 无需登录即可访问。插件自行决定哪些接口公开。
+     */
+    private boolean isPluginPublicPath(String requestURI) {
+        if (pluginManager == null || !requestURI.startsWith("/api/plugins/")) {
+            return false;
+        }
+        String rest = requestURI.substring("/api/plugins/".length());
+        int slash = rest.indexOf('/');
+        if (slash <= 0) {
+            return false;
+        }
+        String pluginName = rest.substring(0, slash);
+        String subPath = rest.substring(slash);
+        PluginManifest manifest = pluginManager.getManifest(pluginName);
+        if (manifest == null || manifest.getPublicApiPaths() == null) {
+            return false;
+        }
+        return manifest.getPublicApiPaths().contains(subPath);
     }
 }
