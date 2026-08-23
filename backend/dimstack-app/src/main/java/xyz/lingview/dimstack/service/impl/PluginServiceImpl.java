@@ -230,6 +230,8 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public boolean uninstall(String name) {
+
+        PluginManifest manifest = pluginManager.getManifest(name);
         PluginWrapper wrapper = pluginManager.getPlugin(name);
         if (wrapper != null) {
             if (wrapper.getPluginState() == PluginState.STARTED) {
@@ -260,9 +262,46 @@ public class PluginServiceImpl implements PluginService {
 
         configMapper.deleteByPluginName(name);
         extensionLoader.cleanupPluginExtensions(name);
+
+        cleanupManagedPaths(manifest);
         auditLogger.log("uninstall", name, info != null ? info.getVersion() : null, true, "卸载完成");
         log.info("插件已卸载: {}", name);
         return true;
+    }
+
+    private void cleanupManagedPaths(PluginManifest manifest) {
+        if (manifest == null || manifest.getManagedPaths() == null) {
+            return;
+        }
+        Path workDir = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
+        for (String managedPath : manifest.getManagedPaths()) {
+            try {
+                if (managedPath == null || managedPath.isBlank()
+                        || managedPath.startsWith("/") || managedPath.contains("..") || managedPath.contains(":")) {
+                    log.warn("忽略非法的托管资源路径: {}", managedPath);
+                    continue;
+                }
+                Path target = workDir.resolve(managedPath).normalize();
+                if (!target.startsWith(workDir) || !Files.exists(target)) {
+                    continue;
+                }
+                deleteRecursively(target);
+                log.info("已清理插件托管资源: {}", target);
+            } catch (Exception e) {
+                log.warn("清理插件托管资源失败: {}", managedPath, e);
+            }
+        }
+    }
+
+    private void deleteRecursively(Path path) throws IOException {
+        if (Files.isDirectory(path)) {
+            try (var entries = Files.list(path)) {
+                for (Path entry : entries.toList()) {
+                    deleteRecursively(entry);
+                }
+            }
+        }
+        Files.deleteIfExists(path);
     }
 
     @Override
@@ -385,6 +424,21 @@ public class PluginServiceImpl implements PluginService {
         }
         if (synced > 0) {
             log.info("插件启动同步完成: 补录 {} 个插件", synced);
+        }
+    }
+
+    @Override
+    public void restoreDisabledStates() {
+        List<PluginInfo> infos = pluginMapper.selectAll();
+        for (PluginInfo info : infos) {
+            if (!Boolean.FALSE.equals(info.getEnabled())) {
+                continue;
+            }
+            PluginWrapper wrapper = pluginManager.getPlugin(info.getName());
+            if (wrapper != null && wrapper.getPluginState() == PluginState.STARTED) {
+                pluginManager.stopPlugin(info.getName());
+                log.info("已按数据库状态恢复插件为停用: {}", info.getName());
+            }
         }
     }
 

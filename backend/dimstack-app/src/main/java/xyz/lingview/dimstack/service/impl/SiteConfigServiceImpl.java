@@ -2,7 +2,9 @@ package xyz.lingview.dimstack.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import xyz.lingview.dimstack.config.ThemeProperties;
 import xyz.lingview.dimstack.domain.SiteConfig;
 import xyz.lingview.dimstack.dto.request.HeroDTO;
 import xyz.lingview.dimstack.mapper.SiteConfigMapper;
@@ -19,6 +21,10 @@ public class SiteConfigServiceImpl implements SiteConfigService {
     @Autowired
     private CacheService cacheService;
 
+    /** @Lazy 避免与 ThemeProperties(依赖 SiteConfigService) 循环依赖 */
+    @Autowired
+    @Lazy
+    private ThemeProperties themeProperties;
 
     @Override
     public SiteConfig getSiteConfig() {
@@ -118,6 +124,10 @@ public class SiteConfigServiceImpl implements SiteConfigService {
                 int result = siteConfigMapper.updateSiteConfig(config);
                 if (result > 0) {
                     cacheService.set("dimstack:site_config", config);
+                    // 同步刷新运行时主题, 无需重启即生效
+                    if (themeProperties != null) {
+                        themeProperties.setActiveTheme(themeName);
+                    }
                     return true;
                 }
             }

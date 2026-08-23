@@ -73,6 +73,8 @@ public class PluginAutoConfiguration implements SmartInitializingSingleton {
         DimStackPluginManager manager = applicationContext.getBean(DimStackPluginManager.class);
         manager.startPlugins();
 
+        applicationContext.getBean(PluginService.class).restoreDisabledStates();
+
         applicationContext.getBean(PluginService.class).syncLoadedPlugins();
 
     }

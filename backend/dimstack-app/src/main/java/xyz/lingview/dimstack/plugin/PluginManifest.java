@@ -35,5 +35,7 @@ public class PluginManifest {
 
     private List<String> publicApiPaths;
 
+    private List<String> managedPaths;
+
     private boolean enabled;
 }

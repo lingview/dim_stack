@@ -6,6 +6,8 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -24,8 +26,13 @@ public class PluginRequestMappingHandlerMapping extends RequestMappingHandlerMap
     private final Map<String, AnnotationConfigApplicationContext> pluginContexts = new ConcurrentHashMap<>();
     private final Map<String, Set<RequestMappingInfo>> pluginMappings = new ConcurrentHashMap<>();
 
+    private final Map<Class<?>, String> beanOwners = new ConcurrentHashMap<>();
+
+    private final Set<String> stoppedPlugins = ConcurrentHashMap.newKeySet();
+
     public void registerPlugin(String pluginId, AnnotationConfigApplicationContext context) {
         pluginContexts.put(pluginId, context);
+        stoppedPlugins.remove(pluginId);
 
         Map<RequestMappingInfo, HandlerMethod> before = new HashMap<>(getHandlerMethods());
         for (String beanName : context.getBeanDefinitionNames()) {
@@ -36,6 +43,12 @@ public class PluginRequestMappingHandlerMapping extends RequestMappingHandlerMap
         }
         Set<RequestMappingInfo> added = new HashSet<>(getHandlerMethods().keySet());
         added.removeAll(before.keySet());
+        for (RequestMappingInfo info : added) {
+            HandlerMethod handler = getHandlerMethods().get(info);
+            if (handler != null) {
+                beanOwners.put(handler.getBeanType(), pluginId);
+            }
+        }
         pluginMappings.put(pluginId, added);
 
         if (!added.isEmpty()) {
@@ -45,6 +58,8 @@ public class PluginRequestMappingHandlerMapping extends RequestMappingHandlerMap
 
     public void unregisterPlugin(String pluginId) {
         pluginContexts.remove(pluginId);
+
+        stoppedPlugins.add(pluginId);
         Set<RequestMappingInfo> mappings = pluginMappings.remove(pluginId);
         if (mappings != null) {
             for (RequestMappingInfo mapping : mappings) {
@@ -52,5 +67,19 @@ public class PluginRequestMappingHandlerMapping extends RequestMappingHandlerMap
             }
             log.info("插件路由已注销: {}", pluginId);
         }
+
+    }
+
+    @Override
+    protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
+        HandlerMethod handler = super.getHandlerInternal(request);
+        if (handler != null) {
+            String owner = beanOwners.get(handler.getBeanType());
+            if (owner != null && stoppedPlugins.contains(owner)) {
+
+                return null;
+            }
+        }
+        return handler;
     }
 }

@@ -84,6 +84,10 @@ public class YamlPluginDescriptorFinder implements PluginDescriptorFinder {
         if (publicPaths instanceof List<?> list && !list.isEmpty()) {
             manifest.setPublicApiPaths(list.stream().map(String::valueOf).toList());
         }
+        Object managedPaths = data.get("managedPaths");
+        if (managedPaths instanceof List<?> list && !list.isEmpty()) {
+            manifest.setManagedPaths(list.stream().map(String::valueOf).toList());
+        }
         Object enabled = data.get("enabled");
         manifest.setEnabled(enabled instanceof Boolean b && b);
         return manifest;

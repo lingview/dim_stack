@@ -32,6 +32,8 @@ public interface PluginService {
 
     void syncLoadedPlugins();
 
+    void restoreDisabledStates();
+
     Map<String, Object> getConfig(String name);
 
     boolean saveConfig(String name, Map<String, Object> config);
