@@ -23,3 +23,7 @@ export function unregisterPluginExtensions(pluginId) {
 export function getExtensionPoints(name) {
     return registry.get(name) || []
 }
+
+export function hasExtension(name, pluginId) {
+    return (registry.get(name) || []).some((item) => item.id.startsWith(`${pluginId}:`))
+}

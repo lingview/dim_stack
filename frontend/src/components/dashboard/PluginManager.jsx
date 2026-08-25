@@ -3,6 +3,8 @@ import apiClient from '../../utils/axios.jsx';
 import { showToast } from '../../utils/toastManager.jsx';
 import DataTable from './DataTable';
 import { ExtensionSlot } from '../ExtensionSlot.jsx';
+import { reloadPluginRuntime } from '../../plugin/pluginRuntime.js';
+import { hasExtension } from '../../plugin/ExtensionPointRegistry.js';
 
 const formatTime = (value) => {
     if (!value) return '-';
@@ -66,6 +68,8 @@ export default function PluginManager() {
             const response = await apiClient.post(`/plugins/${name}/${action}`);
             if (response.code === 200) {
                 showToast(response.message || successText);
+
+                await reloadPluginRuntime();
                 fetchPlugins();
             } else {
                 showToast(response.message || '操作失败');
@@ -103,6 +107,12 @@ export default function PluginManager() {
             });
             if (response.code === 200) {
                 showToast(response.message || successText);
+                if (url.endsWith('/install')) {
+                    // 安装后整页刷新, 让前端运行时从零初始化(最稳妥)
+                    setTimeout(() => window.location.reload(), 800);
+                    return;
+                }
+                await reloadPluginRuntime();
                 fetchPlugins();
             } else {
                 showToast(response.message || '操作失败');
@@ -110,6 +120,15 @@ export default function PluginManager() {
         } catch (error) {
             console.error('插件上传失败:', error);
             showToast('插件上传失败');
+        }
+    };
+
+    const handleOpenSettings = async (plugin) => {
+        setSettingsPlugin(plugin);
+
+        if (!hasExtension('plugin:settings:create', plugin.name)) {
+            await reloadPluginRuntime();
+            setSettingsPlugin((prev) => (prev ? { ...prev } : prev));
         }
     };
 
@@ -123,6 +142,8 @@ export default function PluginManager() {
             const response = await apiClient.delete(`/plugins/${plugin.name}`);
             if (response.code === 200) {
                 showToast(response.message || '插件已卸载');
+
+                await reloadPluginRuntime();
                 fetchPlugins();
             } else {
                 showToast(response.message || '卸载失败');
@@ -197,7 +218,7 @@ export default function PluginManager() {
                     )}
                     <button
                         type="button"
-                        onClick={() => setSettingsPlugin(plugin)}
+                        onClick={() => handleOpenSettings(plugin)}
                         disabled={!!operating}
                         className="text-blue-600 hover:text-blue-900 mr-3 disabled:opacity-50"
                     >
@@ -267,12 +288,16 @@ export default function PluginManager() {
                 <>
                     <div className="fixed inset-0 backdrop-blur-sm bg-transparent z-40" onClick={() => setSettingsPlugin(null)}></div>
                     <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-lg shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+                        <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl flex flex-col max-h-[85vh]" onClick={(e) => e.stopPropagation()}>
                             <div className="px-6 py-4 border-b border-gray-200">
                                 <h3 className="text-lg font-medium text-gray-900">{settingsPlugin.display_name} 设置</h3>
                             </div>
-                            <div className="px-6 py-4">
-                                <ExtensionSlot name="plugin:settings:create" pluginName={settingsPlugin.name} />
+                            <div className="px-6 py-4 overflow-y-auto">
+                                {hasExtension('plugin:settings:create', settingsPlugin.name) ? (
+                                    <ExtensionSlot name="plugin:settings:create" pluginName={settingsPlugin.name} />
+                                ) : (
+                                    <p className="text-sm text-gray-400 py-8 text-center">该插件未启用或没有可用的设置面板</p>
+                                )}
                             </div>
                             <div className="px-6 py-4 bg-gray-50 flex justify-end">
                                 <button
