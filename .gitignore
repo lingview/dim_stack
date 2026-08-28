@@ -21,3 +21,8 @@ firefly-theme/
 examples/plugins/**/target/
 /plugins/
 plugin-startup.log
+
+# 开发测试用的主题与示例插件(不入库)
+/themes/
+/enterprise-theme/
+/examples/
