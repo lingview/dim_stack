@@ -116,7 +116,9 @@ if (-not $SkipFrontend) {
     Pop-Location
 
     Write-Host "复制前端构建产物到后端..."
-    $BACKEND_STATIC = "backend\src\main\resources\static"
+    # 注意: 必须复制到 dimstack-app 模块的 resources 目录(Maven 实际打包的目录),
+    # backend/src/main/resources/static 是游离的遗留目录, Maven 不会读取
+    $BACKEND_STATIC = "backend\dimstack-app\src\main\resources\static"
     if (-not (Test-Path $BACKEND_STATIC)) {
         New-Item -ItemType Directory -Path $BACKEND_STATIC | Out-Null
     }
