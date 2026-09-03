@@ -7,6 +7,7 @@ import xyz.lingview.dimstack.service.UpdateService;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -21,7 +22,8 @@ public class UpdateServiceImpl implements UpdateService {
     public String getCurrentVersion() {
         try (InputStream inputStream = getClass().getResourceAsStream(VERSION_FILE_PATH)) {
             if (inputStream != null) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                // 资源文件与代码均为 UTF-8，显式指定避免 Windows 默认字符集（GBK）误读
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
                 return reader.readLine();
             } else {
                 log.error("无法找到版本文件: {}", VERSION_FILE_PATH);
@@ -44,7 +46,8 @@ public class UpdateServiceImpl implements UpdateService {
 
             int responseCode = connection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                // 更新信息响应为 UTF-8，显式指定避免 Windows 默认字符集（GBK）误读
+                BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
                 StringBuilder response = new StringBuilder();
                 String inputLine;
 

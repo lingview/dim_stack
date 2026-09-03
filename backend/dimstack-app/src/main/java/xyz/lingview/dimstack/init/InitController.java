@@ -212,7 +212,9 @@ public class InitController {
         try {
             org.springframework.core.io.ClassPathResource resource =
                     new org.springframework.core.io.ClassPathResource("init.sql");
-            org.springframework.jdbc.datasource.init.ScriptUtils.executeSqlScript(connection, resource);
+            // init.sql 是 UTF-8 编码，必须显式指定，否则 Windows（JDK 17 默认字符集为 GBK）会按平台默认编码误读导致中文乱码入库
+            org.springframework.jdbc.datasource.init.ScriptUtils.executeSqlScript(connection,
+                    new org.springframework.core.io.support.EncodedResource(resource, StandardCharsets.UTF_8));
 
             updateAdminUser(connection, newAdminUsername, newAdminPassword);
         } catch (Exception e) {
@@ -405,7 +407,7 @@ public class InitController {
             Files.createDirectories(ConfigInfo.CONFIG_DIR);
         }
 
-        try (FileWriter writer = new FileWriter(ConfigInfo.MAIN_CONFIG_FILE.toString())) {
+        try (BufferedWriter writer = Files.newBufferedWriter(ConfigInfo.MAIN_CONFIG_FILE, StandardCharsets.UTF_8)) {
             writer.write(ymlContent.toString());
         }
     }

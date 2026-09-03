@@ -132,8 +132,8 @@ if (-not $SkipFrontend) {
 }
 
 if (-not $SkipBackend) {
-    if (Test-Path "backend\target") {
-        Remove-Item "backend\target" -Recurse -Force
+    if (Test-Path "backend\dimstack-app\target") {
+        Remove-Item "backend\dimstack-app\target" -Recurse -Force
     }
 
     Write-Host "构建后端 (Maven)..."
@@ -142,7 +142,7 @@ if (-not $SkipBackend) {
     Pop-Location
 
     Write-Host "移动 JAR 包到当前目录..."
-    $JarFiles = @(Get-ChildItem -Path "backend\target" -Filter "*.jar" -File)
+    $JarFiles = @(Get-ChildItem -Path "backend\dimstack-app\target" -Filter "*.jar" -File)
     if ($JarFiles.Count -eq 0) {
         Write-Host "未找到 JAR 文件"
         exit 1
