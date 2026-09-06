@@ -40,14 +40,13 @@ jobs:
 
       - name: Clean backend static directory
         run: |
-          mkdir -p backend/src/main/resources/static
-          cd backend
-          rm -rf src/main/resources/static/*
+          mkdir -p backend/dimstack-app/src/main/resources/static
+          rm -rf backend/dimstack-app/src/main/resources/static/*
 
       - name: Copy frontend build to backend static
         run: |
-          mkdir -p backend/src/main/resources/static
-          cp -r frontend/dist/* backend/src/main/resources/static/
+          mkdir -p backend/dimstack-app/src/main/resources/static
+          cp -r frontend/dist/* backend/dimstack-app/src/main/resources/static/
 
       - name: Build backend with Maven
         run: |
@@ -58,7 +57,7 @@ jobs:
         run: |
           cd backend
           mkdir release
-          cp target/*.jar release/
+          cp dimstack-app/target/*.jar release/
           cd release
           zip -r dim_stack-release.zip *
 
