@@ -11,6 +11,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify migration baseline (init.sql vs database_version.txt)
+        run: |
+          MIG_DIR=backend/dimstack-app/src/main/resources/db/migration
+          latest=$(ls "$MIG_DIR"/V*.sql | sed -E 's#.*/V([0-9]+)__.*#\1#' | sort -n | tail -1)
+          baseline=$(tr -d '[:space:]' < "$MIG_DIR/database_version.txt")
+          echo "latest migration = V$latest, database_version.txt = $baseline"
+          if [ "$latest" != "$baseline" ]; then
+            echo "::error::database_version.txt($baseline) 与最新迁移脚本(V$latest) 不一致, 新装库会漏掉迁移内容"
+            exit 1
+          fi
+
       - uses: actions/cache@v4
         with:
           path: ~/.m2/repository
