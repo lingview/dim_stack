@@ -335,6 +335,7 @@ INSERT INTO `dashboard_menu` VALUES (109, '我的附件', 'upload', '/dashboard/
 INSERT INTO `dashboard_menu` VALUES (110, '角色编辑', 'permission', '/dashboard/rbac-editor', 3, 'role:menus', 9, '2026-03-19 20:10:22', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (111, '公告管理', 'announcement', '/dashboard/announcement', 5, 'announcement:menus', 30, '2026-06-20 00:48:10', 'sidebar');
 INSERT INTO `dashboard_menu` VALUES (112, '评论审核', 'comment-review', '/dashboard/commentsreview', 3, 'commentreview:menus', 35, '2026-06-20 21:46:01', 'sidebar');
+INSERT INTO `dashboard_menu` VALUES (113, '插件管理', 'plugin', '/dashboard/plugins', 5, 'plugin:menus', 30, '2026-09-03 20:39:07', 'sidebar');
 
 -- ----------------------------
 -- Table structure for friend_links
@@ -476,7 +477,7 @@ CREATE TABLE `permission`  (
                                `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
                                PRIMARY KEY (`id`) USING BTREE,
                                UNIQUE INDEX `idx_code`(`code` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 64 CHARACTER SET = utf8mb4 COMMENT = '权限表' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 66 CHARACTER SET = utf8mb4 COMMENT = '权限表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of permission
@@ -544,6 +545,54 @@ INSERT INTO `permission` VALUES (60, 'system:announcement:management', '公告�
 INSERT INTO `permission` VALUES (61, 'announcement:menus', '公告管理菜单', 'menus', '2026-06-20 00:48:10');
 INSERT INTO `permission` VALUES (62, 'system:comments:review', '审核评论', 'comments', '2026-06-20 21:46:01');
 INSERT INTO `permission` VALUES (63, 'commentreview:menus', '评论审核菜单', 'menus', '2026-06-20 21:46:01');
+INSERT INTO `permission` VALUES (64, 'plugin:management', '插件管理', 'plugin', '2026-09-03 20:39:07');
+INSERT INTO `permission` VALUES (65, 'plugin:menus', '插件管理菜单', 'menus', '2026-09-03 20:39:07');
+
+-- ----------------------------
+-- Table structure for plugin
+-- ----------------------------
+DROP TABLE IF EXISTS `plugin`;
+CREATE TABLE `plugin`  (
+                           `id` bigint NOT NULL AUTO_INCREMENT,
+                           `name` varchar(64) CHARACTER SET utf8mb4 NOT NULL COMMENT '插件ID(唯一)',
+                           `version` varchar(32) CHARACTER SET utf8mb4 NOT NULL COMMENT '插件版本(semver)',
+                           `display_name` varchar(128) CHARACTER SET utf8mb4 NOT NULL COMMENT '插件中文名',
+                           `description` varchar(512) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '插件描述',
+                           `author` varchar(128) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '插件作者',
+                           `requires` varchar(32) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '宿主版本约束',
+                           `jar_file` varchar(255) CHARACTER SET utf8mb4 NOT NULL COMMENT '插件文件相对路径',
+                           `sha256` varchar(64) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '插件jar完整性校验值(SHA-256 hex)',
+                           `enabled` tinyint(1) NOT NULL DEFAULT 0 COMMENT '启用状态: 0-停用, 1-启用',
+                           `setting_name` varchar(64) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '设置表单扩展名(阶段5)',
+                           `config_map_name` varchar(64) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '配置存储名(阶段5)',
+                           `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                           `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                           PRIMARY KEY (`id`) USING BTREE,
+                           UNIQUE INDEX `uk_plugin_name`(`name` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COMMENT = '插件注册表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of plugin
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for plugin_config
+-- ----------------------------
+DROP TABLE IF EXISTS `plugin_config`;
+CREATE TABLE `plugin_config`  (
+                                  `id` bigint NOT NULL AUTO_INCREMENT,
+                                  `plugin_name` varchar(64) CHARACTER SET utf8mb4 NOT NULL COMMENT '插件ID',
+                                  `config_key` varchar(64) CHARACTER SET utf8mb4 NOT NULL COMMENT '配置键',
+                                  `config_value` text CHARACTER SET utf8mb4 NULL COMMENT '配置值(JSON字符串)',
+                                  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                  PRIMARY KEY (`id`) USING BTREE,
+                                  UNIQUE INDEX `uk_plugin_config`(`plugin_name` ASC, `config_key` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COMMENT = '插件配置表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of plugin_config
+-- ----------------------------
+
 
 -- ----------------------------
 -- Table structure for role
@@ -656,6 +705,8 @@ INSERT INTO `role_permission` VALUES (1, 60);
 INSERT INTO `role_permission` VALUES (1, 61);
 INSERT INTO `role_permission` VALUES (1, 62);
 INSERT INTO `role_permission` VALUES (1, 63);
+INSERT INTO `role_permission` VALUES (1, 64);
+INSERT INTO `role_permission` VALUES (1, 65);
 
 -- ----------------------------
 -- Table structure for site_config
