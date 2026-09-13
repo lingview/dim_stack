@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 
 /**
@@ -26,6 +27,10 @@ import java.util.zip.ZipEntry;
 public class YamlPluginDescriptorFinder implements PluginDescriptorFinder {
 
     private static final String DESCRIPTOR_FILE = "plugin.yaml";
+
+    private static final Pattern PLUGIN_ID_PATTERN = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]{0,63}");
+
+    private static final Pattern PLUGIN_VERSION_PATTERN = Pattern.compile("[A-Za-z0-9._+-]{1,32}");
 
     private final Map<String, PluginManifest> manifests = new ConcurrentHashMap<>();
 
@@ -44,6 +49,14 @@ public class YamlPluginDescriptorFinder implements PluginDescriptorFinder {
         }
         if (StringUtils.isNullOrEmpty(manifest.getDisplayName())) {
             throw new PluginRuntimeException("plugin.yaml 缺少必填字段 displayName: " + pluginPath);
+        }
+        if (!PLUGIN_ID_PATTERN.matcher(manifest.getId()).matches()) {
+            throw new PluginRuntimeException(
+                    "plugin.yaml 的 id 含非法字符(仅允许字母/数字/._-, 且以字母或数字开头): " + manifest.getId());
+        }
+        if (!PLUGIN_VERSION_PATTERN.matcher(manifest.getVersion()).matches()) {
+            throw new PluginRuntimeException(
+                    "plugin.yaml 的 version 含非法字符(仅允许字母/数字/._+-): " + manifest.getVersion());
         }
 
         // pf4j3.15构造器参数顺序: (pluginId, description, pluginClass, version, requires, provider, license)

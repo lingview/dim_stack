@@ -73,6 +73,14 @@ public class PluginServiceImpl implements PluginService {
         this.auditLogger = auditLogger;
     }
 
+    private Path resolvePluginJar(String fileName) {
+        Path dest = pluginDir.resolve(fileName).normalize();
+        if (!dest.startsWith(pluginDir.normalize())) {
+            throw new PluginRuntimeException("插件文件名越出插件目录: " + fileName);
+        }
+        return dest;
+    }
+
     @Override
     public List<PluginInfo> list() {
         List<PluginInfo> infos = pluginMapper.selectAll();
@@ -149,7 +157,7 @@ public class PluginServiceImpl implements PluginService {
                 throw new PluginRuntimeException("插件已存在: " + manifest.getId());
             }
             String fileName = manifest.getId() + "-" + manifest.getVersion() + ".jar";
-            Path dest = pluginDir.resolve(fileName);
+            Path dest = resolvePluginJar(fileName);
             Files.copy(jar, dest, StandardCopyOption.REPLACE_EXISTING);
 
             PluginInfo info = new PluginInfo();
@@ -187,7 +195,7 @@ public class PluginServiceImpl implements PluginService {
                 throw new PluginRuntimeException("插件不存在: " + name);
             }
             try {
-                pluginManager.loadPlugin(pluginDir.resolve(info.getJar_file()));
+                pluginManager.loadPlugin(resolvePluginJar(info.getJar_file()));
             } catch (Exception e) {
                 throw new PluginRuntimeException("插件加载失败: " + name, e);
             }
@@ -195,7 +203,6 @@ public class PluginServiceImpl implements PluginService {
         PluginState state = pluginManager.startPlugin(name);
         if (state == PluginState.STARTED) {
             pluginMapper.updateEnabled(name, true);
-
             PluginWrapper started = pluginManager.getPlugin(name);
             if (started != null) {
                 extensionLoader.loadPluginExtensions(name, started);
@@ -241,7 +248,7 @@ public class PluginServiceImpl implements PluginService {
         }
         PluginInfo info = pluginMapper.selectByName(name);
         if (info != null && info.getJar_file() != null) {
-            Path jarPath = pluginDir.resolve(info.getJar_file());
+            Path jarPath = resolvePluginJar(info.getJar_file());
             try {
                 Files.deleteIfExists(jarPath);
             } catch (IOException e) {
@@ -330,9 +337,9 @@ public class PluginServiceImpl implements PluginService {
 
             String newFileName = manifest.getId() + "-" + manifest.getVersion() + ".jar";
             if (info.getJar_file() != null && !info.getJar_file().equals(newFileName)) {
-                Files.deleteIfExists(pluginDir.resolve(info.getJar_file()));
+                Files.deleteIfExists(resolvePluginJar(info.getJar_file()));
             }
-            Path dest = pluginDir.resolve(newFileName);
+            Path dest = resolvePluginJar(newFileName);
             Files.copy(temp, dest, StandardCopyOption.REPLACE_EXISTING);
 
             info.setVersion(manifest.getVersion());
@@ -381,7 +388,7 @@ public class PluginServiceImpl implements PluginService {
                 }
                 pluginManager.unloadAndClose(name);
             }
-            pluginManager.loadPlugin(pluginDir.resolve(info.getJar_file()));
+            pluginManager.loadPlugin(resolvePluginJar(info.getJar_file()));
             if (Boolean.TRUE.equals(info.getEnabled())) {
                 pluginManager.startPlugin(name);
             }
