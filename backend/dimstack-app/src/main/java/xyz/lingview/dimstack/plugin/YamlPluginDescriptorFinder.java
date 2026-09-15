@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
@@ -31,6 +32,12 @@ public class YamlPluginDescriptorFinder implements PluginDescriptorFinder {
     private static final Pattern PLUGIN_ID_PATTERN = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]{0,63}");
 
     private static final Pattern PLUGIN_VERSION_PATTERN = Pattern.compile("[A-Za-z0-9._+-]{1,32}");
+
+    private static final Pattern PUBLIC_PATH_SEGMENT_PATTERN = Pattern.compile("[A-Za-z0-9._~-]+");
+
+    private static final Set<String> RESERVED_PUBLIC_PATHS = Set.of("/config", "/start", "/stop", "/upgrade", "/reload");
+
+    private static final int PUBLIC_PATH_MAX_LENGTH = 128;
 
     private final Map<String, PluginManifest> manifests = new ConcurrentHashMap<>();
 
@@ -60,12 +67,14 @@ public class YamlPluginDescriptorFinder implements PluginDescriptorFinder {
         }
 
         // pf4j3.15构造器参数顺序: (pluginId, description, pluginClass, version, requires, provider, license)
+        // pf4j3.15的isPluginValid()直接对getRequires()调trim(), 缺省该字段会让NPE冒到宿主启动流程, 故补空串
+
         DefaultPluginDescriptor descriptor = new DefaultPluginDescriptor(
                 manifest.getId(),
                 manifest.getDescription(),
                 manifest.getPluginClass(),
                 manifest.getVersion(),
-                manifest.getRequires(),
+                manifest.getRequires() == null ? "" : manifest.getRequires(),
                 manifest.getAuthor(),
                 null);
 
@@ -79,6 +88,33 @@ public class YamlPluginDescriptorFinder implements PluginDescriptorFinder {
 
     public void removeManifest(String pluginId) {
         manifests.remove(pluginId);
+    }
+
+    private void validatePublicApiPaths(String pluginId, List<String> paths) {
+        for (String path : paths) {
+            if (path == null || !path.startsWith("/") || path.length() > PUBLIC_PATH_MAX_LENGTH) {
+                throw new PluginRuntimeException(
+                        "插件 " + pluginId + " 的 publicApiPaths 非法(必须以 / 开头且不超过 " + PUBLIC_PATH_MAX_LENGTH + " 字符): " + path);
+            }
+            for (String segment : path.substring(1).split("/", -1)) {
+                if (segment.isEmpty()) {
+                    throw new PluginRuntimeException(
+                            "插件 " + pluginId + " 的 publicApiPaths 不得包含空路径段(// 或尾随 /): " + path);
+                }
+                if (segment.equals(".") || segment.equals("..")) {
+                    throw new PluginRuntimeException(
+                            "插件 " + pluginId + " 的 publicApiPaths 不得包含 . 或 .. 路径段: " + path);
+                }
+                if (!PUBLIC_PATH_SEGMENT_PATTERN.matcher(segment).matches()) {
+                    throw new PluginRuntimeException(
+                            "插件 " + pluginId + " 的 publicApiPaths 仅允许字母/数字/._~- 且不支持占位符或通配符: " + path);
+                }
+            }
+            if (RESERVED_PUBLIC_PATHS.contains(path)) {
+                throw new PluginRuntimeException(
+                        "插件 " + pluginId + " 的 publicApiPaths 不得使用宿主保留路径(见 PluginController): " + path);
+            }
+        }
     }
 
     private PluginManifest parseManifest(Map<String, Object> data) {
@@ -95,7 +131,9 @@ public class YamlPluginDescriptorFinder implements PluginDescriptorFinder {
         manifest.setPluginClass(toString(data.get("pluginClass")));
         Object publicPaths = data.get("publicApiPaths");
         if (publicPaths instanceof List<?> list && !list.isEmpty()) {
-            manifest.setPublicApiPaths(list.stream().map(String::valueOf).toList());
+            List<String> paths = list.stream().map(String::valueOf).toList();
+            validatePublicApiPaths(manifest.getId(), paths);
+            manifest.setPublicApiPaths(paths);
         }
         Object managedPaths = data.get("managedPaths");
         if (managedPaths instanceof List<?> list && !list.isEmpty()) {

@@ -5,6 +5,8 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+import org.springframework.web.servlet.mvc.condition.PathPatternsRequestCondition;
+import org.springframework.web.util.pattern.PathPattern;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -26,6 +28,8 @@ public class PluginRequestMappingHandlerMapping extends RequestMappingHandlerMap
     private final Map<String, AnnotationConfigApplicationContext> pluginContexts = new ConcurrentHashMap<>();
     private final Map<String, Set<RequestMappingInfo>> pluginMappings = new ConcurrentHashMap<>();
 
+    private final Map<String, Set<String>> pluginEndpointPaths = new ConcurrentHashMap<>();
+
     private final Map<Class<?>, String> beanOwners = new ConcurrentHashMap<>();
 
     private final Set<String> stoppedPlugins = ConcurrentHashMap.newKeySet();
@@ -43,13 +47,21 @@ public class PluginRequestMappingHandlerMapping extends RequestMappingHandlerMap
         }
         Set<RequestMappingInfo> added = new HashSet<>(getHandlerMethods().keySet());
         added.removeAll(before.keySet());
+        Set<String> endpointPaths = new HashSet<>();
         for (RequestMappingInfo info : added) {
             HandlerMethod handler = getHandlerMethods().get(info);
             if (handler != null) {
                 beanOwners.put(handler.getBeanType(), pluginId);
             }
+            PathPatternsRequestCondition condition = info.getPathPatternsCondition();
+            if (condition != null) {
+                for (PathPattern pattern : condition.getPatterns()) {
+                    endpointPaths.add(pattern.getPatternString());
+                }
+            }
         }
         pluginMappings.put(pluginId, added);
+        pluginEndpointPaths.put(pluginId, endpointPaths);
 
         if (!added.isEmpty()) {
             log.info("插件路由注册完成: {} ({} 条路由)", pluginId, added.size());
@@ -60,6 +72,7 @@ public class PluginRequestMappingHandlerMapping extends RequestMappingHandlerMap
         pluginContexts.remove(pluginId);
 
         stoppedPlugins.add(pluginId);
+        pluginEndpointPaths.remove(pluginId);
         Set<RequestMappingInfo> mappings = pluginMappings.remove(pluginId);
         if (mappings != null) {
             for (RequestMappingInfo mapping : mappings) {
@@ -81,5 +94,13 @@ public class PluginRequestMappingHandlerMapping extends RequestMappingHandlerMap
             }
         }
         return handler;
+    }
+
+    public boolean hasEndpoint(String pluginId, String path) {
+        if (stoppedPlugins.contains(pluginId)) {
+            return false;
+        }
+        Set<String> paths = pluginEndpointPaths.get(pluginId);
+        return paths != null && paths.contains(path);
     }
 }

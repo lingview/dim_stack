@@ -10,6 +10,7 @@ import org.springframework.web.method.HandlerMethod;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.plugin.DimStackPluginManager;
 import xyz.lingview.dimstack.plugin.PluginManifest;
+import xyz.lingview.dimstack.plugin.PluginRequestMappingHandlerMapping;
 import xyz.lingview.dimstack.service.UserBlacklistService;
 import xyz.lingview.dimstack.service.UserPermissionCheckService;
 
@@ -209,9 +210,12 @@ public class SessionAuthFilter implements Filter {
         String pluginName = rest.substring(0, slash);
         String subPath = rest.substring(slash);
         PluginManifest manifest = pluginManager.getManifest(pluginName);
-        if (manifest == null || manifest.getPublicApiPaths() == null) {
+        if (manifest == null || manifest.getPublicApiPaths() == null
+                || !manifest.getPublicApiPaths().contains(subPath)) {
             return false;
         }
-        return manifest.getPublicApiPaths().contains(subPath);
+        // 声明的公开路径必须真的由该插件注册的 Controller 提供, 防止声明占用宿主管理端点或其他插件的端点
+        PluginRequestMappingHandlerMapping handlerMapping = pluginManager.getRequestMappingHandlerMapping();
+        return handlerMapping != null && handlerMapping.hasEndpoint(pluginName, requestURI);
     }
 }
