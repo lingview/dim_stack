@@ -120,34 +120,6 @@ public class PluginServiceImpl implements PluginService {
         }
     }
 
-    @Override
-    public PluginInfo installFromUri(String url) {
-        validateDownloadUrl(url);
-        Path temp = null;
-        try {
-            temp = Files.createTempFile("plugin-uri-", ".jar");
-            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-            connection.setConnectTimeout(10_000);
-            connection.setReadTimeout(60_000);
-            connection.setInstanceFollowRedirects(true);
-            try (InputStream in = connection.getInputStream();
-                 java.io.OutputStream out = Files.newOutputStream(temp)) {
-                in.transferTo(out);
-            }
-            return installJar(temp, "URL 安装: " + url);
-        } catch (PluginRuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new PluginRuntimeException("插件下载或安装失败: " + e.getMessage(), e);
-        } finally {
-            if (temp != null) {
-                try {
-                    Files.deleteIfExists(temp);
-                } catch (IOException ignored) {
-                }
-            }
-        }
-    }
 
     private PluginInfo installJar(Path jar, String source) {
         try {
@@ -561,28 +533,6 @@ public class PluginServiceImpl implements PluginService {
             return HexFormat.of().formatHex(digest.digest());
         } catch (Exception e) {
             throw new PluginRuntimeException("插件完整性校验失败: " + e.getMessage(), e);
-        }
-    }
-
-    private void validateDownloadUrl(String url) {
-        try {
-            URI uri = new URI(url);
-            String scheme = uri.getScheme();
-            if (scheme == null || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
-                throw new PluginRuntimeException("仅支持 http/https 的下载地址");
-            }
-            String host = uri.getHost();
-            if (host == null || host.isBlank()) {
-                throw new PluginRuntimeException("下载地址无效");
-            }
-            InetAddress address = InetAddress.getByName(host);
-            if (address.isLoopbackAddress() || address.isAnyLocalAddress() || address.isSiteLocalAddress()) {
-                throw new PluginRuntimeException("禁止安装来自内网/本机地址的插件");
-            }
-        } catch (PluginRuntimeException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new PluginRuntimeException("下载地址解析失败: " + e.getMessage(), e);
         }
     }
 
