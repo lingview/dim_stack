@@ -14,7 +14,6 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
-import org.yaml.snakeyaml.Yaml;
 import xyz.lingview.dimstack.plugin.api.ExtensionGetter;
 import xyz.lingview.dimstack.plugin.api.PluginContext;
 import xyz.lingview.dimstack.plugin.api.SettingFetcher;
@@ -170,12 +169,12 @@ public class DefaultPluginApplicationContextFactory implements PluginApplication
             if (in == null) {
                 return;
             }
-            Object loaded = new Yaml().load(in);
-            if (!(loaded instanceof Map<?, ?> map) || map.isEmpty()) {
+            Map<String, Object> loaded = PluginYamlLoader.load(in);
+            if (loaded.isEmpty()) {
                 return;
             }
             Map<String, Object> flat = new HashMap<>();
-            flatten("", (Map<String, Object>) map, flat);
+            flatten("", loaded, flat);
             context.getEnvironment().getPropertySources().addLast(
                     new MapPropertySource("plugin-config-" + wrapper.getPluginId(), flat));
         } catch (Exception e) {

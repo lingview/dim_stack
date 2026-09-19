@@ -3,7 +3,6 @@ package xyz.lingview.dimstack.plugin;
 import lombok.extern.slf4j.Slf4j;
 import org.pf4j.PluginWrapper;
 import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
 import xyz.lingview.dimstack.domain.DashboardMenu;
 import xyz.lingview.dimstack.mapper.DashboardMenuMapper;
 
@@ -39,11 +38,8 @@ public class PluginExtensionLoader {
             return;
         }
         try (in) {
-            Object loaded = new Yaml().load(in);
-            if (!(loaded instanceof Map<?, ?> map)) {
-                return;
-            }
-            Object menus = ((Map<String, Object>) map).get("dashboard-menu");
+            Map<String, Object> loaded = PluginYamlLoader.load(in);
+            Object menus = loaded.get("dashboard-menu");
             if (!(menus instanceof List<?> menuList) || menuList.isEmpty()) {
                 return;
             }
