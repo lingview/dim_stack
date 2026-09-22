@@ -63,19 +63,31 @@ public class PluginAutoConfiguration implements SmartInitializingSingleton {
         if (pluginRequestMappingHandlerMapping instanceof PluginRequestMappingHandlerMapping mapping) {
             manager.setRequestMappingHandlerMapping(mapping);
         }
-        manager.loadPlugins();
+        try {
+            manager.loadPlugins();
+        } catch (Exception e) {
+
+            log.error("插件扫描加载失败(不影响宿主启动, 请检查 plugins 目录)", e);
+        }
         log.info("插件管理器初始化完成, 插件目录: {}", pluginsRoot);
         return manager;
     }
 
     @Override
     public void afterSingletonsInstantiated() {
-        DimStackPluginManager manager = applicationContext.getBean(DimStackPluginManager.class);
-        manager.startPlugins();
+        PluginService pluginService = applicationContext.getBean(PluginService.class);
 
-        applicationContext.getBean(PluginService.class).restoreDisabledStates();
+        try {
+            pluginService.startEnabledPlugins();
+        } catch (Exception e) {
+            log.error("插件启动阶段失败(不影响宿主启动)", e);
+        }
 
-        applicationContext.getBean(PluginService.class).syncLoadedPlugins();
+        try {
+            pluginService.syncLoadedPlugins();
+        } catch (Exception e) {
+            log.error("插件启动同步失败(不影响宿主启动)", e);
+        }
 
     }
 }

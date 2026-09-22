@@ -30,11 +30,11 @@ public class PluginRequestMappingHandlerMapping extends RequestMappingHandlerMap
 
     private final Map<String, Set<String>> pluginEndpointPaths = new ConcurrentHashMap<>();
 
-    private final Map<Class<?>, String> beanOwners = new ConcurrentHashMap<>();
+    private final Map<String, String> beanOwners = new ConcurrentHashMap<>();
 
     private final Set<String> stoppedPlugins = ConcurrentHashMap.newKeySet();
 
-    public void registerPlugin(String pluginId, AnnotationConfigApplicationContext context) {
+    public synchronized void registerPlugin(String pluginId, AnnotationConfigApplicationContext context) {
         pluginContexts.put(pluginId, context);
         stoppedPlugins.remove(pluginId);
 
@@ -51,7 +51,7 @@ public class PluginRequestMappingHandlerMapping extends RequestMappingHandlerMap
         for (RequestMappingInfo info : added) {
             HandlerMethod handler = getHandlerMethods().get(info);
             if (handler != null) {
-                beanOwners.put(handler.getBeanType(), pluginId);
+                beanOwners.put(handler.getBeanType().getName(), pluginId);
             }
             PathPatternsRequestCondition condition = info.getPathPatternsCondition();
             if (condition != null) {
@@ -68,7 +68,7 @@ public class PluginRequestMappingHandlerMapping extends RequestMappingHandlerMap
         }
     }
 
-    public void unregisterPlugin(String pluginId) {
+    public synchronized void unregisterPlugin(String pluginId) {
         pluginContexts.remove(pluginId);
 
         stoppedPlugins.add(pluginId);
@@ -87,7 +87,7 @@ public class PluginRequestMappingHandlerMapping extends RequestMappingHandlerMap
     protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
         HandlerMethod handler = super.getHandlerInternal(request);
         if (handler != null) {
-            String owner = beanOwners.get(handler.getBeanType());
+            String owner = beanOwners.get(handler.getBeanType().getName());
             if (owner != null && stoppedPlugins.contains(owner)) {
 
                 return null;

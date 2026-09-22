@@ -4,9 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.pf4j.PluginRuntimeException;
 import org.pf4j.PluginState;
 import org.pf4j.PluginWrapper;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.yaml.snakeyaml.Yaml;
 import tools.jackson.databind.ObjectMapper;
 import xyz.lingview.dimstack.domain.PluginInfo;
 import xyz.lingview.dimstack.mapper.PluginConfigMapper;
@@ -15,6 +15,7 @@ import xyz.lingview.dimstack.plugin.DimStackPluginManager;
 import xyz.lingview.dimstack.plugin.PluginAuditLogger;
 import xyz.lingview.dimstack.plugin.PluginExtensionLoader;
 import xyz.lingview.dimstack.plugin.PluginManifest;
+import xyz.lingview.dimstack.plugin.PluginYamlLoader;
 import xyz.lingview.dimstack.plugin.YamlPluginDescriptorFinder;
 import xyz.lingview.dimstack.service.PluginService;
 
@@ -24,15 +25,20 @@ import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -59,6 +65,10 @@ public class PluginServiceImpl implements PluginService {
 
     private final Path pluginDir = Path.of(System.getProperty("user.dir"), "plugins");
 
+    private static final String INSTALL_LOCK_KEY = "@install";
+
+    private final ConcurrentHashMap<String, ReentrantLock> pluginLocks = new ConcurrentHashMap<>();
+
     public PluginServiceImpl(DimStackPluginManager pluginManager,
                              PluginMapper pluginMapper,
                              YamlPluginDescriptorFinder descriptorFinder,
@@ -81,6 +91,16 @@ public class PluginServiceImpl implements PluginService {
         return dest;
     }
 
+    private <T> T withLock(String key, Supplier<T> action) {
+        ReentrantLock lock = pluginLocks.computeIfAbsent(key, k -> new ReentrantLock());
+        lock.lock();
+        try {
+            return action.get();
+        } finally {
+            lock.unlock();
+        }
+    }
+
     @Override
     public List<PluginInfo> list() {
         List<PluginInfo> infos = pluginMapper.selectAll();
@@ -100,6 +120,10 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public PluginInfo install(MultipartFile file) {
+        return withLock(INSTALL_LOCK_KEY, () -> doInstall(file));
+    }
+
+    private PluginInfo doInstall(MultipartFile file) {
         validateJar(file);
         Path temp = null;
         try {
@@ -130,6 +154,9 @@ public class PluginServiceImpl implements PluginService {
             }
             String fileName = manifest.getId() + "-" + manifest.getVersion() + ".jar";
             Path dest = resolvePluginJar(fileName);
+            if (Files.exists(dest)) {
+                throw new PluginRuntimeException("同名插件文件已存在(可能是上次卸载残留): " + fileName + ", 请先清理 " + pluginDir + " 后重试");
+            }
             Files.copy(jar, dest, StandardCopyOption.REPLACE_EXISTING);
 
             PluginInfo info = new PluginInfo();
@@ -144,7 +171,13 @@ public class PluginServiceImpl implements PluginService {
             info.setEnabled(false);
             info.setSetting_name(manifest.getSettingName());
             info.setConfig_map_name(manifest.getConfigMapName());
-            pluginMapper.insert(info);
+            try {
+                pluginMapper.insert(info);
+            } catch (DuplicateKeyException e) {
+                log.warn("插件记录已存在, 回滚刚落盘的 jar: {}", fileName);
+                Files.deleteIfExists(dest);
+                throw new PluginRuntimeException("插件已存在: " + manifest.getId());
+            }
             info.setState(PluginState.UNLOADED.name());
             auditLogger.log("install", info.getName(), info.getVersion(), true, source);
             log.info("插件安装成功: {}@{} ({})", info.getName(), info.getVersion(), source);
@@ -160,6 +193,10 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public boolean start(String name) {
+        return withLock(name, () -> doStart(name));
+    }
+
+    private boolean doStart(String name) {
         PluginWrapper wrapper = pluginManager.getPlugin(name);
         if (wrapper == null) {
             PluginInfo info = pluginMapper.selectByName(name);
@@ -190,6 +227,10 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public boolean stop(String name) {
+        return withLock(name, () -> doStop(name));
+    }
+
+    private boolean doStop(String name) {
         PluginWrapper wrapper = pluginManager.getPlugin(name);
         if (wrapper == null) {
             throw new PluginRuntimeException("插件不存在: " + name);
@@ -209,6 +250,10 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public boolean uninstall(String name) {
+        return withLock(name, () -> doUninstall(name));
+    }
+
+    private boolean doUninstall(String name) {
 
         PluginManifest manifest = pluginManager.getManifest(name);
         PluginWrapper wrapper = pluginManager.getPlugin(name);
@@ -218,41 +263,53 @@ public class PluginServiceImpl implements PluginService {
             }
             pluginManager.unloadAndClose(name);
         }
+
         PluginInfo info = pluginMapper.selectByName(name);
-        if (info != null && info.getJar_file() != null) {
-            Path jarPath = resolvePluginJar(info.getJar_file());
-            try {
-                Files.deleteIfExists(jarPath);
-            } catch (IOException e) {
-                // Windows/JVM下插件类加载器关闭后jar句柄可能延迟释放, 触发GC后重试
-                System.gc();
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException ignored) {
-                }
-                try {
-                    Files.deleteIfExists(jarPath);
-                } catch (IOException e2) {
-                    throw new PluginRuntimeException("插件文件删除失败(可能被占用), 请重启系统后重试: " + e2.getMessage());
-                }
-            }
-        }
         pluginMapper.deleteByName(name);
 
         configMapper.deleteByPluginName(name);
         extensionLoader.cleanupPluginExtensions(name);
 
-        cleanupManagedPaths(manifest);
-        auditLogger.log("uninstall", name, info != null ? info.getVersion() : null, true, "卸载完成");
-        log.info("插件已卸载: {}", name);
+        String managedNote = cleanupManagedPaths(manifest);
+        String fileNote = deletePluginJar(info);
+        auditLogger.log("uninstall", name, info != null ? info.getVersion() : null, true, "卸载完成" + managedNote + fileNote);
+        log.info("插件已卸载: {}{}{}", name, managedNote, fileNote);
         return true;
     }
 
-    private void cleanupManagedPaths(PluginManifest manifest) {
+    private String deletePluginJar(PluginInfo info) {
+        if (info == null || info.getJar_file() == null) {
+            return "";
+        }
+        Path jarPath = resolvePluginJar(info.getJar_file());
+        try {
+            Files.deleteIfExists(jarPath);
+            return "";
+        } catch (IOException e) {
+            // Windows/JVM下插件类加载器关闭后jar句柄可能延迟释放, 触发GC后重试
+            System.gc();
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ignored) {
+            }
+            try {
+                Files.deleteIfExists(jarPath);
+                return "";
+            } catch (IOException e2) {
+                log.warn("插件文件删除失败, 待重启后清理: {} ({})", jarPath, e2.getMessage());
+                return "(jar 文件被占用, 待重启后清理: " + info.getJar_file() + ")";
+            }
+        }
+    }
+
+    public static final String MANAGED_MARKER_FILE = ".managed-by";
+
+    private String cleanupManagedPaths(PluginManifest manifest) {
         if (manifest == null || manifest.getManagedPaths() == null) {
-            return;
+            return "";
         }
         Path workDir = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
+        List<String> failures = new ArrayList<>();
         for (String managedPath : manifest.getManagedPaths()) {
             try {
                 if (managedPath == null || managedPath.isBlank()
@@ -264,12 +321,27 @@ public class PluginServiceImpl implements PluginService {
                 if (!target.startsWith(workDir) || !Files.exists(target)) {
                     continue;
                 }
+
+                Path ownerMarker = target.resolve(MANAGED_MARKER_FILE);
+                if (!Files.isRegularFile(ownerMarker)) {
+                    log.warn("托管资源缺少署名标记 {}, 跳过清理: {}", MANAGED_MARKER_FILE, target);
+                    failures.add(managedPath + "(缺少署名标记)");
+                    continue;
+                }
+                String owner = Files.readString(ownerMarker, StandardCharsets.UTF_8).trim();
+                if (!manifest.getId().equals(owner)) {
+                    log.warn("托管资源署名不匹配(声明者={}, 标记={}), 跳过清理: {}", manifest.getId(), owner, target);
+                    failures.add(managedPath + "(署名不匹配)");
+                    continue;
+                }
                 deleteRecursively(target);
                 log.info("已清理插件托管资源: {}", target);
             } catch (Exception e) {
                 log.warn("清理插件托管资源失败: {}", managedPath, e);
+                failures.add(managedPath);
             }
         }
+        return failures.isEmpty() ? "" : "(托管资源未完全清理: " + String.join(", ", failures) + ")";
     }
 
     private void deleteRecursively(Path path) throws IOException {
@@ -285,6 +357,10 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public PluginInfo upgrade(String name, MultipartFile file) {
+        return withLock(name, () -> doUpgrade(name, file));
+    }
+
+    private PluginInfo doUpgrade(String name, MultipartFile file) {
         validateJar(file);
         PluginInfo info = pluginMapper.selectByName(name);
         if (info == null) {
@@ -297,6 +373,9 @@ public class PluginServiceImpl implements PluginService {
             PluginManifest manifest = parseManifest(temp);
             if (!name.equals(manifest.getId())) {
                 throw new PluginRuntimeException("上传插件的 ID 与目标不一致");
+            }
+            if (manifest.getVersion().equals(info.getVersion())) {
+                throw new PluginRuntimeException("上传版本与当前版本相同(" + manifest.getVersion() + "), 请修改版本号后再升级");
             }
 
             PluginWrapper wrapper = pluginManager.getPlugin(name);
@@ -325,9 +404,16 @@ public class PluginServiceImpl implements PluginService {
             info.setConfig_map_name(manifest.getConfigMapName());
             pluginMapper.updateInfo(info);
 
-            pluginManager.loadPlugin(dest);
+            String loadedId = pluginManager.loadPlugin(dest);
+            if (loadedId == null) {
+                throw new PluginRuntimeException("新版本加载失败: " + name);
+            }
             if (Boolean.TRUE.equals(info.getEnabled())) {
-                pluginManager.startPlugin(name);
+                PluginState startState = pluginManager.startPlugin(name);
+                if (startState != PluginState.STARTED) {
+                    pluginMapper.updateEnabled(name, false);
+                    throw new PluginRuntimeException("新版本启动失败, 已回写为停用状态: " + name);
+                }
             }
             auditLogger.log("upgrade", name, manifest.getVersion(), true, "升级成功");
             log.info("插件升级成功: {}@{}", name, manifest.getVersion());
@@ -348,6 +434,10 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public boolean reload(String name) {
+        return withLock(name, () -> doReload(name));
+    }
+
+    private boolean doReload(String name) {
         PluginInfo info = pluginMapper.selectByName(name);
         if (info == null || info.getJar_file() == null) {
             throw new PluginRuntimeException("插件不存在: " + name);
@@ -360,9 +450,16 @@ public class PluginServiceImpl implements PluginService {
                 }
                 pluginManager.unloadAndClose(name);
             }
-            pluginManager.loadPlugin(resolvePluginJar(info.getJar_file()));
+            String loadedId = pluginManager.loadPlugin(resolvePluginJar(info.getJar_file()));
+            if (loadedId == null) {
+                throw new PluginRuntimeException("插件加载失败: " + name);
+            }
             if (Boolean.TRUE.equals(info.getEnabled())) {
-                pluginManager.startPlugin(name);
+                PluginState startState = pluginManager.startPlugin(name);
+                if (startState != PluginState.STARTED) {
+                    pluginMapper.updateEnabled(name, false);
+                    throw new PluginRuntimeException("插件启动失败, 已回写为停用状态: " + name);
+                }
             }
             return true;
         } catch (Exception e) {
@@ -386,7 +483,8 @@ public class PluginServiceImpl implements PluginService {
                 info.setAuthor(manifest != null ? manifest.getAuthor() : null);
                 info.setRequires(wrapper.getDescriptor().getRequires());
                 info.setJar_file(wrapper.getPluginPath() != null ? wrapper.getPluginPath().getFileName().toString() : name + ".jar");
-                info.setEnabled(wrapper.getPluginState() == PluginState.STARTED);
+                // 手动放置的jar统一补录为待启用, 避免绕过安装校验直接对外服务
+                info.setEnabled(false);
                 info.setSetting_name(manifest != null ? manifest.getSettingName() : null);
                 info.setConfig_map_name(manifest != null ? manifest.getConfigMapName() : null);
                 try {
@@ -407,16 +505,15 @@ public class PluginServiceImpl implements PluginService {
     }
 
     @Override
-    public void restoreDisabledStates() {
-        List<PluginInfo> infos = pluginMapper.selectAll();
-        for (PluginInfo info : infos) {
-            if (!Boolean.FALSE.equals(info.getEnabled())) {
+    public void startEnabledPlugins() {
+        for (PluginInfo info : pluginMapper.selectAll()) {
+            if (!Boolean.TRUE.equals(info.getEnabled())) {
                 continue;
             }
-            PluginWrapper wrapper = pluginManager.getPlugin(info.getName());
-            if (wrapper != null && wrapper.getPluginState() == PluginState.STARTED) {
-                pluginManager.stopPlugin(info.getName());
-                log.info("已按数据库状态恢复插件为停用: {}", info.getName());
+            try {
+                start(info.getName());
+            } catch (Exception e) {
+                log.error("插件启动失败, 已跳过(不影响宿主): {} ({})", info.getName(), e.getMessage());
             }
         }
     }
@@ -429,9 +526,9 @@ public class PluginServiceImpl implements PluginService {
         if (wrapper != null) {
             try (InputStream in = wrapper.getPluginClassLoader().getResourceAsStream("config.yaml")) {
                 if (in != null) {
-                    Object loaded = new Yaml().load(in);
-                    if (loaded instanceof Map<?, ?> map) {
-                        flatten("", (Map<String, Object>) map, config);
+                    Map<String, Object> loaded = PluginYamlLoader.load(in);
+                    if (!loaded.isEmpty()) {
+                        flatten("", loaded, config);
                     }
                 }
             } catch (Exception e) {

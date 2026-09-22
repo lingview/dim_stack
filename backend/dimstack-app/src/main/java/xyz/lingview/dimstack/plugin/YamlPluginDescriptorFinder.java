@@ -5,12 +5,10 @@ import org.pf4j.PluginDescriptor;
 import org.pf4j.PluginDescriptorFinder;
 import org.pf4j.PluginRuntimeException;
 import org.pf4j.util.StringUtils;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +36,8 @@ public class YamlPluginDescriptorFinder implements PluginDescriptorFinder {
     private static final Set<String> RESERVED_PUBLIC_PATHS = Set.of("/config", "/start", "/stop", "/upgrade", "/reload");
 
     private static final int PUBLIC_PATH_MAX_LENGTH = 128;
+
+    private static final Pattern MANAGED_PATH_PATTERN = Pattern.compile("themes/[A-Za-z0-9][A-Za-z0-9._-]{0,63}");
 
     private final Map<String, PluginManifest> manifests = new ConcurrentHashMap<>();
 
@@ -137,7 +137,14 @@ public class YamlPluginDescriptorFinder implements PluginDescriptorFinder {
         }
         Object managedPaths = data.get("managedPaths");
         if (managedPaths instanceof List<?> list && !list.isEmpty()) {
-            manifest.setManagedPaths(list.stream().map(String::valueOf).toList());
+            List<String> paths = list.stream().map(String::valueOf).toList();
+            for (String path : paths) {
+                if (path == null || !MANAGED_PATH_PATTERN.matcher(path).matches()) {
+                    throw new PluginRuntimeException(
+                            "插件 " + manifest.getId() + " 的 managedPaths 仅允许 themes/<主题名> 形式(单层目录): " + path);
+                }
+            }
+            manifest.setManagedPaths(paths);
         }
         Object enabled = data.get("enabled");
         manifest.setEnabled(enabled instanceof Boolean b && b);
@@ -183,9 +190,7 @@ public class YamlPluginDescriptorFinder implements PluginDescriptorFinder {
         throw new PluginRuntimeException("未找到 plugin.yaml: " + pluginPath);
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, Object> load(InputStream in) {
-        Object loaded = new Yaml().load(in);
-        return loaded instanceof Map<?, ?> map ? (Map<String, Object>) map : Collections.emptyMap();
+        return PluginYamlLoader.load(in);
     }
 }
