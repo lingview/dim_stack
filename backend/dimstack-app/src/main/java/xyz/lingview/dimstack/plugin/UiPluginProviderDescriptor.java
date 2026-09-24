@@ -20,6 +20,8 @@ public class UiPluginProviderDescriptor {
 
     private String styleUrl;
 
+    private String assetHash;
+
     @Data
     public static class UiPluginManifest {
 

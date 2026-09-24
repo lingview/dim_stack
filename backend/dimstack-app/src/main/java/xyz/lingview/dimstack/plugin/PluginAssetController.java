@@ -16,6 +16,7 @@ import org.springframework.web.servlet.HandlerMapping;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.InputStream;
 import java.nio.file.Path;
+import java.util.Set;
 
 /**
  * @Author: lingview
@@ -43,22 +44,23 @@ public class PluginAssetController {
             return ResponseEntity.notFound().build();
         }
 
-
         String relative = PATH_MATCHER.extractPathWithinPattern(ASSET_PATTERN, request.getRequestURI());
-        String normalized;
+        String resourcePath;
         try {
-            Path path = Path.of(relative).normalize();
-            normalized = path.toString().replace('\\', '/');
+
+            Path resolved = Path.of("ui").resolve(relative == null ? "" : relative).normalize();
+            resourcePath = resolved.toString().replace('\\', '/');
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-
-        if (normalized.isEmpty() || normalized.startsWith("../") || normalized.startsWith("/")) {
+        if (!resourcePath.startsWith("ui/") || resourcePath.length() <= "ui/".length()) {
             log.warn("插件资源路径被拒绝: /plugins/{}/assets/ui/{}", name, relative);
             return ResponseEntity.badRequest().build();
         }
-
-        String resourcePath = "ui/" + normalized;
+        if (!isAllowedAssetType(resourcePath)) {
+            log.warn("插件资源类型不在白名单, 拒绝服务: {}", resourcePath);
+            return ResponseEntity.status(415).build();
+        }
         InputStream in = wrapper.getPluginClassLoader().getResourceAsStream(resourcePath);
         if (in == null) {
             return ResponseEntity.notFound().build();
@@ -67,6 +69,16 @@ public class PluginAssetController {
         return ResponseEntity.ok()
                 .contentType(mediaType)
                 .body(new InputStreamResource(in));
+    }
+
+    private static final Set<String> ALLOWED_ASSET_SUFFIXES = Set.of(
+            ".js", ".mjs", ".css", ".json", ".map", ".txt", ".wasm",
+            ".svg", ".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico",
+            ".woff", ".woff2", ".ttf", ".otf", ".eot");
+
+    private boolean isAllowedAssetType(String resourcePath) {
+        int dot = resourcePath.lastIndexOf('.');
+        return dot > 0 && ALLOWED_ASSET_SUFFIXES.contains(resourcePath.substring(dot).toLowerCase());
     }
 
     private MediaType guessMediaType(String path) {

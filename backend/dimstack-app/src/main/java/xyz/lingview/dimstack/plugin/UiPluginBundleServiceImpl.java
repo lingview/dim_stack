@@ -7,8 +7,15 @@ import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+import org.springframework.web.util.UriUtils;
+import xyz.lingview.dimstack.domain.PluginInfo;
+import xyz.lingview.dimstack.mapper.PluginMapper;
 
 /**
  * @Author: lingview
@@ -23,10 +30,12 @@ public class UiPluginBundleServiceImpl implements UiPluginBundleService {
     private static final String MANIFEST_FILE = "ui/ui-plugin.json";
 
     private final DimStackPluginManager pluginManager;
+    private final PluginMapper pluginMapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public UiPluginBundleServiceImpl(DimStackPluginManager pluginManager) {
+    public UiPluginBundleServiceImpl(DimStackPluginManager pluginManager, PluginMapper pluginMapper) {
         this.pluginManager = pluginManager;
+        this.pluginMapper = pluginMapper;
     }
 
     @Override
@@ -58,18 +67,25 @@ public class UiPluginBundleServiceImpl implements UiPluginBundleService {
                 return null;
             }
 
-            if (!isSafeAssetPath(manifest.getEntry()) || (manifest.getStyle() != null && !isSafeAssetPath(manifest.getStyle()))) {
-                log.warn("插件 {} 的 ui 资源路径非法, 已忽略", wrapper.getPluginId());
+            if (!isSafeAssetPath(manifest.getEntry()) || !hasSuffix(manifest.getEntry(), ENTRY_SUFFIXES)) {
+                log.warn("插件 {} 的 ui 入口非法(仅支持 .js/.mjs 且路径字符受限), 已忽略", wrapper.getPluginId());
+                return null;
+            }
+            if (manifest.getStyle() != null && !manifest.getStyle().isBlank()
+                    && (!isSafeAssetPath(manifest.getStyle()) || !hasSuffix(manifest.getStyle(), STYLE_SUFFIXES))) {
+                log.warn("插件 {} 的 ui 样式非法(仅支持 .css 且路径字符受限), 已忽略", wrapper.getPluginId());
                 return null;
             }
 
+            String idSegment = UriUtils.encodePathSegment(wrapper.getPluginId(), StandardCharsets.UTF_8);
             UiPluginProviderDescriptor descriptor = new UiPluginProviderDescriptor();
             descriptor.setName(wrapper.getPluginId());
             descriptor.setVersion(wrapper.getDescriptor().getVersion());
+            descriptor.setAssetHash(resolveAssetHash(wrapper.getPluginId()));
             descriptor.setManifest(manifest);
-            descriptor.setEntryUrl("/plugins/" + wrapper.getPluginId() + "/assets/ui/" + manifest.getEntry());
+            descriptor.setEntryUrl("/plugins/" + idSegment + "/assets/ui/" + manifest.getEntry());
             if (manifest.getStyle() != null && !manifest.getStyle().isBlank()) {
-                descriptor.setStyleUrl("/plugins/" + wrapper.getPluginId() + "/assets/ui/" + manifest.getStyle());
+                descriptor.setStyleUrl("/plugins/" + idSegment + "/assets/ui/" + manifest.getStyle());
             }
             return descriptor;
         } catch (Exception e) {
@@ -78,11 +94,30 @@ public class UiPluginBundleServiceImpl implements UiPluginBundleService {
         }
     }
 
+    private String resolveAssetHash(String pluginId) {
+        try {
+            PluginInfo info = pluginMapper.selectByName(pluginId);
+            return info != null ? info.getSha256() : null;
+        } catch (Exception e) {
+            log.warn("读取插件 {} 的内容指纹失败, 前端将回退用版本号做缓存键: {}", pluginId, e.getMessage());
+            return null;
+        }
+    }
+
+    private static final Pattern SAFE_ASSET_PATH = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._/-]*");
+
+    private static final Set<String> ENTRY_SUFFIXES = Set.of(".js", ".mjs");
+    private static final Set<String> STYLE_SUFFIXES = Set.of(".css");
+
     private boolean isSafeAssetPath(String path) {
-        if (path == null || path.isBlank() || path.contains("..") || path.startsWith("/")
-                || path.contains("://") || path.contains("\\")) {
+        if (path == null || !SAFE_ASSET_PATH.matcher(path).matches() || path.contains("..")) {
             return false;
         }
         return true;
+    }
+
+    private boolean hasSuffix(String path, Set<String> suffixes) {
+        String lower = path.toLowerCase();
+        return suffixes.stream().anyMatch(lower::endsWith);
     }
 }
