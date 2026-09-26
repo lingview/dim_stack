@@ -1,6 +1,7 @@
 package xyz.lingview.dimstack.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.pf4j.PluginRuntimeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,14 +27,23 @@ public class PluginController {
     @Autowired
     private PluginService pluginService;
 
+    private <T> ApiResponse<T> fail(String action, Exception e) {
+        if (e instanceof PluginRuntimeException) {
+            log.warn("{} 失败: {}", action, e.getMessage());
+            return ApiResponse.error(500, e.getMessage());
+        }
+        String traceId = Long.toHexString(System.nanoTime());
+        log.error("{} 失败, 错误编号={}", action, traceId, e);
+        return ApiResponse.error(500, action + "失败, 请稍后重试(错误编号 " + traceId + ")");
+    }
+
     @GetMapping
     @RequiresPermission("plugin:management")
     public ApiResponse<List<PluginInfo>> list() {
         try {
             return ApiResponse.success(pluginService.list());
         } catch (Exception e) {
-            log.error("获取插件列表失败", e);
-            return ApiResponse.error(500, "获取插件列表失败: " + e.getMessage());
+            return fail("获取插件列表", e);
         }
     }
 
@@ -43,8 +53,7 @@ public class PluginController {
         try {
             return ApiResponse.success(pluginService.install(file));
         } catch (Exception e) {
-            log.error("安装插件失败", e);
-            return ApiResponse.error(500, "安装插件失败: " + e.getMessage());
+            return fail("安装插件", e);
         }
     }
 
@@ -55,8 +64,7 @@ public class PluginController {
             pluginService.start(name);
             return ApiResponse.success("插件已启用");
         } catch (Exception e) {
-            log.error("启用插件失败: {}", name, e);
-            return ApiResponse.error(500, "启用插件失败: " + e.getMessage());
+            return fail("启用插件", e);
         }
     }
 
@@ -67,8 +75,7 @@ public class PluginController {
             pluginService.stop(name);
             return ApiResponse.success("插件已停用");
         } catch (Exception e) {
-            log.error("停用插件失败: {}", name, e);
-            return ApiResponse.error(500, "停用插件失败: " + e.getMessage());
+            return fail("停用插件", e);
         }
     }
 
@@ -79,8 +86,7 @@ public class PluginController {
             pluginService.uninstall(name);
             return ApiResponse.success("插件已卸载");
         } catch (Exception e) {
-            log.error("卸载插件失败: {}", name, e);
-            return ApiResponse.error(500, "卸载插件失败: " + e.getMessage());
+            return fail("卸载插件", e);
         }
     }
 
@@ -91,8 +97,7 @@ public class PluginController {
         try {
             return ApiResponse.success(pluginService.upgrade(name, file));
         } catch (Exception e) {
-            log.error("升级插件失败: {}", name, e);
-            return ApiResponse.error(500, "升级插件失败: " + e.getMessage());
+            return fail("升级插件", e);
         }
     }
 
@@ -103,8 +108,7 @@ public class PluginController {
             pluginService.reload(name);
             return ApiResponse.success("插件已重载");
         } catch (Exception e) {
-            log.error("重载插件失败: {}", name, e);
-            return ApiResponse.error(500, "重载插件失败: " + e.getMessage());
+            return fail("重载插件", e);
         }
     }
 
@@ -114,8 +118,7 @@ public class PluginController {
         try {
             return ApiResponse.success(pluginService.getConfig(name));
         } catch (Exception e) {
-            log.error("读取插件配置失败: {}", name, e);
-            return ApiResponse.error(500, "读取插件配置失败: " + e.getMessage());
+            return fail("读取插件配置", e);
         }
     }
 
@@ -126,8 +129,7 @@ public class PluginController {
             pluginService.saveConfig(name, config);
             return ApiResponse.success("插件配置已保存");
         } catch (Exception e) {
-            log.error("保存插件配置失败: {}", name, e);
-            return ApiResponse.error(500, "保存插件配置失败: " + e.getMessage());
+            return fail("保存插件配置", e);
         }
     }
 }

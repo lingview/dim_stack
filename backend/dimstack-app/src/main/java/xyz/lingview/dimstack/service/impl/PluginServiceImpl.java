@@ -187,7 +187,8 @@ public class PluginServiceImpl implements PluginService {
             throw e;
         } catch (Exception e) {
             auditLogger.log("install", "?", null, false, e.getMessage());
-            throw new PluginRuntimeException("插件安装失败: " + e.getMessage(), e);
+            log.error("插件安装发生非业务异常", e);
+            throw new PluginRuntimeException("插件安装失败, 请查看服务端日志");
         }
     }
 
@@ -557,7 +558,8 @@ public class PluginServiceImpl implements PluginService {
             String json = objectMapper.writeValueAsString(config);
             return configMapper.upsert(name, CONFIG_KEY, json) > 0;
         } catch (Exception e) {
-            throw new PluginRuntimeException("插件配置保存失败: " + e.getMessage(), e);
+            log.error("插件配置保存失败: {}", name, e);
+            throw new PluginRuntimeException("插件配置保存失败, 请查看服务端日志");
         }
     }
 
