@@ -5,7 +5,7 @@ import { fetchSiteName, fetchSiteIcon } from './Api.jsx'
 import { getConfig } from './utils/config.jsx'
 import MusicPlayer from './components/MusicPlayer';
 import AnnouncementModal from './components/AnnouncementModal';
-import { getPluginRoutes } from './plugin/pluginRuntime.js';
+import { getPluginRoutes, subscribePluginRoutes } from './plugin/pluginRuntime.js';
 
 const importArticleReader = () => import('./components/ArticleReader')
 
@@ -21,9 +21,11 @@ const CustomHtmlPage = lazy(() => import('./components/CustomHtmlPage.jsx'))
 
 function App() {
     const [faviconUrl, setFaviconUrl] = useState('/favicon.ico')
-    // 插件贡献的路由(插件前端模块 setup 时注册, main.jsx 在 setup 完成后才渲染本组件)
-    const [pluginRoutes] = useState(() => getPluginRoutes())
+
+    const [pluginRoutes, setPluginRoutes] = useState(() => getPluginRoutes())
     const location = useLocation()
+
+    useEffect(() => subscribePluginRoutes(setPluginRoutes), [])
 
     const isDashboardRoute = location.pathname.startsWith('/dashboard')
 

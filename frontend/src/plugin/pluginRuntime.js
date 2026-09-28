@@ -3,18 +3,67 @@
 import { registerExtensionPoint, unregisterPluginExtensions } from './ExtensionPointRegistry'
 
 const pluginRoutes = []
-
+// entryUrl带内容指纹, 同版本重新打包也能强制加载新代码
 const loadedModules = new Map()
+
+const teardowns = new Map()
+
+const routeSubscribers = new Set()
+// 并发reload复用同一Promise, 避免清理与装载交错
+let inFlightReload = null
 
 export function getPluginRoutes() {
     return pluginRoutes.map((r) => ({ path: r.path, element: r.element }))
+}
+
+export function subscribePluginRoutes(listener) {
+    routeSubscribers.add(listener)
+    return () => routeSubscribers.delete(listener)
+}
+
+function notifyRoutesChanged() {
+    if (routeSubscribers.size === 0) {
+        return
+    }
+    const routes = getPluginRoutes()
+    for (const listener of routeSubscribers) {
+        try {
+            listener(routes)
+        } catch (e) {
+            console.error('[plugin] 路由订阅回调异常:', e)
+        }
+    }
+}
+
+function runTeardowns(name) {
+    const callbacks = teardowns.get(name)
+    if (!callbacks) {
+        return
+    }
+    teardowns.delete(name)
+    for (const fn of callbacks) {
+        try {
+            fn()
+        } catch (e) {
+            console.error(`[plugin] ${name} teardown 回调异常:`, e)
+        }
+    }
 }
 
 export async function setupPluginRuntime() {
     await reloadPluginRuntime()
 }
 
-export async function reloadPluginRuntime() {
+export function reloadPluginRuntime() {
+    if (!inFlightReload) {
+        inFlightReload = doReload().finally(() => {
+            inFlightReload = null
+        })
+    }
+    return inFlightReload
+}
+
+async function doReload() {
     const providers = await fetchProviders()
     if (providers === null) {
         return
@@ -23,6 +72,7 @@ export async function reloadPluginRuntime() {
 
     for (const name of [...loadedModules.keys()]) {
         if (!activeNames.has(name)) {
+            runTeardowns(name)
             unregisterPluginExtensions(name)
             loadedModules.delete(name)
         }
@@ -41,6 +91,8 @@ export async function reloadPluginRuntime() {
             unregisterPluginExtensions(provider.name)
         }
     }
+
+    notifyRoutesChanged()
 }
 
 async function fetchProviders() {
@@ -59,13 +111,15 @@ async function loadProvider(provider) {
         return
     }
 
+    runTeardowns(provider.name)
     unregisterPluginExtensions(provider.name)
     if (provider.styleUrl) {
         loadStyle(provider.styleUrl)
     }
 
-    const entryUrl = provider.version
-        ? `${provider.entryUrl}?v=${encodeURIComponent(provider.version)}`
+    const cacheKey = provider.assetHash || provider.version
+    const entryUrl = cacheKey
+        ? `${provider.entryUrl}?v=${encodeURIComponent(cacheKey)}`
         : provider.entryUrl
     let cached = loadedModules.get(provider.name)
     if (!cached || cached.entryUrl !== entryUrl) {
@@ -101,6 +155,15 @@ function createPluginContext(provider) {
             }
         },
 
+        onTeardown: (fn) => {
+            if (typeof fn !== 'function') {
+                return
+            }
+            const callbacks = teardowns.get(provider.name) || []
+            callbacks.push(fn)
+            teardowns.set(provider.name, callbacks)
+        },
+
         fetchConfig: async () => {
             const response = await fetch(`/api/plugins/${provider.name}/config`)
             const body = await response.json()
@@ -120,7 +183,13 @@ function createPluginContext(provider) {
     }
 }
 
+const loadedStyles = new Set()
+
 function loadStyle(url) {
+    if (loadedStyles.has(url)) {
+        return
+    }
+    loadedStyles.add(url)
     const link = document.createElement('link')
     link.rel = 'stylesheet'
     link.href = url
