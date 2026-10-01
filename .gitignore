@@ -22,6 +22,14 @@ examples/plugins/**/target/
 /plugins/
 plugin-startup.log
 
+# 初始化生成的配置(含数据库密码等敏感信息)与运行期数据目录
+/config/
+/data/
+# 根目录游离的构建产物与 IDE 文件
+/BOOT-INF/
+/*.jar
+*.iml
+
 # 开发测试用的主题与示例插件(不入库)
 /themes/
 /enterprise-theme/
