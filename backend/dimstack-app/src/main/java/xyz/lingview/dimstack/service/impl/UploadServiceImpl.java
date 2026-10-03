@@ -90,7 +90,7 @@ public class UploadServiceImpl implements UploadService {
     private static final Map<String, List<String>> SUPPORTED_FILE_TYPES = Map.of(
             "image", List.of(
                     "image/jpeg", "image/jpg", "image/png", "image/gif",
-                    "image/webp", "image/svg+xml", "image/bmp"
+                    "image/webp", "image/bmp"
             ),
             "video", List.of(
                     "video/mp4", "video/webm", "video/ogg",
@@ -117,7 +117,7 @@ public class UploadServiceImpl implements UploadService {
 
 
     private static final Set<String> SUPPORTED_EXTENSIONS = Set.of(
-            ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".bmp",
+            ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp",
             ".mp4", ".webm", ".ogg", ".avi", ".mov", ".mkv",
             ".mp3", ".wav", ".flac", ".aac", ".m4a",
             ".zip", ".rar", ".tar", ".gz", ".tgz", ".xz", ".7z",
