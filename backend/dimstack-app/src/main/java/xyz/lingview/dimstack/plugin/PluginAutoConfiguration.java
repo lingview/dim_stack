@@ -38,8 +38,9 @@ public class PluginAutoConfiguration implements SmartInitializingSingleton {
     @Bean
     public PluginApplicationContextFactory pluginApplicationContextFactory(ApplicationContext rootContext,
                                                                            YamlPluginDescriptorFinder finder,
-                                                                           SettingFetcher settingFetcher) {
-        return new DefaultPluginApplicationContextFactory(rootContext, finder, settingFetcher);
+                                                                           SettingFetcher settingFetcher,
+                                                                           PluginDbRegistry pluginDbRegistry) {
+        return new DefaultPluginApplicationContextFactory(rootContext, finder, settingFetcher, pluginDbRegistry);
     }
 
     @Bean

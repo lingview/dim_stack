@@ -11,11 +11,13 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import xyz.lingview.dimstack.plugin.api.ExtensionGetter;
 import xyz.lingview.dimstack.plugin.api.PluginContext;
+import xyz.lingview.dimstack.plugin.api.PluginDb;
 import xyz.lingview.dimstack.plugin.api.SettingFetcher;
 import xyz.lingview.dimstack.service.CacheService;
 import xyz.lingview.dimstack.service.SiteConfigService;
@@ -37,24 +39,27 @@ import java.util.Set;
 public class DefaultPluginApplicationContextFactory implements PluginApplicationContextFactory {
 
     private static final List<SharedBean> SHARED_BEANS = List.of(
-            new SharedBean(SiteConfigService.class, ctx -> ctx.getBean(SiteConfigService.class)),
-            new SharedBean(CacheService.class, ctx -> ctx.getBean(CacheService.class)),
-            new SharedBean(StorageFacadeService.class, ctx -> ctx.getBean(StorageFacadeService.class)),
-            new SharedBean(ExtensionGetter.class, ctx -> ctx.getBean(ExtensionGetter.class))
+            new SharedBean(SiteConfigService.class, "siteConfigService", ctx -> ctx.getBean(SiteConfigService.class)),
+            new SharedBean(CacheService.class, "cacheService", ctx -> ctx.getBean(CacheService.class)),
+            new SharedBean(StorageFacadeService.class, "storageFacadeService", ctx -> ctx.getBean(StorageFacadeService.class)),
+            new SharedBean(ExtensionGetter.class, "extensionGetter", ctx -> ctx.getBean(ExtensionGetter.class))
     );
 
     private final ApplicationContext rootContext;
     private final YamlPluginDescriptorFinder descriptorFinder;
     private final SettingFetcher settingFetcher;
+    private final PluginDbRegistry pluginDbRegistry;
 
     private volatile AnnotationConfigApplicationContext sharedContext;
 
     public DefaultPluginApplicationContextFactory(ApplicationContext rootContext,
                                                   YamlPluginDescriptorFinder descriptorFinder,
-                                                  SettingFetcher settingFetcher) {
+                                                  SettingFetcher settingFetcher,
+                                                  PluginDbRegistry pluginDbRegistry) {
         this.rootContext = rootContext;
         this.descriptorFinder = descriptorFinder;
         this.settingFetcher = settingFetcher;
+        this.pluginDbRegistry = pluginDbRegistry;
     }
 
     @Override
@@ -82,6 +87,21 @@ public class DefaultPluginApplicationContextFactory implements PluginApplication
         settingFetcherDef.setInstanceSupplier(() -> new BoundSettingFetcher(wrapper.getPluginId(), settingFetcher));
         settingFetcherDef.setPrimary(true);
         beanFactory.registerBeanDefinition("boundSettingFetcher", settingFetcherDef);
+
+        RootBeanDefinition pluginDbDef = new RootBeanDefinition(PluginDb.class);
+        pluginDbDef.setInstanceSupplier(() -> pluginDbRegistry.get(wrapper.getPluginId()));
+        pluginDbDef.setPrimary(true);
+        beanFactory.registerBeanDefinition("pluginDb", pluginDbDef);
+
+        RootBeanDefinition jdbcTemplateDef = new RootBeanDefinition(JdbcTemplate.class);
+        jdbcTemplateDef.setInstanceSupplier(() -> {
+            JdbcTemplate jdbcTemplate = new JdbcTemplate(pluginDbRegistry.get(wrapper.getPluginId()).dataSource());
+            jdbcTemplate.setQueryTimeout(10);
+            return jdbcTemplate;
+        });
+        jdbcTemplateDef.setPrimary(true);
+        beanFactory.registerBeanDefinition("pluginJdbcTemplate", jdbcTemplateDef);
+
         registerConfigYaml(context, wrapper);
 
         registerComponents(context, wrapper, manifest);
@@ -105,6 +125,7 @@ public class DefaultPluginApplicationContextFactory implements PluginApplication
         } catch (Exception e) {
             log.warn("插件上下文关闭异常: {}", wrapper.getPluginId(), e);
         }
+        pluginDbRegistry.dispose(wrapper.getPluginId());
     }
 
     private AnnotationConfigApplicationContext getSharedContext() {
@@ -112,16 +133,15 @@ public class DefaultPluginApplicationContextFactory implements PluginApplication
             synchronized (this) {
                 if (sharedContext == null) {
                     AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-                    context.setParent(rootContext);
+                    // 不设置parent=rootContext: 插件只能取到白名单服务, 拿不到宿主内部Bean
                     context.setId("plugin-shared");
                     DefaultListableBeanFactory beanFactory = (DefaultListableBeanFactory) context.getBeanFactory();
                     for (SharedBean bean : SHARED_BEANS) {
                         @SuppressWarnings({"rawtypes", "unchecked"})
                         Class<?> beanType = (Class) bean.type;
-                        RootBeanDefinition definition = new RootBeanDefinition(beanType);
-                        definition.setInstanceSupplier(() -> bean.resolver.apply(rootContext));
-                        definition.setPrimary(true);
-                        beanFactory.registerBeanDefinition(beanType.getName(), definition);
+                        String beanName = beanType.getName();
+                        beanFactory.registerSingleton(beanName, bean.resolver.apply(rootContext));
+                        beanFactory.registerAlias(beanName, bean.name);
                     }
                     context.refresh();
                     sharedContext = context;
@@ -201,6 +221,6 @@ public class DefaultPluginApplicationContextFactory implements PluginApplication
         }
     }
 
-    private record SharedBean(Class<?> type, java.util.function.Function<ApplicationContext, Object> resolver) {
+    private record SharedBean(Class<?> type, String name, java.util.function.Function<ApplicationContext, Object> resolver) {
     }
 }

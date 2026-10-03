@@ -9,8 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.ObjectMapper;
 import xyz.lingview.dimstack.domain.PluginInfo;
+import xyz.lingview.dimstack.domain.PluginSqlAudit;
 import xyz.lingview.dimstack.mapper.PluginConfigMapper;
 import xyz.lingview.dimstack.mapper.PluginMapper;
+import xyz.lingview.dimstack.mapper.PluginSqlAuditMapper;
 import xyz.lingview.dimstack.plugin.DimStackPluginManager;
 import xyz.lingview.dimstack.plugin.PluginAuditLogger;
 import xyz.lingview.dimstack.plugin.PluginExtensionLoader;
@@ -61,6 +63,7 @@ public class PluginServiceImpl implements PluginService {
     private final PluginExtensionLoader extensionLoader;
     private final PluginConfigMapper configMapper;
     private final PluginAuditLogger auditLogger;
+    private final PluginSqlAuditMapper sqlAuditMapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final Path pluginDir = Path.of(System.getProperty("user.dir"), "plugins");
@@ -74,13 +77,15 @@ public class PluginServiceImpl implements PluginService {
                              YamlPluginDescriptorFinder descriptorFinder,
                              PluginExtensionLoader extensionLoader,
                              PluginConfigMapper configMapper,
-                             PluginAuditLogger auditLogger) {
+                             PluginAuditLogger auditLogger,
+                             PluginSqlAuditMapper sqlAuditMapper) {
         this.pluginManager = pluginManager;
         this.pluginMapper = pluginMapper;
         this.descriptorFinder = descriptorFinder;
         this.extensionLoader = extensionLoader;
         this.configMapper = configMapper;
         this.auditLogger = auditLogger;
+        this.sqlAuditMapper = sqlAuditMapper;
     }
 
     private Path resolvePluginJar(String fileName) {
@@ -561,6 +566,16 @@ public class PluginServiceImpl implements PluginService {
             log.error("插件配置保存失败: {}", name, e);
             throw new PluginRuntimeException("插件配置保存失败, 请查看服务端日志");
         }
+    }
+
+    @Override
+    public List<PluginSqlAudit> listSqlAudit(String name, int page, int size) {
+        return sqlAuditMapper.selectPage(name, (page - 1) * size, size);
+    }
+
+    @Override
+    public long countSqlAudit(String name) {
+        return sqlAuditMapper.countByPlugin(name);
     }
 
     @SuppressWarnings("unchecked")

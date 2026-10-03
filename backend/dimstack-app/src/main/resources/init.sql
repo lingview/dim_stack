@@ -595,6 +595,26 @@ CREATE TABLE `plugin_config`  (
 
 
 -- ----------------------------
+-- Table structure for plugin_sql_audit
+-- ----------------------------
+DROP TABLE IF EXISTS `plugin_sql_audit`;
+CREATE TABLE `plugin_sql_audit`  (
+                                     `id` bigint NOT NULL AUTO_INCREMENT,
+                                     `plugin_name` varchar(64) CHARACTER SET utf8mb4 NOT NULL COMMENT '插件ID',
+                                     `category` varchar(32) CHARACTER SET utf8mb4 NOT NULL COMMENT 'ddl-结构变更, core_write-写核心表, slow-慢SQL',
+                                     `sql_text` varchar(2048) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT 'SQL文本(超长截断)',
+                                     `cost_millis` bigint NULL DEFAULT NULL COMMENT '执行耗时(毫秒)',
+                                     `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '记录时间',
+                                     PRIMARY KEY (`id`) USING BTREE,
+                                     INDEX `idx_plugin_name_id`(`plugin_name` ASC, `id` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COMMENT = '插件SQL审计' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of plugin_sql_audit
+-- ----------------------------
+
+
+-- ----------------------------
 -- Table structure for role
 -- ----------------------------
 DROP TABLE IF EXISTS `role`;

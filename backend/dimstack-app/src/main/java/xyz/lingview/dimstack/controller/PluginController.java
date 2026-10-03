@@ -8,6 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 import xyz.lingview.dimstack.annotation.RequiresPermission;
 import xyz.lingview.dimstack.common.ApiResponse;
 import xyz.lingview.dimstack.domain.PluginInfo;
+import xyz.lingview.dimstack.domain.PluginSqlAudit;
+import xyz.lingview.dimstack.dto.request.PageResult;
 import xyz.lingview.dimstack.service.PluginService;
 
 import java.util.List;
@@ -130,6 +132,27 @@ public class PluginController {
             return ApiResponse.success("插件配置已保存");
         } catch (Exception e) {
             return fail("保存插件配置", e);
+        }
+    }
+
+    @GetMapping("/{name}/sql-audit")
+    @RequiresPermission("plugin:management")
+    public ApiResponse<PageResult<PluginSqlAudit>> sqlAudit(@PathVariable String name,
+                                                           @RequestParam(defaultValue = "1") int page,
+                                                           @RequestParam(defaultValue = "20") int size) {
+        try {
+            int safePage = Math.max(page, 1);
+            int safeSize = Math.min(Math.max(size, 1), 100);
+            PageResult<PluginSqlAudit> result = new PageResult<>();
+            result.setData(pluginService.listSqlAudit(name, safePage, safeSize));
+            int total = (int) pluginService.countSqlAudit(name);
+            result.setTotal(total);
+            result.setPage(safePage);
+            result.setSize(safeSize);
+            result.setTotal_pages((total + safeSize - 1) / safeSize);
+            return ApiResponse.success(result);
+        } catch (Exception e) {
+            return fail("查询插件SQL审计", e);
         }
     }
 }

@@ -2,6 +2,7 @@ package xyz.lingview.dimstack.service;
 
 import org.springframework.web.multipart.MultipartFile;
 import xyz.lingview.dimstack.domain.PluginInfo;
+import xyz.lingview.dimstack.domain.PluginSqlAudit;
 
 import java.util.List;
 import java.util.Map;
@@ -36,4 +37,8 @@ public interface PluginService {
     Map<String, Object> getConfig(String name);
 
     boolean saveConfig(String name, Map<String, Object> config);
+
+    List<PluginSqlAudit> listSqlAudit(String name, int page, int size);
+
+    long countSqlAudit(String name);
 }

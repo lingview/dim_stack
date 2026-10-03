@@ -2,9 +2,22 @@ import React, { useState, useEffect, useRef } from 'react';
 import apiClient from '../../utils/axios.jsx';
 import { showToast } from '../../utils/toastManager.jsx';
 import DataTable from './DataTable';
+import Pagination from './Pagination';
 import { ExtensionSlot } from '../ExtensionSlot.jsx';
 import { reloadPluginRuntime } from '../../plugin/pluginRuntime.js';
 import { hasExtension } from '../../plugin/ExtensionPointRegistry.js';
+
+const AUDIT_CATEGORY_TEXT = {
+    ddl: '结构变更',
+    core_write: '核心表写入',
+    slow: '慢查询'
+};
+
+const getAuditCategoryClass = (category) => {
+    if (category === 'core_write') return 'bg-red-100 text-red-800';
+    if (category === 'slow') return 'bg-yellow-100 text-yellow-800';
+    return 'bg-gray-100 text-gray-600';
+};
 
 const formatTime = (value) => {
     if (!value) return '-';
@@ -36,6 +49,12 @@ export default function PluginManager() {
     const [operating, setOperating] = useState('');
     const [settingsPlugin, setSettingsPlugin] = useState(null);
     const [upgradingPlugin, setUpgradingPlugin] = useState(null);
+    const [auditPlugin, setAuditPlugin] = useState(null);
+    const [auditRows, setAuditRows] = useState([]);
+    const [auditLoading, setAuditLoading] = useState(false);
+    const [auditPage, setAuditPage] = useState(1);
+    const [auditTotalPages, setAuditTotalPages] = useState(1);
+    const [auditTotalItems, setAuditTotalItems] = useState(0);
 
     const installInputRef = useRef(null);
     const upgradeInputRef = useRef(null);
@@ -43,6 +62,11 @@ export default function PluginManager() {
     useEffect(() => {
         fetchPlugins();
     }, []);
+
+    useEffect(() => {
+        if (!auditPlugin) return;
+        fetchAudit(auditPlugin.name, auditPage);
+    }, [auditPlugin, auditPage]);
 
     const fetchPlugins = async () => {
         try {
@@ -59,6 +83,38 @@ export default function PluginManager() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const fetchAudit = async (name, page) => {
+        try {
+            setAuditLoading(true);
+            const response = await apiClient.get(`/plugins/${name}/sql-audit?page=${page}&size=10`);
+            if (response.code === 200 && response.data) {
+                setAuditRows(response.data.data || []);
+                setAuditTotalPages(response.data.total_pages || 1);
+                setAuditTotalItems(response.data.total || 0);
+            } else {
+                showToast(response.message || '获取SQL审计失败');
+            }
+        } catch (error) {
+            console.error('获取SQL审计失败:', error);
+            showToast('获取SQL审计失败');
+        } finally {
+            setAuditLoading(false);
+        }
+    };
+
+    const handleOpenAudit = (plugin) => {
+        setAuditRows([]);
+        setAuditTotalItems(0);
+        setAuditTotalPages(1);
+        setAuditPage(1);
+        setAuditPlugin(plugin);
+    };
+
+    const handleCloseAudit = () => {
+        setAuditPlugin(null);
+        setAuditRows([]);
     };
 
     const doAction = async (action, name, successText) => {
@@ -226,6 +282,14 @@ export default function PluginManager() {
                     </button>
                     <button
                         type="button"
+                        onClick={() => handleOpenAudit(plugin)}
+                        disabled={!!operating}
+                        className="text-blue-600 hover:text-blue-900 mr-3 disabled:opacity-50"
+                    >
+                        审计
+                    </button>
+                    <button
+                        type="button"
                         onClick={() => {
                             setUpgradingPlugin(plugin);
                             upgradeInputRef.current && upgradeInputRef.current.click();
@@ -303,6 +367,85 @@ export default function PluginManager() {
                                 <button
                                     type="button"
                                     onClick={() => setSettingsPlugin(null)}
+                                    className="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                >
+                                    关闭
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
+            {auditPlugin && (
+                <>
+                    <div className="fixed inset-0 backdrop-blur-sm bg-transparent z-40" onClick={handleCloseAudit}></div>
+                    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl flex flex-col max-h-[85vh]" onClick={(e) => e.stopPropagation()}>
+                            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                                <h3 className="text-lg font-medium text-gray-900">{auditPlugin.display_name} SQL 审计</h3>
+                                <button
+                                    type="button"
+                                    onClick={() => fetchAudit(auditPlugin.name, auditPage)}
+                                    disabled={auditLoading}
+                                    className="text-sm text-blue-600 hover:text-blue-900 disabled:opacity-50"
+                                >
+                                    刷新
+                                </button>
+                            </div>
+                            <div className="px-6 py-4 overflow-y-auto">
+                                <p className="text-xs text-gray-400 mb-4">
+                                    插件通过插件数据库访问宿主库的 SQL 记录，仅记录结构变更、核心表写入与慢查询，卸载插件后保留
+                                </p>
+                                {auditLoading ? (
+                                    <div className="flex justify-center items-center h-40">
+                                        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+                                    </div>
+                                ) : auditRows.length > 0 ? (
+                                    <>
+                                        <table className="min-w-full divide-y divide-gray-200">
+                                            <thead className="bg-gray-50">
+                                                <tr>
+                                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">类型</th>
+                                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SQL</th>
+                                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">耗时</th>
+                                                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">时间</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="bg-white divide-y divide-gray-200">
+                                                {auditRows.map((item) => (
+                                                    <tr key={item.id} className="hover:bg-gray-50">
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getAuditCategoryClass(item.category)}`}>
+                                                                {AUDIT_CATEGORY_TEXT[item.category] || item.category}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm text-gray-600">
+                                                            <div className="font-mono text-xs max-w-[70ch] truncate" title={item.sql_text}>
+                                                                {item.sql_text}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.cost_millis}ms</td>
+                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatTime(item.create_time)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                        <Pagination
+                                            currentPage={auditPage}
+                                            totalPages={auditTotalPages}
+                                            totalItems={auditTotalItems}
+                                            pageSize={10}
+                                            onPageChange={setAuditPage}
+                                        />
+                                    </>
+                                ) : (
+                                    <p className="text-sm text-gray-400 py-8 text-center">暂无审计记录</p>
+                                )}
+                            </div>
+                            <div className="px-6 py-4 bg-gray-50 flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={handleCloseAudit}
                                     className="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                 >
                                     关闭
