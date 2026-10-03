@@ -29,6 +29,8 @@ plugin-startup.log
 /BOOT-INF/
 /*.jar
 *.iml
+# 前端共享依赖 vendor 产物(npm prebuild/predev 自动生成)
+frontend/public/vendor/
 
 # 开发测试用的主题与示例插件(不入库)
 /themes/
