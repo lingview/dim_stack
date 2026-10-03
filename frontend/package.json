@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.12",
-    "axios": "1.18.1",
+    "axios": "1.20.0",
     "docx-preview": "^0.3.7",
     "dompurify": "3.4.12",
     "framer-motion": "^12.23.12",
