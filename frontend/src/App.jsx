@@ -95,9 +95,11 @@ function App() {
                     <Route path="/article/:articleId" element={<ArticleReader />} />
                     <Route path="/friend-links" element={<FriendLinks />}></Route>
                     <Route path="/custom-page/:alias" element={<CustomHtmlPage />} />
-                    {pluginRoutes.map((route, index) => (
-                        <Route key={index} path={route.path} element={route.element} />
-                    ))}
+                    {pluginRoutes
+                        .filter((route) => route.path !== '/dashboard' && !route.path.startsWith('/dashboard/'))
+                        .map((route, index) => (
+                            <Route key={index} path={route.path} element={route.element} />
+                        ))}
                     <Route path="*" element={<PageNotFound />} />
                 </Routes>
             </Suspense>

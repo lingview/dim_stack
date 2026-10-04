@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getIcon } from '../../utils/IconUtils';
 import { fetchSiteName } from '../../Api.jsx';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { getConfig } from '../../utils/config.jsx';
 
 export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onClose, username, avatar, menuItems }) {
@@ -40,11 +40,81 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onCl
         }
     }, [isOpen]);
 
-    const getRouteSegment = (link) => {
-        if (!link) return '';
-        const segments = link.split('/');
-        return segments[segments.length - 1] || segments[segments.length - 2] || '';
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const matchesPath = (link) => {
+        if (!link) return false;
+        const path = location.pathname;
+        return path === link || (link !== '/dashboard' && path.startsWith(link + '/'));
     };
+
+    const collectMenuLinks = (items, acc) => {
+        for (const item of items || []) {
+            if (!item) continue;
+            if (item.link) acc.push(item.link);
+            if (item.children) collectMenuLinks(item.children, acc);
+        }
+        return acc;
+    };
+
+    const activeLink = collectMenuLinks(menuItems, [])
+        .filter(matchesPath)
+        .sort((a, b) => b.length - a.length)[0] || null;
+
+    const handleMenuClick = (item) => {
+        if (item.link) {
+            navigate(item.link);
+        }
+        if (item.children) {
+            if (isOpen) {
+                toggleExpanded(item.id);
+            } else {
+                onToggle();
+            }
+        }
+        if (window.innerWidth < 768) {
+            onClose();
+        }
+    };
+
+    const renderMenuItems = (items, depth) => (
+        <ul className={depth === 0 ? 'space-y-1 px-2' : 'mt-1 space-y-1'}>
+            {items.map((item) => item && (
+                <li key={item.id}>
+                    <button
+                        onClick={() => handleMenuClick(item)}
+                        className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+                            activeLink === item.link
+                                ? 'bg-blue-100 text-blue-700 sidebar-nav-item-active'
+                                : 'text-gray-700 hover:bg-gray-100 sidebar-nav-item-default'
+                        }`}
+                        style={depth > 0 ? { paddingLeft: `${24 * depth + 12}px` } : undefined}
+                    >
+                        <span className={depth === 0 ? 'text-lg' : 'text-base'}>{getIcon(item.icon)}</span>
+                        {isOpen && (
+                            <>
+                                <span className="ml-3">{item.title}</span>
+                                {item.children && (
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className={`ml-auto h-4 w-4 transition-transform duration-200 ${
+                                            expandedItems[item.id] ? 'rotate-180' : ''
+                                        }`}
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
+                                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                    </svg>
+                                )}
+                            </>
+                        )}
+                    </button>
+                    {item.children && isOpen && expandedItems[item.id] && renderMenuItems(item.children, depth + 1)}
+                </li>
+            ))}
+        </ul>
+    );
 
     const toggleExpanded = (itemId) => {
         setExpandedItems(prev => ({
@@ -52,8 +122,6 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onCl
             [itemId]: !prev[itemId]
         }));
     };
-
-    const navigate = useNavigate();
 
     const handleClick = () => {
         navigate('/dashboard/profile');
@@ -137,90 +205,7 @@ export default function Sidebar({ activeTab, onTabChange, isOpen, onToggle, onCl
 
                 {/* 导航菜单 */}
                 <nav className="mt-4 flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar">
-                    <ul className="space-y-1 px-2">
-                        {menuItems.map((item) => item && (
-                            <li key={item.id}>
-                                {item.children ? (
-                                    <div>
-                                        <button
-                                            onClick={() => {
-                                                if (isOpen) {
-                                                    toggleExpanded(item.id);
-                                                } else {
-                                                    onToggle();
-                                                }
-                                            }}
-                                            className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200
-                                                ${activeTab === getRouteSegment(item.link)
-                                                ? 'bg-blue-100 text-blue-700 sidebar-nav-item-active'
-                                                : 'text-gray-700 hover:bg-gray-100 sidebar-nav-item-default'}
-                                            `}
-                                        >
-                                            <span className="text-lg">{getIcon(item.icon)}</span>
-                                            {isOpen && (
-                                                <>
-                                                    <span className="ml-3">{item.title}</span>
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        className={`ml-auto h-4 w-4 transition-transform duration-200 ${
-                                                            expandedItems[item.id] ? 'rotate-180' : ''
-                                                        }`}
-                                                        viewBox="0 0 20 20"
-                                                        fill="currentColor"
-                                                    >
-                                                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                                    </svg>
-                                                </>
-                                            )}
-                                        </button>
-
-                                        {/* 子菜单 */}
-                                        {isOpen && expandedItems[item.id] && (
-                                            <ul className="mt-1 space-y-1">
-                                                {item.children.map((child) => child && (
-                                                    <li key={child.id}>
-                                                        <button
-                                                            onClick={() => {
-                                                                onTabChange(getRouteSegment(child.link));
-                                                                if (window.innerWidth < 768) {
-                                                                    onClose();
-                                                                }
-                                                            }}
-                                                            className={`w-full flex items-center px-3 py-2 ml-6 text-sm font-medium rounded-md transition-colors duration-200
-                                                                ${activeTab === getRouteSegment(child.link)
-                                                                ? 'bg-blue-100 text-blue-700 sidebar-nav-item-active'
-                                                                : 'text-gray-700 hover:bg-gray-100 sidebar-nav-item-default'}
-                                                            `}
-                                                        >
-                                                            <span className="text-base">{getIcon(child.icon)}</span>
-                                                            <span className="ml-3">{child.title}</span>
-                                                        </button>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <button
-                                        onClick={() => {
-                                            onTabChange(getRouteSegment(item.link));
-                                            if (window.innerWidth < 768) {
-                                                onClose();
-                                            }
-                                        }}
-                                        className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200
-                                            ${activeTab === getRouteSegment(item.link)
-                                            ? 'bg-blue-100 text-blue-700 sidebar-nav-item-active'
-                                            : 'text-gray-700 hover:bg-gray-100 sidebar-nav-item-default'}
-                                        `}
-                                    >
-                                        <span className="text-lg">{getIcon(item.icon)}</span>
-                                        {isOpen && <span className="ml-3">{item.title}</span>}
-                                    </button>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
+                    {renderMenuItems(menuItems, 0)}
                 </nav>
 
                 {/* 底部用户信息 */}

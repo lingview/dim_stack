@@ -5,6 +5,7 @@ import apiClient from '../../utils/axios.jsx';
 
 import { fetchStatistics, fetchDashboardData } from '../../Api.jsx';
 import CustomPageManager from "./CustomPageManager.jsx";
+import { getPluginRoutes, subscribePluginRoutes } from '../../plugin/pluginRuntime.js';
 
 import Sidebar from './Sidebar';
 import DashboardHeader from './DashboardHeader';
@@ -78,6 +79,7 @@ export default function Dashboard() {
     const [sidebarMenu, setSidebarMenu] = useState([])
     const [shouldRefresh, setShouldRefresh] = useState(false)
     const [updateCheckResult, setUpdateCheckResult] = useState(null)
+    const [pluginRoutes, setPluginRoutes] = useState(() => getPluginRoutes())
 
     useEffect(() => {
         const checkLoginStatus = async () => {
@@ -100,6 +102,8 @@ export default function Dashboard() {
 
         checkLoginStatus()
     }, [navigate])
+
+    useEffect(() => subscribePluginRoutes(setPluginRoutes), [])
 
     // 移动端自动收缩侧边栏
     useEffect(() => {
@@ -333,6 +337,8 @@ export default function Dashboard() {
         setEditingArticle(null);
     };
 
+    const pluginPage = pluginRoutes.find((route) => route.path === location.pathname)
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -376,6 +382,9 @@ export default function Dashboard() {
                     />
 
                     <main className="flex-1 overflow-y-auto p-6">
+                        {pluginPage ? (
+                            <FadeIn>{pluginPage.element}</FadeIn>
+                        ) : (<>
                         {activeTab === 'dashboard' && (
                             <Suspense fallback={<SimpleLoading />}>
                                 <FadeIn>
@@ -549,6 +558,7 @@ export default function Dashboard() {
                                 </FadeIn>
                             </Suspense>
                         )}
+                        </>)}
                     </main>
                 </div>
             </div>

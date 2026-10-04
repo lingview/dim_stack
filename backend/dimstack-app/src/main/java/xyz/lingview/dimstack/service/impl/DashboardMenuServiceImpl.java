@@ -53,11 +53,9 @@ public class DashboardMenuServiceImpl implements DashboardMenuService {
                     DashboardMenuDTO dto = new DashboardMenuDTO();
                     BeanUtils.copyProperties(menu, dto);
 
-                    if (menu.getParent_id() == null) {
-                        List<DashboardMenuDTO> children = buildMenuTree(menus, type, menu.getId());
-                        if (!children.isEmpty()) {
-                            dto.setChildren(children);
-                        }
+                    List<DashboardMenuDTO> children = buildMenuTree(menus, type, menu.getId());
+                    if (!children.isEmpty()) {
+                        dto.setChildren(children);
                     }
 
                     return dto;
