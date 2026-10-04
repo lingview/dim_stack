@@ -1,0 +1,4 @@
+dashboard-menu:
+  - title: Hello 示例
+    link: /dashboard/plugins/hello/home
+    icon: plugin

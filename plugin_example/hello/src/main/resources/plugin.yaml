@@ -1,0 +1,10 @@
+id: hello
+version: 1.0.0
+requires: '>=1.0.0'
+displayName: Hello 示例
+description: 插件开发示例：接口、数据表、后台菜单与前端界面
+author:
+  name: lingview
+scanPackage: xyz.example.hello
+publicApiPaths:
+  - /hello

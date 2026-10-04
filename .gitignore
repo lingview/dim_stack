@@ -19,6 +19,7 @@ cli/src/o
 cli/src/nuitka-crash-report.xml
 firefly-theme/
 examples/plugins/**/target/
+plugin_example/**/target/
 /plugins/
 plugin-startup.log
 

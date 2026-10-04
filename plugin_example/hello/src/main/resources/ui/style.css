@@ -1,0 +1,35 @@
+.hello {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem;
+    color: #1677ff;
+    font-size: 1.5rem;
+}
+
+.hello-page {
+    max-width: 720px;
+}
+
+.hello-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+.hello-desc {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 1rem;
+}
+
+.hello-info p {
+    font-size: 0.875rem;
+    color: #374151;
+    margin-bottom: 0.25rem;
+}
+
+.hello-link {
+    font-size: 0.875rem;
+    color: #1677ff;
+}
