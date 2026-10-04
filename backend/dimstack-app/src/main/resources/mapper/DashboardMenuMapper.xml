@@ -37,16 +37,12 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO dashboard_menu (id, title, icon, link, parent_id, permission_code, sort_order, create_time, type)
-        VALUES (#{id}, #{title}, #{icon}, #{link}, #{parent_id}, #{permission_code}, #{sort_order}, NOW(), #{type})
+        INSERT INTO dashboard_menu (title, icon, link, parent_id, permission_code, sort_order, create_time, type)
+        VALUES (#{title}, #{icon}, #{link}, #{parent_id}, #{permission_code}, #{sort_order}, NOW(), #{type})
     </insert>
 
     <select id="selectMaxSortByParent" resultType="java.lang.Integer">
         SELECT IFNULL(MAX(sort_order), 0) FROM dashboard_menu WHERE parent_id = #{parent_id}
-    </select>
-
-    <select id="selectMaxId" resultType="java.lang.Integer">
-        SELECT IFNULL(MAX(id), 0) FROM dashboard_menu
     </select>
 
     <delete id="deleteByLinkPrefix">

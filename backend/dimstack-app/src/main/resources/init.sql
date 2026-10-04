@@ -290,7 +290,7 @@ CREATE TABLE `custom_page`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `dashboard_menu`;
 CREATE TABLE `dashboard_menu`  (
-                                   `id` int NOT NULL COMMENT '菜单ID',
+                                   `id` int NOT NULL AUTO_INCREMENT COMMENT '菜单ID',
                                    `title` varchar(100) CHARACTER SET utf8mb4 NOT NULL COMMENT '菜单标题，如“站点设置”',
                                    `icon` varchar(50) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '图标名称',
                                    `link` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '路由链接，父菜单可为空',

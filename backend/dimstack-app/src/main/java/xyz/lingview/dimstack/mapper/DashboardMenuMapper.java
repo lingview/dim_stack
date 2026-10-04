@@ -20,11 +20,7 @@ public interface DashboardMenuMapper {
     // 查询所有菜单
     List<DashboardMenu> findAll();
 
-    // 新增菜单(插件数据贡献用)
     int insert(DashboardMenu menu);
-
-    // 最大菜单ID(插件数据贡献用, 表 id 非自增)
-    Integer selectMaxId();
 
     // 父菜单下最大排序号
     Integer selectMaxSortByParent(@Param("parent_id") Integer parentId);

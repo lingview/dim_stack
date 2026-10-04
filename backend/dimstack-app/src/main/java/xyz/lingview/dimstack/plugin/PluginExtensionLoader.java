@@ -45,16 +45,13 @@ public class PluginExtensionLoader {
             }
 
             Integer baseSort = dashboardMenuMapper.selectMaxSortByParent(PLUGIN_MENU_PARENT_ID);
-            Integer maxId = dashboardMenuMapper.selectMaxId();
             int sort = baseSort == null ? 0 : baseSort;
-            int id = maxId == null ? 0 : maxId;
             int count = 0;
             for (Object item : menuList) {
                 if (!(item instanceof Map<?, ?> menuMap)) {
                     continue;
                 }
                 DashboardMenu menu = new DashboardMenu();
-                menu.setId(++id);
                 menu.setTitle(String.valueOf(((Map<String, Object>) menuMap).get("title")));
                 menu.setLink(String.valueOf(((Map<String, Object>) menuMap).get("link")));
                 Object icon = ((Map<String, Object>) menuMap).get("icon");
