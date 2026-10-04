@@ -29,6 +29,10 @@ public class PluginDbRegistry {
     }
 
     public PluginDb get(String pluginId) {
+        PluginDbImpl cached = instances.get(pluginId);
+        if (cached != null && cached.isClosed()) {
+            dispose(pluginId);
+        }
         return instances.computeIfAbsent(pluginId, id -> {
             PluginDbImpl db = new PluginDbImpl(id, dataSourceProperties, auditor);
             for (Map.Entry<String, PluginDbImpl> entry : instances.entrySet()) {

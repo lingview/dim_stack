@@ -58,6 +58,10 @@ public class PluginDbImpl implements PluginDb, AutoCloseable {
         return prefix;
     }
 
+    boolean isClosed() {
+        return pool.isClosed();
+    }
+
     @Override
     public void close() {
         pool.close();

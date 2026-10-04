@@ -384,20 +384,36 @@ public class PluginServiceImpl implements PluginService {
                 throw new PluginRuntimeException("上传版本与当前版本相同(" + manifest.getVersion() + "), 请修改版本号后再升级");
             }
 
-            PluginWrapper wrapper = pluginManager.getPlugin(name);
-            if (wrapper != null) {
-                if (wrapper.getPluginState() == PluginState.STARTED) {
-                    pluginManager.stopPlugin(name);
-                }
-                pluginManager.unloadAndClose(name);
-            }
-
+            String oldJarFile = info.getJar_file();
+            boolean wasEnabled = Boolean.TRUE.equals(info.getEnabled());
             String newFileName = manifest.getId() + "-" + manifest.getVersion() + ".jar";
-            if (info.getJar_file() != null && !info.getJar_file().equals(newFileName)) {
-                Files.deleteIfExists(resolvePluginJar(info.getJar_file()));
-            }
             Path dest = resolvePluginJar(newFileName);
-            Files.copy(temp, dest, StandardCopyOption.REPLACE_EXISTING);
+
+            try {
+                PluginWrapper wrapper = pluginManager.getPlugin(name);
+                if (wrapper != null) {
+                    if (wrapper.getPluginState() == PluginState.STARTED) {
+                        pluginManager.stopPlugin(name);
+                    }
+                    pluginManager.unloadAndClose(name);
+                }
+
+                Files.copy(temp, dest, StandardCopyOption.REPLACE_EXISTING);
+
+                String loadedId = pluginManager.loadPlugin(dest);
+                if (loadedId == null) {
+                    throw new PluginRuntimeException("新版本加载失败: " + name);
+                }
+                if (wasEnabled) {
+                    PluginState startState = pluginManager.startPlugin(name);
+                    if (startState != PluginState.STARTED) {
+                        throw new PluginRuntimeException("新版本启动失败: " + name);
+                    }
+                }
+            } catch (Exception e) {
+                auditLogger.log("upgrade", name, manifest.getVersion(), false, "升级失败, 已回滚: " + e.getMessage());
+                throw rollbackUpgrade(name, dest, oldJarFile, wasEnabled, e);
+            }
 
             info.setVersion(manifest.getVersion());
             info.setJar_file(newFileName);
@@ -410,17 +426,10 @@ public class PluginServiceImpl implements PluginService {
             info.setConfig_map_name(manifest.getConfigMapName());
             pluginMapper.updateInfo(info);
 
-            String loadedId = pluginManager.loadPlugin(dest);
-            if (loadedId == null) {
-                throw new PluginRuntimeException("新版本加载失败: " + name);
+            if (oldJarFile != null && !oldJarFile.equals(newFileName) && !deleteWithRetry(resolvePluginJar(oldJarFile))) {
+                log.warn("旧版本插件jar删除失败, 请重启后手动清理: {}", oldJarFile);
             }
-            if (Boolean.TRUE.equals(info.getEnabled())) {
-                PluginState startState = pluginManager.startPlugin(name);
-                if (startState != PluginState.STARTED) {
-                    pluginMapper.updateEnabled(name, false);
-                    throw new PluginRuntimeException("新版本启动失败, 已回写为停用状态: " + name);
-                }
-            }
+
             auditLogger.log("upgrade", name, manifest.getVersion(), true, "升级成功");
             log.info("插件升级成功: {}@{}", name, manifest.getVersion());
             return info;
@@ -434,6 +443,52 @@ public class PluginServiceImpl implements PluginService {
                     Files.deleteIfExists(temp);
                 } catch (IOException ignored) {
                 }
+            }
+        }
+    }
+
+    private PluginRuntimeException rollbackUpgrade(String name, Path newJar, String oldJarFile, boolean wasEnabled, Exception cause) {
+        log.warn("插件升级失败, 开始回滚: {} ({})", name, cause.getMessage());
+        try {
+            pluginManager.unloadAndClose(name);
+        } catch (Exception e) {
+            log.warn("回滚时卸载新版本失败: {} ({})", name, e.getMessage());
+        }
+        if (!deleteWithRetry(newJar)) {
+            log.warn("回滚时新版本jar删除失败, 请重启后手动清理: {}", newJar.getFileName());
+        }
+        if (oldJarFile != null) {
+            Path oldJar = resolvePluginJar(oldJarFile);
+            if (Files.exists(oldJar)) {
+                try {
+                    pluginManager.loadPlugin(oldJar);
+                    if (wasEnabled) {
+                        pluginManager.startPlugin(name);
+                    }
+                } catch (Exception e) {
+                    log.error("回滚后旧版本重新加载失败: {} ({})", name, e.getMessage());
+                }
+            }
+        }
+        return new PluginRuntimeException("插件升级失败, 已回滚到旧版本: " + name + " (" + cause.getMessage() + ")", cause);
+    }
+
+    private boolean deleteWithRetry(Path path) {
+        try {
+            Files.deleteIfExists(path);
+            return true;
+        } catch (IOException e) {
+            System.gc();
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ignored) {
+            }
+            try {
+                Files.deleteIfExists(path);
+                return true;
+            } catch (IOException e2) {
+                log.warn("文件删除失败: {} ({})", path, e2.getMessage());
+                return false;
             }
         }
     }
