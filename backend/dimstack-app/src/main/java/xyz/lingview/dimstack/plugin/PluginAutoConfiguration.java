@@ -6,7 +6,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.HandlerMapping;
-import xyz.lingview.dimstack.plugin.api.SettingFetcher;
 import xyz.lingview.dimstack.service.PluginService;
 
 import java.io.IOException;
@@ -38,7 +37,7 @@ public class PluginAutoConfiguration implements SmartInitializingSingleton {
     @Bean
     public PluginApplicationContextFactory pluginApplicationContextFactory(ApplicationContext rootContext,
                                                                            YamlPluginDescriptorFinder finder,
-                                                                           SettingFetcher settingFetcher,
+                                                                           SettingFetcherImpl settingFetcher,
                                                                            PluginDbRegistry pluginDbRegistry) {
         return new DefaultPluginApplicationContextFactory(rootContext, finder, settingFetcher, pluginDbRegistry);
     }

@@ -47,14 +47,14 @@ public class DefaultPluginApplicationContextFactory implements PluginApplication
 
     private final ApplicationContext rootContext;
     private final YamlPluginDescriptorFinder descriptorFinder;
-    private final SettingFetcher settingFetcher;
+    private final SettingFetcherImpl settingFetcher;
     private final PluginDbRegistry pluginDbRegistry;
 
     private volatile AnnotationConfigApplicationContext sharedContext;
 
     public DefaultPluginApplicationContextFactory(ApplicationContext rootContext,
                                                   YamlPluginDescriptorFinder descriptorFinder,
-                                                  SettingFetcher settingFetcher,
+                                                  SettingFetcherImpl settingFetcher,
                                                   PluginDbRegistry pluginDbRegistry) {
         this.rootContext = rootContext;
         this.descriptorFinder = descriptorFinder;
@@ -84,7 +84,8 @@ public class DefaultPluginApplicationContextFactory implements PluginApplication
         beanFactory.registerBeanDefinition("pluginContext", pluginContextDef);
 
         RootBeanDefinition settingFetcherDef = new RootBeanDefinition(SettingFetcher.class);
-        settingFetcherDef.setInstanceSupplier(() -> new BoundSettingFetcher(wrapper.getPluginId(), settingFetcher));
+        settingFetcherDef.setInstanceSupplier(() -> new BoundSettingFetcher(wrapper.getPluginId(),
+                defaultConfigName(manifest), settingFetcher));
         settingFetcherDef.setPrimary(true);
         beanFactory.registerBeanDefinition("boundSettingFetcher", settingFetcherDef);
 
@@ -214,11 +215,18 @@ public class DefaultPluginApplicationContextFactory implements PluginApplication
         });
     }
 
-    private record BoundSettingFetcher(String pluginId, SettingFetcher delegate) implements SettingFetcher {
+    private record BoundSettingFetcher(String pluginId, String defaultConfigName, SettingFetcherImpl delegate)
+            implements SettingFetcher {
         @Override
         public <T> T fetch(String configMapName, String key, Class<T> clazz) {
-            return delegate.fetch(pluginId, key, clazz);
+            String mapName = configMapName != null && !configMapName.isBlank() ? configMapName : defaultConfigName;
+            return delegate.fetch(pluginId, mapName, key, clazz);
         }
+    }
+
+    private static String defaultConfigName(PluginManifest manifest) {
+        String name = manifest != null ? manifest.getConfigMapName() : null;
+        return name != null && !name.isBlank() ? name : SettingFetcherImpl.DEFAULT_CONFIG_KEY;
     }
 
     private record SharedBean(Class<?> type, String name, java.util.function.Function<ApplicationContext, Object> resolver) {

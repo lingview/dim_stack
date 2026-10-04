@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import xyz.lingview.dimstack.mapper.PluginConfigMapper;
-import xyz.lingview.dimstack.plugin.api.SettingFetcher;
 
 /**
  * @Author: lingview
@@ -15,9 +14,9 @@ import xyz.lingview.dimstack.plugin.api.SettingFetcher;
  */
 @Slf4j
 @Service
-public class SettingFetcherImpl implements SettingFetcher {
+public class SettingFetcherImpl {
 
-    private static final String CONFIG_KEY = "config";
+    public static final String DEFAULT_CONFIG_KEY = "config";
 
     private final PluginConfigMapper configMapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -26,9 +25,9 @@ public class SettingFetcherImpl implements SettingFetcher {
         this.configMapper = configMapper;
     }
 
-    @Override
-    public <T> T fetch(String pluginName, String key, Class<T> clazz) {
-        String json = configMapper.selectValue(pluginName, CONFIG_KEY);
+    public <T> T fetch(String pluginName, String configMapName, String key, Class<T> clazz) {
+        String configKey = configMapName != null && !configMapName.isBlank() ? configMapName : DEFAULT_CONFIG_KEY;
+        String json = configMapper.selectValue(pluginName, configKey);
         if (json == null || json.isBlank()) {
             return null;
         }

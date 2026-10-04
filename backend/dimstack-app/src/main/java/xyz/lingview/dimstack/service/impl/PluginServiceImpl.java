@@ -542,7 +542,7 @@ public class PluginServiceImpl implements PluginService {
             }
         }
 
-        String json = configMapper.selectValue(name, CONFIG_KEY);
+        String json = configMapper.selectValue(name, configKey(pluginMapper.selectByName(name)));
         if (json != null && !json.isBlank()) {
             try {
                 Map<String, Object> userConfig = objectMapper.readValue(json, Map.class);
@@ -560,12 +560,13 @@ public class PluginServiceImpl implements PluginService {
             throw new PluginRuntimeException("配置内容为空");
         }
         return withLock(name, () -> {
-            if (pluginMapper.selectByName(name) == null) {
+            PluginInfo info = pluginMapper.selectByName(name);
+            if (info == null) {
                 throw new PluginRuntimeException("插件不存在: " + name);
             }
             try {
                 String json = objectMapper.writeValueAsString(config);
-                return configMapper.upsert(name, CONFIG_KEY, json) > 0;
+                return configMapper.upsert(name, configKey(info), json) > 0;
             } catch (PluginRuntimeException e) {
                 throw e;
             } catch (Exception e) {
@@ -573,6 +574,11 @@ public class PluginServiceImpl implements PluginService {
                 throw new PluginRuntimeException("插件配置保存失败, 请查看服务端日志");
             }
         });
+    }
+
+    private String configKey(PluginInfo info) {
+        String configKey = info != null ? info.getConfig_map_name() : null;
+        return configKey != null && !configKey.isBlank() ? configKey : CONFIG_KEY;
     }
 
     @Override
