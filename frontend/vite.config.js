@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig, loadEnv, esmExternalRequirePlugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from "@tailwindcss/vite";
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 700,
       rollupOptions: {
         // 共享依赖 external: 生产构建由 index.html 的 import map 提供, 保证 React 单实例(插件前端模块共享)
-        external: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', 'react-router-dom'],
+        plugins: [esmExternalRequirePlugin({ external: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', 'react-router-dom'] })],
         output: {
           assetFileNames: 'assets/[name].[hash].[ext]',
           chunkFileNames: 'assets/[name].[hash].js',

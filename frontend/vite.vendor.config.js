@@ -1,7 +1,4 @@
-
-
-// react-dom不能external自身, 否则import map会形成循环
-import { defineConfig } from 'vite'
+import { defineConfig, esmExternalRequirePlugin } from 'vite'
 import { resolve } from 'node:path'
 
 const wrapper = (file) => resolve(process.cwd(), 'scripts/vendor-entries', file)
@@ -26,7 +23,7 @@ export default defineConfig(({ mode }) => {
                 formats: ['es'],
             },
             rollupOptions: {
-                external: target.external,
+                plugins: [esmExternalRequirePlugin({ external: target.external })],
                 output: { entryFileNames: '[name].js' },
             },
             minify: false,

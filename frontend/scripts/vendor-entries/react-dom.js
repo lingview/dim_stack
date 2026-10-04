@@ -1,6 +1,7 @@
 
 import * as ReactDOM from 'react-dom'
 export default ReactDOM
+export const __DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE
 export const createPortal = ReactDOM.createPortal
 export const flushSync = ReactDOM.flushSync
 export const findDOMNode = ReactDOM.findDOMNode

@@ -1,6 +1,6 @@
-// 显式转发CJS包的具名导出(esbuild对export * from cjs支持有限)
 import * as React from 'react'
 export default React
+export const __CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE = React.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE
 export const Activity = React.Activity
 export const Children = React.Children
 export const Component = React.Component
