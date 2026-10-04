@@ -2,6 +2,8 @@
 
 面向插件开发者的接口说明与完整示例。
 
+> 配套可运行示例工程：`plugin_example/hello/`，可编译安装（首次构建前需先安装 SDK，见 2.5）。文档中的 `my-plugin` 为占位名，示例工程统一使用 `hello`
+
 ## 一、插件能做什么
 
 一个插件就是一个 jar，安装后在宿主里独立运行：
@@ -141,6 +143,14 @@ public class HelloController {
 ```
 
 ### 2.5 打包与安装
+
+插件依赖的 SDK（`dimstack-plugin-api`）从本地 Maven 仓库解析，首次构建前，先在宿主工程的 `backend` 目录执行一次（宿主升级、SDK 有变化后重跑一次）：
+
+```bash
+cd backend && mvn -pl dimstack-plugin-api -am install -DskipTests
+```
+
+然后在插件工程里打包：
 
 ```bash
 mvn clean package
@@ -313,7 +323,7 @@ publicApiPaths:
 
 ### 3.7 后台菜单
 
-插件启动时，宿主会读取插件 jar 里的 `extensions/menu.yaml`，把菜单挂到后台侧边栏[插件]分组下：
+插件启动时，宿主会读取插件 jar 里的 `extensions/menu.yaml`，把菜单写入后台侧边栏（挂在[设置 -> 插件管理]下，支持多层级嵌套）：
 
 ```yaml
 dashboard-menu:
@@ -332,7 +342,7 @@ dashboard-menu:
 | `icon` | 否 | 图标名，默认 `plugin` |
 | `permission` | 否 | 访问所需权限码，默认 `plugin:management` |
 
-菜单路径对应的页面由插件自己的前端路由提供（见第四章）。菜单在启用时写入、卸载时清理；停用不删菜单。
+菜单点击后跳转到 `link` 路径；插件在前端注册**与 link 相同路径**的路由（`context.registerRoute`，见 4.2），页面就会渲染在后台框架的内容区里。菜单在插件启用时写入、卸载时清理；停用不删菜单。
 
 ## 四、前端插件
 
@@ -386,7 +396,7 @@ export default {
 | 方法/属性 | 说明 |
 | --- | --- |
 | `pluginName` / `pluginVersion` | 当前插件的 id 与版本 |
-| `registerRoute({path, element})` | 往宿主 SPA 注册页面路由 |
+| `registerRoute({path, element})` | 往宿主 SPA 注册页面路由（后台页面与菜单 `link` 用同一路径） |
 | `registerExtensionPoint(name, fn)` | 往宿主扩展点注册组件，供宿主的挂槽渲染 |
 | `onTeardown(fn)` | 注册清理回调（定时器、全局事件等副作用都在这里释放） |
 | `fetchConfig()` | 读取插件配置（需要插件管理权限，适合设置面板） |
@@ -554,3 +564,4 @@ export default {
 6. 前端入口必须 `import React from 'react'`，不要自带 React
 7. 插件卸载不会删除你的数据表，需要清理请自行处理
 8. 插件与宿主同库同权限，请只操作自己的数据和必要的宿主配置
+9. `plugin.yaml` 未加引号的文本值（如 `description`、`displayName`）里不要出现半角冒号加空格（`示例: 接口`），否则 YAML 解析失败，安装只会报[读取 plugin.yaml 失败]且不指出位置；需要冒号时用全角[：]
