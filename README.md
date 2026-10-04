@@ -100,6 +100,9 @@
 ### 主题
 - [面向主题开发者接口文档](docs/themes/themes-frontend-routing-guide.md)
 
+### 插件
+- [面向插件开发者接口文档](docs/plugins/plugin-development-guide.md)
+
 ### 项目脚本
 - [项目脚本使用说明（包括构建维护等脚本）](docs/features/script_usage_instructions.md)
 
