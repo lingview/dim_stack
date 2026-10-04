@@ -24,14 +24,22 @@ public class ExtensionGetterImpl implements ExtensionGetter {
 
     private final DimStackPluginManager pluginManager;
     private final ApplicationContext applicationContext;
+    private final PluginLifecycleGuard lifecycleGuard;
 
-    public ExtensionGetterImpl(DimStackPluginManager pluginManager, ApplicationContext applicationContext) {
+    public ExtensionGetterImpl(DimStackPluginManager pluginManager,
+                               ApplicationContext applicationContext,
+                               PluginLifecycleGuard lifecycleGuard) {
         this.pluginManager = pluginManager;
         this.applicationContext = applicationContext;
+        this.lifecycleGuard = lifecycleGuard;
     }
 
     @Override
     public <T extends ExtensionPoint> List<T> getExtensions(Class<T> type) {
+        return lifecycleGuard.withReadLock(() -> doGetExtensions(type));
+    }
+
+    private <T extends ExtensionPoint> List<T> doGetExtensions(Class<T> type) {
         List<T> extensions = new ArrayList<>();
         for (PluginWrapper wrapper : pluginManager.getStartedPlugins()) {
             AnnotationConfigApplicationContext context = pluginManager.getPluginContext(wrapper.getPluginId());

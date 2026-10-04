@@ -16,6 +16,7 @@ import xyz.lingview.dimstack.mapper.PluginSqlAuditMapper;
 import xyz.lingview.dimstack.plugin.DimStackPluginManager;
 import xyz.lingview.dimstack.plugin.PluginAuditLogger;
 import xyz.lingview.dimstack.plugin.PluginExtensionLoader;
+import xyz.lingview.dimstack.plugin.PluginLifecycleGuard;
 import xyz.lingview.dimstack.plugin.PluginManifest;
 import xyz.lingview.dimstack.plugin.PluginYamlLoader;
 import xyz.lingview.dimstack.plugin.YamlPluginDescriptorFinder;
@@ -68,9 +69,9 @@ public class PluginServiceImpl implements PluginService {
 
     private final Path pluginDir = Path.of(System.getProperty("user.dir"), "plugins");
 
-    private static final String INSTALL_LOCK_KEY = "@install";
-
     private final ConcurrentHashMap<String, ReentrantLock> pluginLocks = new ConcurrentHashMap<>();
+
+    private final PluginLifecycleGuard lifecycleGuard;
 
     public PluginServiceImpl(DimStackPluginManager pluginManager,
                              PluginMapper pluginMapper,
@@ -78,7 +79,8 @@ public class PluginServiceImpl implements PluginService {
                              PluginExtensionLoader extensionLoader,
                              PluginConfigMapper configMapper,
                              PluginAuditLogger auditLogger,
-                             PluginSqlAuditMapper sqlAuditMapper) {
+                             PluginSqlAuditMapper sqlAuditMapper,
+                             PluginLifecycleGuard lifecycleGuard) {
         this.pluginManager = pluginManager;
         this.pluginMapper = pluginMapper;
         this.descriptorFinder = descriptorFinder;
@@ -86,6 +88,7 @@ public class PluginServiceImpl implements PluginService {
         this.configMapper = configMapper;
         this.auditLogger = auditLogger;
         this.sqlAuditMapper = sqlAuditMapper;
+        this.lifecycleGuard = lifecycleGuard;
     }
 
     private Path resolvePluginJar(String fileName) {
@@ -125,7 +128,7 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public PluginInfo install(MultipartFile file) {
-        return withLock(INSTALL_LOCK_KEY, () -> doInstall(file));
+        return lifecycleGuard.withWriteLock(() -> doInstall(file));
     }
 
     private PluginInfo doInstall(MultipartFile file) {
@@ -199,7 +202,7 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public boolean start(String name) {
-        return withLock(name, () -> doStart(name));
+        return lifecycleGuard.withWriteLock(() -> doStart(name));
     }
 
     private boolean doStart(String name) {
@@ -233,7 +236,7 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public boolean stop(String name) {
-        return withLock(name, () -> doStop(name));
+        return lifecycleGuard.withWriteLock(() -> doStop(name));
     }
 
     private boolean doStop(String name) {
@@ -256,7 +259,7 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public boolean uninstall(String name) {
-        return withLock(name, () -> doUninstall(name));
+        return lifecycleGuard.withWriteLock(() -> doUninstall(name));
     }
 
     private boolean doUninstall(String name) {
@@ -363,7 +366,7 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public PluginInfo upgrade(String name, MultipartFile file) {
-        return withLock(name, () -> doUpgrade(name, file));
+        return lifecycleGuard.withWriteLock(() -> doUpgrade(name, file));
     }
 
     private PluginInfo doUpgrade(String name, MultipartFile file) {
@@ -495,7 +498,7 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public boolean reload(String name) {
-        return withLock(name, () -> doReload(name));
+        return lifecycleGuard.withWriteLock(() -> doReload(name));
     }
 
     private boolean doReload(String name) {
@@ -530,53 +533,57 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public void syncLoadedPlugins() {
-        List<PluginWrapper> wrappers = pluginManager.getPlugins();
-        int synced = 0;
-        for (PluginWrapper wrapper : wrappers) {
-            String name = wrapper.getPluginId();
-            if (pluginMapper.selectByName(name) == null) {
-                PluginManifest manifest = pluginManager.getManifest(name);
-                PluginInfo info = new PluginInfo();
-                info.setName(name);
-                info.setVersion(wrapper.getDescriptor().getVersion());
-                info.setDisplay_name(manifest != null ? manifest.getDisplayName() : name);
-                info.setDescription(manifest != null ? manifest.getDescription() : null);
-                info.setAuthor(manifest != null ? manifest.getAuthor() : null);
-                info.setRequires(wrapper.getDescriptor().getRequires());
-                info.setJar_file(wrapper.getPluginPath() != null ? wrapper.getPluginPath().getFileName().toString() : name + ".jar");
-                // 手动放置的jar统一补录为待启用, 避免绕过安装校验直接对外服务
-                info.setEnabled(false);
-                info.setSetting_name(manifest != null ? manifest.getSettingName() : null);
-                info.setConfig_map_name(manifest != null ? manifest.getConfigMapName() : null);
-                try {
-                    pluginMapper.insert(info);
-                    synced++;
-                } catch (Exception e) {
-                    log.warn("同步插件记录失败: {}", name, e);
+        lifecycleGuard.withWriteLock(() -> {
+            List<PluginWrapper> wrappers = pluginManager.getPlugins();
+            int synced = 0;
+            for (PluginWrapper wrapper : wrappers) {
+                String name = wrapper.getPluginId();
+                if (pluginMapper.selectByName(name) == null) {
+                    PluginManifest manifest = pluginManager.getManifest(name);
+                    PluginInfo info = new PluginInfo();
+                    info.setName(name);
+                    info.setVersion(wrapper.getDescriptor().getVersion());
+                    info.setDisplay_name(manifest != null ? manifest.getDisplayName() : name);
+                    info.setDescription(manifest != null ? manifest.getDescription() : null);
+                    info.setAuthor(manifest != null ? manifest.getAuthor() : null);
+                    info.setRequires(wrapper.getDescriptor().getRequires());
+                    info.setJar_file(wrapper.getPluginPath() != null ? wrapper.getPluginPath().getFileName().toString() : name + ".jar");
+                    // 手动放置的jar统一补录为待启用, 避免绕过安装校验直接对外服务
+                    info.setEnabled(false);
+                    info.setSetting_name(manifest != null ? manifest.getSettingName() : null);
+                    info.setConfig_map_name(manifest != null ? manifest.getConfigMapName() : null);
+                    try {
+                        pluginMapper.insert(info);
+                        synced++;
+                    } catch (Exception e) {
+                        log.warn("同步插件记录失败: {}", name, e);
+                    }
+                }
+
+                if (wrapper.getPluginState() == PluginState.STARTED) {
+                    extensionLoader.loadPluginExtensions(name, wrapper);
                 }
             }
-
-            if (wrapper.getPluginState() == PluginState.STARTED) {
-                extensionLoader.loadPluginExtensions(name, wrapper);
+            if (synced > 0) {
+                log.info("插件启动同步完成: 补录 {} 个插件", synced);
             }
-        }
-        if (synced > 0) {
-            log.info("插件启动同步完成: 补录 {} 个插件", synced);
-        }
+        });
     }
 
     @Override
     public void startEnabledPlugins() {
-        for (PluginInfo info : pluginMapper.selectAll()) {
-            if (!Boolean.TRUE.equals(info.getEnabled())) {
-                continue;
+        lifecycleGuard.withWriteLock(() -> {
+            for (PluginInfo info : pluginMapper.selectAll()) {
+                if (!Boolean.TRUE.equals(info.getEnabled())) {
+                    continue;
+                }
+                try {
+                    start(info.getName());
+                } catch (Exception e) {
+                    log.error("插件启动失败, 已跳过(不影响宿主): {} ({})", info.getName(), e.getMessage());
+                }
             }
-            try {
-                start(info.getName());
-            } catch (Exception e) {
-                log.error("插件启动失败, 已跳过(不影响宿主): {} ({})", info.getName(), e.getMessage());
-            }
-        }
+        });
     }
 
     @Override
