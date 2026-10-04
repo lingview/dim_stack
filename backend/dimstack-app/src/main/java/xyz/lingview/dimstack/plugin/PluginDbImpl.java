@@ -24,7 +24,8 @@ public class PluginDbImpl implements PluginDb, AutoCloseable {
     private final DataSource audited;
 
     PluginDbImpl(String pluginId, DataSourceProperties properties, PluginSqlAuditor auditor) {
-        this.prefix = "plugin_" + pluginId.toLowerCase().replace('-', '_') + "_";
+        // 前缀归一化: id 白名单允许 . 和 -, 表名里统一替换为 _, 避免生成"库.表"语义或大小写混用的前缀
+        this.prefix = "plugin_" + pluginId.toLowerCase().replace('-', '_').replace('.', '_') + "_";
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(properties.getUrl());
         config.setUsername(properties.getUsername());
@@ -51,6 +52,10 @@ public class PluginDbImpl implements PluginDb, AutoCloseable {
     @Override
     public DataSource dataSource() {
         return audited;
+    }
+
+    String tablePrefix() {
+        return prefix;
     }
 
     @Override

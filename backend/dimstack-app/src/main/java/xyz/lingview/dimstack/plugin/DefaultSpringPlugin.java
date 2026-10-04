@@ -41,8 +41,17 @@ public class DefaultSpringPlugin extends Plugin {
                 handlerMapping.registerPlugin(getWrapper().getPluginId(), context);
             }
         } catch (Exception e) {
-            throw new PluginRuntimeException("插件启动失败: " + getWrapper().getPluginId(), e);
+            throw new PluginRuntimeException("插件启动失败: " + getWrapper().getPluginId()
+                    + " (" + causeMessage(e) + ")", e);
         }
+    }
+
+    private static String causeMessage(Throwable e) {
+        Throwable cause = e;
+        while (cause.getCause() != null && cause.getCause() != cause) {
+            cause = cause.getCause();
+        }
+        return cause.getMessage() != null ? cause.getMessage() : cause.getClass().getSimpleName();
     }
 
     @Override
