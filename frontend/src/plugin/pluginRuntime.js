@@ -74,6 +74,7 @@ async function doReload() {
         if (!activeNames.has(name)) {
             runTeardowns(name)
             unregisterPluginExtensions(name)
+            unloadStyle(name)
             loadedModules.delete(name)
         }
     }
@@ -99,7 +100,11 @@ async function fetchProviders() {
     try {
         const response = await fetch('/api/ui-plugins/providers')
         const body = await response.json()
-        return body.data || []
+        if (!response.ok || body.code !== 200 || !Array.isArray(body.data)) {
+            console.error('[plugin] 获取插件 UI providers 失败:', body && body.message ? body.message : response.status)
+            return null
+        }
+        return body.data
     } catch (e) {
         console.error('[plugin] 获取插件 UI providers 失败:', e)
         return null
@@ -114,7 +119,7 @@ async function loadProvider(provider) {
     runTeardowns(provider.name)
     unregisterPluginExtensions(provider.name)
     if (provider.styleUrl) {
-        loadStyle(provider.styleUrl)
+        loadStyle(provider.name, provider.styleUrl, provider.assetHash || provider.version)
     }
 
     const cacheKey = provider.assetHash || provider.version
@@ -183,15 +188,28 @@ function createPluginContext(provider) {
     }
 }
 
-const loadedStyles = new Set()
+const loadedStyles = new Map()
 
-function loadStyle(url) {
-    if (loadedStyles.has(url)) {
+function loadStyle(pluginName, url, cacheKey) {
+    const href = cacheKey ? `${url}?v=${encodeURIComponent(cacheKey)}` : url
+    const existing = loadedStyles.get(pluginName)
+    if (existing && existing.getAttribute('href') === href) {
         return
     }
-    loadedStyles.add(url)
+    if (existing) {
+        existing.remove()
+    }
     const link = document.createElement('link')
     link.rel = 'stylesheet'
-    link.href = url
+    link.href = href
     document.head.appendChild(link)
+    loadedStyles.set(pluginName, link)
+}
+
+function unloadStyle(pluginName) {
+    const link = loadedStyles.get(pluginName)
+    if (link) {
+        link.remove()
+        loadedStyles.delete(pluginName)
+    }
 }

@@ -1,8 +1,15 @@
-import { Fragment } from 'react'
-import { getExtensionPoints } from '../plugin/ExtensionPointRegistry'
+import { Fragment, useEffect, useState } from 'react'
+import { getExtensionPoints, subscribeExtensionPoints } from '../plugin/ExtensionPointRegistry'
 
 export function ExtensionSlot({ name, pluginName, ...props }) {
-    const items = getExtensionPoints(name)
+    const [items, setItems] = useState(() => getExtensionPoints(name))
+
+    useEffect(() => {
+        const read = () => setItems([...getExtensionPoints(name)])
+        read()
+        return subscribeExtensionPoints(read)
+    }, [name])
+
     const visible = pluginName
         ? items.filter((item) => item.id.startsWith(`${pluginName}:`))
         : items
