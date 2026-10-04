@@ -8,6 +8,8 @@ import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @Author: lingview
@@ -56,17 +58,34 @@ final class PluginSqlAuditProxy {
         } else {
             interfaces = new Class<?>[]{Statement.class};
         }
+        List<String> batchSql = preparedSql == null ? new ArrayList<>() : null;
         return (Statement) Proxy.newProxyInstance(PluginSqlAuditProxy.class.getClassLoader(), interfaces,
                 (proxy, method, args) -> {
+                    String name = method.getName();
+                    if (batchSql != null && "addBatch".equals(name) && args != null && args.length == 1
+                            && args[0] instanceof String sql) {
+                        batchSql.add(sql);
+                    } else if (batchSql != null && "clearBatch".equals(name)) {
+                        batchSql.clear();
+                    }
                     long start = System.nanoTime();
                     Object result = invoke(statement, method, args);
-                    if (method.getName().startsWith("execute")) {
+                    if (name.startsWith("execute")) {
                         long cost = (System.nanoTime() - start) / 1_000_000;
-                        String sql = preparedSql;
-                        if (sql == null && args != null && args.length > 0 && args[0] instanceof String direct) {
-                            sql = direct;
+                        boolean batchFlush = "executeBatch".equals(name) || "executeLargeBatch".equals(name);
+                        if (batchFlush && batchSql != null && !batchSql.isEmpty()) {
+                            long per = cost / batchSql.size();
+                            for (String sql : batchSql) {
+                                auditor.record(pluginId, sql, per);
+                            }
+                            batchSql.clear();
+                        } else {
+                            String sql = preparedSql;
+                            if (sql == null && args != null && args.length > 0 && args[0] instanceof String direct) {
+                                sql = direct;
+                            }
+                            auditor.record(pluginId, sql, cost);
                         }
-                        auditor.record(pluginId, sql, cost);
                     }
                     return result;
                 });

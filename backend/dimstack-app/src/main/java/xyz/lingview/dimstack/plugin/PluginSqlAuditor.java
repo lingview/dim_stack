@@ -21,8 +21,9 @@ public class PluginSqlAuditor {
     private static final int MAX_SQL_LENGTH = 2000;
     private static final long SLOW_MILLIS = 3000;
 
-    private static final Pattern DDL = Pattern.compile("^\\s*(CREATE|ALTER|DROP|TRUNCATE|RENAME)\\b", Pattern.CASE_INSENSITIVE);
-    private static final Pattern WRITE = Pattern.compile("^\\s*(INSERT|UPDATE|DELETE|REPLACE|MERGE)\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern DDL = Pattern.compile("^(CREATE|ALTER|DROP|TRUNCATE|RENAME)\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern WRITE = Pattern.compile("^(INSERT|UPDATE|DELETE|REPLACE|MERGE)\\b", Pattern.CASE_INSENSITIVE);
+    private static final Pattern CTE_WRITE = Pattern.compile("\\b(UPDATE|DELETE|INSERT|REPLACE|MERGE)\\b", Pattern.CASE_INSENSITIVE);
 
     private static final List<Pattern> CORE_TABLES = List.of(
             "article", "article_categories", "article_tag", "article_tag_relation", "article_like",
@@ -69,17 +70,42 @@ public class PluginSqlAuditor {
         if (sql == null || sql.isBlank()) {
             return null;
         }
-        String trimmed = sql.trim();
-        if (DDL.matcher(trimmed).find()) {
+        String statement = stripLeadingComments(sql);
+        if (DDL.matcher(statement).find()) {
             return "ddl";
         }
-        if (WRITE.matcher(trimmed).find()) {
+        boolean writeStatement = WRITE.matcher(statement).find()
+                || statement.regionMatches(true, 0, "WITH", 0, 4) && CTE_WRITE.matcher(statement).find();
+        if (writeStatement) {
             for (Pattern table : CORE_TABLES) {
-                if (table.matcher(trimmed).find()) {
+                if (table.matcher(statement).find()) {
                     return "core_write";
                 }
             }
         }
         return costMillis >= SLOW_MILLIS ? "slow" : null;
+    }
+
+    private String stripLeadingComments(String sql) {
+        String s = sql.strip();
+        while (true) {
+            if (s.startsWith("--") || s.startsWith("#")) {
+                int end = s.indexOf('\n');
+                if (end < 0) {
+                    return "";
+                }
+                s = s.substring(end + 1).strip();
+                continue;
+            }
+            if (s.startsWith("/*")) {
+                int end = s.indexOf("*/");
+                if (end < 0) {
+                    return "";
+                }
+                s = s.substring(end + 2).strip();
+                continue;
+            }
+            return s;
+        }
     }
 }
