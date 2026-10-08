@@ -16,7 +16,7 @@ def run_git_command(cmd):
     return result.stdout.strip()
 
 def get_version_commits():
-    cmd = 'git log --all --reverse --format="%h|%ai|%s" -- backend/src/main/resources/system_version.txt'
+    cmd = 'git log --all --reverse --format="%h|%ai|%s" -- backend/dimstack-app/src/main/resources/system_version.txt backend/src/main/resources/system_version.txt'
     output = run_git_command(cmd)
 
     commits = []
@@ -33,9 +33,12 @@ def get_version_commits():
     return commits
 
 def get_version_number_at_commit(commit_hash):
-    cmd = f'git show {commit_hash}:backend/src/main/resources/system_version.txt'
-    version = run_git_command(cmd)
-    return version.strip() if version else ''
+    for path in ('backend/dimstack-app/src/main/resources/system_version.txt',
+                 'backend/src/main/resources/system_version.txt'):
+        version = run_git_command(f'git show {commit_hash}:{path}')
+        if version:
+            return version.strip()
+    return ''
 
 def get_commits_between(old_commit, new_commit):
     if old_commit:
