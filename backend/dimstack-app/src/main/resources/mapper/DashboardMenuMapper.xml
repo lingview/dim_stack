@@ -45,7 +45,14 @@
         SELECT IFNULL(MAX(sort_order), 0) FROM dashboard_menu WHERE parent_id = #{parent_id}
     </select>
 
-    <delete id="deleteByLinkPrefix">
-        DELETE FROM dashboard_menu WHERE link LIKE CONCAT(#{linkPrefix}, '%')
+    <select id="findByLinkPrefix" resultMap="DashboardMenuMap">
+        SELECT * FROM dashboard_menu WHERE link LIKE CONCAT(#{linkPrefix}, '%')
+    </select>
+
+    <delete id="deleteByIds">
+        DELETE FROM dashboard_menu WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
     </delete>
 </mapper>

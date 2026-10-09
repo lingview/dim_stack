@@ -9,6 +9,8 @@ import xyz.lingview.dimstack.mapper.DashboardMenuMapper;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @Author: lingview
@@ -25,13 +27,16 @@ public class PluginExtensionLoader {
     private static final String DEFAULT_PERMISSION = "plugin:management";
 
     private final DashboardMenuMapper dashboardMenuMapper;
+    private final YamlPluginDescriptorFinder descriptorFinder;
 
-    public PluginExtensionLoader(DashboardMenuMapper dashboardMenuMapper) {
+    public PluginExtensionLoader(DashboardMenuMapper dashboardMenuMapper,
+                                 YamlPluginDescriptorFinder descriptorFinder) {
         this.dashboardMenuMapper = dashboardMenuMapper;
+        this.descriptorFinder = descriptorFinder;
     }
 
     public void loadPluginExtensions(String pluginId, PluginWrapper wrapper) {
-        dashboardMenuMapper.deleteByLinkPrefix("/dashboard/plugins/" + pluginId + "/");
+        deletePluginMenus(pluginId);
 
         InputStream in = wrapper.getPluginClassLoader().getResourceAsStream(MENU_FILE);
         if (in == null) {
@@ -44,6 +49,7 @@ public class PluginExtensionLoader {
                 return;
             }
 
+            Set<String> declaredPermissions = declaredPermissions(pluginId);
             Integer baseSort = dashboardMenuMapper.selectMaxSortByParent(PLUGIN_MENU_PARENT_ID);
             int sort = baseSort == null ? 0 : baseSort;
             int count = 0;
@@ -57,7 +63,17 @@ public class PluginExtensionLoader {
                 Object icon = ((Map<String, Object>) menuMap).get("icon");
                 menu.setIcon(icon != null ? icon.toString() : "plugin");
                 Object permission = ((Map<String, Object>) menuMap).get("permission");
-                menu.setPermission_code(permission != null ? permission.toString() : DEFAULT_PERMISSION);
+                String permissionCode = permission != null ? permission.toString() : DEFAULT_PERMISSION;
+                if (!permissionCode.contains(":")) {
+                    String expanded = "plugin:" + pluginId + ":" + permissionCode;
+                    if (!declaredPermissions.contains(expanded)) {
+                        log.warn("插件菜单权限码未在 plugin.yaml 的 permissions 中声明, 已跳过该菜单项: {} (permission={})",
+                                pluginId, permissionCode);
+                        continue;
+                    }
+                    permissionCode = expanded;
+                }
+                menu.setPermission_code(permissionCode);
                 menu.setParent_id(PLUGIN_MENU_PARENT_ID);
                 menu.setSort_order(++sort);
                 menu.setType("sidebar");
@@ -73,9 +89,28 @@ public class PluginExtensionLoader {
     }
 
     public void cleanupPluginExtensions(String pluginId) {
-        int deleted = dashboardMenuMapper.deleteByLinkPrefix("/dashboard/plugins/" + pluginId + "/");
+        int deleted = deletePluginMenus(pluginId);
         if (deleted > 0) {
             log.info("插件菜单贡献已清理: {} ({} 条)", pluginId, deleted);
         }
+    }
+
+    private Set<String> declaredPermissions(String pluginId) {
+        PluginManifest manifest = descriptorFinder.getManifest(pluginId);
+        if (manifest == null || manifest.getPermissions() == null) {
+            return Set.of();
+        }
+        return manifest.getPermissions().stream()
+                .map(permission -> "plugin:" + pluginId + ":" + permission.getCode())
+                .collect(Collectors.toSet());
+    }
+
+    private int deletePluginMenus(String pluginId) {
+        String prefix = "/dashboard/plugins/" + pluginId + "/";
+        List<Integer> ids = dashboardMenuMapper.findByLinkPrefix(prefix).stream()
+                .filter(menu -> menu.getLink() != null && menu.getLink().startsWith(prefix))
+                .map(DashboardMenu::getId)
+                .toList();
+        return ids.isEmpty() ? 0 : dashboardMenuMapper.deleteByIds(ids);
     }
 }

@@ -25,6 +25,8 @@ public interface DashboardMenuMapper {
     // 父菜单下最大排序号
     Integer selectMaxSortByParent(@Param("parent_id") Integer parentId);
 
-    // 按路径前缀删除(插件卸载清理用)
-    int deleteByLinkPrefix(@Param("linkPrefix") String linkPrefix);
+    // 按路径前缀取候选菜单
+    List<DashboardMenu> findByLinkPrefix(@Param("linkPrefix") String linkPrefix);
+
+    int deleteByIds(@Param("ids") List<Integer> ids);
 }
