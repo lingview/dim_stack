@@ -2,20 +2,27 @@
 import React from 'react';
 
 const HelloAdminPage = () => {
-    const [state, setState] = React.useState({ loading: true, message: '', table: '', rows: null });
+    const [state, setState] = React.useState({ loading: true, message: '', table: '', rows: null, ping: '' });
 
     React.useEffect(() => {
+        const ping = fetch('/api/plugins/hello/admin/ping').then(async (r) => {
+            if (!r.ok) return 'HTTP ' + r.status;
+            const data = await r.json();
+            return data.message;
+        });
         Promise.all([
             fetch('/api/plugins/hello/hello').then((r) => r.json()),
             fetch('/api/plugins/hello/notes/count').then((r) => r.json()),
+            ping,
         ])
-            .then(([hello, notes]) => setState({
+            .then(([hello, notes, pingResult]) => setState({
                 loading: false,
                 message: hello.message,
                 table: notes.table || '不可用',
                 rows: notes.rows == null ? '需登录' : notes.rows,
+                ping: pingResult,
             }))
-            .catch(() => setState({ loading: false, message: '接口调用失败', table: '不可用', rows: '不可用' }));
+            .catch(() => setState({ loading: false, message: '接口调用失败', table: '不可用', rows: '不可用', ping: '不可用' }));
     }, []);
 
     return React.createElement(
@@ -30,6 +37,7 @@ const HelloAdminPage = () => {
                 { className: 'hello-info' },
                 React.createElement('p', null, state.message),
                 React.createElement('p', null, '数据表: ' + state.table + ' / 行数: ' + state.rows),
+                React.createElement('p', null, '权限接口(需 plugin:hello:manage): ' + state.ping),
             ),
         React.createElement('a', { className: 'hello-link', href: '/hello' }, '前往前台 /hello 页面 →'),
     );

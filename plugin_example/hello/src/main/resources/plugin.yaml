@@ -8,3 +8,6 @@ author:
 scanPackage: xyz.example.hello
 publicApiPaths:
   - /hello
+permissions:
+  - code: manage
+    name: 管理 Hello 示例
