@@ -18,6 +18,7 @@ import xyz.lingview.dimstack.plugin.PluginAuditLogger;
 import xyz.lingview.dimstack.plugin.PluginExtensionLoader;
 import xyz.lingview.dimstack.plugin.PluginLifecycleGuard;
 import xyz.lingview.dimstack.plugin.PluginManifest;
+import xyz.lingview.dimstack.plugin.PluginPermissionRegistrar;
 import xyz.lingview.dimstack.plugin.PluginYamlLoader;
 import xyz.lingview.dimstack.plugin.YamlPluginDescriptorFinder;
 import xyz.lingview.dimstack.service.PluginService;
@@ -65,6 +66,7 @@ public class PluginServiceImpl implements PluginService {
     private final PluginConfigMapper configMapper;
     private final PluginAuditLogger auditLogger;
     private final PluginSqlAuditMapper sqlAuditMapper;
+    private final PluginPermissionRegistrar permissionRegistrar;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final Path pluginDir = Path.of(System.getProperty("user.dir"), "plugins");
@@ -80,6 +82,7 @@ public class PluginServiceImpl implements PluginService {
                              PluginConfigMapper configMapper,
                              PluginAuditLogger auditLogger,
                              PluginSqlAuditMapper sqlAuditMapper,
+                             PluginPermissionRegistrar permissionRegistrar,
                              PluginLifecycleGuard lifecycleGuard) {
         this.pluginManager = pluginManager;
         this.pluginMapper = pluginMapper;
@@ -88,6 +91,7 @@ public class PluginServiceImpl implements PluginService {
         this.configMapper = configMapper;
         this.auditLogger = auditLogger;
         this.sqlAuditMapper = sqlAuditMapper;
+        this.permissionRegistrar = permissionRegistrar;
         this.lifecycleGuard = lifecycleGuard;
     }
 
@@ -278,6 +282,7 @@ public class PluginServiceImpl implements PluginService {
 
         configMapper.deleteByPluginName(name);
         extensionLoader.cleanupPluginExtensions(name);
+        permissionRegistrar.unregisterOnUninstall(name);
 
         String managedNote = cleanupManagedPaths(manifest);
         String fileNote = deletePluginJar(info);

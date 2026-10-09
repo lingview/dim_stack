@@ -9,6 +9,8 @@ import org.pf4j.util.StringUtils;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +40,10 @@ public class YamlPluginDescriptorFinder implements PluginDescriptorFinder {
     private static final int PUBLIC_PATH_MAX_LENGTH = 128;
 
     private static final Pattern MANAGED_PATH_PATTERN = Pattern.compile("themes/[A-Za-z0-9][A-Za-z0-9._-]{0,63}");
+
+    private static final Pattern PERMISSION_DECL_CODE_PATTERN = Pattern.compile("[a-z0-9_]{1,40}");
+
+    private static final int PERMISSION_FULL_CODE_MAX_LENGTH = 100;
 
     private final Map<String, PluginManifest> manifests = new ConcurrentHashMap<>();
 
@@ -146,9 +152,49 @@ public class YamlPluginDescriptorFinder implements PluginDescriptorFinder {
             }
             manifest.setManagedPaths(paths);
         }
+        Object permissions = data.get("permissions");
+        if (permissions != null) {
+            manifest.setPermissions(parsePermissions(manifest.getId(), permissions));
+        }
         Object enabled = data.get("enabled");
         manifest.setEnabled(enabled instanceof Boolean b && b);
         return manifest;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<PluginPermission> parsePermissions(String pluginId, Object permissions) {
+        if (!(permissions instanceof List<?> list)) {
+            throw new PluginRuntimeException("插件 " + pluginId + " 的 permissions 必须是列表");
+        }
+        List<PluginPermission> result = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (Object item : list) {
+            if (!(item instanceof Map<?, ?> map)) {
+                throw new PluginRuntimeException("插件 " + pluginId + " 的 permissions 每一项必须是 {code, name} 结构");
+            }
+            String code = toString(((Map<String, Object>) map).get("code"));
+            String name = toString(((Map<String, Object>) map).get("name"));
+            if (code == null || !PERMISSION_DECL_CODE_PATTERN.matcher(code).matches()) {
+                throw new PluginRuntimeException(
+                        "插件 " + pluginId + " 的 permissions code 仅允许小写字母/数字/下划线(1-40): " + code);
+            }
+            if (!seen.add(code)) {
+                throw new PluginRuntimeException("插件 " + pluginId + " 的 permissions code 重复: " + code);
+            }
+            if (name == null || name.isBlank()) {
+                throw new PluginRuntimeException("插件 " + pluginId + " 的 permissions name 不能为空: " + code);
+            }
+            String fullCode = "plugin:" + pluginId + ":" + code;
+            if (fullCode.length() > PERMISSION_FULL_CODE_MAX_LENGTH) {
+                throw new PluginRuntimeException(
+                        "插件 " + pluginId + " 的权限码超长(最长 " + PERMISSION_FULL_CODE_MAX_LENGTH + " 字符): " + fullCode);
+            }
+            PluginPermission permission = new PluginPermission();
+            permission.setCode(code);
+            permission.setName(name);
+            result.add(permission);
+        }
+        return result;
     }
 
     @SuppressWarnings("unchecked")

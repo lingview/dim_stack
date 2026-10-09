@@ -37,5 +37,7 @@ public class PluginManifest {
 
     private List<String> managedPaths;
 
+    private List<PluginPermission> permissions;
+
     private boolean enabled;
 }

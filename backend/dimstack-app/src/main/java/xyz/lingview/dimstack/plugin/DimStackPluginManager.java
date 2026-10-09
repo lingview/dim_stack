@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.pf4j.DefaultPluginManager;
 import org.pf4j.PluginDescriptorFinder;
 import org.pf4j.PluginFactory;
+import org.pf4j.PluginState;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.nio.file.Path;
@@ -24,6 +25,8 @@ public class DimStackPluginManager extends DefaultPluginManager {
     private final Map<String, AnnotationConfigApplicationContext> pluginContexts = new ConcurrentHashMap<>();
 
     private PluginRequestMappingHandlerMapping requestMappingHandlerMapping;
+
+    private PluginPermissionRegistrar permissionRegistrar;
 
     public DimStackPluginManager(Path pluginsRoot,
                                  PluginApplicationContextFactory contextFactory,
@@ -58,6 +61,19 @@ public class DimStackPluginManager extends DefaultPluginManager {
 
     public void setRequestMappingHandlerMapping(PluginRequestMappingHandlerMapping mapping) {
         this.requestMappingHandlerMapping = mapping;
+    }
+
+    public void setPermissionRegistrar(PluginPermissionRegistrar permissionRegistrar) {
+        this.permissionRegistrar = permissionRegistrar;
+    }
+
+    @Override
+    public PluginState startPlugin(String pluginId) {
+        PluginState state = super.startPlugin(pluginId);
+        if (state == PluginState.STARTED && permissionRegistrar != null) {
+            permissionRegistrar.registerOnStart(pluginId, getManifest(pluginId));
+        }
+        return state;
     }
 
     public PluginRequestMappingHandlerMapping getRequestMappingHandlerMapping() {

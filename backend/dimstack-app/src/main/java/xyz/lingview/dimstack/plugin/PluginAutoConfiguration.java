@@ -43,16 +43,18 @@ public class PluginAutoConfiguration implements SmartInitializingSingleton {
     }
 
     @Bean
-    public HandlerMapping pluginRequestMappingHandlerMapping() {
+    public HandlerMapping pluginRequestMappingHandlerMapping(PluginPermissionInterceptor pluginPermissionInterceptor) {
         PluginRequestMappingHandlerMapping mapping = new PluginRequestMappingHandlerMapping();
         mapping.setOrder(1);
+        mapping.setInterceptors(pluginPermissionInterceptor);
         return mapping;
     }
 
     @Bean(destroyMethod = "stopPlugins")
     public DimStackPluginManager dimStackPluginManager(PluginApplicationContextFactory factory,
                                                        HandlerMapping pluginRequestMappingHandlerMapping,
-                                                       YamlPluginDescriptorFinder yamlPluginDescriptorFinder) {
+                                                       YamlPluginDescriptorFinder yamlPluginDescriptorFinder,
+                                                       PluginPermissionRegistrar pluginPermissionRegistrar) {
         Path pluginsRoot = Path.of(System.getProperty("user.dir"), "plugins");
         try {
             Files.createDirectories(pluginsRoot);
@@ -63,6 +65,7 @@ public class PluginAutoConfiguration implements SmartInitializingSingleton {
         if (pluginRequestMappingHandlerMapping instanceof PluginRequestMappingHandlerMapping mapping) {
             manager.setRequestMappingHandlerMapping(mapping);
         }
+        manager.setPermissionRegistrar(pluginPermissionRegistrar);
         try {
             manager.loadPlugins();
         } catch (Exception e) {

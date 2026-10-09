@@ -295,7 +295,7 @@ CREATE TABLE `dashboard_menu`  (
                                    `icon` varchar(50) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '图标名称',
                                    `link` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '路由链接，父菜单可为空',
                                    `parent_id` int NULL DEFAULT NULL COMMENT '父级菜单ID，NULL表示顶级菜单',
-                                   `permission_code` varchar(50) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '访问此菜单所需的权限码，如 system:edit',
+                                   `permission_code` varchar(100) CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '访问此菜单所需的权限码，如 system:edit',
                                    `sort_order` int NULL DEFAULT 0 COMMENT '排序权重，值越小越靠前',
                                    `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
                                    `type` enum('sidebar','quick_action') CHARACTER SET utf8mb4 NULL DEFAULT 'sidebar' COMMENT '菜单类型',
@@ -471,7 +471,7 @@ CREATE TABLE `music`  (
 DROP TABLE IF EXISTS `permission`;
 CREATE TABLE `permission`  (
                                `id` int NOT NULL AUTO_INCREMENT COMMENT '权限ID',
-                               `code` varchar(50) CHARACTER SET utf8mb4 NOT NULL COMMENT '权限码，如 post:view',
+                               `code` varchar(100) CHARACTER SET utf8mb4 NOT NULL COMMENT '权限码，如 post:view',
                                `name` varchar(100) CHARACTER SET utf8mb4 NOT NULL COMMENT '权限名称，如 查看文章',
                                `module` varchar(50) CHARACTER SET utf8mb4 NOT NULL COMMENT '所属模块，如 post, user, system',
                                `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
