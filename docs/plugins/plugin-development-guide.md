@@ -68,20 +68,20 @@ my-plugin/
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>7.0.8</version>
+            <version>7.0.9</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>7.0.8</version>
+            <version>7.0.9</version>
             <scope>provided</scope>
         </dependency>
         <!-- 需要 JdbcTemplate 时再加 -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
-            <version>7.0.8</version>
+            <version>7.0.9</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
