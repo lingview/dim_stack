@@ -14,7 +14,7 @@
 - **数据库**：与宿主同一个库，用插件专属连接池读写自己的表，宿主自动记录 SQL 审计
 - **宿主服务**：按白名单读取站点配置、缓存、存储与扩展点
 
-插件接口默认需要登录；确实需要匿名开放的，要在 `plugin.yaml` 里显式声明。
+插件接口默认需要登录；确实需要匿名开放的，要在 `plugin.yaml` 里显式声明。接口还可以用 `@RequiresPermission` 声明权限码；插件自定义的权限码随插件注册进宿主权限体系，可由管理员授予角色（见 3.6）。
 
 ## 二、快速开始
 
@@ -102,6 +102,9 @@ author:
   name: 你的名字
 scanPackage: xyz.example.myplugin
 configMapName: config
+permissions:
+  - code: manage
+    name: 管理我的插件数据
 publicApiPaths:
   - /hello
 ```
@@ -115,6 +118,7 @@ publicApiPaths:
 | `author` | 否 | 作者，可以写字符串，也可以写 `{name: xxx}` |
 | `scanPackage` | 强烈建议 | Spring 组件扫描包。**不配置的话插件里的组件不会被注册**，插件等于空壳 |
 | `publicApiPaths` | 否 | 免登录接口路径（相对 `/api/plugins/{id}`），见[3.6 路由与权限] |
+| `permissions` | 否 | 插件自定义权限码声明（短码 + 名称），完整码为 `plugin:{插件id}:{短码}`，见[3.6 路由与权限] |
 | `managedPaths` | 否 | 随插件分发、由宿主托管的资源目录，目前只支持 `themes/<主题名>` 形式 |
 | `configMapName` | 否 | 配置存储名，默认 `config`，见[3.3 插件配置] |
 | `requires` | 否 | 期望的宿主版本，当前仅记录，不做校验 |
@@ -321,6 +325,43 @@ publicApiPaths:
 - 不能使用宿主保留路径：`/config`、`/start`、`/stop`、`/upgrade`、`/reload`
 - 声明后也只有在插件真的注册了对应路由、且插件处于启用状态时才免登录
 
+**接口权限码（可选）**
+
+插件接口除了"登录"之外，还可以用 SDK 的 `@RequiresPermission` 声明所需权限码。注解可以标在方法或类上（方法优先）：
+
+```java
+import xyz.lingview.dimstack.plugin.api.RequiresPermission;
+
+@GetMapping("/notes/delete")
+@RequiresPermission("plugin:my-plugin:manage")   // 写完整权限码, 见下
+public Map<String, Object> delete(Long id) {
+    ...
+}
+```
+
+- 注解值写**完整权限码**（`plugin:{插件id}:{短码}` 或宿主内置码如 `plugin:management`）；`all = true` 表示列出的权限码需要全部满足，默认是任一命中即可
+- 未标注解的接口保持"登录即可访问"，行为不变
+- 匿名接口（`publicApiPaths` 声明的）不要标注解；标了仍要求登录 + 权限
+
+**自定义权限码**
+
+把自己的权限码声明在 `plugin.yaml` 的 `permissions` 里（见 2.3），插件启用时宿主会自动注册进权限表，管理员就能在后台角色管理里勾选授权：
+
+```yaml
+permissions:
+  - code: manage            # 短码: 只允许小写字母/数字/下划线, 1-40 位
+    name: 管理我的插件数据    # 权限名称, 建议带上插件名, 角色配置里更好辨认
+```
+
+规则：
+
+- 完整权限码 = `plugin:{插件id}:{短码}`，比如 `plugin:my-plugin:manage`，总长不超过 100 字符
+- 启用时注册：新码自动插入；已存在的只更新名称，**已有的角色授权不会丢**（反复启用/重载安全）
+- 某个码在新版本里不再声明时，启用新版本会自动把它删除（相关角色授权随之移除）
+- 停用插件不删权限码；卸载插件时按插件前缀整体清理
+- 注册后还需要**在角色管理里勾选**该权限，对应角色的用户才能访问；新注册的码默认没有任何角色拥有
+- 宿主内置权限码清单见文末附录
+
 ### 3.7 后台菜单
 
 插件启动时，宿主会读取插件 jar 里的 `extensions/menu.yaml`，把菜单写入后台侧边栏（挂在[设置 -> 插件管理]下，支持多层级嵌套）：
@@ -330,7 +371,7 @@ dashboard-menu:
   - title: 我的面板
     link: /dashboard/plugins/my-plugin/home
     icon: plugin
-    permission: plugin:management
+    permission: manage       # 短码, 需在 plugin.yaml 的 permissions 里声明过
   - title: 帮助说明
     link: /dashboard/plugins/my-plugin/help
 ```
@@ -340,7 +381,7 @@ dashboard-menu:
 | `title` | 是 | 菜单文字 |
 | `link` | 是 | 跳转路径，建议以 `/dashboard/plugins/{插件id}/` 开头，卸载时宿主按这个前缀清理 |
 | `icon` | 否 | 图标名，默认 `plugin` |
-| `permission` | 否 | 访问所需权限码，默认 `plugin:management` |
+| `permission` | 否 | 访问所需权限码，默认 `plugin:management`；只写短码（不含冒号）时展开为 `plugin:{插件id}:{短码}`，该短码必须已在 `permissions` 里声明，否则该菜单项会被跳过并在日志里告警 |
 
 菜单点击后跳转到 `link` 路径；插件在前端注册**与 link 相同路径**的路由（`context.registerRoute`，见 4.2），页面就会渲染在后台框架的内容区里。菜单在插件启用时写入、卸载时清理；停用不删菜单。
 
@@ -544,11 +585,11 @@ export default {
 | 操作 | 会发生什么 |
 | --- | --- |
 | 安装 | jar 落盘到 `plugins/` 并登记入库，默认停用 |
-| 启用 | 创建插件容器、注册后端路由、前端资源上线、加载菜单 |
-| 停用 | 关容器、后端路由注销、前端资源下线；数据、配置、菜单保留 |
+| 启用 | 创建插件容器、注册后端路由、注册声明的权限码、前端资源上线、加载菜单 |
+| 停用 | 关容器、后端路由注销、前端资源下线；数据、配置、菜单、权限码保留 |
 | 重载 | 相当于停用后立即启用，用于重打包或改配置后重新加载 |
 | 升级 | 上传新版本 jar（版本号必须变化并更大）；失败会自动回滚到旧版本 |
-| 卸载 | 删除 jar、入库记录、配置与菜单；**数据表与 SQL 审计记录保留** |
+| 卸载 | 删除 jar、入库记录、配置、菜单与权限码；**数据表与 SQL 审计记录保留** |
 
 - 升级失败时宿主会自动恢复旧版本运行，接口报错里会说明原因
 - jar 文件被系统占用删不掉时，后台会提示[请重启后手动清理]，重启后请手动删除 `plugins/` 下的残留 jar
@@ -565,3 +606,77 @@ export default {
 7. 插件卸载不会删除你的数据表，需要清理请自行处理
 8. 插件与宿主同库同权限，请只操作自己的数据和必要的宿主配置
 9. `plugin.yaml` 未加引号的文本值（如 `description`、`displayName`）里不要出现半角冒号加空格（`示例: 接口`），否则 YAML 解析失败，安装只会报[读取 plugin.yaml 失败]且不指出位置；需要冒号时用全角[：]
+10. `@RequiresPermission` 与菜单 `permission` 里的自定义短码，都必须先在 `plugin.yaml` 的 `permissions` 里声明；未声明的短码接口会 403、菜单项会被跳过并在日志里告警
+11. 权限码在插件启用时注册、卸载时清理、停用不删；新注册的码默认没有任何角色拥有，需要在角色管理里勾选授权后对应角色才能访问
+
+## 附录：宿主权限码清单
+
+以下为宿主内置权限码（取自初始化数据，**以实际部署为准**），可在 `@RequiresPermission` 里直接引用：
+
+| 权限码 | 名称 | 模块 |
+| --- | --- | --- |
+| `system:attachment:view` | 查看任意附件 | attachment |
+| `system:attachment:delete` | 删除任意附件 | attachment |
+| `system:attachment:undelete` | 撤销删除任意附件 | attachment |
+| `system:attachment:management` | 系统附件管理完整操作 | attachment |
+| `attachment:add` | 添加附件 | attachment |
+| `attachment:view` | 查看自己附件 | attachment |
+| `attachment:delete` | 删除自己附件 | attachment |
+| `attachment:undelete` | 撤销删除自己附件 | attachment |
+| `attachment:edit` | 管理自己附件（完整操作） | attachment |
+| `system:comments:view` | 查看任意评论 | comments |
+| `system:comments:edit` | 编辑任意评论 | comments |
+| `system:comments:delete` | 删除任意评论 | comments |
+| `system:comments:management` | 评论管理（完整操作） | comments |
+| `comments:add` | 用户评论 | comments |
+| `comments:delete` | 删除自己评论 | comments |
+| `comments:like` | 点赞评论 | comments |
+| `comments:edit` | 评论完整操作 | comments |
+| `system:post:review` | 审核文章 | post |
+| `system:custompage:add` | 添加自定义页面 | custompage |
+| `system:custompage:update` | 更新自定义页面 | custompage |
+| `system:custompage:delete` | 删除自定义页面 | custompage |
+| `system:custompage:view` | 获取自己的自定义页面 | custompage |
+| `system:custompage:management` | 自定义页面完整操作 | custompage |
+| `post:view` | 获取文章列表 | post |
+| `post:add` | 用户创建文章 | post |
+| `post:update` | 用户更新文章 | post |
+| `post:details` | 获取文章详情 | post |
+| `post:delete` | 删除自己文章 | post |
+| `post:unpublish` | 取消发布文章 | post |
+| `post:publish` | 发布文章 | post |
+| `post:removepassword` | 移除文章密码 | post |
+| `post:edit` | 编辑文章（对自己文章完整操作） | post |
+| `system:theme:management` | 系统主题管理 | theme |
+| `system:friendlinks:management` | 系统友链管理 | friendlinks |
+| `system:menus:management` | 系统菜单管理 | menu |
+| `system:music:management` | 系统音乐管理 | config |
+| `system:role:management` | 系统角色管理 | role |
+| `system:config:management` | 系统配置管理 | config |
+| `system:tags:management` | 系统标签管理 | tags |
+| `system:categories:management` | 系统分类管理 | categories |
+| `system:update:management` | 系统更新管理 | update |
+| `system:user:management` | 管理用户信息 | user |
+| `content:menus` | 内容管理菜单 | menus |
+| `user:menus` | 用户管理菜单 | menus |
+| `custompages:menus` | 自定义页面菜单 | menus |
+| `article:menus` | 文章管理菜单 | menus |
+| `articlereview:menus` | 文章审核菜单 | menus |
+| `comments:menus` | 评论管理菜单 | menus |
+| `tags:menus` | 标签管理菜单 | menus |
+| `categories:menus` | 分类管理菜单 | menus |
+| `friendlinks:menus` | 友链管理菜单 | menus |
+| `globalattachments:menus` | 全局附件菜单 | menus |
+| `attachments:menus` | 我的附件菜单 | menus |
+| `menus:menus` | 菜单管理菜单 | menus |
+| `settings:menus` | 系统设置菜单 | menus |
+| `config:menus` | 配置管理菜单 | menus |
+| `update:menus` | 系统更新菜单 | menus |
+| `theme:menus` | 主题管理菜单 | menus |
+| `role:menus` | 角色管理菜单 | menus |
+| `system:announcement:management` | 公告管理 | announcement |
+| `announcement:menus` | 公告管理菜单 | menus |
+| `system:comments:review` | 审核评论 | comments |
+| `commentreview:menus` | 评论审核菜单 | menus |
+| `plugin:management` | 插件管理 | plugin |
+| `plugin:menus` | 插件管理菜单 | menus |
