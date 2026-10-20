@@ -93,14 +93,10 @@ public class FileAccessServiceImpl implements FileAccessService {
             String objectKey = attachment.getAttachment_path();
             S3FileStorageImpl s3Storage = (S3FileStorageImpl) storageFacadeService.getStorage(attachment.getStorage_id());
             Duration expiration = download ? Duration.ofMinutes(5) : Duration.ofHours(1);
-            String presignedUrl = s3Storage.generatePresignedUrl(objectKey, expiration);
-
-            if (download) {
-                presignedUrl += "&response-content-disposition=attachment";
-            }
 
             String filename = Path.of(attachment.getAttachment_path()).getFileName().toString();
             String disposition = buildDisposition(filename, download);
+            String presignedUrl = s3Storage.generatePresignedUrl(objectKey, expiration, download ? disposition : null);
 
             return new FileAccessResult(null, null, disposition, true, presignedUrl);
         } catch (Exception e) {

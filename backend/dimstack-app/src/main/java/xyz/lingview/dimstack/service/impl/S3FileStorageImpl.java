@@ -148,15 +148,17 @@ public class S3FileStorageImpl implements FileStorage {
     /**
      * 生成预签名URL（用于文件访问）
      */
-    public String generatePresignedUrl(String objectKey, Duration expiration) {
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+    public String generatePresignedUrl(String objectKey, Duration expiration, String responseContentDisposition) {
+        GetObjectRequest.Builder requestBuilder = GetObjectRequest.builder()
                 .bucket(bucket)
-                .key(objectKey)
-                .build();
+                .key(objectKey);
+        if (responseContentDisposition != null && !responseContentDisposition.isBlank()) {
+            requestBuilder.responseContentDisposition(responseContentDisposition);
+        }
 
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
                 .signatureDuration(expiration)
-                .getObjectRequest(getObjectRequest)
+                .getObjectRequest(requestBuilder.build())
                 .build();
 
         PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
