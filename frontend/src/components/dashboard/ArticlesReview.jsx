@@ -833,7 +833,7 @@ export default function ArticlesReview() {
                                     </div>
 
                                     {articleDetail.excerpt && (
-                                        <div className="mb-6 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-300 max-h-40 overflow-y-auto">
+                                        <div className="mb-6 p-4 bg-gray-50 rounded-lg max-h-40 overflow-y-auto">
                                             <h4 className="text-sm font-semibold text-gray-900 mb-2">文章摘要</h4>
                                             <p className="text-gray-700 leading-relaxed break-words whitespace-pre-wrap">
                                                 {articleDetail.excerpt}
@@ -969,28 +969,22 @@ export default function ArticlesReview() {
                                 <>
                                     <button
                                         onClick={() => handleStatusChange(articleDetail.article_id, 1)}
-                                        className="px-6 py-2 bg-green-100 text-green-700 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors flex items-center border border-green-300"
+                                        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors flex items-center gap-2"
                                     >
-                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                        </svg>
                                         通过审核
                                     </button>
                                     <button
                                         onClick={() => handleStatusChange(articleDetail.article_id, 4)}
-                                        className="px-6 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors flex items-center border border-red-300"
+                                        className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors flex items-center gap-2"
                                     >
-                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
                                         标记违规
                                     </button>
                                     <button
                                         onClick={() => articleReviewDeleteArticle(articleDetail.article_id)}
-                                        className="px-6 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors flex items-center border border-red-300"
+                                        className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors flex items-center gap-2"
                                     >
-                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
                                         删除文章
                                     </button>
