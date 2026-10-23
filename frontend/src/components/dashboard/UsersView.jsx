@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Search } from 'lucide-react';
 import apiClient from '../../utils/axios.jsx';
 import {getConfig} from "../../utils/config.jsx";
 import ImageCropper from '../ImageCropper.jsx';
@@ -58,6 +59,19 @@ export default function UsersView() {
   const [imageToCrop, setImageToCrop] = useState(null);
   const [originalFile, setOriginalFile] = useState(null);
   const [cropperKey, setCropperKey] = useState(0);
+  const [searchKeyword, setSearchKeyword] = useState('');
+
+  const filteredUsers = useMemo(() => {
+    const keyword = searchKeyword.trim().toLowerCase();
+    if (!keyword) {
+      return users;
+    }
+    return users.filter((user) =>
+      [user.username, user.email, user.phone]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(keyword))
+    );
+  }, [users, searchKeyword]);
 
   useEffect(() => {
     fetchUsers();
@@ -450,6 +464,31 @@ export default function UsersView() {
       )}
 
 
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-48 max-w-xs">
+          <input
+            type="text"
+            placeholder="搜索用户名、邮箱或手机号..."
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+          />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        </div>
+        {searchKeyword && (
+          <button
+            type="button"
+            onClick={() => setSearchKeyword('')}
+            className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 text-sm font-medium"
+          >
+            清除
+          </button>
+        )}
+        {searchKeyword && (
+          <span className="text-sm text-gray-500">匹配 {filteredUsers.length} / 共 {users.length} 位用户</span>
+        )}
+      </div>
+
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -472,7 +511,7 @@ export default function UsersView() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {users.map((user) => (
+            {filteredUsers.map((user) => (
               <tr key={user.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
@@ -577,6 +616,13 @@ export default function UsersView() {
             </svg>
             <h3 className="mt-2 text-sm font-medium text-gray-900">暂无用户</h3>
             <p className="mt-1 text-sm text-gray-500">还没有用户注册</p>
+          </div>
+        )}
+
+        {users.length > 0 && filteredUsers.length === 0 && (
+          <div className="text-center py-12">
+            <h3 className="mt-2 text-sm font-medium text-gray-900">没有匹配的用户</h3>
+            <p className="mt-1 text-sm text-gray-500">换个关键词试试</p>
           </div>
         )}
       </div>
