@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import xyz.lingview.dimstack.domain.ArticleCategory;
 import xyz.lingview.dimstack.domain.ReadArticle;
 import xyz.lingview.dimstack.dto.request.ArticleDetailDTO;
 import xyz.lingview.dimstack.dto.request.UpdateArticleDTO;
@@ -74,7 +75,9 @@ public class EditArticleServiceImpl implements EditArticleService {
     private PageViewCounterService pageViewCounterService;
 
     @Override
-    public Map<String, Object> getArticleListByUsername(String username, Integer page, Integer size) {
+    public Map<String, Object> getArticleListByUsername(String username, Integer page, Integer size, String keyword,
+                                                        Integer status, Integer categoryId, Boolean includeSubCategories,
+                                                        String tag, String startDate, String endDate) {
         Map<String, Object> result = new HashMap<>();
 
         try {
@@ -87,15 +90,25 @@ public class EditArticleServiceImpl implements EditArticleService {
                 return result;
             }
 
-            int offset = (page - 1) * size;
-            List<EditArticleDTO> articles = editArticleMapper.getArticleListByUuid(uuid, offset, size);
-            int total = editArticleMapper.countArticlesByUuid(uuid);
+            int safePage = page == null || page < 1 ? 1 : page;
+            int safeSize = size == null || size < 1 ? 10 : Math.min(size, 100);
+            String trimmedKeyword = keyword == null || keyword.isBlank() ? null : keyword.trim();
+            List<Integer> categoryIds = resolveCategoryIds(categoryId, !Boolean.FALSE.equals(includeSubCategories));
+            String trimmedTag = tag == null || tag.isBlank() ? null : tag.trim();
+            String startTime = normalizeDate(startDate, false);
+            String endTime = normalizeDate(endDate, true);
+
+            int offset = (safePage - 1) * safeSize;
+            List<EditArticleDTO> articles = editArticleMapper.selectArticlesByUuid(uuid, trimmedKeyword, status,
+                    categoryIds, trimmedTag, startTime, endTime, offset, safeSize);
+            int total = editArticleMapper.countArticlesByUuid(uuid, trimmedKeyword, status,
+                    categoryIds, trimmedTag, startTime, endTime);
 
             result.put("articles", articles);
             result.put("total", total);
-            result.put("page", page);
-            result.put("size", size);
-            result.put("totalPages", (int) Math.ceil((double) total / size));
+            result.put("page", safePage);
+            result.put("size", safeSize);
+            result.put("totalPages", (int) Math.ceil((double) total / safeSize));
 
             return result;
 
@@ -109,40 +122,47 @@ public class EditArticleServiceImpl implements EditArticleService {
         }
     }
 
-    @Override
-    public Map<String, Object> searchArticlesByUsername(String username, String keyword, Integer page, Integer size) {
-        Map<String, Object> result = new HashMap<>();
-
-        try {
-            String uuid = editArticleMapper.getUuidByUsername(username);
-            if (uuid == null) {
-                result.put("articles", List.of());
-                result.put("total", 0);
-                result.put("page", page);
-                result.put("size", size);
-                return result;
-            }
-
-            int offset = (page - 1) * size;
-            List<EditArticleDTO> articles = editArticleMapper.searchArticlesByUuid(uuid, keyword, offset, size);
-            int total = editArticleMapper.countSearchArticlesByUuid(uuid, keyword);
-
-            result.put("articles", articles);
-            result.put("total", total);
-            result.put("page", page);
-            result.put("size", size);
-            result.put("totalPages", (int) Math.ceil((double) total / size));
-
-            return result;
-
-        } catch (Exception e) {
-            log.error("搜索文章列表失败", e);
-            result.put("articles", List.of());
-            result.put("total", 0);
-            result.put("page", page);
-            result.put("size", size);
-            return result;
+    private List<Integer> resolveCategoryIds(Integer categoryId, boolean includeSubCategories) {
+        if (categoryId == null) {
+            return null;
         }
+        if (!includeSubCategories) {
+            return List.of(categoryId);
+        }
+        List<ArticleCategory> allCategories = articleCategoryMapper.findAll();
+        Map<Integer, List<Integer>> childrenByParent = new HashMap<>();
+        for (ArticleCategory category : allCategories) {
+            if (category.getParent_id() != null) {
+                childrenByParent.computeIfAbsent(category.getParent_id(), key -> new ArrayList<>()).add(category.getId());
+            }
+        }
+        List<Integer> result = new ArrayList<>();
+        Set<Integer> visited = new HashSet<>();
+        Deque<Integer> queue = new ArrayDeque<>();
+        queue.add(categoryId);
+        while (!queue.isEmpty()) {
+            Integer id = queue.poll();
+            if (!visited.add(id)) {
+                continue;
+            }
+            result.add(id);
+            List<Integer> childIds = childrenByParent.get(id);
+            if (childIds != null) {
+                queue.addAll(childIds);
+            }
+        }
+        return result;
+    }
+
+    private String normalizeDate(String date, boolean endOfDay) {
+        if (date == null || date.isBlank()) {
+            return null;
+        }
+        String value = date.trim();
+        if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            return null;
+        }
+        return value + (endOfDay ? " 23:59:59" : " 00:00:00");
     }
 
     @Override

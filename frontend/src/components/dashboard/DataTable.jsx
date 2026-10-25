@@ -18,36 +18,41 @@ export default function DataTable({
   onSearchClear = null,
   searchPlaceholder = '搜索...',
 
+  filters = null,
+
   pagination = null,
 
   onRowClick = null,
 }) {
   const renderSearch = () => {
-    if (!onSearchChange) return null;
+    if (!onSearchChange && !filters) return null;
 
     return (
-      <div className="mb-6">
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 max-w-md">
-            <input
-              type="text"
-              placeholder={searchPlaceholder}
-              value={searchValue}
-              onChange={onSearchChange}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          </div>
-          {searchValue && onSearchClear && (
-            <button
-              type="button"
-              onClick={onSearchClear}
-              className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 text-sm font-medium"
-            >
-              清除
-            </button>
-          )}
-        </div>
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        {onSearchChange && (
+          <>
+            <div className="relative flex-1 min-w-48 max-w-xs">
+              <input
+                type="text"
+                placeholder={searchPlaceholder}
+                value={searchValue}
+                onChange={onSearchChange}
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            </div>
+            {searchValue && onSearchClear && (
+              <button
+                type="button"
+                onClick={onSearchClear}
+                className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 text-sm font-medium"
+              >
+                清除
+              </button>
+            )}
+          </>
+        )}
+        {filters}
       </div>
     );
   };

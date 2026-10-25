@@ -30,7 +30,13 @@ public class EditArticleController {
     public ApiResponse<Map<String, Object>> getArticleList(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(defaultValue = "true") Boolean includeSubCategories,
+            @RequestParam(required = false) String tag,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
         try {
             String username = currentUserService.getCurrentUsername();
 
@@ -38,12 +44,8 @@ public class EditArticleController {
                 return ApiResponse.error(401, "用户未登录");
             }
 
-            Map<String, Object> result;
-            if (keyword != null && !keyword.trim().isEmpty()) {
-                result = editArticleService.searchArticlesByUsername(username, keyword.trim(), page, size);
-            } else {
-                result = editArticleService.getArticleListByUsername(username, page, size);
-            }
+            Map<String, Object> result = editArticleService.getArticleListByUsername(
+                    username, page, size, keyword, status, categoryId, includeSubCategories, tag, startDate, endDate);
 
             return ApiResponse.success("获取文章列表成功", result);
 

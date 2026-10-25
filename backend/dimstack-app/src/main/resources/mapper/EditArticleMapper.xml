@@ -4,7 +4,33 @@
 
 <mapper namespace="xyz.lingview.dimstack.mapper.EditArticleMapper">
 
-    <select id="getArticleListByUuid" resultType="xyz.lingview.dimstack.dto.request.EditArticleDTO">
+    <sql id="articleListFilter">
+        AND a.status != 0
+        <if test="keyword != null and keyword != ''">
+            AND (a.article_name LIKE CONCAT('%', #{keyword}, '%') OR a.excerpt LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="status != null">
+            AND a.status = #{status}
+        </if>
+        <if test="categoryIds != null and categoryIds.size() > 0">
+            AND a.category_id IN
+            <foreach collection="categoryIds" item="cid" open="(" separator="," close=")">
+                #{cid}
+            </foreach>
+        </if>
+        <if test="tag != null and tag != ''">
+            AND EXISTS (SELECT 1 FROM article_tag_relation atr_filter
+                        WHERE atr_filter.article_id = a.article_id AND atr_filter.article_tag = #{tag})
+        </if>
+        <if test="startTime != null and startTime != ''">
+            AND a.create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null and endTime != ''">
+            AND a.create_time &lt;= #{endTime}
+        </if>
+    </sql>
+
+    <select id="selectArticlesByUuid" resultType="xyz.lingview.dimstack.dto.request.EditArticleDTO">
         SELECT
             a.article_id as article_id,
             a.article_name as article_name,
@@ -23,17 +49,19 @@
         LEFT JOIN article_categories c ON a.category_id = c.id
         LEFT JOIN article_categories p ON c.parent_id = p.id
         LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
-        WHERE a.uuid = #{uuid} AND a.status != 0
+        WHERE a.uuid = #{uuid}
+        <include refid="articleListFilter"/>
         GROUP BY a.article_id, a.article_name, a.alias, u.username, a.create_time, a.status, a.password, c.article_categories, p.article_categories
         ORDER BY a.create_time DESC
         LIMIT #{offset}, #{size}
     </select>
 
 
-    <select id="countArticlesByUuid" parameterType="string" resultType="int">
+    <select id="countArticlesByUuid" resultType="int">
         SELECT COUNT(*)
         FROM article a
-        WHERE a.uuid = #{uuid} AND a.status != 0
+        WHERE a.uuid = #{uuid}
+        <include refid="articleListFilter"/>
     </select>
 
     <!-- 获取文章详情 -->
@@ -209,42 +237,5 @@
         SET status = #{status}
         WHERE article_id = #{articleId}
     </update>
-
-    <select id="searchArticlesByUuid" resultType="xyz.lingview.dimstack.dto.request.EditArticleDTO">
-        SELECT
-            a.article_id as article_id,
-            a.article_name as article_name,
-            a.alias,
-            u.username as author_name,
-            a.create_time as create_time,
-            a.status,
-            a.password as password,
-            CASE
-                WHEN p.article_categories IS NULL THEN c.article_categories
-                ELSE CONCAT(p.article_categories, '/', c.article_categories)
-            END AS category,
-            GROUP_CONCAT(DISTINCT atr.article_tag SEPARATOR ',') as tag
-        FROM article a
-        JOIN user_information u ON a.uuid = u.uuid
-        LEFT JOIN article_categories c ON a.category_id = c.id
-        LEFT JOIN article_categories p ON c.parent_id = p.id
-        LEFT JOIN article_tag_relation atr ON a.article_id = atr.article_id
-        WHERE a.uuid = #{uuid} AND a.status != 0
-        <if test="keyword != null and keyword != ''">
-            AND (a.article_name LIKE CONCAT('%', #{keyword}, '%') OR a.excerpt LIKE CONCAT('%', #{keyword}, '%'))
-        </if>
-        GROUP BY a.article_id, a.article_name, a.alias, u.username, a.create_time, a.status, a.password, c.article_categories, p.article_categories
-        ORDER BY a.create_time DESC
-        LIMIT #{offset}, #{size}
-    </select>
-
-    <select id="countSearchArticlesByUuid" resultType="int">
-        SELECT COUNT(*)
-        FROM article a
-        WHERE a.uuid = #{uuid} AND a.status != 0
-        <if test="keyword != null and keyword != ''">
-            AND (a.article_name LIKE CONCAT('%', #{keyword}, '%') OR a.excerpt LIKE CONCAT('%', #{keyword}, '%'))
-        </if>
-    </select>
 
 </mapper>

@@ -3,6 +3,48 @@ import apiClient from "../../utils/axios.jsx";
 import React, { useState, useEffect, useRef } from 'react';
 import { showToast } from "../../utils/toastManager";
 import DataTable from './DataTable';
+
+const buildCategoryOptions = (categories) => {
+    const childrenByParent = new Map();
+    categories.forEach((category) => {
+        const parentKey = category.parent_id ?? 0;
+        if (!childrenByParent.has(parentKey)) {
+            childrenByParent.set(parentKey, []);
+        }
+        childrenByParent.get(parentKey).push(category);
+    });
+
+    const options = [];
+    const visited = new Set();
+    const walk = (parentKey, depth) => {
+        (childrenByParent.get(parentKey) || []).forEach((category) => {
+            if (visited.has(category.id)) {
+                return;
+            }
+            visited.add(category.id);
+            const prefix = depth === 0 ? '' : '　'.repeat(depth);
+            options.push({ id: category.id, label: `${prefix}${category.article_categories}` });
+            walk(category.id, depth + 1);
+        });
+    };
+    walk(0, 0);
+    categories.forEach((category) => {
+        if (!visited.has(category.id)) {
+            options.push({ id: category.id, label: category.article_categories });
+        }
+    });
+    return options;
+};
+
+const DEFAULT_FILTERS = {
+    status: '',
+    categoryId: '',
+    includeSubCategories: true,
+    tag: '',
+    startDate: '',
+    endDate: '',
+};
+
 export default function ArticlesView({ onNewArticle, onEditArticle, onImportArticle, shouldRefresh, setShouldRefresh }) {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10);
@@ -11,19 +53,42 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
     const [localArticles, setLocalArticles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchKeyword, setSearchKeyword] = useState('');
+    const [appliedKeyword, setAppliedKeyword] = useState('');
+    const [filters, setFilters] = useState(DEFAULT_FILTERS);
+    const [categoryOptions, setCategoryOptions] = useState([]);
+    const [tagOptions, setTagOptions] = useState([]);
     const searchTimeoutRef = useRef(null);
     const importFileInputRef = useRef(null);
+    const requestSeqRef = useRef(0);
 
     useEffect(() => {
-        fetchArticles(currentPage, pageSize, searchKeyword);
-    }, [currentPage, pageSize]);
+        const loadFilterOptions = async () => {
+            try {
+                const [categoriesRes, tagsRes] = await Promise.all([
+                    apiClient.get('/categories'),
+                    apiClient.get('/tags'),
+                ]);
+                const categories = Array.isArray(categoriesRes.data) ? categoriesRes.data : [];
+                setCategoryOptions(buildCategoryOptions(categories));
+                const tags = Array.isArray(tagsRes.data) ? tagsRes.data : [];
+                setTagOptions(tags.map((tag) => tag.tag_name).filter(Boolean));
+            } catch (error) {
+                console.error('获取分类或标签失败:', error);
+            }
+        };
+        loadFilterOptions();
+    }, []);
+
+    useEffect(() => {
+        fetchArticles(currentPage, pageSize);
+    }, [currentPage, pageSize, appliedKeyword, filters]);
 
     useEffect(() => {
         if (shouldRefresh) {
-            fetchArticles(currentPage, pageSize, searchKeyword);
+            fetchArticles(currentPage, pageSize);
             setShouldRefresh(false);
         }
-    }, [shouldRefresh, pageSize, setShouldRefresh]);
+    }, [shouldRefresh, setShouldRefresh]);
 
     useEffect(() => {
         return () => {
@@ -35,34 +100,65 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
 
 
 
-    const fetchArticles = async (page, size, keyword = '') => {
+    const fetchArticles = async (page, size) => {
+        const seq = ++requestSeqRef.current;
         setLoading(true);
         try {
             const params = { page, size };
-            if (keyword && keyword.trim()) {
-                params.keyword = keyword.trim();
+            if (appliedKeyword && appliedKeyword.trim()) {
+                params.keyword = appliedKeyword.trim();
             }
-            
+            if (filters.status !== '') {
+                params.status = filters.status;
+            }
+            if (filters.categoryId !== '') {
+                params.categoryId = filters.categoryId;
+                params.includeSubCategories = filters.includeSubCategories;
+            }
+            if (filters.tag) {
+                params.tag = filters.tag;
+            }
+            if (filters.startDate) {
+                params.startDate = filters.startDate;
+            }
+            if (filters.endDate) {
+                params.endDate = filters.endDate;
+            }
+
             const response = await apiClient.get('/getarticlelist', {
                 params
             });
 
+            if (seq !== requestSeqRef.current) {
+                return;
+            }
+
             if (response.code === 200 && response.data) {
-                setLocalArticles(response.data.articles || []);
-                setTotalArticles(response.data.total || 0);
-                setTotalPages(response.data.totalPages || Math.ceil((response.data.total || 0) / size));
+                const articles = response.data.articles || [];
+                const total = response.data.total || 0;
+                setLocalArticles(articles);
+                setTotalArticles(total);
+                setTotalPages(response.data.totalPages || Math.ceil(total / size));
+                if (articles.length === 0 && page > 1 && total > 0) {
+                    setCurrentPage(page - 1);
+                }
             } else {
                 setLocalArticles([]);
                 setTotalArticles(0);
                 setTotalPages(0);
             }
         } catch (error) {
+            if (seq !== requestSeqRef.current) {
+                return;
+            }
             console.error('获取文章列表失败:', error);
             setLocalArticles([]);
             setTotalArticles(0);
             setTotalPages(0);
         } finally {
-            setLoading(false);
+            if (seq === requestSeqRef.current) {
+                setLoading(false);
+            }
         }
     };
 
@@ -79,9 +175,24 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
         }
         
         searchTimeoutRef.current = setTimeout(() => {
+            setAppliedKeyword(value);
             setCurrentPage(1);
-            fetchArticles(1, pageSize, value);
         }, 300);
+    };
+
+    const handleFilterChange = (key, value) => {
+        setFilters((prev) => ({ ...prev, [key]: value }));
+        setCurrentPage(1);
+    };
+
+    const handleResetFilters = () => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        setSearchKeyword('');
+        setAppliedKeyword('');
+        setFilters(DEFAULT_FILTERS);
+        setCurrentPage(1);
     };
 
     const handleImportFile = async (e) => {
@@ -178,7 +289,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
 
             if (response.code === 200) {
                 showToast('文章删除成功', 'info');
-                fetchArticles(currentPage, pageSize, searchKeyword);
+                fetchArticles(currentPage, pageSize);
             } else {
                 showToast(response.message || '删除失败', 'error');
             }
@@ -198,7 +309,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
 
             if (response.code === 200) {
                 showToast('文章已取消发布', 'info');
-                fetchArticles(currentPage, pageSize, searchKeyword);
+                fetchArticles(currentPage, pageSize);
             } else {
                 showToast(response.message || '取消发布失败', 'error');
             }
@@ -218,7 +329,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
 
             if (response.code === 200) {
                 showToast('文章已发布', 'info');
-                fetchArticles(currentPage, pageSize, searchKeyword);
+                fetchArticles(currentPage, pageSize);
             } else {
                 showToast(response.message || '发布失败', 'error');
             }
@@ -238,7 +349,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
 
             if (response.code === 200) {
                 showToast('文章密码已移除', 'info');
-                fetchArticles(currentPage, pageSize, searchKeyword);
+                fetchArticles(currentPage, pageSize);
             } else {
                 showToast(response.message || '移除密码失败', 'error');
             }
@@ -278,10 +389,83 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
     };
 
     const handleSearchClear = () => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
         setSearchKeyword('');
+        setAppliedKeyword('');
         setCurrentPage(1);
-        fetchArticles(1, pageSize, '');
     };
+
+    const selectClass = 'px-3 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200';
+
+    const filterBar = (
+        <>
+            <select
+                value={filters.status}
+                onChange={(e) => handleFilterChange('status', e.target.value)}
+                className={selectClass}
+            >
+                <option value="">全部状态</option>
+                <option value="1">已发布</option>
+                <option value="2">未发布</option>
+                <option value="3">待审核</option>
+                <option value="4">违规</option>
+            </select>
+            <select
+                value={filters.categoryId}
+                onChange={(e) => handleFilterChange('categoryId', e.target.value)}
+                className={selectClass}
+            >
+                <option value="">全部分类</option>
+                {categoryOptions.map((option) => (
+                    <option key={option.id} value={option.id}>{option.label}</option>
+                ))}
+            </select>
+            <label className={`flex items-center gap-2 text-sm text-gray-700 ${filters.categoryId === '' ? 'opacity-50' : ''}`}>
+                <input
+                    type="checkbox"
+                    checked={filters.includeSubCategories}
+                    onChange={(e) => handleFilterChange('includeSubCategories', e.target.checked)}
+                    disabled={filters.categoryId === ''}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed"
+                />
+                含子分类
+            </label>
+            <select
+                value={filters.tag}
+                onChange={(e) => handleFilterChange('tag', e.target.value)}
+                className={selectClass}
+            >
+                <option value="">全部标签</option>
+                {tagOptions.map((tagName) => (
+                    <option key={tagName} value={tagName}>{tagName}</option>
+                ))}
+            </select>
+            <div className="flex items-center gap-2">
+                <input
+                    type="date"
+                    value={filters.startDate}
+                    onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                    className={selectClass}
+                />
+                <span className="text-sm text-gray-400">至</span>
+                <input
+                    type="date"
+                    value={filters.endDate}
+                    onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                    className={selectClass}
+                />
+            </div>
+            <button
+                type="button"
+                onClick={handleResetFilters}
+                className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 text-sm font-medium"
+            >
+                重置
+            </button>
+        </>
+    );
 
     const columns = [
         { key: 'article_name', label: '标题', className: 'font-medium text-gray-900', render: (val) => unescapeHtml(val) || '无标题' },
@@ -347,6 +531,7 @@ export default function ArticlesView({ onNewArticle, onEditArticle, onImportArti
                 onSearchChange={handleSearchChange}
                 onSearchClear={handleSearchClear}
                 searchPlaceholder="搜索文章标题或摘要..."
+                filters={filterBar}
                 headerActions={
                     <>
                         <button onClick={handleImportClick} className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">

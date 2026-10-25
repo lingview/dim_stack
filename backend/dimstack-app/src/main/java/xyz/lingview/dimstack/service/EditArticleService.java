@@ -8,9 +8,9 @@ import java.util.Map;
 
 public interface EditArticleService {
 
-    Map<String, Object> getArticleListByUsername(String username, Integer page, Integer size);
-
-    Map<String, Object> searchArticlesByUsername(String username, String keyword, Integer page, Integer size);
+    Map<String, Object> getArticleListByUsername(String username, Integer page, Integer size, String keyword,
+                                                  Integer status, Integer categoryId, Boolean includeSubCategories,
+                                                  String tag, String startDate, String endDate);
 
     ArticleDetailDTO getArticleDetailById(String articleId, String username);
 

@@ -11,11 +11,23 @@ import java.util.Map;
 
 @Mapper
 public interface EditArticleMapper {
-    List<EditArticleDTO> getArticleListByUuid(@Param("uuid") String uuid,
-                                             @Param("offset") int offset,
-                                             @Param("size") int size);
+    List<EditArticleDTO> selectArticlesByUuid(@Param("uuid") String uuid,
+                                              @Param("keyword") String keyword,
+                                              @Param("status") Integer status,
+                                              @Param("categoryIds") List<Integer> categoryIds,
+                                              @Param("tag") String tag,
+                                              @Param("startTime") String startTime,
+                                              @Param("endTime") String endTime,
+                                              @Param("offset") int offset,
+                                              @Param("size") int size);
 
-    int countArticlesByUuid(@Param("uuid") String uuid);
+    int countArticlesByUuid(@Param("uuid") String uuid,
+                            @Param("keyword") String keyword,
+                            @Param("status") Integer status,
+                            @Param("categoryIds") List<Integer> categoryIds,
+                            @Param("tag") String tag,
+                            @Param("startTime") String startTime,
+                            @Param("endTime") String endTime);
 
     String getUuidByUsername(String username);
 
@@ -42,11 +54,4 @@ public interface EditArticleMapper {
     String getArticleContentById(@Param("articleId") String articleId);
 
     int updateArticleStatus(@Param("articleId") String articleId, @Param("status") Integer status);
-
-    List<EditArticleDTO> searchArticlesByUuid(@Param("uuid") String uuid,
-                                             @Param("keyword") String keyword,
-                                             @Param("offset") int offset,
-                                             @Param("size") int size);
-
-    int countSearchArticlesByUuid(@Param("uuid") String uuid, @Param("keyword") String keyword);
 }
