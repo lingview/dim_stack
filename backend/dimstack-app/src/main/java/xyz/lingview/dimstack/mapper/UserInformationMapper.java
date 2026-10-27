@@ -35,6 +35,12 @@ public interface UserInformationMapper {
 
     List<UserDTO> selectAllUsers();
 
+    List<UserDTO> selectUsersPage(@Param("keyword") String keyword,
+                                  @Param("offset") int offset,
+                                  @Param("size") int size);
+
+    int countUsers(@Param("keyword") String keyword);
+
     UserDTO selectUserById(@Param("id") Integer id);
 
     int updateUserRole(@Param("userId") Integer userId, @Param("roleId") Integer roleId);

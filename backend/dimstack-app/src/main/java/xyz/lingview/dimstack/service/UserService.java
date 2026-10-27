@@ -21,6 +21,12 @@ public interface UserService {
     // 获取所有用户列表
     List<UserDTO> getAllUsers();
 
+    // 分页查询用户（用户名/邮箱/手机号模糊匹配）
+    List<UserDTO> getUsersPage(int page, int size, String keyword);
+
+    // 统计用户数量（keyword 为空时统计全部）
+    int countUsers(String keyword);
+
     // 根据id获取用户详情
     UserDTO getUserById(Integer id);
 

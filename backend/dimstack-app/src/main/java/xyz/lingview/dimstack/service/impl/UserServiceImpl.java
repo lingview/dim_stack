@@ -136,6 +136,18 @@ public class UserServiceImpl implements UserService {
         return userInformationMapper.selectAllUsers();
     }
 
+    @Override
+    public List<UserDTO> getUsersPage(int page, int size, String keyword) {
+        int safePage = Math.max(page, 1);
+        int safeSize = Math.min(Math.max(size, 1), 100);
+        return userInformationMapper.selectUsersPage(keyword, (safePage - 1) * safeSize, safeSize);
+    }
+
+    @Override
+    public int countUsers(String keyword) {
+        return userInformationMapper.countUsers(keyword);
+    }
+
 
     @Override
     public UserDTO getUserById(Integer id) {

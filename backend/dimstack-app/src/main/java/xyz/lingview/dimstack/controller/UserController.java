@@ -15,6 +15,7 @@ import xyz.lingview.dimstack.service.UserBlacklistService;
 import xyz.lingview.dimstack.service.UserRoleService;
 import xyz.lingview.dimstack.service.CurrentUserService;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -111,6 +112,30 @@ public class UserController {
     public ApiResponse<List<UserDTO>> getUserEnableList() {
         List<UserDTO> users = userService.getAllEnableUsers();
         return ApiResponse.success(users);
+    }
+
+    @GetMapping("/list/page")
+    @RequiresPermission("system:user:management")
+    public ApiResponse<Map<String, Object>> getUserPageList(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String keyword) {
+        int safePage = page == null || page < 1 ? 1 : page;
+        int safeSize = size == null || size < 1 ? 10 : Math.min(size, 100);
+        String trimmedKeyword = keyword == null || keyword.isBlank() ? null : keyword.trim();
+
+        List<UserDTO> users = userService.getUsersPage(safePage, safeSize, trimmedKeyword);
+        int total = userService.countUsers(trimmedKeyword);
+        int totalAll = userService.countUsers(null);
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("users", users);
+        result.put("total", total);
+        result.put("totalAll", totalAll);
+        result.put("page", safePage);
+        result.put("size", safeSize);
+        result.put("totalPages", (int) Math.ceil((double) total / safeSize));
+        return ApiResponse.success(result);
     }
 
     @GetMapping("/listall")

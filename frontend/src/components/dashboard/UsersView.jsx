@@ -1,9 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search } from 'lucide-react';
 import apiClient from '../../utils/axios.jsx';
+import Pagination from './Pagination';
 import {getConfig} from "../../utils/config.jsx";
 import ImageCropper from '../ImageCropper.jsx';
 import { uploadProgress } from '../../utils/uploadProgressManager';
+
+const PAGE_SIZE = 10;
 
 const getFullImageUrl = (url) => {
   if (!url) return null;
@@ -60,30 +63,39 @@ export default function UsersView() {
   const [originalFile, setOriginalFile] = useState(null);
   const [cropperKey, setCropperKey] = useState(0);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [appliedKeyword, setAppliedKeyword] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalAll, setTotalAll] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const searchTimeoutRef = useRef(null);
 
-  const filteredUsers = useMemo(() => {
-    const keyword = searchKeyword.trim().toLowerCase();
-    if (!keyword) {
-      return users;
-    }
-    return users.filter((user) =>
-      [user.username, user.email, user.phone]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(keyword))
-    );
-  }, [users, searchKeyword]);
+  useEffect(() => {
+    fetchRoles();
+  }, []);
 
   useEffect(() => {
     fetchUsers();
-    fetchRoles();
+  }, [currentPage, appliedKeyword, refreshKey]);
+
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
   }, []);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/user/list');
-      console.log('原始用户数据:', response);
-      const usersWithRoles = (response.data || []).map(user => {
+      const params = { page: currentPage, size: PAGE_SIZE };
+      if (appliedKeyword && appliedKeyword.trim()) {
+        params.keyword = appliedKeyword.trim();
+      }
+      const response = await apiClient.get('/user/list/page', { params });
+      const usersWithRoles = (response.data?.users || []).map(user => {
         const parseRoleField = (field) => {
           if (!field && field !== 0) return [];
           if (Array.isArray(field)) return field;
@@ -104,8 +116,14 @@ export default function UsersView() {
           role_codes: parseRoleField(user.role_code)
         };
       });
-      console.log('处理后的用户数据:', usersWithRoles);
       setUsers(usersWithRoles);
+      const total = response.data?.total || 0;
+      setTotalUsers(total);
+      setTotalAll(response.data?.totalAll || 0);
+      setTotalPages(response.data?.totalPages || 1);
+      if (usersWithRoles.length === 0 && currentPage > 1 && total > 0) {
+        setCurrentPage(currentPage - 1);
+      }
     } catch (error) {
       console.error('获取用户列表失败:', error);
       setError('获取用户列表失败');
@@ -126,7 +144,7 @@ export default function UsersView() {
   const handleUpdateUserRoles = async (userId, roleIds) => {
     try {
       await apiClient.post(`/user-role/${userId}/roles/set`, roleIds);
-      fetchUsers();
+      setRefreshKey((key) => key + 1);
       setShowRoleModal(false);
       setEditingUser(null);
       setSelectedRoleIds([]);
@@ -141,7 +159,7 @@ export default function UsersView() {
       await apiClient.post('/user/updateStatus', null, {
         params: { userId, status }
       });
-      fetchUsers();
+      setRefreshKey((key) => key + 1);
       setShowConfirmModal(false);
       setConfirmAction(null);
     } catch (error) {
@@ -217,7 +235,7 @@ export default function UsersView() {
       const response = await apiClient.post('/user/admin/update', payload);
 
       if (response && response.code === 200) {
-        fetchUsers();
+        setRefreshKey((key) => key + 1);
         setShowEditModal(false);
         setEditingUserData({
           id: '',
@@ -268,7 +286,8 @@ export default function UsersView() {
       const response = await apiClient.post('/user/add', payload);
 
       if (response && response.code === 200) {
-        fetchUsers();
+        setCurrentPage(1);
+        setRefreshKey((key) => key + 1);
         setShowAddModal(false);
         setNewUser({
           username: '',
@@ -378,7 +397,7 @@ export default function UsersView() {
 
       if (response && response.code === 200) {
         uploadProgress.done(progressId);
-        fetchUsers();
+        setRefreshKey((key) => key + 1);
         setShowAvatarModal(false);
         setSelectedAvatar(null);
         setError('');
@@ -470,7 +489,17 @@ export default function UsersView() {
             type="text"
             placeholder="搜索用户名、邮箱或手机号..."
             value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSearchKeyword(value);
+              if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+              }
+              searchTimeoutRef.current = setTimeout(() => {
+                setAppliedKeyword(value);
+                setCurrentPage(1);
+              }, 300);
+            }}
             className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
           />
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -478,14 +507,21 @@ export default function UsersView() {
         {searchKeyword && (
           <button
             type="button"
-            onClick={() => setSearchKeyword('')}
+            onClick={() => {
+              if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+              }
+              setSearchKeyword('');
+              setAppliedKeyword('');
+              setCurrentPage(1);
+            }}
             className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 text-sm font-medium"
           >
             清除
           </button>
         )}
-        {searchKeyword && (
-          <span className="text-sm text-gray-500">匹配 {filteredUsers.length} / 共 {users.length} 位用户</span>
+        {appliedKeyword && (
+          <span className="text-sm text-gray-500">匹配 {totalUsers} / 共 {totalAll} 位用户</span>
         )}
       </div>
 
@@ -511,7 +547,7 @@ export default function UsersView() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {filteredUsers.map((user) => (
+            {users.map((user) => (
               <tr key={user.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
@@ -609,7 +645,7 @@ export default function UsersView() {
           </tbody>
         </table>
 
-        {users.length === 0 && !loading && (
+        {users.length === 0 && !loading && !appliedKeyword && (
           <div className="text-center py-12">
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
@@ -619,13 +655,21 @@ export default function UsersView() {
           </div>
         )}
 
-        {users.length > 0 && filteredUsers.length === 0 && (
+        {users.length === 0 && !loading && appliedKeyword && (
           <div className="text-center py-12">
             <h3 className="mt-2 text-sm font-medium text-gray-900">没有匹配的用户</h3>
             <p className="mt-1 text-sm text-gray-500">换个关键词试试</p>
           </div>
         )}
       </div>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalUsers}
+        pageSize={PAGE_SIZE}
+        onPageChange={setCurrentPage}
+      />
 
       {/* 头像上传 */}
       {showAvatarModal && (
