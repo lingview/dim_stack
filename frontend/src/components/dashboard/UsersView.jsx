@@ -31,6 +31,7 @@ export default function UsersView() {
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState('');
   const [editingUser, setEditingUser] = useState(null);
   const [showRoleModal, setShowRoleModal] = useState(false);
@@ -129,6 +130,7 @@ export default function UsersView() {
       setError('获取用户列表失败');
     } finally {
       setLoading(false);
+      setInitialLoading(false);
     }
   };
 
@@ -445,7 +447,7 @@ export default function UsersView() {
     }
   };
 
-  if (loading) {
+  if (initialLoading) {
     return (
       <div className="bg-white rounded-lg shadow-sm p-6">
         <div className="flex justify-between items-center mb-6">
@@ -467,7 +469,12 @@ export default function UsersView() {
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">用户管理</h2>
+        <h2 className="text-xl font-semibold text-gray-900">
+          用户管理
+          {loading && !initialLoading && (
+            <span className="ml-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-500 align-middle" />
+          )}
+        </h2>
         <button
           onClick={openAddModal}
           className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"

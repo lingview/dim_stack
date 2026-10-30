@@ -57,27 +57,16 @@ export default function DataTable({
     );
   };
 
-  if (loading) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-          {headerActions && <div className="flex items-center space-x-2">{headerActions}</div>}
-        </div>
-        {headerExtra}
-        {renderSearch()}
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            {title}
+            {loading && data.length > 0 && (
+              <span className="ml-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-500 align-middle" />
+            )}
+          </h2>
           {headerExtra}
         </div>
         {headerActions && <div className="flex items-center space-x-2">{headerActions}</div>}
@@ -91,7 +80,11 @@ export default function DataTable({
 
       {renderSearch()}
 
-      {data.length > 0 ? (
+      {loading && data.length === 0 ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      ) : data.length > 0 ? (
         <>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
